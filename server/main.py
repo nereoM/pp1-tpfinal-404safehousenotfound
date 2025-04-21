@@ -1,6 +1,7 @@
 from flask import Flask
 from models.extensions import db
 from services.config import Config
+from models.users import Usuario, Rol, UsuarioRol
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -18,6 +19,7 @@ def get_users():
 def iniciar_db():
     db.init_app(app)
     with app.app_context():
+        print("Conectando a:", app.config["SQLALCHEMY_DATABASE_URI"])
         try:
             db.create_all()
             print("Conexión exitosa a la base de datos MySQL")

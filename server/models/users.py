@@ -1,5 +1,5 @@
 from sqlalchemy.ext.hybrid import hybrid_property
-from extensions import db, pwd_context
+from .extensions import db, pwd_context
 
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
