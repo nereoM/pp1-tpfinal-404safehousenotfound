@@ -1,20 +1,16 @@
 from flask import Flask
 from models.extensions import db
 from services.config import Config
-from models.users import Usuario, Rol, UsuarioRol
+from routes.auth_routes import auth_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
+app.register_blueprint(auth_bp, url_prefix="/auth")
+
 @app.route("/")
 def hello_world():
     return "Hello, World!"
-
-@app.route("/api/users")
-def get_users():
-    return {
-        "users": ["Alice", "Bob", "Charlie"]
-    }
 
 def iniciar_db():
     db.init_app(app)

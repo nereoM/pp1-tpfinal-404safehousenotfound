@@ -1,12 +1,13 @@
 from sqlalchemy.ext.hybrid import hybrid_property
-from .extensions import db, pwd_context
+from werkzeug.security import generate_password_hash, check_password_hash
+from .extensions import db
 
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nombre = db.Column(db.String(50), nullable=False, unique=True)
     correo = db.Column(db.String(100), nullable=False, unique=True)
-    _contrasena = db.Column(db.String(100), nullable=False)
+    _contrasena = db.Column(db.String(512), nullable=False)
 
     @hybrid_property
     def contrasena(self):
@@ -14,11 +15,10 @@ class Usuario(db.Model):
     
     @contrasena.setter
     def contrasena(self, contrasena):
-        self._contrasena = pwd_context.hash(contrasena)
+        self._contrasena = generate_password_hash(contrasena)
 
-    def verificar_contrasena(self, contrasena):
-        return pwd_context.verify(contrasena, self._contrasena)
-
+    def verificar_contrasena(self, password):
+        return check_password_hash(self._contrasena, password)
 
     roles = db.relationship("Rol", secondary='usuarios_roles', back_populates="usuarios")
 
@@ -36,11 +36,7 @@ class Rol(db.Model):
 
     usuarios = db.relationship("Usuario", secondary='usuarios_roles', back_populates="roles")
 
-
 class UsuarioRol(db.Model):
     __tablename__ = 'usuarios_roles'
-
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), primary_key=True)
     id_rol = db.Column(db.Integer, db.ForeignKey('roles.id'), primary_key=True)
-
-
