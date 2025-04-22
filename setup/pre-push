@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Detecta la rama actual
+branch=$(git symbolic-ref --short HEAD)
+
+echo "🔍 Verificando si tu rama '$branch' está sincronizada con el remoto..."
+
+# Fetch de la rama remota (sin cambiar nada)
+git fetch origin $branch
+
+# Compara si tu rama está detrás
+behind=$(git rev-list --left-right --count origin/$branch...$branch | awk '{print $1}')
+
+if [ "$behind" -gt 0 ]; then
+  echo "⛔ Tu rama local está detrás de origin/$branch."
+  echo "💡 Hacete un: git pull origin $branch --rebase"
+  exit 1
+fi
+
+echo "✅ Todo al día. Push permitido."
+exit 0

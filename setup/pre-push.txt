@@ -1,3 +1,0 @@
-#!/bin/sh
-echo "⛔ Antes de hacer push, tenés que hacer: git pull origin main --rebase"
-exit 1
