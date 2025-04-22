@@ -1,6 +1,14 @@
-**/venv/
-**/env/
-**/__pycache__/
-**/node_modules/
+# Ignorar el archivo .env
 .env
-server/**/__pycache__/**
+
+# Ignorar carpetas __pycache__ y archivos .pyc
+__pycache__/
+*.pyc
+
+# Ignorar todo en la carpeta server que no sea necesario
+/server/__pycache__/
+/server/*.pyc
+/server/*.pyo
+/server/*.log
+/server/.env
+/server/venv
