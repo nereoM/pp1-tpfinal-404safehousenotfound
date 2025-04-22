@@ -2,8 +2,10 @@ from flask import Flask
 from models.extensions import db
 from services.config import Config
 from routes.auth_routes import auth_bp
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_object(Config)
 
 app.register_blueprint(auth_bp, url_prefix="/auth")
