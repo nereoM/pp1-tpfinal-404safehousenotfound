@@ -1,13 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Login from "./pages/Login";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<div className="text-4xl font-bold">React with Vite + Python with Flask</div>}/>
-      </Routes>
-    </BrowserRouter>
-  )
+  return <Login />;
 }
 
 export default App;
