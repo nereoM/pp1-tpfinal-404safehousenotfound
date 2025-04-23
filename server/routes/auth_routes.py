@@ -41,9 +41,18 @@ def login():
     if not username or not password:
         return jsonify({"error": "Username and password are required"}), 400
 
+    # user = Usuario.query.filter_by(nombre=username).first()
+    # if user and user.verificar_contrasena(password):
+    #     access_token = create_access_token(identity=str(user.id))
+    #     resp = jsonify({"message": "Login successful"})
+    #     set_access_cookies(resp, access_token)
+    #     return resp, 200
+
     user = Usuario.query.filter_by(nombre=username).first()
     if user and user.verificar_contrasena(password):
-        access_token = create_access_token(identity=str(user.id))
+        # Include roles in the token
+        roles = [r.slug for r in user.roles]
+        access_token = create_access_token(identity=str(user.id), additional_claims={"roles": roles})
         resp = jsonify({"message": "Login successful"})
         set_access_cookies(resp, access_token)
         return resp, 200
