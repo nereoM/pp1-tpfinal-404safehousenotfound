@@ -11,20 +11,20 @@ const frases = [
 ];
 
 export default function Login() {
+
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL;
-
+  const [idioma, setIdioma] = useState("ES");
+  const [flipped, setFlipped] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
-  const [flipped, setFlipped] = useState(false);
-  const [idioma, setIdioma] = useState("ES");
-
   const frase = frases[Math.floor(Math.random() * frases.length)];
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +38,7 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json"
         },
-        credentials: "include",
+        credentials: "include", // 👈 para recibir la cookie JWT
         body: JSON.stringify({ username, password })
       });
 
@@ -57,6 +57,8 @@ export default function Login() {
 
       if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
 
+      // redireccion segun rol
+
       if (user.roles.includes("admin")) {
         navigate("/admin/dashboard");
       } else if (user.roles.includes("rrhh")) {
@@ -65,13 +67,21 @@ export default function Login() {
         navigate("/home");
       }
 
+      /*
+      if (user?.roles?.includes("rrhh")) {
+        navigate("/rrhh/home");
+      }
+      */
+
+
     } catch (err) {
       console.error(err);
       setError(err.message || "Ocurrió un error. Intentá nuevamente.");
     } finally {
       setLoading(false);
     }
-  };
+  }; 
+
 
   return (
     <div className="relative min-h-screen bg-gray-900 flex flex-col justify-center items-center text-white px-4 overflow-hidden">
@@ -81,7 +91,7 @@ export default function Login() {
         className="absolute top-4 right-4 text-sm text-gray-400 hover:text-white z-20"
         onClick={() => setIdioma(idioma === "ES" ? "EN" : "ES")}
       >
-        {idioma}
+        {idioma === "ES" ? "EN" : "ES"}
       </button>
 
       <button
