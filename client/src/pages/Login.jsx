@@ -28,7 +28,7 @@ export default function Login() {
     setSuccess(false);
 
     try {
-      const res = await fetch(${API_URL}/auth/login, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -40,17 +40,17 @@ export default function Login() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error  "Error al iniciar sesión");
+        throw new Error(data?.error || "Error al iniciar sesión");
       }
 
-      const userRes = await fetch(${API_URL}/auth/me, {
+      const userRes = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
         credentials: "include"
       });
 
       const user = await userRes.json();
 
-      if (!userRes.ok) throw new Error(user?.error  "No se pudo obtener el usuario");
+      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
 
       // redireccion segun rol
 
