@@ -1,10 +1,5 @@
 from functools import wraps
 from flask import make_response
-from flask_jwt_extended import get_current_user
-
-
-from functools import wraps
-from flask import make_response
 from flask_jwt_extended import jwt_required
 from utils import get_current_user
 
