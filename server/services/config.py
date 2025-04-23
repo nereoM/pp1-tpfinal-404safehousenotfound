@@ -18,3 +18,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = os.getenv("SECRET_KEY", "supersecreto")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "clave_para_jwt")
+    
+    JWT_TOKEN_LOCATION = ["cookies"]
+    JWT_COOKIE_SECURE = False
+    JWT_COOKIE_CSRF_PROTECT = False
+    JWT_ACCESS_COOKIE_PATH = "/"

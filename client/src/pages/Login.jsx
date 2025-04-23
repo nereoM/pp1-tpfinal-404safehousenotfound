@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
+
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -16,15 +20,13 @@ export default function Login() {
     setSuccess(false);
 
     try {
-      const res = await fetch("http://localhost:5000/auth/login", {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          username,
-          password
-        })
+        credentials: "include", // 👈 para recibir la cookie JWT
+        body: JSON.stringify({ username, password })
       });
 
       const data = await res.json();
@@ -33,9 +35,32 @@ export default function Login() {
         throw new Error(data?.error || "Error al iniciar sesión");
       }
 
-      console.log("✅ Login exitoso:", data);
-      setSuccess(true);
-      // localStorage.setItem("token", data.access_token);
+      const userRes = await fetch(`${API_URL}/auth/me`, {
+        method: "GET",
+        credentials: "include"
+      });
+
+      const user = await userRes.json();
+
+      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
+
+      // redireccion segun rol
+
+      if (user.roles.includes("admin")) {
+        navigate("/admin/dashboard");
+      } else if (user.roles.includes("rrhh")) {
+        navigate("/rrhh/home");
+      } else {
+        navigate("/home");
+      }
+      
+      /*
+      if (user?.roles?.includes("rrhh")) {
+        navigate("/rrhh/home");
+      }
+      */
+      
+
     } catch (err) {
       console.error(err);
       setError(err.message || "Ocurrió un error. Intentá nuevamente.");
