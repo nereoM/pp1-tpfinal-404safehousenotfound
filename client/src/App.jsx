@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import RrhhHome from "./pages/RrhhHome";
 
+
 function App() {
   return (
     <Router>
@@ -12,5 +13,3 @@ function App() {
     </Router>
   );
 }
-
-export default App;
