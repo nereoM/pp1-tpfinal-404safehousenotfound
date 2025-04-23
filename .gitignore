@@ -12,3 +12,4 @@ __pycache__/
 /server/*.log
 /server/.env
 /server/venv
+/.vscode/settings.json

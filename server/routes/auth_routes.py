@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import create_access_token
 from models.users import Usuario
 from models.extensions import db
+from datetime import timedelta
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -38,6 +40,13 @@ def login():
 
     user = Usuario.query.filter_by(nombre=username).first()
     if user and user.verificar_contrasena(password):
-        return jsonify({"message": "Login successful"}), 200
+        access_token = create_access_token(
+            identity=user.id,
+            expires_delta=timedelta(hours=2)
+        )
+
+    user = Usuario.query.filter_by(nombre=username).first()
+    if user and user.verificar_contrasena(password):
+        return jsonify({"message": "Login successful", "access_token": access_token}), 200
     else:
         return jsonify({"error": "Invalid credentials"}), 401

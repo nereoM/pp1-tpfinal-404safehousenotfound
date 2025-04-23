@@ -5,17 +5,21 @@ from routes.auth_routes import auth_bp
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
 app.config.from_object(Config)
-
+CORS(app)
+db.init_app(app)
 app.register_blueprint(auth_bp, url_prefix="/auth")
 
 @app.route("/")
 def hello_world():
     return "Hello, World!"
 
+def iniciar_app():
+    
+    iniciar_db()
+    return app
+
 def iniciar_db():
-    db.init_app(app)
     with app.app_context():
         print("Conectando a:", app.config["SQLALCHEMY_DATABASE_URI"])
         try:

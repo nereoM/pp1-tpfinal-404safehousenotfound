@@ -22,7 +22,7 @@ class Usuario(db.Model):
 
     roles = db.relationship("Rol", secondary='usuarios_roles', back_populates="usuarios")
 
-    def verificar_rol(self, rol):
+    def tiene_rol(self, rol):
         return bool(
             Rol.query.join(Rol.usuarios).filter(Usuario.id == self.id, Rol.slug == rol).count() == 1
         )
