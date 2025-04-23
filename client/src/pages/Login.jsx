@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const frases = [
   "Hoy es un buen día para organizar el talento.",
@@ -11,18 +11,15 @@ const frases = [
 ];
 
 export default function Login() {
+
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [showInfo, setShowInfo] = useState(false);
-  const [idioma, setIdioma] = useState("ES");
-  const [flipped, setFlipped] = useState(false);
-  const navigate = useNavigate();
-
-  const frase = frases[Math.floor(Math.random() * frases.length)];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -31,36 +28,31 @@ export default function Login() {
     setSuccess(false);
 
     try {
-      const res = await fetch("http://localhost:5000/auth/login", {
+      const res = await fetch(${API_URL}/auth/login, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          username,
-          password
-        }),
-        credentials: "include"
+        credentials: "include", // 👈 para recibir la cookie JWT
+        body: JSON.stringify({ username, password })
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Error al iniciar sesión");
+        throw new Error(data?.error  "Error al iniciar sesión");
       }
 
-      console.log("✅ Login exitoso:", data);
-      setSuccess(true);
-
-      // Obtener usuario y redirigir según rol
-      const userRes = await fetch("http://localhost:5000/auth/me", {
+      const userRes = await fetch(${API_URL}/auth/me, {
         method: "GET",
         credentials: "include"
       });
 
       const user = await userRes.json();
 
-      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
+      if (!userRes.ok) throw new Error(user?.error  "No se pudo obtener el usuario");
+
+      // redireccion segun rol
 
       if (user.roles.includes("admin")) {
         navigate("/admin/dashboard");
@@ -70,13 +62,21 @@ export default function Login() {
         navigate("/home");
       }
 
+      /*
+      if (user?.roles?.includes("rrhh")) {
+        navigate("/rrhh/home");
+      }
+      */
+
+
     } catch (err) {
       console.error(err);
       setError(err.message || "Ocurrió un error. Intentá nuevamente.");
     } finally {
       setLoading(false);
     }
-  };
+  }; 
+
 
   return (
     <div className="relative min-h-screen bg-gray-900 flex flex-col justify-center items-center text-white px-4 overflow-hidden">
