@@ -28,7 +28,7 @@ export default function Login() {
     setSuccess(false);
 
     try {
-      const res = await fetch(${API_URL}/auth/login, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -40,17 +40,17 @@ export default function Login() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error  "Error al iniciar sesión");
+        throw new Error(data?.error || "Error al iniciar sesión");
       }
 
-      const userRes = await fetch(${API_URL}/auth/me, {
+      const userRes = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
         credentials: "include"
       });
 
       const user = await userRes.json();
 
-      if (!userRes.ok) throw new Error(user?.error  "No se pudo obtener el usuario");
+      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
 
       // redireccion segun rol
 
@@ -76,6 +76,7 @@ export default function Login() {
       setLoading(false);
     }
   }; 
+
 
   return (
     <div className="relative min-h-screen bg-gray-900 flex flex-col justify-center items-center text-white px-4 overflow-hidden">
@@ -183,7 +184,7 @@ export default function Login() {
           <div className="absolute w-full h-full backface-hidden rotate-y-180">
             <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl border border-white/20">
               <h2 className="text-2xl font-semibold text-center text-white">Registrarse</h2>
-              <p className="text-sm text-gray-300 text-center mb-4">Formulario en construccion dejen laburar</p>
+              <p className="text-sm text-gray-300 text-center mb-4">Formulario en desarrollo</p>
 
               <div className="text-sm text-center text-gray-300 mt-4">
                 ¿Ya tenés cuenta?{' '}
