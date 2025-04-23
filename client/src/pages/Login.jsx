@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
 const frases = [
@@ -19,6 +20,7 @@ export default function Login() {
   const [showInfo, setShowInfo] = useState(false);
   const [idioma, setIdioma] = useState("ES");
   const [flipped, setFlipped] = useState(false);
+  const navigate = useNavigate();
 
   const frase = frases[Math.floor(Math.random() * frases.length)];
 
@@ -37,7 +39,8 @@ export default function Login() {
         body: JSON.stringify({
           username,
           password
-        })
+        }),
+        credentials: "include"
       });
 
       const data = await res.json();
@@ -48,6 +51,25 @@ export default function Login() {
 
       console.log("✅ Login exitoso:", data);
       setSuccess(true);
+
+      // Obtener usuario y redirigir según rol
+      const userRes = await fetch("http://localhost:5000/auth/me", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      const user = await userRes.json();
+
+      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
+
+      if (user.roles.includes("admin")) {
+        navigate("/admin/dashboard");
+      } else if (user.roles.includes("rrhh")) {
+        navigate("/rrhh/home");
+      } else {
+        navigate("/home");
+      }
+
     } catch (err) {
       console.error(err);
       setError(err.message || "Ocurrió un error. Intentá nuevamente.");
@@ -162,7 +184,7 @@ export default function Login() {
           <div className="absolute w-full h-full backface-hidden rotate-y-180">
             <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl border border-white/20">
               <h2 className="text-2xl font-semibold text-center text-white">Registrarse</h2>
-              <p className="text-sm text-gray-300 text-center mb-4">Formulario en construccion dejen laburar</p>
+              <p className="text-sm text-gray-300 text-center mb-4">Formulario en desarrollo</p>
 
               <div className="text-sm text-center text-gray-300 mt-4">
                 ¿Ya tenés cuenta?{' '}

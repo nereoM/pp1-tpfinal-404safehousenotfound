@@ -1,31 +1,70 @@
-const API_URL = import.meta.env.VITE_API_URL;
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-export async function login(data) {
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+export default function Login() {
 
-  let json = null;
+  const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
-  try {
-    json = await res.json(); // intenta parsear JSON
-  } catch (e) {
-    console.warn("Respuesta sin JSON válido");
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess(false);
 
-  if (!res.ok) {
-    if (json && json.error) {
-      throw new Error(json.error);
-    } else if (res.status === 401) {
-      throw new Error("Credenciales inválidas");
-    } else if (res.status === 400) {
-      throw new Error("Faltan datos para iniciar sesión");
-    } else {
-      throw new Error("Ocurrió un error inesperado");
+    try {
+      const res = await fetch(${API_URL}/auth/login, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include", // 👈 para recibir la cookie JWT
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error  "Error al iniciar sesión");
+      }
+
+      const userRes = await fetch(${API_URL}/auth/me, {
+        method: "GET",
+        credentials: "include"
+      });
+
+      const user = await userRes.json();
+
+      if (!userRes.ok) throw new Error(user?.error  "No se pudo obtener el usuario");
+
+      // redireccion segun rol
+
+      if (user.roles.includes("admin")) {
+        navigate("/admin/dashboard");
+      } else if (user.roles.includes("rrhh")) {
+        navigate("/rrhh/home");
+      } else {
+        navigate("/home");
+      }
+
+      /*
+      if (user?.roles?.includes("rrhh")) {
+        navigate("/rrhh/home");
+      }
+      */
+
+
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Ocurrió un error. Intentá nuevamente.");
+    } finally {
+      setLoading(false);
     }
-  }
-
-  return json;
-}
+  };
