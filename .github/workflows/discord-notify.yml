@@ -3,7 +3,7 @@ name: Notificación estilo Naza 🔔
 on:
   push:
     branches:
-      - main  # o "master", según tu caso
+      - master  
 
 jobs:
   notify-discord:
