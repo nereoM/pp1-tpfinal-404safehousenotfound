@@ -52,8 +52,17 @@ export default function RrhhHome() {
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-4">
       <div className="bg-white shadow-lg rounded-xl p-8 text-center max-w-md w-full space-y-6">
         <h1 className="text-3xl font-bold text-blue-700 mb-4">Bienvenido, {user?.nombre}</h1>
-        <p className="text-gray-700 text-lg">Rol: {user?.roles?.[0]?.nombre || "No asignado"}</p>
-        <p className="text-gray-700 text-sm">Correo: {user?.correo}</p>
+        
+        {/* Texto adicional */}
+        <p className="text-gray-700 text-lg mb-4">
+          Este es tu panel de administración. Aquí podrás acceder a todas las herramientas necesarias para gestionar los procesos de RRHH.
+        </p>
+
+        {/* Información del usuario */}
+        <div className="space-y-4">
+          <p className="text-gray-700 text-sm">Correo: {user?.correo}</p>
+          <p className="text-gray-700 text-sm">Rol: {user?.roles?.[0]?.nombre || "No asignado"}</p>
+        </div>
 
         {/* Opciones de navegación */}
         <div className="space-y-4">
@@ -76,7 +85,7 @@ export default function RrhhHome() {
           </div>
         </div>
 
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500 mt-4">
           <p>Accede a todas las funciones exclusivas de RRHH para administrar el talento de la empresa.</p>
         </div>
       </div>
