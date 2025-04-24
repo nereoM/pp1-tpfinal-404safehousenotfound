@@ -8,7 +8,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.users import Usuario
 from flask import jsonify
 from flask_jwt_extended import JWTManager
-
+from initialize_admins import create_admins
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -32,11 +32,12 @@ def iniciar_db():
         print("Conectando a:", app.config["SQLALCHEMY_DATABASE_URI"])
         try:
             db.create_all()
+            create_admins()
             print("Conexión exitosa a la base de datos MySQL")
         except Exception as e:
             print("Error de conexión:", e)
             
-
 if __name__ == "__main__":
     iniciar_db()
+
     app.run(debug=True)
