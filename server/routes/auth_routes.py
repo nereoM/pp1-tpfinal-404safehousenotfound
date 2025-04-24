@@ -68,7 +68,6 @@ def login():
 
     return jsonify({"error": "Invalid credentials"}), 401
 
-
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
 def get_user_info():
