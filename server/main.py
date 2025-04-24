@@ -3,10 +3,16 @@ from models.extensions import db
 from services.config import Config
 from routes.auth_routes import auth_bp
 from flask_cors import CORS
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from models.users import Usuario
+from flask import jsonify
+from flask_jwt_extended import JWTManager
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
-CORS(app)
+jwt = JWTManager(app)
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 db.init_app(app)
 app.register_blueprint(auth_bp, url_prefix="/auth")
 
@@ -27,6 +33,7 @@ def iniciar_db():
             print("Conexión exitosa a la base de datos MySQL")
         except Exception as e:
             print("Error de conexión:", e)
+            
 
 if __name__ == "__main__":
     iniciar_db()
