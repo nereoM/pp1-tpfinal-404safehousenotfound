@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import make_response, jsonify
 from flask_jwt_extended import jwt_required, verify_jwt_in_request
-from utils import get_current_user
+from .utils import get_current_user
 
 # def auth_rol(roles_requeridos):
 #     def wrapper(fn):

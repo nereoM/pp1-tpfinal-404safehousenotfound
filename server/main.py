@@ -2,6 +2,7 @@ from flask import Flask
 from models.extensions import db
 from services.config import Config
 from routes.auth_routes import auth_bp
+from routes.dashboard_routes import dashboard_bp
 from flask_cors import CORS
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.users import Usuario
@@ -15,6 +16,7 @@ jwt = JWTManager(app)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 db.init_app(app)
 app.register_blueprint(auth_bp, url_prefix="/auth")
+app.register_blueprint(dashboard_bp, url_prefix="/api")
 
 @app.route("/")
 def hello_world():

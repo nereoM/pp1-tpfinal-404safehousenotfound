@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
-from models.users import Usuario
+from models.users import Usuario, Rol
 from models.extensions import db
 from datetime import timedelta
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -23,7 +23,16 @@ def register():
     if existing_user:
         return jsonify({"error": "Username or email already exists"}), 400
 
+    # Buscar el rol de "candidato" en la base de datos
+    candidato_role = db.session.query(Rol).filter_by(slug="candidato").first()
+    if not candidato_role:
+        # return jsonify({"error": "Default role 'candidato' not found"}), 500
+        candidato_role = Rol(nombre="Candidato", permisos="candidato_permisos", slug="candidato")
+        db.session.add(candidato_role)
+        db.session.commit()
+
     new_user = Usuario(nombre=username, correo=email, contrasena=password)
+    new_user.roles.append(candidato_role)
 
     try:
         db.session.add(new_user)
