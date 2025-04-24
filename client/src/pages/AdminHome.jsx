@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { User, Settings, FileText } from "lucide-react";
 
-export default function AdminDashboard() {
+export default function AdminHome() {
     const [admin, setAdmin] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-4">
             <div className="bg-white shadow-lg rounded-xl p-8 text-center max-w-md w-full space-y-6">
-                <h1 className="text-3xl font-bold text-blue-700 mb-4">Dashboard de Administrador</h1>
+                <h1 className="text-3xl font-bold text-blue-700 mb-4">Menú de Administrador</h1>
                 <p className="text-gray-700 text-lg mb-4">Bienvenido, {admin?.nombre}. Este panel te permite gestionar todo lo relacionado con el sistema.</p>
 
                 {/* Mostrar información del administrador */}

@@ -60,7 +60,7 @@ export default function Login() {
       // redireccion segun rol
 
       if (user.roles.includes("admin")) {
-        navigate("/admin/dashboard");
+        navigate("/admin/home");
       } else if (user.roles.includes("rrhh")) {
         navigate("/rrhh/home");
       } else {
