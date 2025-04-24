@@ -14,12 +14,17 @@ export default function Login() {
 
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL;
+  const [idioma, setIdioma] = useState("ES");
+  const [flipped, setFlipped] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const frase = frases[Math.floor(Math.random() * frases.length)];
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
