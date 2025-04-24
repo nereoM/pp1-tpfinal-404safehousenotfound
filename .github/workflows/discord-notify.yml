@@ -1,0 +1,19 @@
+name: Notificación estilo Naza 🔔
+
+on:
+  push:
+    branches:
+      - main  # o "master", según tu caso
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enviar notificación a Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{\"content\": \"🚀 ${GITHUB_ACTOR} hizo push en rama *${GITHUB_REF_NAME}*\n📝 Commit: _${{ github.event.head_commit.message }}_\"}" \
+          $DISCORD_WEBHOOK
