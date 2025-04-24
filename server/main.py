@@ -4,9 +4,6 @@ from services.config import Config
 from routes.auth_routes import auth_bp
 from routes.dashboard_routes import dashboard_bp
 from flask_cors import CORS
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from models.users import Usuario
-from flask import jsonify
 from flask_jwt_extended import JWTManager
 from initialize_admins import create_admins
 
