@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User, Settings, FileText } from "lucide-react";
+import { User, Settings, FileText, UserPlus, LogOut, List, BarChart2 } from "lucide-react";
 
 export default function AdminHome() {
     const [admin, setAdmin] = useState(null);
@@ -32,70 +32,71 @@ export default function AdminHome() {
         fetchAdminData();
     }, [API_URL]);
 
-    if (loading) {
+    if (loading || error) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <div className="text-lg text-gray-700">Cargando...</div>
-            </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <div className="text-lg text-red-500">{error}</div>
+            <div className="h-screen w-full flex items-center justify-center bg-blue-600">
+                <div className={`text-lg ${error ? "text-red-500" : "text-white"}`}>
+                    {error || "Cargando..."}
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-4">
-            <div className="bg-white shadow-lg rounded-xl p-8 text-center max-w-md w-full space-y-6">
-                <h1 className="text-3xl font-bold text-blue-700 mb-4">Menú de Administrador</h1>
-                <p className="text-gray-700 text-lg mb-4">Bienvenido, {admin?.nombre}. Este panel te permite gestionar todo lo relacionado con el sistema.</p>
+        <div className="min-h-screen w-full bg-blue-100 flex flex-col items-center justify-center p-4">
+            <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl p-6 sm:p-8 md:p-10 space-y-6 overflow-y-auto">
+                <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 text-center">Menú de Administrador</h1>
+                <p className="text-gray-700 text-base sm:text-lg text-center">
+                    Bienvenido, {admin?.nombre}. Este panel te permite gestionar todo lo relacionado con el sistema.
+                </p>
 
-                {/* Mostrar información del administrador */}
-                <div className="space-y-4">
-                    <p className="text-gray-700 text-sm">Correo: {admin?.correo}</p>
-                    <p className="text-gray-700 text-sm">Rol: {admin?.roles?.[0]?.nombre || "No asignado"}</p>
-
-                    {/* Si existen más roles, mostrarlos */}
-                    {admin?.roles && admin?.roles.length > 1 && (
-                        <div>
-                            <h2 className="text-gray-700 text-sm font-semibold">Roles adicionales:</h2>
-                            <ul className="list-disc list-inside text-gray-600">
-                                {admin.roles.slice(1).map((role, index) => (
-                                    <li key={index}>{role.nombre}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
+                {/* Información del administrador */}
+                <div className="text-sm sm:text-base space-y-2">
+                    <p className="text-gray-700">Correo: {admin?.correo}</p>
                 </div>
 
-                {/* Opciones de navegación */}
-                <div className="space-y-4">
-                    {/* Gestionar usuarios */}
-                    <div className="flex items-center justify-between p-4 bg-blue-100 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 transition-colors">
-                        <User className="text-blue-600 w-6 h-6" />
-                        <p className="text-gray-800 text-lg">Gestionar usuarios</p>
+                {/* Opciones */}
+                <div className="grid grid-cols-1 gap-4 w-full">
+                    {/* Ver perfil */}
+                    <div className="flex items-center gap-4 p-4 bg-teal-100 rounded-lg shadow-md cursor-pointer hover:bg-teal-200 transition w-full">
+                        <User className="text-teal-600 w-6 h-6" />
+                        <span className="text-gray-800 text-base sm:text-lg">Ver perfil</span>
                     </div>
 
-                    {/* Configuración */}
-                    <div className="flex items-center justify-between p-4 bg-yellow-100 rounded-lg shadow-md cursor-pointer hover:bg-yellow-200 transition-colors">
-                        <Settings className="text-yellow-600 w-6 h-6" />
-                        <p className="text-gray-800 text-lg">Configuración del sistema</p>
+                    {/* Ver dashboard */}
+                    <div className="flex items-center gap-4 p-4 bg-yellow-100 rounded-lg shadow-md cursor-pointer hover:bg-yellow-200 transition w-full">
+                        <BarChart2 className="text-yellow-600 w-6 h-6" />
+                        <span className="text-gray-800 text-base sm:text-lg">Ver dashboard</span>
                     </div>
 
-                    {/* Reportes */}
-                    <div className="flex items-center justify-between p-4 bg-green-100 rounded-lg shadow-md cursor-pointer hover:bg-green-200 transition-colors">
+                    {/* Gestionar usuarios y roles */}
+                    <div className="flex items-center gap-4 p-4 bg-purple-100 rounded-lg shadow-md cursor-pointer hover:bg-purple-200 transition w-full">
+                        <UserPlus className="text-purple-600 w-6 h-6" />
+                        <span className="text-gray-800 text-base sm:text-lg">Gestionar usuarios y roles</span>
+                    </div>
+
+                    {/* Ver listado de campañas */}
+                    <div className="flex items-center gap-4 p-4 bg-blue-100 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 transition w-full">
+                        <List className="text-blue-600 w-6 h-6" />
+                        <span className="text-gray-800 text-base sm:text-lg">Ver listado de campañas</span>
+                    </div>
+
+                    {/* Generar reporte */}
+                    <div className="flex items-center gap-4 p-4 bg-green-100 rounded-lg shadow-md cursor-pointer hover:bg-green-200 transition w-full">
                         <FileText className="text-green-600 w-6 h-6" />
-                        <p className="text-gray-800 text-lg">Ver reportes</p>
+                        <span className="text-gray-800 text-base sm:text-lg">Generar reporte</span>
+                    </div>
+
+                    {/* Cerrar sesión */}
+                    <div className="flex items-center gap-4 p-4 bg-red-100 rounded-lg shadow-md cursor-pointer hover:bg-red-200 transition w-full">
+                        <LogOut className="text-red-600 w-6 h-6" />
+                        <span className="text-gray-800 text-base sm:text-lg">Cerrar sesión</span>
                     </div>
                 </div>
 
-                <div className="text-sm text-gray-500 mt-4">
-                    <p>Accede a las opciones exclusivas para administrar y configurar el sistema de manera efectiva.</p>
-                </div>
+                <p className="text-center text-sm text-gray-500 mt-4">
+                    Accede a las opciones exclusivas para administrar y configurar el sistema de manera efectiva.
+                </p>
             </div>
         </div>
     );
