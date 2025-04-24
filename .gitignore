@@ -13,5 +13,6 @@ __pycache__/
 /server/.env
 /server/venv
 /.vscode/settings.json
-
+files/*
+!files/.gitkeep
 uploads/
