@@ -71,6 +71,23 @@ Se usa un diagrama de casos de usos para identificar los permisos y límites de 
 
 ---
 
+## ✅ Permisos por Recursos
+Esta tabla detalla los permisos de acceso que tiene cada rol dentro del sistema para interactuar con los distintos recursos o entidades de la base de datos. Estos permisos se utilizan para definir el acceso a los endpoints de la API.
+
+Los permisos están representados por las siguientes letras:
+
+- 🅲 = Crear
+- 🆁 = Leer
+- 🆄 = Actualizar
+- 🅳 = Eliminar
+
+| Recurso                            | Admin | Reclutador | Postulante |
+|----------------------------------|:-----:|:----------:|:----------:|
+| Usuario                          |  🅲 🆁 🆄 🅳   |     🅲  🅳     |     🅲        |
+| Postulacion laboral              |  🆁 🆄 🅳   |     🅲 🆁 🆄 🅳     |     🆁        |
+| Oferta laboral                   |  🆁           |     🆁 🆄 🅳        |     🅲 🆁     |
+
+
 ## 📝 Cambios en el Diagrama
 
 | Fecha       | Responsable | Versión | Descripción                       |
@@ -81,5 +98,5 @@ Se usa un diagrama de casos de usos para identificar los permisos y límites de 
 
 ## 📎 Archivos relacionados
 
-- `docs/roles/diagrama-casos-de-uso-roles.svg` (Se puede visualizar y editar en draw.io)
+- `docs/roles/diagrama-casos-de-uso-roles.drawio.svg` (Se puede visualizar y editar en draw.io)
 
