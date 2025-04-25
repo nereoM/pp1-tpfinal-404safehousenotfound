@@ -21,7 +21,6 @@ export default function Login() {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
   const [registerRepeatPassword, setRegisterRepeatPassword] = useState("");
-  const [registerAcceptNotifications, setRegisterAcceptNotifications] = useState(false);
   const [registerPasswordVisible, setRegisterPasswordVisible] = useState(false);
   const [registerRepeatPasswordVisible, setRegisterRepeatPasswordVisible] = useState(false);
   const [registerError, setRegisterError] = useState("");
@@ -290,15 +289,6 @@ export default function Login() {
                   {registerRepeatPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                 </span>
               </div>
-
-              <label className="flex items-center space-x-2 text-sm text-gray-300">
-                <input
-                  type="checkbox"
-                  checked={registerAcceptNotifications}
-                  onChange={(e) => setRegisterAcceptNotifications(e.target.checked)}
-                />
-                <span>Deseo recibir notificaciones</span>
-              </label>
 
               {registerError && <p className="text-red-500 text-sm text-center">{registerError}</p>}
               {registerSuccess && <p className="text-green-400 text-sm text-center">Registro exitoso</p>}
