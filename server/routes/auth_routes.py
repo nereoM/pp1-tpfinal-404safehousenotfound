@@ -12,6 +12,7 @@ from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Message
 from models.extensions import mail
 from flask import current_app
+import re
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -25,6 +26,10 @@ def register():
     if not username or not email or not password:
         return jsonify({"error": "Username, email and password are required"}), 400
     
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    if not re.match(email_regex, email):
+        return jsonify({"error": "Invalid email format"}), 400
+
     existing_user = Usuario.query.filter((Usuario.nombre == username) | (Usuario.correo == email)).first()
     if existing_user:
         return jsonify({"error": "Username or email already exists"}), 400
@@ -78,11 +83,11 @@ def confirmar_email(token):
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
-    username = data.get("username")
+    identifier = data.get("username")
     password = data.get("password")
 
-    if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
+    if not identifier or not password:
+        return jsonify({"error": "Identifier (username or email) and password are required"}), 400
 
     # user = Usuario.query.filter_by(nombre=username).first()
     # if user and user.verificar_contrasena(password):
@@ -91,7 +96,9 @@ def login():
     #     set_access_cookies(resp, access_token)
     #     return resp, 200
 
-    user = Usuario.query.filter_by(nombre=username).first()
+    user = Usuario.query.filter(
+        (Usuario.nombre == identifier) | (Usuario.correo == identifier)
+    ).first()
     if user and user.verificar_contrasena(password):
         # Include roles in the token
         roles = [r.slug for r in user.roles]

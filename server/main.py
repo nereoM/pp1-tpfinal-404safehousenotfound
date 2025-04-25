@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from initialize_admins import create_admins
 from models.extensions import mail
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -16,6 +17,7 @@ CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_cred
 db.init_app(app)
 app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(dashboard_bp, url_prefix="/api")
+migrate = Migrate(app, db)
 
 @app.route("/")
 def hello_world():
