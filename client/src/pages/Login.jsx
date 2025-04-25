@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { GoogleLogin } from '@react-oauth/google';
 
@@ -98,13 +98,18 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-4 left-4 z-30 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white">
+        <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
+      </button>
+
+
       <div className="absolute inset-0 bg-[url('/city.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
 
       <button
         onClick={() => setShowInfo(true)}
-        className="absolute bottom-2 right-4 text-xs text-gray-400 hover:text-white z-20"
-      >
-        Sobre nosotros
+        className="absolute bottom-2 right-4 text-xs text-gray-400 hover:text-white z-20">Sobre nosotros
       </button>
 
       {showInfo && (
@@ -194,11 +199,11 @@ export default function Login() {
                       credentials: "include",
                       body: JSON.stringify({ credential: tokenGoogle })
                     })
-                    .then(res => res.json())
-                    .then(data => {
-                      console.log("Login Google exitoso:", data);
-                    })
-                    .catch(err => console.error("Error Google login:", err));
+                      .then(res => res.json())
+                      .then(data => {
+                        console.log("Login Google exitoso:", data);
+                      })
+                      .catch(err => console.error("Error Google login:", err));
                   }}
                   onError={() => {
                     console.error("Falló el login con Google");
