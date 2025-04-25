@@ -6,25 +6,27 @@ from models.extensions import db
 import os
 from werkzeug.utils import secure_filename
 
-# def allowed_file(filename):
-#     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 dashboard_bp = Blueprint("dashboard", __name__)
-
-# UPLOAD_FOLDER = 'uploads/cvs'
-# ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
-# dashboard_bp.config = {"UPLOAD_FOLDER": UPLOAD_FOLDER}
-
-# os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @dashboard_bp.route("/dashboard/candidato", methods=["GET"])
 @role_required(["candidato"])
 def candidato_dashboard():
     return jsonify({"message": "Bienvenido al dashboard de candidato"}), 200
 
+UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads/cvs')
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+dashboard_bp.config = {"UPLOAD_FOLDER": UPLOAD_FOLDER}
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @dashboard_bp.route("/dashboard/candidato/upload-cv", methods=["POST"])
 @role_required(["candidato"])
 def upload_cv():
+    print(request.files)
+    print(request.form)
     if 'file' not in request.files:
         return jsonify({"error": "No se encontró ningún archivo"}), 400
 
