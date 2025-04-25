@@ -98,7 +98,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
-      <div className="absolute inset-0 bg-[url('/city-rain-dark.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
+      <div className="absolute inset-0 bg-[url('/city.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
 
       <button
         onClick={() => setShowInfo(true)}
