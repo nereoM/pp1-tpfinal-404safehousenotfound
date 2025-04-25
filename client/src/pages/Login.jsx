@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -96,7 +97,7 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white px-4 relative">
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
       <div className="absolute inset-0 bg-[url('/city-rain-dark.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
 
       <button
@@ -127,14 +128,14 @@ export default function Login() {
         404 safehouse not found — Todos los derechos reservados
       </div>
 
-      <div className="text-center z-10 mb-6">
-        <h1 className="text-4xl font-bold tracking-widest text-blue-400 mb-2">
+      <div className="text-center mb-6 z-10">
+        <h1 className="text-4xl font-bold tracking-widest text-blue-400">
           SIGRH+
         </h1>
-        <p className="text-sm italic text-gray-300">{frase}</p>
+        <p className="text-sm italic text-gray-300 mt-2">{frase}</p>
       </div>
 
-      <div className="relative w-full max-w-md h-[580px] z-10">
+      <div className="relative w-full max-w-md h-[600px] z-10">
         <div
           className={`w-full h-full relative transition-transform duration-700 ${flipped ? "rotate-y-180" : ""}`}
           style={{ transformStyle: "preserve-3d" }}
@@ -181,6 +182,29 @@ export default function Login() {
               >
                 {loading ? "Ingresando..." : "Ingresar"}
               </button>
+
+              <div className="text-center">
+                <GoogleLogin
+                  onSuccess={(credentialResponse) => {
+                    const tokenGoogle = credentialResponse.credential;
+
+                    fetch(`${API_URL}/auth/google`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      credentials: "include",
+                      body: JSON.stringify({ credential: tokenGoogle })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                      console.log("Login Google exitoso:", data);
+                    })
+                    .catch(err => console.error("Error Google login:", err));
+                  }}
+                  onError={() => {
+                    console.error("Falló el login con Google");
+                  }}
+                />
+              </div>
 
               <div className="text-sm text-center text-gray-300">
                 ¿No tenés usuario?{' '}
