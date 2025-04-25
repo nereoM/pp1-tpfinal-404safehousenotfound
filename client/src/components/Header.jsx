@@ -13,7 +13,10 @@ export default function Header() {
 
   return (
     <header className="flex justify-between items-center px-8 py-4 shadow-sm bg-white/80 backdrop-blur-sm">
-      <div className="text-2xl font-bold text-indigo-600">SIGRH+</div>
+      <button
+        onClick={() => navigate("/")}
+        className="text-2xl font-bold text-indigo-600 hover:text-indigo-500 transition-colors">SIGRH+
+      </button>
       <div className="flex-1 flex justify-center">
         <nav className="space-x-6 text-center">
           {navItems.map(({ label, path }) => (
