@@ -8,27 +8,34 @@ export default function Login() {
   const API_URL = import.meta.env.VITE_API_URL;
   const [flipped, setFlipped] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
-  const [acceptNotifications, setAcceptNotifications] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+
+  // Estados para Login
+  const [loginUsername, setLoginUsername] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginPasswordVisible, setLoginPasswordVisible] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loginSuccess, setLoginSuccess] = useState(false);
+
+  // Estados para Registro
+  const [registerUsername, setRegisterUsername] = useState("");
+  const [registerEmail, setRegisterEmail] = useState("");
+  const [registerPassword, setRegisterPassword] = useState("");
+  const [registerRepeatPassword, setRegisterRepeatPassword] = useState("");
+  const [registerAcceptNotifications, setRegisterAcceptNotifications] = useState(false);
+  const [registerPasswordVisible, setRegisterPasswordVisible] = useState(false);
+  const [registerRepeatPasswordVisible, setRegisterRepeatPasswordVisible] = useState(false);
+  const [registerError, setRegisterError] = useState("");
+  const [registerSuccess, setRegisterSuccess] = useState(false);
 
   const frase = "Tu equipo, tu mayor valor.";
 
   const handleSubmitRegister = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess(false);
+    setRegisterError("");
+    setRegisterSuccess(false);
 
-    if (password !== repeatPassword) {
-      setError("Las contraseñas no coinciden");
-      setLoading(false);
+    if (registerPassword !== registerRepeatPassword) {
+      setRegisterError("Las contraseñas no coinciden");
       return;
     }
 
@@ -38,50 +45,62 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ username: registerUsername, email: registerEmail, password: registerPassword })
       });
 
       const data = await res.json();
 
       if (!res.ok) throw new Error(data?.error || "Error al registrarse");
 
-      setSuccess(true);
-      setFlipped(false);
+      setRegisterSuccess(true);
     } catch (err) {
-      setError(err.message || "Ocurrió un error. Intentá nuevamente.");
-    } finally {
-      setLoading(false);
+      setRegisterError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
   };
 
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess(false);
-
+  
+    if (!loginUsername || !loginPassword) {
+      setLoginError("Usuario/email y contraseña requeridos");
+      return;
+    }
+  
+    setLoginError("");
+    setLoginSuccess(false);
+  
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username: loginUsername, password: loginPassword }),
       });
-
+  
       const data = await res.json();
-
-      if (!res.ok) throw new Error(data?.error || "Error al iniciar sesión");
-
+  
+      if (!res.ok) {
+        // Validación del correo no confirmado
+        if (data?.error === "Por favor, verifica tu correo electrónico antes de iniciar sesión.") {
+          setLoginError("Por favor, verifica tu correo electrónico antes de iniciar sesión.");
+          return;
+        }
+  
+        // Si hay otro error de autenticación
+        throw new Error(data?.error || "Error al iniciar sesión");
+      }
+  
+      // Si el login fue exitoso, obtener los detalles del usuario
       const userRes = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
-        credentials: "include"
+        credentials: "include",
       });
-
+  
       const user = await userRes.json();
       if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
-
+  
       if (user.roles.includes("admin")) {
         navigate("/admin/home");
       } else if (user.roles.includes("rrhh")) {
@@ -90,12 +109,10 @@ export default function Login() {
         navigate("/candidato/home");
       }
     } catch (err) {
-      setError(err.message || "Ocurrió un error. Intentá nuevamente.");
-    } finally {
-      setLoading(false);
+      setLoginError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
-  };
-
+  };  
+  
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
       <button
@@ -103,7 +120,6 @@ export default function Login() {
         className="absolute top-4 left-4 z-30 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white">
         <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7" />
       </button>
-
 
       <div className="absolute inset-0 bg-[url('/city.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
 
@@ -156,36 +172,35 @@ export default function Login() {
               <input
                 type="text"
                 placeholder="Usuario o Email"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={loginUsername}
+                onChange={(e) => setLoginUsername(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={loginPasswordVisible ? "text" : "password"}
                   placeholder="Contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
                   className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <span
                   className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setLoginPasswordVisible(!loginPasswordVisible)}
                 >
-                  {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                  {loginPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                 </span>
               </div>
 
-              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-              {success && <p className="text-green-400 text-sm text-center">Inicio de sesión exitoso 🎉</p>}
+              {loginError && <p className="text-red-500 text-sm text-center">{loginError}</p>}
+              {loginSuccess && <p className="text-green-400 text-sm text-center">Inicio de sesión exitoso</p>}
 
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium disabled:opacity-60"
+                className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"
               >
-                {loading ? "Ingresando..." : "Ingresar"}
+                Ingresar
               </button>
 
               <div className="text-center">
@@ -231,55 +246,73 @@ export default function Login() {
               <input
                 type="text"
                 placeholder="Nombre de usuario"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={registerUsername}
+                onChange={(e) => setRegisterUsername(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
               <input
                 type="email"
                 placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={registerEmail}
+                onChange={(e) => setRegisterEmail(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="relative">
+                <input
+                  type={registerPasswordVisible ? "text" : "password"}
+                  placeholder="Contraseña"
+                  value={registerPassword}
+                  onChange={(e) => setRegisterPassword(e.target.value)}
+                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <span
+                  className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100"
+                  onClick={() => setRegisterPasswordVisible(!registerPasswordVisible)}
+                >
+                  {registerPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                </span>
+              </div>
 
-              <input
-                type="password"
-                placeholder="Repetir contraseña"
-                value={repeatPassword}
-                onChange={(e) => setRepeatPassword(e.target.value)}
-                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="relative">
+                <input
+                  type={registerRepeatPasswordVisible ? "text" : "password"}
+                  placeholder="Repetir Contraseña"
+                  value={registerRepeatPassword}
+                  onChange={(e) => setRegisterRepeatPassword(e.target.value)}
+                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <span
+                  className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100"
+                  onClick={() => setRegisterRepeatPasswordVisible(!registerRepeatPasswordVisible)}
+                >
+                  {registerRepeatPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                </span>
+              </div>
 
               <label className="flex items-center space-x-2 text-sm text-gray-300">
                 <input
                   type="checkbox"
-                  checked={acceptNotifications}
-                  onChange={(e) => setAcceptNotifications(e.target.checked)}
+                  checked={registerAcceptNotifications}
+                  onChange={(e) => setRegisterAcceptNotifications(e.target.checked)}
                 />
                 <span>Deseo recibir notificaciones</span>
               </label>
 
+              {registerError && <p className="text-red-500 text-sm text-center">{registerError}</p>}
+              {registerSuccess && <p className="text-green-400 text-sm text-center">Registro exitoso</p>}
+
               <button
                 type="submit"
-                className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"
-              >
+                className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium">
                 Registrarse
               </button>
 
               <div className="text-sm text-center text-gray-300">
-                ¿Ya tenés cuenta?{' '}
+                ¿Ya tienes cuenta?{' '}
                 <button type="button" onClick={() => setFlipped(false)} className="text-blue-400 hover:underline">
-                  Iniciar sesión
+                  Inicia sesión acá
                 </button>
               </div>
             </form>

@@ -88,18 +88,17 @@ def login():
     if not identifier or not password:
         return jsonify({"error": "Identifier (username or email) and password are required"}), 400
 
-    # user = Usuario.query.filter_by(nombre=username).first()
-    # if user and user.verificar_contrasena(password):
-    #     access_token = create_access_token(identity=str(user.id))
-    #     resp = jsonify({"message": "Login successful"})
-    #     set_access_cookies(resp, access_token)
-    #     return resp, 200
-
+    # Buscar al usuario por nombre de usuario o correo electrónico
     user = Usuario.query.filter(
         (Usuario.nombre == identifier) | (Usuario.correo == identifier)
     ).first()
+
     if user and user.verificar_contrasena(password):
-        # Include roles in the token
+        # Verificar si el correo está confirmado
+        if not user.confirmado:
+            return jsonify({"error": "Please confirm your email before logging in."}), 400
+
+        # Si la contraseña es correcta y el correo está confirmado, generar el token
         roles = [r.slug for r in user.roles]
         access_token = create_access_token(identity=str(user.id), additional_claims={"roles": roles})
         resp = jsonify({"message": "Login successful"})
