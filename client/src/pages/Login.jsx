@@ -64,7 +64,7 @@ export default function Login() {
       } else if (user.roles.includes("rrhh")) {
         navigate("/rrhh/home");
       } else {
-        navigate("/home");
+        navigate("/candidato/home");
       }
 
       /*
