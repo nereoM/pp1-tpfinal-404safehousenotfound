@@ -10,22 +10,16 @@ export default function Lobby() {
         <div className="text-2xl font-bold text-indigo-600">SIGRH+</div>
         <div className="flex-1 flex justify-center">
           <nav className="space-x-6 text-center">
-            <button
-              onClick={() => navigate("/productos")}
-              className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105"
-            >
+            <button onClick={() => navigate("/")} className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105">
+              Inicio
+            </button>
+            <button onClick={() => navigate("/productos")} className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105">
               Productos
             </button>
-            <button
-              onClick={() => navigate("/precios")}
-              className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105"
-            >
+            <button onClick={() => navigate("/precios")} className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105">
               Precios
             </button>
-            <button
-              onClick={() => navigate("/clientes")}
-              className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105"
-            >
+            <button onClick={() => navigate("/clientes")} className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105">
               Clientes
             </button>
           </nav>
