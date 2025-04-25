@@ -5,7 +5,7 @@ export default function Lobby() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-800 font-sans">
-      {/* Header */}
+      {/* cabecera */}
       <header className="flex justify-between items-center px-8 py-4 shadow-sm bg-white/80 backdrop-blur-sm">
         <div className="text-2xl font-bold text-indigo-600">SIGRH+</div>
         <div className="flex-1 flex justify-center">
@@ -22,7 +22,7 @@ export default function Lobby() {
         </div>
       </header>
 
-      {/* Main section */}
+      {/* zona central */}
       <main className="flex flex-col md:flex-row items-center justify-between px-8 py-16 max-w-7xl mx-auto">
         <div className="max-w-xl mb-10 md:mb-0">
           <h1 className="text-4xl font-bold mb-4 text-indigo-700">Gestioná tu equipo con el poder de SIGRH+</h1>
@@ -46,7 +46,7 @@ export default function Lobby() {
         />
       </main>
 
-      {/* Footer / Brands section */}
+      {/* fotitos empresa*/}
       <footer className="bg-white/60 py-6 mt-16 text-center text-gray-600 backdrop-blur-sm">
         <p className="mb-4 font-semibold">Confiado por empresas líderes</p>
         <div className="flex flex-wrap justify-center gap-8 items-center max-w-5xl mx-auto">
