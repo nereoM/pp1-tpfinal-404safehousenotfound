@@ -129,6 +129,7 @@ def google_login():
 
         response = jsonify({"message": "Login Google exitoso"})
         set_access_cookies(response, access_token)
+        user.confirmar_usuario()
         return response, 200
 
     except ValueError:
