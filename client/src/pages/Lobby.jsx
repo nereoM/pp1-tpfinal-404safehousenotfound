@@ -1,3 +1,4 @@
+import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
 
 export default function Lobby() {
@@ -5,34 +6,8 @@ export default function Lobby() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-800 font-sans">
-      {/* cabecera */}
-      <header className="flex justify-between items-center px-8 py-4 shadow-sm bg-white/80 backdrop-blur-sm">
-        <div className="text-2xl font-bold text-indigo-600">SIGRH+</div>
-        <div className="flex-1 flex justify-center">
-          <nav className="space-x-6 text-center">
-            <button onClick={() => navigate("/")} className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105">
-              Inicio
-            </button>
-            <button onClick={() => navigate("/productos")} className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105">
-              Productos
-            </button>
-            <button onClick={() => navigate("/precios")} className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105">
-              Precios
-            </button>
-            <button onClick={() => navigate("/clientes")} className="hover:text-indigo-500 transition-all duration-300 transform hover:scale-105">
-              Clientes
-            </button>
-          </nav>
-        </div>
-        <div>
-          <button
-            onClick={() => navigate("/login")}
-            className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition-all duration-300 transform hover:scale-105"
-          >
-            Iniciar sesión
-          </button>
-        </div>
-      </header>
+      {/* Header */}
+      <Header />
 
       {/* zona central */}
       <main className="flex flex-col md:flex-row items-center justify-between px-8 py-16 max-w-7xl mx-auto">
