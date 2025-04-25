@@ -5,7 +5,9 @@ from models.extensions import db
 from datetime import timedelta
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.users import Usuario
-from flask import jsonify
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+from services.config import Config
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -67,6 +69,31 @@ def login():
         return resp, 200
 
     return jsonify({"error": "Invalid credentials"}), 401
+
+@auth_bp.route("/google", methods=["POST"])
+def google_login():
+    token = request.json.get("credential")
+    try:
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request(), Config.GOOGLE_CLIENT_ID)
+
+        email = idinfo["email"]
+        nombre = idinfo.get("name", email)
+        sub_id = idinfo["sub"]
+
+        user = Usuario.query.filter_by(correo=email).first()
+        if not user:
+            user = Usuario(nombre=nombre, correo=email, contrasena=sub_id)
+            db.session.add(user)
+            db.session.commit()
+
+        access_token = create_access_token(identity=str(user.id), additional_claims={"roles": [r.slug for r in user.roles]})
+
+        response = jsonify({"message": "Login Google exitoso"})
+        set_access_cookies(response, access_token)
+        return response, 200
+
+    except ValueError:
+        return jsonify({"error": "Token inválido"}), 401
 
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
