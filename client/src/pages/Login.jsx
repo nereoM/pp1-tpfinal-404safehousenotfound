@@ -2,31 +2,58 @@ import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const frases = [
-  "Hoy es un buen día para organizar el talento.",
-  "Un sistema ordenado, un equipo feliz.",
-  "La gestión comienza con una buena sesión.",
-  "La transparencia impulsa el crecimiento.",
-  "Tu equipo, tu mayor valor."
-];
-
 export default function Login() {
-
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL;
-  const [idioma, setIdioma] = useState("ES");
   const [flipped, setFlipped] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
+  const [acceptNotifications, setAcceptNotifications] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const frase = frases[Math.floor(Math.random() * frases.length)];
 
+  const frase = "Tu equipo, tu mayor valor.";
 
-  const handleSubmit = async (e) => {
+  const handleSubmitRegister = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+    setSuccess(false);
+
+    if (password !== repeatPassword) {
+      setError("Las contraseñas no coinciden");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data?.error || "Error al registrarse");
+
+      setSuccess(true);
+      setFlipped(false);
+    } catch (err) {
+      setError(err.message || "Ocurrió un error. Intentá nuevamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -38,15 +65,13 @@ export default function Login() {
         headers: {
           "Content-Type": "application/json"
         },
-        credentials: "include", // 👈 para recibir la cookie JWT
+        credentials: "include",
         body: JSON.stringify({ username, password })
       });
 
       const data = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data?.error || "Error al iniciar sesión");
-      }
+      if (!res.ok) throw new Error(data?.error || "Error al iniciar sesión");
 
       const userRes = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
@@ -54,10 +79,7 @@ export default function Login() {
       });
 
       const user = await userRes.json();
-
       if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
-
-      // redireccion segun rol
 
       if (user.roles.includes("admin")) {
         navigate("/admin/home");
@@ -66,33 +88,16 @@ export default function Login() {
       } else {
         navigate("/candidato/home");
       }
-
-      /*
-      if (user?.roles?.includes("rrhh")) {
-        navigate("/rrhh/home");
-      }
-      */
-
-
     } catch (err) {
-      console.error(err);
       setError(err.message || "Ocurrió un error. Intentá nuevamente.");
     } finally {
       setLoading(false);
     }
-  }; 
-
+  };
 
   return (
-    <div className="relative min-h-screen bg-gray-900 flex flex-col justify-center items-center text-white px-4 overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white px-4 relative">
       <div className="absolute inset-0 bg-[url('/city-rain-dark.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
-
-      <button
-        className="absolute top-4 right-4 text-sm text-gray-400 hover:text-white z-20"
-        onClick={() => setIdioma(idioma === "ES" ? "EN" : "ES")}
-      >
-        {idioma === "ES" ? "EN" : "ES"}
-      </button>
 
       <button
         onClick={() => setShowInfo(true)}
@@ -122,13 +127,14 @@ export default function Login() {
         404 safehouse not found — Todos los derechos reservados
       </div>
 
-      <div className="text-4xl font-bold mb-6 tracking-widest text-blue-400 z-10">
-        SIGRH+
+      <div className="text-center z-10 mb-6">
+        <h1 className="text-4xl font-bold tracking-widest text-blue-400 mb-2">
+          SIGRH+
+        </h1>
+        <p className="text-sm italic text-gray-300">{frase}</p>
       </div>
 
-      <p className="text-sm italic text-gray-300 mb-4 z-10">{frase}</p>
-
-      <div className="relative w-full max-w-md h-[520px] z-10">
+      <div className="relative w-full max-w-md h-[580px] z-10">
         <div
           className={`w-full h-full relative transition-transform duration-700 ${flipped ? "rotate-y-180" : ""}`}
           style={{ transformStyle: "preserve-3d" }}
@@ -136,7 +142,7 @@ export default function Login() {
           {/* Login */}
           <div className="absolute w-full h-full backface-hidden z-20">
             <form
-              onSubmit={handleSubmit}
+              onSubmit={handleSubmitLogin}
               className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20"
             >
               <h2 className="text-2xl font-semibold text-center text-white">Iniciar Sesión</h2>
@@ -187,17 +193,67 @@ export default function Login() {
 
           {/* Registro */}
           <div className="absolute w-full h-full backface-hidden rotate-y-180">
-            <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl border border-white/20">
+            <form
+              onSubmit={handleSubmitRegister}
+              className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl border border-white/20 space-y-4"
+            >
               <h2 className="text-2xl font-semibold text-center text-white">Registrarse</h2>
-              <p className="text-sm text-gray-300 text-center mb-4">Formulario en desarrollo</p>
 
-              <div className="text-sm text-center text-gray-300 mt-4">
+              <input
+                type="text"
+                placeholder="Nombre de usuario"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <input
+                type="password"
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <input
+                type="password"
+                placeholder="Repetir contraseña"
+                value={repeatPassword}
+                onChange={(e) => setRepeatPassword(e.target.value)}
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <label className="flex items-center space-x-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={acceptNotifications}
+                  onChange={(e) => setAcceptNotifications(e.target.checked)}
+                />
+                <span>Deseo recibir notificaciones</span>
+              </label>
+
+              <button
+                type="submit"
+                className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"
+              >
+                Registrarse
+              </button>
+
+              <div className="text-sm text-center text-gray-300">
                 ¿Ya tenés cuenta?{' '}
                 <button type="button" onClick={() => setFlipped(false)} className="text-blue-400 hover:underline">
                   Iniciar sesión
                 </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>
