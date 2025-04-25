@@ -1,5 +1,5 @@
 from models.extensions import db
-from models.users import Usuario, Rol
+from models.schemes import Usuario, Rol
 
 def create_admins():
     # Check if the admin role exists

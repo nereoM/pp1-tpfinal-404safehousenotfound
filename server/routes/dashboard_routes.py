@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from auth.decorators import role_required
 from flask import request
-from models.users import Usuario, Rol
+from models.schemes import Usuario, Rol
 from models.extensions import db
 import os
 from werkzeug.utils import secure_filename

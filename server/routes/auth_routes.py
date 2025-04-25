@@ -1,10 +1,9 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
-from models.users import Usuario, Rol
+from models.schemes import Usuario, Rol
 from models.extensions import db
 from datetime import timedelta
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models.users import Usuario
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from services.config import Config
