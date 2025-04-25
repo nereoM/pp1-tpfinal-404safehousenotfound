@@ -6,9 +6,11 @@ from routes.dashboard_routes import dashboard_bp
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from initialize_admins import create_admins
+from models.extensions import mail
 
 app = Flask(__name__)
 app.config.from_object(Config)
+mail.init_app(app)
 jwt = JWTManager(app)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 db.init_app(app)

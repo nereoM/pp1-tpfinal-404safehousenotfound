@@ -8,6 +8,10 @@ from models.users import Usuario
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from services.config import Config
+from itsdangerous import URLSafeTimedSerializer
+from flask_mail import Message
+from models.extensions import mail
+from flask import current_app
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -24,6 +28,7 @@ def register():
     existing_user = Usuario.query.filter((Usuario.nombre == username) | (Usuario.correo == email)).first()
     if existing_user:
         return jsonify({"error": "Username or email already exists"}), 400
+    
 
     # Buscar el rol de "candidato" en la base de datos
     candidato_role = db.session.query(Rol).filter_by(slug="candidato").first()
@@ -32,6 +37,8 @@ def register():
         candidato_role = Rol(nombre="Candidato", permisos="candidato_permisos", slug="candidato")
         db.session.add(candidato_role)
         db.session.commit()
+
+    enviar_confirmacion_email(email, username)
 
     new_user = Usuario(nombre=username, correo=email, contrasena=password)
     new_user.roles.append(candidato_role)
@@ -42,6 +49,31 @@ def register():
         return jsonify({"message": "User registered successfully"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+def enviar_confirmacion_email(correo_destino, nombre_usuario):
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    token = s.dumps(correo_destino, salt='email-confirm')
+
+    link = f"http://localhost:5000/auth/confirmar/{token}"
+    msg = Message("Confirmá tu email", sender=current_app.config['MAIL_USERNAME'], recipients=[correo_destino])
+    msg.body = f"Hola {nombre_usuario}, hacé clic para confirmar tu cuenta: {link}"
+    mail.send(msg)
+
+@auth_bp.route("/confirmar/<token>")
+def confirmar_email(token):
+    try:
+        s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+        correo = s.loads(token, salt='email-confirm', max_age=3600)
+    except:
+        return "El enlace ha expirado o es inválido.", 400
+
+    usuario = Usuario.query.filter_by(correo=correo).first()
+    if not usuario:
+        return "Usuario no encontrado", 404
+
+    usuario.confirmar_usuario()
+
+    return "¡Tu cuenta fue confirmada con éxito!"
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
