@@ -22,7 +22,7 @@ export default function Header() {
               onClick={() => navigate(path)}
               className={`transition-all duration-300 transform hover:scale-105 ${
                 location.pathname === path
-                  ? "text-indigo-600 font-semibold underline"
+                  ? "text-indigo-600 font-semibold"
                   : "hover:text-indigo-500"
               }`}
             >
