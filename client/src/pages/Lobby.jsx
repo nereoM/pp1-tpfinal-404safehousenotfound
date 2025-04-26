@@ -12,20 +12,22 @@ export default function Lobby() {
       {/* zona central */}
       <main className="flex flex-col md:flex-row items-center justify-between px-8 py-16 max-w-7xl mx-auto">
         <div className="max-w-xl mb-10 md:mb-0">
-          <h1 className="text-4xl font-bold mb-4 text-indigo-700">Gestioná tu equipo con el poder de SIGRH+</h1>
+          <h1 className="text-4xl font-bold mb-4 text-indigo-700">
+            Transformamos el talento en oportunidades reales
+          </h1>
           <p className="text-gray-600 mb-6">
-            Nuestra plataforma unifica los tres modelos clave: Gestión de Recursos Humanos, Seguimiento de Candidatos y Evaluación de Desempeño. Todo en uno.
+            En SIGRH+ creemos en el desarrollo profesional de las personas y en la evolución constante de las organizaciones.
+            Nuestra plataforma facilita a los candidatos encontrar oportunidades laborales de forma rápida y eficiente,
+            al mismo tiempo que permite a las empresas gestionar sus procesos de reclutamiento de manera personalizada y estratégica.
           </p>
-          <ul className="list-disc list-inside text-gray-700 mb-6">
-            <li><strong>RRHH:</strong> Automatización y administración centralizada.</li>
-            <li><strong>ATS:</strong> Seguimiento eficiente de postulaciones.</li>
-            <li><strong>Evaluación:</strong> Medición del rendimiento y potencial de cada colaborador.</li>
-          </ul>
+          <p className="text-gray-600 mb-6">
+            Si representás a una empresa y buscás optimizar tu gestión de talento, conocé nuestros planes diseñados a medida para acompañar tu crecimiento.
+          </p>
           <button
             onClick={() => navigate("/precios")}
-            className="bg-indigo-500 text-white px-5 py-3 rounded hover:bg-indigo-600 transition-all duration-300 transform hover:scale-105"
+            className="bg-indigo-500 text-white px-6 py-3 rounded-full hover:bg-indigo-600 transition-all duration-300 transform hover:scale-105"
           >
-            Ver precios
+            Ver planes empresariales
           </button>
         </div>
 
@@ -42,11 +44,11 @@ export default function Lobby() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 px-8">
           <div className="bg-white p-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
             <h3 className="font-semibold text-lg text-indigo-600 mb-3">Automatización Total</h3>
-            <p className="text-gray-600">Gestiona tu equipo de forma más eficiente, con procesos automatizados que ahorran tiempo y recursos.</p>
+            <p className="text-gray-600">Gestioná tu equipo de forma más eficiente, con procesos automatizados que ahorran tiempo y recursos.</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
             <h3 className="font-semibold text-lg text-indigo-600 mb-3">Análisis de Datos</h3>
-            <p className="text-gray-600">Accede a informes detallados sobre el rendimiento de tu equipo con gráficos fáciles de entender.</p>
+            <p className="text-gray-600">Accedé a informes detallados sobre el rendimiento de tu equipo con gráficos fáciles de entender.</p>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105">
             <h3 className="font-semibold text-lg text-indigo-600 mb-3">Soporte 24/7</h3>
@@ -74,7 +76,7 @@ export default function Lobby() {
 
       {/* fotitos empresa */}
       <footer className="bg-white/60 py-6 mt-16 text-center text-gray-600 backdrop-blur-sm">
-        <p className="mb-4 font-semibold">Confiado por empresas líderes</p>
+        <p className="mb-4 font-semibold">Estas empresas confían en nosotros</p>
         <div className="flex flex-wrap justify-center gap-8 items-center max-w-5xl mx-auto">
           <img src="/brands/nintendo.png" alt="Nintendo" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />
           <img src="/brands/capcom.png" alt="Capcom" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />

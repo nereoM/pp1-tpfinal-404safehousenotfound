@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Login from "./pages/Login";
 import RrhhHome from "./pages/RrhhHome";
 import AdminHome from "./pages/AdminHome";
 import CandidatoHome from "./pages/CandidatoHome";
 import Lobby from "./pages/Lobby";
+import Pagos from "./pages/Pagos"; 
 
 import Productos from "./pages/Productos";
 import Precios from "./pages/Precios";
@@ -21,6 +23,7 @@ function App() {
         <Route path="/productos" element={<Productos />} />
         <Route path="/precios" element={<Precios />} />
         <Route path="/clientes" element={<Clientes />} />
+        <Route path="/pagos" element={<Pagos />} /> 
       </Routes>
     </BrowserRouter>
   );
