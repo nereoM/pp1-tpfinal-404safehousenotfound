@@ -24,15 +24,15 @@ def register():
     password = data.get("password")
 
     if not username or not email or not password:
-        return jsonify({"error": "Username, email and password are required"}), 400
+        return jsonify({"error": "Username, email and password son requeridos"}), 400
     
     email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     if not re.match(email_regex, email):
-        return jsonify({"error": "Invalid email format"}), 400
+        return jsonify({"error": "Formato de email no valido"}), 400
 
     existing_user = Usuario.query.filter((Usuario.nombre == username) | (Usuario.correo == email)).first()
     if existing_user:
-        return jsonify({"error": "Username or email already exists"}), 400
+        return jsonify({"error": "Username o email ya existente"}), 400
     
 
     # Buscar el rol de "candidato" en la base de datos
@@ -87,7 +87,7 @@ def login():
     password = data.get("password")
 
     if not identifier or not password:
-        return jsonify({"error": "Identifier (username or email) and password are required"}), 400
+        return jsonify({"error": "Username, email and password son requeridos"}), 400
 
     # Buscar al usuario por nombre de usuario o correo electrónico
     user = Usuario.query.filter(
@@ -97,7 +97,7 @@ def login():
     if user and user.verificar_contrasena(password):
         # Verificar si el correo está confirmado
         if not user.confirmado:
-            return jsonify({"error": "Please confirm your email before logging in."}), 400
+            return jsonify({"error": "Confirma tu correo antes de iniciar sesion."}), 400
 
         # Si la contraseña es correcta y el correo está confirmado, generar el token
         roles = [r.slug for r in user.roles]
@@ -106,7 +106,7 @@ def login():
         set_access_cookies(resp, access_token)
         return resp, 200
 
-    return jsonify({"error": "Invalid credentials"}), 401
+    return jsonify({"error": "Credenciales Invalidas"}), 401
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
