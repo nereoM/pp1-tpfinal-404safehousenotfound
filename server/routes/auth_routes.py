@@ -43,7 +43,7 @@ def register():
         db.session.add(candidato_role)
         db.session.commit()
 
-    enviar_confirmacion_email(email, username)
+    # enviar_confirmacion_email(email, username)
 
     new_user = Usuario(nombre=username, correo=email, contrasena=password)
     new_user.roles.append(candidato_role)
@@ -96,8 +96,8 @@ def login():
 
     if user and user.verificar_contrasena(password):
         # Verificar si el correo está confirmado
-        if not user.confirmado:
-            return jsonify({"error": "Confirma tu correo antes de iniciar sesion."}), 400
+        # if not user.confirmado:
+        #     return jsonify({"error": "Confirma tu correo antes de iniciar sesion."}), 400
 
         # Si la contraseña es correcta y el correo está confirmado, generar el token
         roles = [r.slug for r in user.roles]

@@ -1,8 +1,14 @@
 from flask import Flask
 from models.extensions import db
 from services.config import Config
+
 from routes.auth_routes import auth_bp
-from routes.dashboard_routes import dashboard_bp
+from routes.admin404 import admin_404_bp
+from routes.candidato import candidato_bp
+from routes.reclutador import reclutador_bp
+from routes.manager import manager_bp
+from routes.admin_emp import admin_emp_bp
+
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from initialize_admins import create_admins
@@ -15,8 +21,14 @@ mail.init_app(app)
 jwt = JWTManager(app)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 db.init_app(app)
+
 app.register_blueprint(auth_bp, url_prefix="/auth")
-app.register_blueprint(dashboard_bp, url_prefix="/api")
+app.register_blueprint(admin_404_bp, url_prefix="/api")
+app.register_blueprint(candidato_bp, url_prefix="/api")
+app.register_blueprint(reclutador_bp, url_prefix="/api")
+app.register_blueprint(manager_bp, url_prefix="/api")
+app.register_blueprint(admin_emp_bp, url_prefix="/api")
+
 migrate = Migrate(app, db)
 
 @app.route("/")

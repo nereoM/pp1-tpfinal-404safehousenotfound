@@ -3,9 +3,9 @@ from models.schemes import Usuario, Rol
 
 def create_admins():
     # Check if the admin role exists
-    admin_role = Rol.query.filter_by(slug="admin").first()
+    admin_role = Rol.query.filter_by(slug="admin-404").first()
     if not admin_role:
-        admin_role = Rol(nombre="Administrador", permisos="all", slug="admin")
+        admin_role = Rol(nombre="Administrador", permisos="all", slug="admin-404")
         db.session.add(admin_role)
         db.session.commit()
 

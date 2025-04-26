@@ -16,3 +16,5 @@ __pycache__/
 files/*
 !files/.gitkeep
 uploads/
+
+migrations/

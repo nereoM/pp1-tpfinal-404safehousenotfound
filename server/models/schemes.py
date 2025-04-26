@@ -55,3 +55,17 @@ class CV(db.Model):
     fecha_subida = db.Column(db.DateTime, default=db.func.now())
 
     usuario = db.relationship("Usuario", backref="cvs")
+
+class Empresa(db.Model):
+    __tablename__ = 'empresas'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    nombre = db.Column(db.String(100), nullable=False, unique=True)
+    correo = db.Column(db.String(100), nullable=False, unique=True)
+    id_admin_emp = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+
+    admin_emp = db.relationship("Usuario", backref="empresa")
+
+    def __init__(self, nombre, id_admin_emp, logo=None):
+        self.nombre = nombre
+        self.correo = f"{nombre.lower().replace(' ', '_')}@empresa.com"
+        self.id_admin_emp = id_admin_emp
