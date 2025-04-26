@@ -132,8 +132,13 @@ def google_login():
 
         access_token = create_access_token(identity=str(user.id), additional_claims={"roles": [r.slug for r in user.roles]})
 
-        response = jsonify({"message": "Login Google exitoso"})
+        response = jsonify({
+            "message": "Login Google exitoso",
+            "roles": [r.slug for r in user.roles] 
+        })
+        
         set_access_cookies(response, access_token)
+        
         user.confirmar_usuario()
         return response, 200
 

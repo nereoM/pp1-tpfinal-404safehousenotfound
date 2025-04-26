@@ -59,15 +59,15 @@ export default function Login() {
 
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
-  
+
     if (!loginUsername || !loginPassword) {
       setLoginError("Usuario/email y contraseña requeridos");
       return;
     }
-  
+
     setLoginError("");
     setLoginSuccess(false);
-  
+
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
@@ -77,29 +77,29 @@ export default function Login() {
         credentials: "include",
         body: JSON.stringify({ username: loginUsername, password: loginPassword }),
       });
-  
+
       const data = await res.json();
-  
+
       if (!res.ok) {
         // Validación del correo no confirmado
         if (data?.error === "Por favor, verifica tu correo electrónico antes de iniciar sesión.") {
           setLoginError("Por favor, verifica tu correo electrónico antes de iniciar sesión.");
           return;
         }
-  
+
         // Si hay otro error de autenticación
         throw new Error(data?.error || "Error al iniciar sesión");
       }
-  
+
       // Si el login fue exitoso, obtener los detalles del usuario
       const userRes = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
         credentials: "include",
       });
-  
+
       const user = await userRes.json();
       if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
-  
+
       if (user.roles.includes("admin")) {
         navigate("/admin/home");
       } else if (user.roles.includes("rrhh")) {
@@ -110,8 +110,8 @@ export default function Login() {
     } catch (err) {
       setLoginError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
-  };  
-  
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
       <button
@@ -203,27 +203,41 @@ export default function Login() {
               </button>
 
               <div className="text-center">
-              <GoogleLogin
-  onSuccess={(credentialResponse) => {
-    const tokenGoogle = credentialResponse.credential;
+                <GoogleLogin
+                  onSuccess={(credentialResponse) => {
+                    const tokenGoogle = credentialResponse.credential;
 
-    fetch(`${API_URL}/auth/google`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ credential: tokenGoogle })
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log("Login Google exitoso:", data);
+                    fetch(`${API_URL}/auth/google`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      credentials: "include",
+                      body: JSON.stringify({ credential: tokenGoogle })
+                    })
+                      .then(res => res.json())
+                      .then(data => {
+                        console.log("Login Google exitoso:", data); 
 
-        // Redirigir manualmente:
-        navigate("/admin/home"); // O a la ruta correcta según el rol
+                        if (data.roles) {
+                          const userRoles = data.roles;
+                          console.log("Roles del usuario:", userRoles);
 
-      })
-      .catch(err => console.error("Error Google login:", err));
-  }}
-/>
+                          // Redirigir según el rol:
+                          if (userRoles.includes("admin")) {
+                            navigate("/admin/home");
+                          } else if (userRoles.includes("rrhh")) {
+                            navigate("/rrhh/home");
+                          } else if (userRoles.includes("candidato")) {
+                            navigate("/candidato/home");
+                          } else {
+                            navigate("/login");
+                          }
+                        } else {
+                          console.error("No se encontraron roles en la respuesta.");
+                        }
+                      })
+                      .catch(err => console.error("Error Google login:", err));
+                  }}
+                />
 
               </div>
 
