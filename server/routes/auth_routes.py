@@ -12,6 +12,7 @@ from flask_mail import Message
 from models.extensions import mail
 from flask import current_app
 import re
+from flask_jwt_extended import unset_jwt_cookies
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -106,6 +107,12 @@ def login():
         return resp, 200
 
     return jsonify({"error": "Invalid credentials"}), 401
+
+@auth_bp.route("/logout", methods=["POST"])
+def logout():
+    response = jsonify({"msg": "Logout exitoso"})
+    unset_jwt_cookies(response)
+    return response, 200
 
 @auth_bp.route("/google", methods=["POST"])
 def google_login():
