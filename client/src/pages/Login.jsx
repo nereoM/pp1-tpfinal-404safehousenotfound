@@ -203,26 +203,28 @@ export default function Login() {
               </button>
 
               <div className="text-center">
-                <GoogleLogin
-                  onSuccess={(credentialResponse) => {
-                    const tokenGoogle = credentialResponse.credential;
+              <GoogleLogin
+  onSuccess={(credentialResponse) => {
+    const tokenGoogle = credentialResponse.credential;
 
-                    fetch(`${API_URL}/auth/google`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                      body: JSON.stringify({ credential: tokenGoogle })
-                    })
-                      .then(res => res.json())
-                      .then(data => {
-                        console.log("Login Google exitoso:", data);
-                      })
-                      .catch(err => console.error("Error Google login:", err));
-                  }}
-                  onError={() => {
-                    console.error("Falló el login con Google");
-                  }}
-                />
+    fetch(`${API_URL}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ credential: tokenGoogle })
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log("Login Google exitoso:", data);
+
+        // Redirigir manualmente:
+        navigate("/admin/home"); // O a la ruta correcta según el rol
+
+      })
+      .catch(err => console.error("Error Google login:", err));
+  }}
+/>
+
               </div>
 
               <div className="text-sm text-center text-gray-300">
