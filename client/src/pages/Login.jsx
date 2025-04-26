@@ -203,41 +203,42 @@ export default function Login() {
               </button>
 
               <div className="text-center">
-                <GoogleLogin
-                  onSuccess={(credentialResponse) => {
-                    const tokenGoogle = credentialResponse.credential;
+              <GoogleLogin
+  onSuccess={(credentialResponse) => {
+    const tokenGoogle = credentialResponse.credential;
 
-                    fetch(`${API_URL}/auth/google`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                      body: JSON.stringify({ credential: tokenGoogle })
-                    })
-                      .then(res => res.json())
-                      .then(data => {
-                        console.log("Login Google exitoso:", data); 
+    fetch(`${API_URL}/auth/google`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ credential: tokenGoogle })
+    })
+      .then(res => res.json())
+      .then(async () => {
+        console.log("Login Google exitoso");
 
-                        if (data.roles) {
-                          const userRoles = data.roles;
-                          console.log("Roles del usuario:", userRoles);
+        // Ahora hacés el segundo fetch para obtener roles
+        const userRes = await fetch(`${API_URL}/auth/me`, {
+          method: "GET",
+          credentials: "include",
+        });
 
-                          // Redirigir según el rol:
-                          if (userRoles.includes("admin")) {
-                            navigate("/admin/home");
-                          } else if (userRoles.includes("rrhh")) {
-                            navigate("/rrhh/home");
-                          } else if (userRoles.includes("candidato")) {
-                            navigate("/candidato/home");
-                          } else {
-                            navigate("/login");
-                          }
-                        } else {
-                          console.error("No se encontraron roles en la respuesta.");
-                        }
-                      })
-                      .catch(err => console.error("Error Google login:", err));
-                  }}
-                />
+        const user = await userRes.json();
+
+        if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
+
+        if (user.roles.includes("admin")) {
+          navigate("/admin/home");
+        } else if (user.roles.includes("rrhh")) {
+          navigate("/rrhh/home");
+        } else {
+          navigate("/candidato/home");
+        }
+      })
+      .catch(err => console.error("Error Google login:", err));
+  }}
+/>
+
 
               </div>
 
