@@ -45,3 +45,13 @@ class UsuarioRol(db.Model):
     __tablename__ = 'usuarios_roles'
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), primary_key=True)
     id_rol = db.Column(db.Integer, db.ForeignKey('roles.id'), primary_key=True)
+
+class CV(db.Model):
+    __tablename__ = 'cvs'
+    id = db.Column(db.Integer, primary_key=True)
+    id_user = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    url_cv = db.Column(db.String(255), nullable=False)
+    tipo_archivo = db.Column(db.String(50))
+    fecha_subida = db.Column(db.DateTime, default=db.func.now())
+
+    usuario = db.relationship("Usuario", backref="cvs")
