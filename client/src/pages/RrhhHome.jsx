@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { User, List, PlusCircle, BarChart2, FileText, LogOut } from "lucide-react";
 
 export default function RrhhHome() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -31,6 +33,26 @@ export default function RrhhHome() {
 
     fetchUserData();
   }, [API_URL]);
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch(`${API_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include"
+      });
+
+      if (res.ok) {
+        navigate("/login");
+      } else {
+        const errorData = await res.json();
+        console.error("Error en el logout:", errorData);
+        alert("Error al cerrar sesión");
+      }
+    } catch (err) {
+      console.error("Error en el fetch:", err);
+      alert("Error al cerrar sesión");
+    }
+  };
 
   if (loading || error) {
     return (
@@ -88,7 +110,10 @@ export default function RrhhHome() {
           </div>
 
           {/* Cerrar sesión */}
-          <div className="flex items-center gap-4 p-4 bg-red-100 rounded-lg shadow-md cursor-pointer hover:bg-red-200 transition w-full">
+          <div
+            onClick={handleLogout}
+            className="flex items-center gap-4 p-4 bg-red-100 rounded-lg shadow-md cursor-pointer hover:bg-red-200 transition w-full"
+          >
             <LogOut className="text-red-600 w-6 h-6" />
             <span className="text-gray-800 text-base sm:text-lg">Cerrar sesión</span>
           </div>
