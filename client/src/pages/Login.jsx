@@ -106,7 +106,7 @@ export default function Login() {
     }
 
     if (loginUsername.length < 4 || loginUsername.length > 20) {
-      setRegisterError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
+      setLoginError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
       return;
     }
 
