@@ -99,8 +99,20 @@ export default function Login() {
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
 
+    // Verificar que el usuario y la contraseña no estén vacíos
     if (!loginUsername || !loginPassword) {
       setLoginError("Usuario/email y contraseña requeridos");
+      return;
+    }
+
+    if (loginUsername.length < 4 || loginUsername.length > 20) {
+      setRegisterError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
+      return;
+    }
+
+    // Verificación de longitud mínima de la contraseña
+    if (loginPassword.length < 6) {
+      setLoginError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
 
@@ -124,21 +136,25 @@ export default function Login() {
         throw new Error(data?.error || "Error al iniciar sesión");
       }
 
-      // para mandarlo a pagos si logea
+      // Redirigir a pagos si el login es exitoso y el redirect es "pagos"
       if (redirect === "pagos") {
         navigate("/pagos");
         return;
       }
 
-      // sino sigue por roles
+      // Verificación de roles del usuario
       const userRes = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
         credentials: "include",
       });
 
       const user = await userRes.json();
-      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
+      if (!userRes.ok) {
+        setIsLoading(false);
+        throw new Error(user?.error || "No se pudo obtener el usuario");
+      }
 
+      // Redirigir según los roles del usuario
       if (user.roles.includes("admin")) {
         navigate("/admin/home");
       } else if (user.roles.includes("rrhh")) {
@@ -151,8 +167,6 @@ export default function Login() {
       setLoginError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
   };
-
-
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
