@@ -41,25 +41,50 @@ export default function Login() {
   const [registerSuccess, setRegisterSuccess] = useState(false);
 
   const frase = "Tu equipo, tu mayor valor.";
-  
+
 
   const handleSubmitRegister = async (e) => {
     e.preventDefault();
     setRegisterError("");
     setRegisterSuccess(false);
 
-    
-
-    if (registerPassword !== registerRepeatPassword) {
-      setRegisterError("Las contraseñas no coinciden");
+    // Validaciones antes de llamar al backend
+    if (!registerUsername.trim() || !registerEmail.trim() || !registerPassword.trim() || !registerRepeatPassword.trim()) {
+      setRegisterError('Por favor, completá todos los campos.');
       return;
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(registerEmail)) {
+      setRegisterError('El correo electrónico no es válido.');
+      return;
+    }
+
+    if (registerUsername.length < 4 || registerUsername.length > 20) {
+      setRegisterError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
+      return;
+    }
+
+    if (registerPassword.length < 6) {
+      setRegisterError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    if (registerPassword !== registerRepeatPassword) {
+      setRegisterError("Las contraseñas no coinciden.");
+      return;
+    }
+
+    // Si pasa todas las validaciones
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: registerUsername, email: registerEmail, password: registerPassword })
+        body: JSON.stringify({
+          username: registerUsername,
+          email: registerEmail,
+          password: registerPassword
+        })
       });
 
       const data = await res.json();
@@ -73,15 +98,15 @@ export default function Login() {
 
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
-  
+
     if (!loginUsername || !loginPassword) {
       setLoginError("Usuario/email y contraseña requeridos");
       return;
     }
-  
+
     setLoginError("");
     setLoginSuccess(false);
-  
+
     try {
       const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
@@ -89,7 +114,7 @@ export default function Login() {
         credentials: "include",
         body: JSON.stringify({ username: loginUsername, password: loginPassword }),
       });
-  
+
       const data = await res.json();
       if (!res.ok) {
         if (data?.error === "Por favor, verifica tu correo electrónico antes de iniciar sesión.") {
@@ -98,22 +123,22 @@ export default function Login() {
         }
         throw new Error(data?.error || "Error al iniciar sesión");
       }
-  
+
       // para mandarlo a pagos si logea
       if (redirect === "pagos") {
         navigate("/pagos");
         return;
       }
-  
+
       // sino sigue por roles
       const userRes = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
         credentials: "include",
       });
-  
+
       const user = await userRes.json();
       if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
-  
+
       if (user.roles.includes("admin")) {
         navigate("/admin/home");
       } else if (user.roles.includes("rrhh")) {
@@ -121,13 +146,13 @@ export default function Login() {
       } else {
         navigate("/candidato/home");
       }
-  
+
     } catch (err) {
       setLoginError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
   };
-  
-  
+
+
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
@@ -159,7 +184,7 @@ export default function Login() {
         </div>
       )}
 
-     
+
       <div className="text-center mb-6 z-10">
         <h1 className="text-4xl font-bold tracking-widest text-blue-400">SIGRH+</h1>
         <p className="text-sm italic text-gray-300 mt-2">{frase}</p>
@@ -172,7 +197,7 @@ export default function Login() {
           <div className="absolute w-full h-full backface-hidden z-20">
             <form onSubmit={handleSubmitLogin} className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20">
               <h2 className="text-2xl font-semibold text-center text-white">Iniciar Sesión</h2>
-             
+
               <input type="text" placeholder="Usuario o Email" value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <div className="relative">
@@ -193,46 +218,46 @@ export default function Login() {
 
               {/* logeo google */}
               <div className="text-center">
-              <GoogleLogin
-  onSuccess={async (credentialResponse) => {
-    const tokenGoogle = credentialResponse.credential;
-    try {
-      await fetch(`${API_URL}/auth/google`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ credential: tokenGoogle })
-      });
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    const tokenGoogle = credentialResponse.credential;
+                    try {
+                      await fetch(`${API_URL}/auth/google`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        credentials: "include",
+                        body: JSON.stringify({ credential: tokenGoogle })
+                      });
 
-      const userRes = await fetch(`${API_URL}/auth/me`, {
-        method: "GET",
-        credentials: "include",
-      });
+                      const userRes = await fetch(`${API_URL}/auth/me`, {
+                        method: "GET",
+                        credentials: "include",
+                      });
 
-      const user = await userRes.json();
+                      const user = await userRes.json();
 
-      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
+                      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
 
-      //  chequeamos redirect 
-      if (redirect === "pagos") {
-        navigate("/pagos");
-        return;
-      }
+                      //  chequeamos redirect 
+                      if (redirect === "pagos") {
+                        navigate("/pagos");
+                        return;
+                      }
 
-      if (user.roles.includes("admin")) {
-        navigate("/admin/home");
-      } else if (user.roles.includes("rrhh")) {
-        navigate("/rrhh/home");
-      } else {
-        navigate("/candidato/home");
-      }
+                      if (user.roles.includes("admin")) {
+                        navigate("/admin/home");
+                      } else if (user.roles.includes("rrhh")) {
+                        navigate("/rrhh/home");
+                      } else {
+                        navigate("/candidato/home");
+                      }
 
-    } catch (err) {
-      console.error("Error Google login:", err);
-    }
-  }}
-  onError={() => console.error("Falló el login con Google")}
-/>
+                    } catch (err) {
+                      console.error("Error Google login:", err);
+                    }
+                  }}
+                  onError={() => console.error("Falló el login con Google")}
+                />
 
               </div>
 
@@ -249,14 +274,14 @@ export default function Login() {
           <div className="absolute w-full h-full backface-hidden rotate-y-180">
             <form onSubmit={handleSubmitRegister} className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20">
               <h2 className="text-2xl font-semibold text-center text-white">Registrarse</h2>
-            
+
               <input type="text" placeholder="Nombre" value={registerName}
                 onChange={(e) => setRegisterName(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-               <input type="text" placeholder="Apellido" value={registerSurname}
+              <input type="text" placeholder="Apellido" value={registerSurname}
                 onChange={(e) => setRegisterSurname(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                <input type="text" placeholder="Nombre de Usuario" value={registerUsername}
+              <input type="text" placeholder="Nombre de Usuario" value={registerUsername}
                 onChange={(e) => setRegisterUsername(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input type="email" placeholder="Email" value={registerEmail}
@@ -281,7 +306,9 @@ export default function Login() {
                 </span>
               </div>
 
+              {/* Mensaje de error o éxito */}
               {registerError && <p className="text-red-500 text-sm text-center">{registerError}</p>}
+              {registerSuccess && <p className="text-green-500 text-sm text-center">¡Registro exitoso!</p>}  {/* Mensaje de éxito */}
 
               <button type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium">
                 Registrarse
