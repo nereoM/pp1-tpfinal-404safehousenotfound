@@ -217,7 +217,7 @@ export default function Login() {
       .then(async () => {
         console.log("Login Google exitoso");
 
-        // Ahora hacés el segundo fetch para obtener roles
+
         const userRes = await fetch(`${API_URL}/auth/me`, {
           method: "GET",
           credentials: "include",
