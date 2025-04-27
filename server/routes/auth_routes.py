@@ -43,7 +43,7 @@ def register():
         db.session.add(candidato_role)
         db.session.commit()
 
-    # enviar_confirmacion_email(email, username)
+    enviar_confirmacion_email(email, username)
 
     new_user = Usuario(nombre=username, correo=email, contrasena=password)
     new_user.roles.append(candidato_role)
