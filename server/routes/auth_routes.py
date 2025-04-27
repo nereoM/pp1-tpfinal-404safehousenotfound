@@ -137,9 +137,8 @@ def google_login():
             "roles": [r.slug for r in user.roles] 
         })
         
-        set_access_cookies(response, access_token)
-        
         user.confirmar_usuario()
+        set_access_cookies(response, access_token)
         return response, 200
 
     except ValueError:
