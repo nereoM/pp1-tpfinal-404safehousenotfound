@@ -356,7 +356,7 @@ export default function Login() {
 
               {/* Mensaje de error o éxito */}
               {registerError && <p className="text-red-500 text-sm text-center">{registerError}</p>}
-              {registerSuccess && <p className="text-green-500 text-sm text-center">¡Registro exitoso!</p>}  {/* Mensaje de éxito */}
+              {registerSuccess && <p className="text-green-500 text-sm text-center">¡Registro exitoso! Verifique su email</p>}  {/* Mensaje de éxito */}
 
               <button type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium">
                 Registrarse
