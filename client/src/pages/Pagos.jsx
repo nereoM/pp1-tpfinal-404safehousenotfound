@@ -17,7 +17,7 @@ export default function Pagos() {
             <li>Acceso inmediato y soporte 24/7</li>
           </ul>
           <img
-            src="/images/sigrh-platform-preview.png"
+            src="/public/imagen_para_pagos.png"
             className="rounded-xl shadow-lg"
           />
         </div>
