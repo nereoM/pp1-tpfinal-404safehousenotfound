@@ -97,13 +97,13 @@ export default function Login() {
         throw new Error(data?.error || "Error al iniciar sesión");
       }
   
-      // 🔥 Apenas loguea, si hay redirect, mandalo a pagos
+      // para mandarlo a pagos si logea
       if (redirect === "pagos") {
         navigate("/pagos");
         return;
       }
   
-      // Si no hay redirect, recién ahí sigue como siempre
+      // sino sigue por roles
       const userRes = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
         credentials: "include",
@@ -134,15 +134,15 @@ export default function Login() {
         <ArrowLeft className="w-5 h-5" />
       </button>
 
-      {/* Fondo */}
+      {/* fondo */}
       <div className="absolute inset-0 bg-[url('/city.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
 
-      {/* Botón Sobre Nosotros */}
+      {/* sobre nosotros */}
       <button onClick={() => setShowInfo(true)} className="absolute bottom-2 right-4 text-xs text-gray-400 hover:text-white z-20">
         Sobre nosotros
       </button>
 
-      {/* Modal Sobre Nosotros */}
+      {/* modal */}
       {showInfo && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white text-gray-800 rounded-xl p-6 w-full max-w-md shadow-lg">
@@ -157,7 +157,7 @@ export default function Login() {
         </div>
       )}
 
-      {/* Branding */}
+     
       <div className="text-center mb-6 z-10">
         <h1 className="text-4xl font-bold tracking-widest text-blue-400">SIGRH+</h1>
         <p className="text-sm italic text-gray-300 mt-2">{frase}</p>
@@ -170,7 +170,7 @@ export default function Login() {
           <div className="absolute w-full h-full backface-hidden z-20">
             <form onSubmit={handleSubmitLogin} className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20">
               <h2 className="text-2xl font-semibold text-center text-white">Iniciar Sesión</h2>
-              {/* Inputs */}
+             
               <input type="text" placeholder="Usuario o Email" value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <div className="relative">
@@ -189,7 +189,7 @@ export default function Login() {
                 Ingresar
               </button>
 
-              {/* Google Login */}
+              {/* logeo google */}
               <div className="text-center">
               <GoogleLogin
   onSuccess={async (credentialResponse) => {
@@ -211,7 +211,7 @@ export default function Login() {
 
       if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
 
-      // 🔥 chequeamos redirect igual que en handleSubmitLogin 🔥
+      //  chequeamos redirect 
       if (redirect === "pagos") {
         navigate("/pagos");
         return;
@@ -247,8 +247,14 @@ export default function Login() {
           <div className="absolute w-full h-full backface-hidden rotate-y-180">
             <form onSubmit={handleSubmitRegister} className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20">
               <h2 className="text-2xl font-semibold text-center text-white">Registrarse</h2>
-              {/* Inputs */}
-              <input type="text" placeholder="Nombre de usuario" value={registerUsername}
+            
+              <input type="text" placeholder="Nombre" value={registerUsername}
+                onChange={(e) => setRegisterUsername(e.target.value)}
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+               <input type="text" placeholder="Apellido" value={registerUsername}
+                onChange={(e) => setRegisterUsername(e.target.value)}
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="text" placeholder="Nombre de Usuario" value={registerUsername}
                 onChange={(e) => setRegisterUsername(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
               <input type="email" placeholder="Email" value={registerEmail}
