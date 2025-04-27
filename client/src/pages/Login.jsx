@@ -42,6 +42,25 @@ export default function Login() {
 
   const frase = "Tu equipo, tu mayor valor.";
 
+  const resetLoginFields = () => {
+    setLoginUsername("");
+    setLoginPassword("");
+    setLoginError("");
+    setLoginSuccess(false);
+  };
+  
+  const resetRegisterFields = () => {
+    setRegisterName("");
+    setRegisterSurname("");
+    setRegisterUsername("");
+    setRegisterEmail("");
+    setRegisterPassword("");
+    setRegisterRepeatPassword("");
+    setRegisterError("");
+    setRegisterSuccess(false);
+  };
+  
+
 
   const handleSubmitRegister = async (e) => {
     e.preventDefault();
@@ -292,7 +311,7 @@ export default function Login() {
 
               <div className="text-sm text-center text-gray-300">
                 ¿No tenés usuario?{' '}
-                <button type="button" onClick={() => setFlipped(true)} className="text-blue-400 hover:underline">
+                <button type="button" onClick={() =>  {resetLoginFields();  setFlipped(true)}} className="text-blue-400 hover:underline">
                   Registrate acá
                 </button>
               </div>
@@ -345,7 +364,7 @@ export default function Login() {
 
               <div className="text-sm text-center text-gray-300">
                 ¿Ya tienes cuenta?{' '}
-                <button type="button" onClick={() => setFlipped(false)} className="text-blue-400 hover:underline">
+                <button type="button" onClick={() => {resetRegisterFields();  setFlipped(false);}} className="text-blue-400 hover:underline">
                   Inicia sesión acá
                 </button>
               </div>
