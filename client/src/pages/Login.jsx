@@ -168,6 +168,21 @@ export default function Login() {
     }
   };
 
+  useEffect(() => {
+    const handlePopState = (e) => {
+      // Evitar que el usuario navegue hacia atrás
+      e.preventDefault();
+      history.pushState(null, '', window.location.href);
+    };
+  
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', handlePopState);
+  
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+  
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
       {/* Botón Volver */}
