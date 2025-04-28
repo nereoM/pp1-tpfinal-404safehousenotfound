@@ -134,23 +134,23 @@ export default function Login() {
     setLoginError("");
     setLoginSuccess(false);
   
-
-    // Verificar que el usuario y la contraseña no estén vacíos
     if (!loginUsername || !loginPassword) {
       setLoginError("Usuario/email y contraseña requeridos");
+      setLoadingLogin(false);
       return;
     }
-
+    
     if (loginUsername.length < 4 || loginUsername.length > 20) {
       setLoginError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
+      setLoadingLogin(false);
       return;
     }
-
-    // Verificación de longitud mínima de la contraseña
+    
     if (loginPassword.length < 6) {
       setLoginError("La contraseña debe tener al menos 6 caracteres.");
+      setLoadingLogin(false);
       return;
-    }
+    }    
 
     setLoginError("");
     setLoginSuccess(false);
