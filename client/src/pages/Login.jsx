@@ -68,7 +68,7 @@ export default function Login() {
     setRegisterSuccess(false);
 
     // Validaciones antes de llamar al backend
-    if (!registerUsername.trim() || !registerEmail.trim() || !registerPassword.trim() || !registerRepeatPassword.trim()) {
+    if (!registerName.trim() || !registerSurname.trim() ||!registerUsername.trim() || !registerEmail.trim() || !registerPassword.trim() || !registerRepeatPassword.trim()) {
       setRegisterError('Por favor, completá todos los campos.');
       return;
     }
@@ -100,6 +100,9 @@ export default function Login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+
+          name: registerName,
+          surname: registerSurname,
           username: registerUsername,
           email: registerEmail,
           password: registerPassword
