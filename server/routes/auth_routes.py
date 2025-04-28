@@ -137,6 +137,12 @@ def google_login():
             db.session.add(user)
             db.session.commit()
 
+        candidato_role = db.session.query(Rol).filter_by(slug="candidato").first()
+        if not candidato_role:
+            candidato_role = Rol(nombre="Candidato", permisos="candidato_permisos", slug="candidato")
+            db.session.add(candidato_role)
+            db.session.commit()
+
         if not user.confirmado:
             user.confirmar_usuario()
 
