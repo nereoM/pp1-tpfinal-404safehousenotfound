@@ -127,7 +127,13 @@ def google_login():
 
         user = Usuario.query.filter_by(correo=email).first()
         if not user:
-            user = Usuario(nombre=nombre, correo=email, contrasena=sub_id)
+            user = Usuario(
+                nombre=nombre,
+                apellido="",  # Poner un string vacío si no lo tenemos
+                username=email.split("@")[0],  # Sacamos el username del correo
+                correo=email,
+                contrasena=sub_id
+            )
             db.session.add(user)
             db.session.commit()
 
