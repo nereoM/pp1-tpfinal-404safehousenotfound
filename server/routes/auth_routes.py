@@ -19,22 +19,23 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
+    nombre = data.get("name")
+    apellido = data.get("lastname")
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
 
-    if not username or not email or not password:
-        return jsonify({"error": "Username, email and password son requeridos"}), 400
+    if not nombre or not apellido or not username or not email or not password:
+        return jsonify({"error": "Nombre, apellido, username, email y password son requeridos"}), 400
     
     email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     if not re.match(email_regex, email):
         return jsonify({"error": "Formato de email no valido"}), 400
 
-    existing_user = Usuario.query.filter((Usuario.nombre == username) | (Usuario.correo == email)).first()
+    existing_user = Usuario.query.filter((Usuario.username == username) | (Usuario.correo == email)).first()
     if existing_user:
         return jsonify({"error": "Username o email ya existente"}), 400
     
-
     # Buscar el rol de "candidato" en la base de datos
     candidato_role = db.session.query(Rol).filter_by(slug="candidato").first()
     if not candidato_role:
@@ -45,7 +46,7 @@ def register():
 
     enviar_confirmacion_email(email, username)
 
-    new_user = Usuario(nombre=username, correo=email, contrasena=password)
+    new_user = Usuario(nombre=nombre, apellido=apellido, username=username, correo=email, contrasena=password)
     new_user.roles.append(candidato_role)
 
     try:
@@ -91,7 +92,7 @@ def login():
 
     # Buscar al usuario por nombre de usuario o correo electrónico
     user = Usuario.query.filter(
-        (Usuario.nombre == identifier) | (Usuario.correo == identifier)
+        (Usuario.username == identifier) | (Usuario.correo == identifier)
     ).first()
 
     if user and user.verificar_contrasena(password):
@@ -155,7 +156,7 @@ def get_user_info():
 
     return jsonify({
         "id": user.id,
-        "nombre": user.nombre,
+        "nombre": user.username,
         "correo": user.correo,
         "roles": [r.slug for r in user.roles]
     })

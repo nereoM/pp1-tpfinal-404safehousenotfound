@@ -15,11 +15,13 @@ def admin_404_home():
 @role_required(["admin-404"])
 def registrar_admin_emp():
     data = request.get_json()
-    nombre = data.get("username")
+    nombre = data.get("name")
+    apellido = data.get("lastname")
+    username = data.get("username")
     email = data.get("email")
     nombre_empresa = data.get("company_name")  # Nombre de la empresa proporcionado en la petición
 
-    if not nombre or not email or not nombre_empresa:
+    if not nombre or not apellido or not username or not email or not nombre_empresa:
         return jsonify({"error": "Todos los campos son obligatorios"}), 400
 
     # Verificar si el usuario ya existe
@@ -56,6 +58,8 @@ def registrar_admin_emp():
     # Si el usuario no existe, crearlo y asignarle el rol admin-emp
     nuevo_admin_emp = Usuario(
         nombre=nombre,
+        apellido=apellido,
+        username=username,
         correo=email,
         contrasena=temp_password
     )
@@ -77,9 +81,9 @@ def registrar_admin_emp():
     db.session.commit()
 
     return jsonify({
-        "message": f"Admin-EMP '{nombre}' registrado exitosamente",
+        "message": f"Admin-EMP '{username}' registrado exitosamente",
         "credentials": {
-            "username": nombre,
+            "username": username,
             "password": temp_password
         }
     })

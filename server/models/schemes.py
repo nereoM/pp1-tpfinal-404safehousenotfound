@@ -7,7 +7,9 @@ import json
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    nombre = db.Column(db.String(50), nullable=False, unique=True)
+    nombre = db.Column(db.String(50), nullable=False)
+    apellido = db.Column(db.String(50), nullable=False)
+    username = db.Column(db.String(50), nullable=False, unique=True)
     correo = db.Column(db.String(100), nullable=False, unique=True)
     _contrasena = db.Column(db.String(512), nullable=False)
     confirmado = db.Column(db.Boolean, default=False)

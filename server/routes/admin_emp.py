@@ -15,22 +15,24 @@ def admin_emp_home():
 @role_required(["admin-emp"])
 def registrar_manager():
     data = request.get_json()
+    nombre = data.get("name")
+    apellido = data.get("lastname")
     username = data["username"]
     email = data["email"]
 
-    if not username or not email:
-        return jsonify({"error": "El nombre de usuario y el correo son requeridos"}), 400
+    if not nombre or not apellido or not username or not email:
+        return jsonify({"error": "Todos los campos son requeridos"}), 400
 
     # Generar una contraseña temporal
     temp_password = secrets.token_urlsafe(8)  # Genera una contraseña segura de 8 caracteres
 
     # Verificar si el usuario ya existe
-    existing_user = Usuario.query.filter_by(nombre=username).first()
+    existing_user = Usuario.query.filter_by(username=username).first()
     if existing_user:
         return jsonify({"error": "El usuario ya existe"}), 400
 
     # Crear un nuevo usuario con el rol de manager
-    new_user = Usuario(nombre=username, correo=email, contrasena=temp_password)
+    new_user = Usuario(nombre=nombre, apellido=apellido, username=username, correo=email, contrasena=temp_password)
     manager_role = Rol.query.filter_by(nombre="manager").first()
 
     if not manager_role:

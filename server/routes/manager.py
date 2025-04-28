@@ -15,11 +15,13 @@ def manager_home():
 @role_required(["manager"])
 def register_reclutador():
     data = request.get_json()
+    nombre = data.get("name")
+    apellido = data.get("lastname")
     username = data.get("username")
     email = data.get("email")
 
-    if not username or not email:
-        return jsonify({"error": "El nombre de usuario y el correo son requeridos"}), 400
+    if not nombre or not apellido or not username or not email:
+        return jsonify({"error": "Todos los campos son requeridos"}), 400
     
     temp_password = secrets.token_urlsafe(8)
 
@@ -34,7 +36,9 @@ def register_reclutador():
         db.session.commit()
 
     nuevo_reclutador = Usuario(
-        nombre=username,
+        nombre=nombre,
+        apellido=apellido,
+        username=username,
         correo=email,
         contrasena=temp_password)
     nuevo_reclutador.roles.append(reclutador_role)
