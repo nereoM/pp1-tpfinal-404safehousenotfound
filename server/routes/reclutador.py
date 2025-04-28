@@ -1,7 +1,9 @@
+import json
 from flask import Blueprint, jsonify
 from auth.decorators import role_required
 from models.extensions import db
 from models.schemes import Oferta_laboral
+from flask import request, jsonify
 
 reclutador_bp = Blueprint("reclutador", __name__)
 

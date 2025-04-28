@@ -131,19 +131,24 @@ def google_login():
             db.session.add(user)
             db.session.commit()
 
+        if not user.confirmado:
+            user.confirmar_usuario()
+
         access_token = create_access_token(identity=str(user.id), additional_claims={"roles": [r.slug for r in user.roles]})
 
         response = jsonify({
             "message": "Login Google exitoso",
             "roles": [r.slug for r in user.roles] 
         })
-        
-        user.confirmar_usuario()
+
         set_access_cookies(response, access_token)
+
         return response, 200
 
     except ValueError:
         return jsonify({"error": "Token inválido"}), 401
+
+
 
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()

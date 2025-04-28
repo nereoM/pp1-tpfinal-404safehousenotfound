@@ -22,6 +22,8 @@ class Config:
     
     JWT_TOKEN_LOCATION = ["cookies"]
     JWT_COOKIE_SECURE = False
+    JWT_COOKIE_SAMESITE = "Lax"
+    JWT_ACCESS_COOKIE_NAME = "access_token_cookie"
     JWT_COOKIE_CSRF_PROTECT = False
     JWT_ACCESS_COOKIE_PATH = "/"
 
