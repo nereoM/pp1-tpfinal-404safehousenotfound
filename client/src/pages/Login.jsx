@@ -71,32 +71,36 @@ export default function Login() {
     setRegisterError("");
     setRegisterSuccess(false);
 
-    // Validaciones antes de llamar al backend
-    if (!registerName.trim() || !registerSurname.trim() ||!registerUsername.trim() || !registerEmail.trim() || !registerPassword.trim() || !registerRepeatPassword.trim()) {
+    if (!registerName.trim() || !registerSurname.trim() || !registerUsername.trim() || !registerEmail.trim() || !registerPassword.trim() || !registerRepeatPassword.trim()) {
       setRegisterError('Por favor, completá todos los campos.');
+      setLoadingRegister(false);
       return;
     }
-
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(registerEmail)) {
       setRegisterError('El correo electrónico no es válido.');
+      setLoadingRegister(false);
       return;
     }
-
+    
     if (registerUsername.length < 4 || registerUsername.length > 20) {
       setRegisterError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
+      setLoadingRegister(false);
       return;
     }
-
+    
     if (registerPassword.length < 6) {
       setRegisterError('La contraseña debe tener al menos 6 caracteres.');
+      setLoadingRegister(false);
       return;
     }
-
+    
     if (registerPassword !== registerRepeatPassword) {
       setRegisterError("Las contraseñas no coinciden.");
+      setLoadingRegister(false); 
       return;
-    }
+    }    
 
     // Si pasa todas las validaciones
     try {
@@ -124,8 +128,6 @@ export default function Login() {
    finally {
     setLoadingRegister(false);
   }
-
-
   };
 
   const handleSubmitLogin = async (e) => {
