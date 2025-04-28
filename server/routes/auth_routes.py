@@ -7,14 +7,21 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from services.config import Config
-from itsdangerous import URLSafeTimedSerializer
+from itsdangerous import SignatureExpired, URLSafeTimedSerializer
 from flask_mail import Message
 from models.extensions import mail
 from flask import current_app
 import re
 from flask_jwt_extended import unset_jwt_cookies
+import string
 
 auth_bp = Blueprint("auth", __name__)
+
+def validar_contrasena(password):
+    regex = r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
+    if not re.match(regex, password):
+        return False
+    return True
 
 @auth_bp.route("/register", methods=["POST"])
 def register():
@@ -31,6 +38,9 @@ def register():
     email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     if not re.match(email_regex, email):
         return jsonify({"error": "Formato de email no valido"}), 400
+    
+    if not validar_contrasena(password):
+        return jsonify({"error": "La contraseña debe tener mínimo 8 caracteres, incluir una mayúscula, un número y un carácter especial."}), 400
 
     existing_user = Usuario.query.filter((Usuario.username == username) | (Usuario.correo == email)).first()
     if existing_user:
@@ -67,11 +77,21 @@ def enviar_confirmacion_email(correo_destino, nombre_usuario):
 
 @auth_bp.route("/confirmar/<token>")
 def confirmar_email(token):
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
     try:
-        s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
-        correo = s.loads(token, salt='email-confirm', max_age=3600)
-    except:
-        return "El enlace ha expirado o es inválido.", 400
+        correo = s.loads(token, salt='email-confirm', max_age=10)
+    except SignatureExpired:
+        try:
+            correo = s.loads(token, salt='email-confirm')
+            usuario = Usuario.query.filter_by(correo=correo).first()
+            if usuario and not usuario.confirmado:
+                db.session.delete(usuario)
+                db.session.commit()
+        except Exception:
+            pass
+        return "El enlace ha expirado. Registrate de nuevo.", 400
+    except Exception:
+        return "El enlace es inválido.", 400
 
     usuario = Usuario.query.filter_by(correo=correo).first()
     if not usuario:
