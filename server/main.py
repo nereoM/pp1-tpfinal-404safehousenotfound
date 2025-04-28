@@ -53,5 +53,5 @@ def iniciar_db():
             
 if __name__ == "__main__":
     iniciar_db()
-
+    
     app.run(debug=True)

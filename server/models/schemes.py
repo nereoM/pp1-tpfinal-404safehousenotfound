@@ -27,6 +27,7 @@ class Usuario(db.Model):
 
     roles = db.relationship("Rol", secondary='usuarios_roles', back_populates="usuarios")
 
+    
     def tiene_rol(self, rol):
         return bool(
             Rol.query.join(Rol.usuarios).filter(Usuario.id == self.id, Rol.slug == rol).count() == 1
@@ -65,7 +66,18 @@ class Empresa(db.Model):
 
     admin_emp = db.relationship("Usuario", backref="empresa")
 
-    def __init__(self, nombre, id_admin_emp, logo=None):
+    def __init__(self, nombre, id_admin_emp):
         self.nombre = nombre
         self.correo = f"{nombre.lower().replace(' ', '_')}@empresa.com"
         self.id_admin_emp = id_admin_emp
+
+class TarjetaCredito(db.Model):
+    __tablename__ = 'tarjetas_credito'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    numero_tarjeta = db.Column(db.String(16), nullable=False, unique=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    tipo = db.Column(db.String(50), nullable=False)  # Ejemplo: Visa, Mastercard
+    cvv = db.Column(db.String(4), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+
+    usuario = db.relationship("Usuario", backref="tarjetas_credito")
