@@ -143,6 +143,9 @@ def google_login():
             db.session.add(candidato_role)
             db.session.commit()
 
+        user.roles.append(candidato_role)
+        db.session.commit()
+        
         if not user.confirmado:
             user.confirmar_usuario()
 
