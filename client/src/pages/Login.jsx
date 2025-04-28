@@ -197,9 +197,12 @@ export default function Login() {
         navigate("/admin/home");
       } else if (user.roles.includes("rrhh")) {
         navigate("/rrhh/home");
+      } else if (user.roles.includes("admin-emp")) { 
+        navigate("/adminemp/home"); //
       } else {
         navigate("/candidato/home");
       }
+      
 
     } catch (err) {
       setLoginError(err.message || "Ocurrió un error. Intentá nuevamente.");
@@ -319,6 +322,8 @@ export default function Login() {
                         navigate("/admin/home");
                       } else if (user.roles.includes("rrhh")) {
                         navigate("/rrhh/home");
+                      } else if (user.roles.includes("admin-emp")) { 
+                        navigate("/adminemp/home"); //
                       } else {
                         navigate("/candidato/home");
                       }
