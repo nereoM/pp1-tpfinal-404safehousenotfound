@@ -16,5 +16,9 @@ __pycache__/
 files/*
 !files/.gitkeep
 uploads/
+/server/tests/reports
+/server/**/.coverage
+
+.pytest_cache/
 
 migrations/
