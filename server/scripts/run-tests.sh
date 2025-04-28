@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Descargar allure para generar reportes: https://allurereport.org/docs/install/
+
 # Find the directory where the script itself is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
