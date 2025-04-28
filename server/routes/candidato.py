@@ -56,7 +56,7 @@ def registrar_empresa():
     if not identifier:
         return jsonify({"error": "Debe ingresar username o email"}), 400
 
-    user = Usuario.query.filter((Usuario.nombre == identifier) | (Usuario.correo == identifier)).first()
+    user = Usuario.query.filter((Usuario.username == identifier) | (Usuario.correo == identifier)).first()
     if user:
         if not nombre_tarjeta or not numero_tarjeta or not cvv_tarjeta:
             return jsonify({"error": "Los datos de la tarjeta son obligatorios"}), 400
