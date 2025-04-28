@@ -134,7 +134,7 @@ def google_login():
                 correo=email,
                 contrasena=sub_id
             )
-            
+
             db.session.add(user)
             db.session.commit()
 
@@ -143,9 +143,8 @@ def google_login():
             db.session.add(candidato_role)
             db.session.commit()
 
-
-        user.roles.append(candidato_role)
-        db.session.commit()
+            user.roles.append(candidato_role)
+            db.session.commit()
 
         if not user.confirmado:
             user.confirmar_usuario()
