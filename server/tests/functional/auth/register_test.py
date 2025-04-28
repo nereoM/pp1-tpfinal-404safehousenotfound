@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-import pytest
+import allure
 from main import db
 from models.schemes import Usuario
 
@@ -21,7 +21,7 @@ def get_valid_user() -> UserData:
         "lastname": "Doe",
         "username": "deleteme",
         "email": "testemail@gmail.com",
-        "password": "password",
+        "password": "1password!",
     }
 
 
@@ -52,10 +52,58 @@ def test_register_user_empty_body_returns_400(test_client):
     assert response.status_code == 400
 
 
-@pytest.mark.skip(reason="Ocultarlo en consola")
+@allure.description(
+    "Prueba que un usuario no puede registrarse si la contraseña no contiene al menos 8 carácteres."
+)
 def test_register_user_short_password_returns_400(test_client):
     data = get_valid_user()
-    data["password"] = "pass"
+    invalid_password = "1passw!"
+    data["password"] = invalid_password
+
+    response = test_client.post(URL, json=data)
+
+    print(response.json)
+
+    assert response.status_code == 400
+
+
+@allure.description(
+    "Prueba que un usuario no puede registrarse si la contraseña no contiene al menos un signo de puntuación."
+)
+def test_register_user_invalid_password_1_returns_400(test_client):
+    data = get_valid_user()
+    invalid_password = "Password1"
+    data["password"] = invalid_password
+
+    response = test_client.post(URL, json=data)
+
+    print(response.json)
+
+    assert response.status_code == 400
+
+
+@allure.description(
+    "Prueba que un usuario no puede registrarse si la contraseña no contiene al menos una mayúscula."
+)
+def test_register_user_invalid_password_2_returns_400(test_client):
+    data = get_valid_user()
+    invalid_password = "!password1"
+    data["password"] = invalid_password
+
+    response = test_client.post(URL, json=data)
+
+    print(response.json)
+
+    assert response.status_code == 400
+
+
+@allure.description(
+    "Prueba que un usuario no puede registrarse si la contraseña no contiene al menos un número."
+)
+def test_register_user_invalid_password_3_returns_400(test_client):
+    data = get_valid_user()
+    invalid_password = "!Password"
+    data["password"] = invalid_password
 
     response = test_client.post(URL, json=data)
 
