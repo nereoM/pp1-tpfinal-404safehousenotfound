@@ -1,6 +1,8 @@
 from sqlalchemy.ext.hybrid import hybrid_property
 from werkzeug.security import generate_password_hash, check_password_hash
 from .extensions import db
+import pickle
+import json
 
 class Usuario(db.Model):
     __tablename__ = 'usuarios'
@@ -81,3 +83,40 @@ class TarjetaCredito(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
 
     usuario = db.relationship("Usuario", backref="tarjetas_credito")
+
+class Oferta_laboral(db.Model):
+    __tablename__ = 'ofertas_laborales'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_empresa = db.Column(db.Integer, db.ForeignKey('empresas.id'), nullable=False)
+    nombre = db.Column(db.String(100), nullable=False)
+    descripcion = db.Column(db.Text, nullable=False)
+    location = db.Column(db.String(100), nullable=False)
+    employment_type = db.Column(db.String(50), nullable=False)
+    workplace_type = db.Column(db.String(50), nullable=False)
+    salary_min = db.Column(db.Float, nullable=False)
+    salary_max = db.Column(db.Float, nullable=False)
+    currency = db.Column(db.String(10), nullable=False)
+    experience_level = db.Column(db.String(50), nullable=False)
+    posted_at = db.Column(db.DateTime, default=db.func.now())
+    is_active = db.Column(db.Boolean, default=True)
+    modelo = db.Column(db.LargeBinary, nullable=False)
+    vectorizador = db.Column(db.LargeBinary, nullable=False)
+    palabras_clave = db.Column(db.Text, nullable=False)
+    fecha_publicacion = db.Column(db.DateTime, default=db.func.now())
+    fecha_cierre = db.Column(db.DateTime, nullable=True)
+
+    empresa = db.relationship("Empresa", backref="ofertas_laborales")
+
+
+def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
+    oferta = Oferta_laboral.query.get(id_oferta)
+
+    if not oferta:
+        raise Exception(f"No se encontró la oferta laboral con id {id_oferta}")
+
+    oferta.modelo = pickle.dumps(modelo)
+    oferta.vectorizador = pickle.dumps(vectorizador)
+    oferta.palabras_clave = json.dumps(palabras_clave)
+
+    db.session.commit()
+    return True
