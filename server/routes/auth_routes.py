@@ -20,7 +20,7 @@ auth_bp = Blueprint("auth", __name__)
 def register():
     data = request.get_json()
     nombre = data.get("name")
-    apellido = data.get("lastname")
+    apellido = data.get("surname")
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")

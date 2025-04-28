@@ -12,6 +12,9 @@ export default function Login() {
   const API_URL = import.meta.env.VITE_API_URL;
   const [flipped, setFlipped] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [loadingLogin, setLoadingLogin] = useState(false);
+  const [loadingRegister, setLoadingRegister] = useState(false);
+
 
   // Agregamos esto afuera de cualquier función
   useEffect(() => {
@@ -64,35 +67,40 @@ export default function Login() {
 
   const handleSubmitRegister = async (e) => {
     e.preventDefault();
+    setLoadingRegister(true); 
     setRegisterError("");
     setRegisterSuccess(false);
 
-    // Validaciones antes de llamar al backend
-    if (!registerUsername.trim() || !registerEmail.trim() || !registerPassword.trim() || !registerRepeatPassword.trim()) {
+    if (!registerName.trim() || !registerSurname.trim() || !registerUsername.trim() || !registerEmail.trim() || !registerPassword.trim() || !registerRepeatPassword.trim()) {
       setRegisterError('Por favor, completá todos los campos.');
+      setLoadingRegister(false);
       return;
     }
-
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(registerEmail)) {
       setRegisterError('El correo electrónico no es válido.');
+      setLoadingRegister(false);
       return;
     }
-
+    
     if (registerUsername.length < 4 || registerUsername.length > 20) {
       setRegisterError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
+      setLoadingRegister(false);
       return;
     }
-
+    
     if (registerPassword.length < 6) {
       setRegisterError('La contraseña debe tener al menos 6 caracteres.');
+      setLoadingRegister(false);
       return;
     }
-
+    
     if (registerPassword !== registerRepeatPassword) {
       setRegisterError("Las contraseñas no coinciden.");
+      setLoadingRegister(false); 
       return;
-    }
+    }    
 
     // Si pasa todas las validaciones
     try {
@@ -100,6 +108,9 @@ export default function Login() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+
+          name: registerName,
+          surname: registerSurname,
           username: registerUsername,
           email: registerEmail,
           password: registerPassword
@@ -113,27 +124,35 @@ export default function Login() {
     } catch (err) {
       setRegisterError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
+
+   finally {
+    setLoadingRegister(false);
+  }
   };
 
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
-
-    // Verificar que el usuario y la contraseña no estén vacíos
+    setLoadingLogin(true); 
+    setLoginError("");
+    setLoginSuccess(false);
+  
     if (!loginUsername || !loginPassword) {
       setLoginError("Usuario/email y contraseña requeridos");
+      setLoadingLogin(false);
       return;
     }
-
+    
     if (loginUsername.length < 4 || loginUsername.length > 20) {
       setLoginError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
+      setLoadingLogin(false);
       return;
     }
-
-    // Verificación de longitud mínima de la contraseña
+    
     if (loginPassword.length < 6) {
       setLoginError("La contraseña debe tener al menos 6 caracteres.");
+      setLoadingLogin(false);
       return;
-    }
+    }    
 
     setLoginError("");
     setLoginSuccess(false);
@@ -184,6 +203,10 @@ export default function Login() {
 
     } catch (err) {
       setLoginError(err.message || "Ocurrió un error. Intentá nuevamente.");
+    }
+   
+    finally {
+      setLoadingLogin(false); 
     }
   };
 
@@ -260,8 +283,8 @@ export default function Login() {
 
               {loginError && <p className="text-red-500 text-sm text-center">{loginError}</p>}
 
-              <button type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium">
-                Ingresar
+              <button type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"disabled={loadingLogin}>
+              {loadingLogin ? "Cargando..." : "Ingresar"}
               </button>
 
               {/* logeo google */}
@@ -358,8 +381,8 @@ export default function Login() {
               {registerError && <p className="text-red-500 text-sm text-center">{registerError}</p>}
               {registerSuccess && <p className="text-green-500 text-sm text-center">¡Registro exitoso! Verifique su email</p>}  {/* Mensaje de éxito */}
 
-              <button type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium">
-                Registrarse
+              <button type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"disabled={loadingRegister}>
+              {loadingRegister ? "Cargando..." : "Registrarse"}
               </button>
 
               <div className="text-sm text-center text-gray-300">
