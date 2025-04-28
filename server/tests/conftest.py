@@ -3,6 +3,7 @@
 import pytest
 from main import app, db
 from models.schemes import Usuario
+
 from tests.functional.auth.register_test import get_valid_user
 
 
@@ -73,8 +74,12 @@ def registered_confirmed_user(test_client, mocker):
     mocker.patch("routes.auth_routes.enviar_confirmacion_email")
     response = test_client.post("/auth/register", json=user_data)
 
+    print("f")
+
     # Confirmar email del usuario
     user = Usuario.query.filter_by(username=user_data["username"]).first()
+    print(f"usuario fetchado: {user}")
+
     user.confirmado = True
     db.session.commit()
 

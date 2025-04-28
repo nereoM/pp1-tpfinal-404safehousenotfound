@@ -9,7 +9,7 @@ URL = "/auth/register"
 
 class UserData(TypedDict):
     name: str
-    lastname: str
+    surname: str
     username: str
     email: str
     password: str
@@ -18,7 +18,7 @@ class UserData(TypedDict):
 def get_valid_user() -> UserData:
     return {
         "name": "John",
-        "lastname": "Doe",
+        "surname": "Doe",
         "username": "deleteme",
         "email": "testemail@gmail.com",
         "password": "1password!",

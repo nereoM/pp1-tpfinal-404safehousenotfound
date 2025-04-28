@@ -14,9 +14,6 @@ REPORTS_DIR="$PROJECT_ROOT/tests/reports"
 # Set PYTHONPATH to project root
 export PYTHONPATH="$PYTHONPATH:$PROJECT_ROOT"
 
-# Install requirements
-pip install -r "$PROJECT_ROOT/requirements.txt"
-
 # Run tests
 pytest "$PROJECT_ROOT/tests/functional" --cov=routes --alluredir="$REPORTS_DIR" -v
 
