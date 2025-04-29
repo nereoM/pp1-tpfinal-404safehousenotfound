@@ -142,17 +142,18 @@ export default function Login() {
       return;
     }
     
-    if (loginUsername.length < 4 || loginUsername.length > 20) {
-      setLoginError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
+    if (loginUsername.length < 4) {
+      setLoginError('El nombre de usuario debe tener al menos 4 caracteres.');
       setLoadingLogin(false);
       return;
     }
-    
-    if (loginPassword.length < 6) {
-      setLoginError("La contraseña debe tener al menos 6 caracteres.");
+  
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+    if (!passwordRegex.test(loginPassword)) {
+      setLoginError('La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.');
       setLoadingLogin(false);
       return;
-    }    
+    }
 
     setLoginError("");
     setLoginSuccess(false);
