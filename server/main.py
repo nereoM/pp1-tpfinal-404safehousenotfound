@@ -31,6 +31,7 @@ app.register_blueprint(reclutador_bp, url_prefix="/api")
 app.register_blueprint(manager_bp, url_prefix="/api")
 app.register_blueprint(admin_emp_bp, url_prefix="/api")
 
+
 migrate = Migrate(app, db)
 
 @app.route("/")

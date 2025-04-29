@@ -54,7 +54,7 @@ class UsuarioRol(db.Model):
 class CV(db.Model):
     __tablename__ = 'cvs'
     id = db.Column(db.Integer, primary_key=True)
-    id_user = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    id_candidato = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     url_cv = db.Column(db.String(255), nullable=False)
     tipo_archivo = db.Column(db.String(50))
     fecha_subida = db.Column(db.DateTime, default=db.func.now())
@@ -108,7 +108,16 @@ class Oferta_laboral(db.Model):
     fecha_cierre = db.Column(db.DateTime, nullable=True)
 
     empresa = db.relationship("Empresa", backref="ofertas_laborales")
-
+    
+class Job_Application(db.Model):
+    __tablename__ = 'job_application'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_candidato = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    id_oferta = db.Column(db.Integer, db.ForeignKey('ofertas_laborales.id'), nullable=False)
+    is_apto = db.Column(db.Boolean, nullable=False)
+    fecha_postulacion = db.Column(db.DateTime, default=db.func.now())
+    
+    candidato = db.relationship('Usuario', backref='cv_files')
 
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)

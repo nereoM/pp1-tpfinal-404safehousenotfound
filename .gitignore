@@ -15,7 +15,8 @@ __pycache__/
 /.vscode/settings.json
 files/*
 !files/.gitkeep
-uploads/
+uploads/*
+!uploads/.gitkeep
 /server/tests/reports
 /server/**/.coverage
 

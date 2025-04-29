@@ -65,9 +65,9 @@ def evaluar_cv_supervised(cv_texto, palabras_clave, modelo, vectorizador, umbral
     todas_presentes = all(palabra.lower() in texto_normalizado for palabra in palabras_clave)
 
     if prediccion[0] == 1 and (similitud >= umbral_similitud or todas_presentes):
-        return "Apto"
+        return True
     else:
-        return "No Apto"
+        return False
     
 """
 corpus = [

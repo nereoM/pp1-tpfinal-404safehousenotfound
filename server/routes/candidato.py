@@ -4,6 +4,10 @@ import os
 from werkzeug.utils import secure_filename
 from models.schemes import Usuario, Rol, TarjetaCredito, Empresa
 from models.extensions import db
+from flask_jwt_extended import get_jwt_identity
+from datetime import datetime, timezone
+from models.schemes import CV, Job_Application
+from ml.extraction import predecir_cv
 
 candidato_bp = Blueprint("candidato", __name__)
 
@@ -21,6 +25,51 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@candidato_bp.route("/tiene-cv", methods=["GET"])
+@role_required(["candidato"])
+def tiene_cv():
+    id_candidato = get_jwt_identity()
+    cv = CV.query.filter_by(id_candidato=id_candidato).first()
+    
+    if cv:
+        return jsonify({"has_cv": True, "cv_url": cv.url_cv}), 200
+    else:
+        return jsonify({"has_cv": False}), 200
+
+@candidato_bp.route("/postularme", methods=["POST"])
+@role_required(["candidato"])
+def postularme():
+    data = request.get_json()
+    id_oferta = data.get("id_oferta")
+
+    if not id_oferta:
+        return jsonify({"error": "Falta el id de la oferta laboral"}), 400
+
+    id_candidato = get_jwt_identity()
+
+    cv = CV.query.filter_by(id_candidato=id_candidato).order_by(CV.fecha_subida.desc()).first()
+
+    if not cv:
+        return jsonify({
+            "error": "No se encontró un CV para postularse",
+            "needs_cv": True
+        }), 409
+
+  
+    postulacion = Job_Application(
+        id_candidato=id_candidato,
+        id_oferta=id_oferta,
+        is_apto=predecir_cv(id_oferta, cv.url_cv)
+    )
+
+    db.session.add(postulacion)
+    db.session.commit()
+    
+    print(postulacion.is_apto)
+
+    return jsonify({"message": "Postulación realizada exitosamente", "cv_usado": cv.url_cv}), 201
+
+
 @candidato_bp.route("/upload-cv", methods=["POST"])
 @role_required(["candidato"])
 def upload_cv():
@@ -36,9 +85,28 @@ def upload_cv():
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        filepath = os.path.join(candidato_bp.config["UPLOAD_FOLDER"], filename)
+        upload_folder = candidato_bp.config["UPLOAD_FOLDER"]
+        filepath = os.path.join(upload_folder, filename)
+
         file.save(filepath)
-        return jsonify({"message": "CV subido exitosamente", "file_path": filepath}), 201
+
+        id_candidato = get_jwt_identity()
+        
+        tipo_archivo = file.mimetype
+
+        url_cv = f"/uploads/{filename}"
+
+        nuevo_cv = CV(
+            id_candidato=id_candidato,
+            url_cv=url_cv,
+            tipo_archivo=tipo_archivo,
+            fecha_subida=datetime.now(timezone.utc)
+        )
+
+        db.session.add(nuevo_cv)
+        db.session.commit()
+
+        return jsonify({"message": "CV subido exitosamente", "file_path": url_cv}), 201
 
     return jsonify({"error": "Formato de archivo no permitido"}), 400
 

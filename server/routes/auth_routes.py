@@ -114,7 +114,7 @@ def enviar_confirmacion_email(correo_destino, nombre_usuario):
 def confirmar_email(token):
     s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
     try:
-        correo = s.loads(token, salt="email-confirm", max_age=10)
+        correo = s.loads(token, salt="email-confirm", max_age=3600)
     except SignatureExpired:
         try:
             correo = s.loads(token, salt="email-confirm")
@@ -163,6 +163,7 @@ def login():
         )
         resp = jsonify({"message": "Login successful"})
         set_access_cookies(resp, access_token)
+        print(access_token)
         return resp, 200
 
     return jsonify({"error": "Credenciales Invalidas"}), 401
@@ -201,11 +202,13 @@ def google_login():
             db.session.commit()
 
             candidato_role = db.session.query(Rol).filter_by(slug="candidato").first()
-            candidato_role = Rol(
-                nombre="Candidato", permisos="candidato_permisos", slug="candidato"
-            )
-            db.session.add(candidato_role)
-            db.session.commit()
+            if not candidato_role:
+                # Si no existe el rol, lo creamos
+                candidato_role = Rol(
+                    nombre="Candidato", permisos="candidato_permisos", slug="candidato"
+                )
+                db.session.add(candidato_role)
+                db.session.commit()
 
             user.roles.append(candidato_role)
             db.session.commit()
