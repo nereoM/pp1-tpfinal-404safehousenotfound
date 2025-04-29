@@ -148,12 +148,36 @@ export default function Login() {
       return;
     }
   
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
-    if (!passwordRegex.test(loginPassword)) {
-      setLoginError('La contraseña debe tener al menos 8 caracteres, incluir una mayúscula, una minúscula, un número y un carácter especial.');
-      setLoadingLogin(false);
-      return;
-    }
+  // Validación de longitud mínima de la contraseña (8 caracteres)
+  if (loginPassword.length < 8) {
+    setLoginError('La contraseña debe tener al menos 8 caracteres.');
+    setLoadingLogin(false);
+    return;
+  }
+
+  // Validación de mayúscula
+  const upperCaseRegex = /[A-Z]/;
+  if (!upperCaseRegex.test(loginPassword)) {
+    setLoginError('La contraseña debe incluir al menos una letra mayúscula.');
+    setLoadingLogin(false);
+    return;
+  }
+
+  // Validación de número
+  const numberRegex = /\d/;
+  if (!numberRegex.test(loginPassword)) {
+    setLoginError('La contraseña debe incluir al menos un número.');
+    setLoadingLogin(false);
+    return;
+  }
+
+  // Validación de carácter especial
+  const specialCharRegex = /[^A-Za-z0-9]/;
+  if (!specialCharRegex.test(loginPassword)) {
+    setLoginError('La contraseña debe incluir al menos un carácter especial.');
+    setLoadingLogin(false);
+    return;
+  }
 
     setLoginError("");
     setLoginSuccess(false);
