@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request
 from auth.decorators import role_required
-from models.schemes import Usuario, Rol
+from models.schemes import Usuario, Rol, Empresa
 from models.extensions import db
 import secrets
+from flask_jwt_extended import get_jwt_identity
 
 manager_bp = Blueprint("manager", __name__)
 
@@ -23,6 +24,16 @@ def register_reclutador():
     if not nombre or not apellido or not username or not email:
         return jsonify({"error": "Todos los campos son requeridos"}), 400
     
+    # Obtener el ID del manager autenticado
+    id_manager = get_jwt_identity()
+
+    # Verificar si el manager tiene una empresa asociada
+    manager = Usuario.query.get(id_manager)
+    if not manager or not manager.id_empresa:
+        return jsonify({"error": "El manager no tiene una empresa asociada"}), 403
+    
+    id_empresa = manager.id_empresa  # Obtener la empresa del manager
+
     temp_password = secrets.token_urlsafe(8)
 
     if Usuario.query.filter_by(correo=email).first():
@@ -40,7 +51,9 @@ def register_reclutador():
         apellido=apellido,
         username=username,
         correo=email,
-        contrasena=temp_password)
+        contrasena=temp_password,
+        id_empresa=id_empresa
+    )
     nuevo_reclutador.roles.append(reclutador_role)
 
     db.session.add(nuevo_reclutador)
@@ -52,5 +65,9 @@ def register_reclutador():
         "credentials": {
             "username": username,
             "password": temp_password
+        },
+        "empresa": {
+            "id": id_empresa,
+            "nombre": Empresa.query.get(id_empresa).nombre  # Obtener el nombre de la empresa
         }
     }), 201
