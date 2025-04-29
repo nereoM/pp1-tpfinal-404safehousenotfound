@@ -1,8 +1,7 @@
 import pdfplumber
 from docx import Document
 import os
-from matching_vector import verificar_cv_apto
-from matching_supervised import evaluar_cv_supervised, entrenar_modelo_supervised
+from ml.matching_supervised import evaluar_cv_supervised, entrenar_modelo_supervised
 from models.schemes import CV, Oferta_laboral
 from flask_jwt_extended import get_jwt_identity
 
@@ -37,7 +36,7 @@ def predecir_cv(id_oferta, cv):
     modelo = oferta.modelo
     vectorizador = oferta.vectorizador
 
-    return verificar_cv_apto(texto_cv, palabras_clave, modelo, vectorizador)
+    return evaluar_cv_supervised(texto_cv, palabras_clave, modelo, vectorizador)
 
 """
 def recuperar_cv(ruta_cv):
@@ -62,7 +61,7 @@ corpus = [
         "Fullstack con conocimientos de Python, Django y Javascript."
     ]
 
-modelo, vectorizador = entrenar_modelo_supervised(corpus, [1, 1, 0, 1])
+# modelo, vectorizador = entrenar_modelo_supervised(corpus, [1, 1, 0, 1])
 
 # print(evaluar_cv_supervised(texto_cv, ["python", "scrum", "programación", "licenciado"], modelo, vectorizador))
 
