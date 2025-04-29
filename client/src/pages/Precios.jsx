@@ -30,13 +30,13 @@ export default function Precios() {
     onClick={() => navigate("/login?redirect=pagos")}
     className="bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 transition"
   >
-    Ya tienes cuenta? Iniciar sesión
+    ¿Ya tienes cuenta? Inicia sesión
   </button>
   <button
     onClick={() => navigate("/login?redirect=pagos&form=register")}
     className="bg-white text-indigo-500 border border-indigo-500 px-6 py-3 rounded-lg hover:bg-indigo-100 transition"
   >
-    No tienes cuenta? Registrate
+    ¿No tienes cuenta? Registrate
   </button>
 </div>
 
