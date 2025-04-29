@@ -246,7 +246,7 @@ export default function Login() {
       if (user.roles.includes("admin")) {
         navigate("/admin/home");
       } else if (user.roles.includes("rrhh")) {
-        navigate("/rrhh/home");
+        navigate("/analista/home");
       } else if (user.roles.includes("admin-emp")) { 
         navigate("/adminemp/home"); //
       } else {
@@ -371,7 +371,7 @@ export default function Login() {
                       if (user.roles.includes("admin")) {
                         navigate("/admin/home");
                       } else if (user.roles.includes("rrhh")) {
-                        navigate("/rrhh/home");
+                        navigate("/analista/home");
                       } else if (user.roles.includes("admin-emp")) { 
                         navigate("/adminemp/home"); //
                       } else {

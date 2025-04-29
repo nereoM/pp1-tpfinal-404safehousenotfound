@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login";
-import RrhhHome from "./pages/RrhhHome";
+import AnalistaHome from "./pages/AnalistaHome";
 import AdminHome from "./pages/AdminHome";
 import CandidatoHome from "./pages/CandidatoHome";
 import Lobby from "./pages/Lobby";
@@ -18,7 +18,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Lobby />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/rrhh/home" element={<RrhhHome />} />
+        <Route path="/analista/home" element={<AnalistaHome />} />
         <Route path="/admin/home" element={<AdminHome />} />
         <Route path="/candidato/home" element={<CandidatoHome />} />
         <Route path="/productos" element={<Productos />} />

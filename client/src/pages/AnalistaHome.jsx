@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, List, PlusCircle, BarChart2, FileText, LogOut } from "lucide-react";
 
-export default function RrhhHome() {
+export default function AnalistaHome() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
