@@ -13,6 +13,8 @@ class Usuario(db.Model):
     correo = db.Column(db.String(100), nullable=False, unique=True)
     _contrasena = db.Column(db.String(512), nullable=False)
     confirmado = db.Column(db.Boolean, default=False)
+    id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), nullable=True)  # Relación con Empresa
+
 
     @hybrid_property
     def contrasena(self):
@@ -68,7 +70,7 @@ class Empresa(db.Model):
     correo = db.Column(db.String(100), nullable=False, unique=True)
     id_admin_emp = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
 
-    admin_emp = db.relationship("Usuario", backref="empresa")
+    admin_emp = db.relationship("Usuario", backref="empresa", foreign_keys=[id_admin_emp])
 
     def __init__(self, nombre, id_admin_emp):
         self.nombre = nombre

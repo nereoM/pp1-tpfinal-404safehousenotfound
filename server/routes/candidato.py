@@ -55,7 +55,6 @@ def postularme():
             "needs_cv": True
         }), 409
 
-  
     postulacion = Job_Application(
         id_candidato=id_candidato,
         id_oferta=id_oferta,
@@ -73,8 +72,6 @@ def postularme():
 @candidato_bp.route("/upload-cv", methods=["POST"])
 @role_required(["candidato"])
 def upload_cv():
-    print(request.files)
-    print(request.form)
     if 'file' not in request.files:
         return jsonify({"error": "No se encontró ningún archivo"}), 400
 
@@ -149,7 +146,9 @@ def registrar_empresa():
         )
         db.session.add(nueva_empresa)
         db.session.commit()
+
         nueva_empresa.admin_emp = user
+        user.id_empresa = nueva_empresa.id
         db.session.commit()
 
         # Crear la tarjeta asociada al usuario

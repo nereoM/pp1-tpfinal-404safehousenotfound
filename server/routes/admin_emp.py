@@ -1,8 +1,9 @@
 from flask import Blueprint, jsonify, request
 from auth.decorators import role_required
-from models.schemes import Usuario, Rol
+from models.schemes import Usuario, Rol, Empresa
 from models.extensions import db
 import secrets
+from flask_jwt_extended import get_jwt_identity
 
 admin_emp_bp = Blueprint("admin_emp", __name__)
 
@@ -23,6 +24,21 @@ def registrar_manager():
     if not nombre or not apellido or not username or not email:
         return jsonify({"error": "Todos los campos son requeridos"}), 400
 
+    # Obtener el ID del admin-emp autenticado
+    id_admin_emp = get_jwt_identity()
+
+    # Verificar si el admin-emp tiene una empresa asociada
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp or not admin_emp.id_empresa:
+        return jsonify({"error": "El admin-emp no tiene una empresa asociada"}), 403
+
+    id_empresa = admin_emp.id_empresa  # Obtener la empresa del admin-emp
+
+    # Obtener la empresa directamente a través de id_empresa
+    empresa = Empresa.query.get(id_empresa)
+    if not empresa:
+        return jsonify({"error": "No se pudo encontrar la empresa asociada"}), 404
+
     # Generar una contraseña temporal
     temp_password = secrets.token_urlsafe(8)  # Genera una contraseña segura de 8 caracteres
 
@@ -32,7 +48,14 @@ def registrar_manager():
         return jsonify({"error": "El usuario ya existe"}), 400
 
     # Crear un nuevo usuario con el rol de manager
-    new_user = Usuario(nombre=nombre, apellido=apellido, username=username, correo=email, contrasena=temp_password)
+    new_user = Usuario(
+        nombre=nombre,
+        apellido=apellido,
+        username=username,
+        correo=email,
+        contrasena=temp_password,
+        id_empresa=id_empresa  # Asociar el manager con la empresa del admin-emp
+    )
     manager_role = Rol.query.filter_by(nombre="manager").first()
 
     if not manager_role:
@@ -52,5 +75,9 @@ def registrar_manager():
         "credentials": {
             "username": username,
             "password": temp_password
+        },
+        "empresa": {
+            "id": id_empresa,
+            "nombre": empresa.nombre  # Nombre de la empresa asociada
         }
     }), 201

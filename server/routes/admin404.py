@@ -49,6 +49,7 @@ def registrar_admin_emp():
         db.session.commit()
 
         nueva_empresa.admin_emp = usuario_existente
+        usuario_existente.id_empresa = nueva_empresa.id
         db.session.commit()
 
         return jsonify({"message": "El usuario ya existía, se le asignó el rol admin-emp y se creó su empresa"}), 200
@@ -61,7 +62,7 @@ def registrar_admin_emp():
         apellido=apellido,
         username=username,
         correo=email,
-        contrasena=temp_password
+        contrasena=temp_password,
     )
     nuevo_admin_emp.roles.append(admin_emp_role)
 
@@ -78,6 +79,7 @@ def registrar_admin_emp():
 
     # Actualizar la relación entre el nuevo usuario y la empresa
     nueva_empresa.admin_emp = nuevo_admin_emp
+    nuevo_admin_emp.id_empresa = nueva_empresa.id
     db.session.commit()
 
     return jsonify({
