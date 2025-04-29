@@ -18,10 +18,20 @@ import string
 auth_bp = Blueprint("auth", __name__)
 
 def validar_contrasena(password):
-    regex = r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$'
-    if not re.match(regex, password):
-        return False
-    return True
+    # Validación de longitud mínima
+    if len(password) < 8:
+        return False, "La contraseña debe tener al menos 8 caracteres."
+    # Validación de al menos una mayúscula
+    if not re.search(r'[A-Z]', password):
+        return False, "La contraseña debe incluir al menos una letra mayúscula."
+    # Validación de al menos un número
+    if not re.search(r'\d', password):
+        return False, "La contraseña debe incluir al menos un número."
+    # Validación de al menos un carácter especial
+    if not re.search(r'[^A-Za-z0-9]', password):
+        return False, "La contraseña debe incluir al menos un carácter especial."
+    # Si pasa todas las validaciones
+    return True, "Contraseña válida."
 
 @auth_bp.route("/register", methods=["POST"])
 def register():

@@ -84,14 +84,39 @@ export default function Login() {
       return;
     }
     
-    if (registerUsername.length < 4 || registerUsername.length > 20) {
-      setRegisterError('El nombre de usuario debe tener entre 4 y 20 caracteres.');
+    if (registerUsername.length < 4) {
+      setRegisterError('El nombre de usuario debe tener al menos 4 caracteres.');
       setLoadingRegister(false);
       return;
     }
     
-    if (registerPassword.length < 6) {
-      setRegisterError('La contraseña debe tener al menos 6 caracteres.');
+    // Validación de longitud mínima de la contraseña (8 caracteres)
+    if (registerPassword.length < 8) {
+      setRegisterError('La contraseña debe tener al menos 8 caracteres.');
+      setLoadingRegister(false);
+      return;
+    }
+
+    // Validación de mayúscula
+    const upperCaseRegex = /[A-Z]/;
+    if (!upperCaseRegex.test(registerPassword)) {
+      setRegisterError('La contraseña debe incluir al menos una letra mayúscula.');
+      setLoadingRegister(false);
+      return;
+    }
+
+    // Validación de número
+    const numberRegex = /\d/;
+    if (!numberRegex.test(registerPassword)) {
+      setRegisterError('La contraseña debe incluir al menos un número.');
+      setLoadingRegister(false);
+      return;
+    }
+
+    // Validación de carácter especial
+    const specialCharRegex = /[^A-Za-z0-9]/;
+    if (!specialCharRegex.test(registerPassword)) {
+      setRegisterError('La contraseña debe incluir al menos un carácter especial.');
       setLoadingRegister(false);
       return;
     }
@@ -125,7 +150,7 @@ export default function Login() {
       setRegisterError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
 
-   finally {
+  finally {
     setLoadingRegister(false);
   }
   };
@@ -232,7 +257,7 @@ export default function Login() {
     } catch (err) {
       setLoginError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
-   
+    
     finally {
       setLoadingLogin(false); 
     }
