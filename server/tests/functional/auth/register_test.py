@@ -21,7 +21,7 @@ def get_valid_user() -> UserData:
         "surname": "Doe",
         "username": "deleteme",
         "email": "testemail@gmail.com",
-        "password": "1password!",
+        "password": "1Password!",
     }
 
 
