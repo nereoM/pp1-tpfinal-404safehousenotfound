@@ -8,6 +8,11 @@ from flask_jwt_extended import get_jwt_identity
 from datetime import datetime, timezone
 from models.schemes import CV, Job_Application
 from ml.extraction import predecir_cv
+from ml.extraction import extraer_texto_pdf, extraer_texto_word
+from ml.matching_semantico import dividir_cv_en_partes
+from sklearn.metrics.pairwise import cosine_similarity
+from ml.modelo import modelo_sbert
+import json
 
 candidato_bp = Blueprint("candidato", __name__)
 
@@ -233,3 +238,47 @@ def obtener_ofertas_por_nombre_empresa(nombre_empresa):
         },
         "ofertas": resultado
     }), 200
+
+
+@candidato_bp.route("/recomendaciones", methods=["GET"])
+@role_required(["candidato"])
+def recomendar_ofertas():
+    try:
+        id_candidato = get_jwt_identity()
+
+        cv = CV.query.filter_by(id_candidato=id_candidato).order_by(CV.fecha_subida.desc()).first()
+        if not cv:
+            return jsonify({"error": "El candidato no tiene un CV cargado"}), 400
+
+        if cv.tipo_archivo == "application/pdf":
+            texto_cv = extraer_texto_pdf(cv.url_cv)
+        elif cv.tipo_archivo.startswith("application/vnd.openxmlformats"):
+            texto_cv = extraer_texto_word(cv.url_cv)
+        else:
+            return jsonify({"error": "Formato de CV no compatible"}), 400
+
+        ofertas = Oferta_laboral.query.filter_by(is_active=True).all()
+        recomendaciones = []
+
+        for oferta in ofertas:
+            palabras_clave = json.loads(oferta.palabras_clave)
+            partes_cv = dividir_cv_en_partes(texto_cv)
+            vectores_cv = modelo_sbert.encode(partes_cv)
+            vector_keywords = modelo_sbert.encode(" ".join(palabras_clave))
+            max_sim = max(cosine_similarity([vector_keywords], vectores_cv)[0])
+            porcentaje = round(max_sim * 100, 2)
+
+            recomendaciones.append({
+                "id_oferta": oferta.id,
+                "nombre_oferta": oferta.nombre,
+                "empresa": oferta.empresa.nombre,
+                "coincidencia": porcentaje,
+                "palabras_clave": palabras_clave
+            })
+
+        recomendaciones.sort(key=lambda x: x["coincidencia"], reverse=True)
+
+        return jsonify(recomendaciones[:3]), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

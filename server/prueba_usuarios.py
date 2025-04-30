@@ -1,5 +1,5 @@
 from models.extensions import db
-from models.users import Usuario, Rol
+from models.schemes import Usuario, Rol
 from main import app
 
 def crear_usuarios_con_roles():
