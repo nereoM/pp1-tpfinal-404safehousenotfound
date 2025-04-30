@@ -10,18 +10,43 @@ Se usa un diagrama de casos de usos para identificar los permisos y límites de 
 
 ---
 
-## 🎭 Actores del Sistema
+ Actores del Sistema
 
-- **Administrador**
-  - Usuario con acceso completo al sistema.
-  - Puede gestionar usuarios, roles y datos críticos.
+ROOT (SuperAdministrador)
 
-- **Reclutador**
-  - Usuario encargado de publicar ofertas y gestionar postulantes.
-  - Pertenece al área de Recursos Humanos.
+Tiene acceso total a la plataforma SaaS.
 
-- **Postulante**
-  - Usuario externo que se postula a ofertas laborales.
+Crea empresas, administra sus parámetros globales, y puede suspender cuentas.
+
+Admin de Empresa
+
+Usuario con control sobre su propia organización.
+
+Puede gestionar usuarios internos, crear managers, y personalizar la apariencia del entorno.
+
+RRHH Manager
+
+Encargado de gestionar candidatos, visualizar métricas y subir evaluaciones.
+
+Recibe alertas sobre posibles riesgos de renuncia, incluyendo puestos clave.
+
+RRHH Analista
+
+Rol con permisos de análisis limitado.
+
+Puede visualizar dashboards y recibir alertas relacionadas a posiciones no críticas.
+
+Usuario / Candidato
+
+Usuario externo que se postula a ofertas laborales.
+
+Puede subir su CV, ver el estado de sus postulaciones y su propia evaluación.
+
+Soporte Técnico
+
+Usuario con acceso técnico al entorno del cliente.
+
+Encargado de configurar parámetros como SMTP y gestionar solicitudes de cambio enviadas por la empresa.
 
 ---
 
