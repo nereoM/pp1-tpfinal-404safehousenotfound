@@ -27,26 +27,28 @@ Se usa un diagrama de casos de usos para identificar los permisos y límites de 
 
 ## ✅ Permisos por Rol
 
-| Acción                                                 | ROOT | Admin Empresa | RRHH Manager | RRHH Analista |  Candidato | Soporte Técnico |
-| ------------------------------------------------------ | ---- | ------------- | ------------ | ------------- | ---------- | --------------- |
-| Crear cuenta / Iniciar sesión                          | ✔    | ✔             | ✔            | ✔             | ✔          | ✔               |
-| Crear nueva empresa                                    | ✔    | ✘             | ✘            | ✘             | ✘          | ✘               |
-| Crear Admin de empresa                                 | ✔    | ✘             | ✘            | ✘             | ✘          | ✘               |
-| Eliminar / suspender empresa                           | ✔    | ✘             | ✘            | ✘             | ✘          | ✘               |
-| Configurar ajustes globales (SMTP, logo y estilo)      | ✔    | ✘             | ✘            | ✘             | ✘          | ✔               |
-| Ver métricas y actividad general de todas las empresas | ✔    | ✘             | ✘            | ✘             | ✘          | ✘               |
-| Gestionar usuarios de su empresa                       | ✘    | ✔             | ✘            | ✘             | ✘          | ✘               |
-| Crear Managers en su empresa                           | ✘    | ✔             | ✘            | ✘             | ✘          | ✘               |
-| Ver dashboards y métricas de su empresa                | ✘    | ✔             | ✔            | ✔             | ✘          | ✘               |
-| Cargar CV / Postularse                                 | ✘    | ✘             | ✘            | ✘             | ✔          | ✘               |
-| Ver estado de postulación                              | ✘    | ✘             | ✘            | ✘             | ✔          | ✘               |
-| Visualizar candidatos aptos                            | ✘    | ✔             | ✔            | ✔ (limitado)  | ✘          | ✘               |
-| Subir evaluación de desempeño                          | ✘    | ✔             | ✔            | ✘             | ✘          | ✘               |
-| Visualizar evaluaciones propias                        | ✘    | ✔             | ✘            | ✘             | ✔          | ✘               |
-| Exportar informes                                      | ✘    | ✔             | ✔            | ✘             | ✘          | ✘               |
-| Configurar logo y estilo de la empresa                 | ✘    | ✔             | ✘            | ✘             | ✘          | ✘               |
-| Recibir alertas de riesgo (puestos clave)              | ✔    | ✔             | ✔            | ✘             | ✘          | ✘               |
-| Recibir alertas de riesgo (puestos básicos)            | ✔    | ✘             | ✔            | ✔             | ✘          | ✘               |
+| Acción                                                 | ROOT | Admin Empresa | RRHH Manager | RRHH Analista | Usuario / Candidato | Soporte Técnico |
+|--------------------------------------------------------|------|----------------|---------------|----------------|----------------------|------------------|
+| Crear cuenta / Iniciar sesión                          | ✔    | ✔              | ✔             | ✔              | ✔                     | ✔               |
+| Crear nueva empresa                                    | ✔    | ✘              | ✘             | ✘              | ✘                     | ✘               |
+| Crear Admin de empresa                                 | ✔    | ✘              | ✘             | ✘              | ✘                     | ✘               |
+| Eliminar / suspender empresa                           | ✔    | ✘              | ✘             | ✘              | ✘                     | ✘               |
+| Configurar ajustes globales (SMTP, logo y estilo)      | ✔    | ✘              | ✘             | ✘              | ✘                     | ✔               |
+| Ver métricas y actividad general de todas las empresas | ✔    | ✘              | ✘             | ✘              | ✘                     | ✘               |
+| Gestionar usuarios de su empresa                       | ✘    | ✔              | ✘             | ✘              | ✘                     | ✘               |
+| Crear Managers en su empresa                           | ✘    | ✔              | ✘             | ✘              | ✘                     | ✘               |
+| Ver dashboards y métricas de su empresa                | ✘    | ✔              | ✔             | ✔              | ✘                     | ✘               |
+| Cargar CV / Postularse                                 | ✘    | ✘              | ✘             | ✘              | ✔                     | ✘               |
+| Ver estado de postulación                              | ✘    | ✘              | ✘             | ✘              | ✔                     | ✘               |
+| Visualizar candidatos aptos                            | ✘    | ✔              | ✔             | ✔ (limitado)   | ✘                     | ✘               |
+| Subir evaluación de desempeño                          | ✘    | ✔              | ✔             | ✘              | ✘                     | ✘               |
+| Visualizar evaluaciones propias                        | ✘    | ✔              | ✘             | ✘              | ✔                     | ✘               |
+| Exportar informes                                      | ✘    | ✔              | ✔             | ✘              | ✘                     | ✘               |
+| Configurar logo y estilo de la empresa                 | ✘    | ✔              | ✘             | ✘              | ✘                     | ✘               |
+| Recibir alertas de riesgo (puestos clave)              | ✔    | ✔              | ✔             | ✘              | ✘                     | ✘               |
+| Recibir alertas de riesgo (puestos básicos)            | ✔    | ✘              | ✔             | ✔              | ✘                     | ✘               |
+| Gestionar solicitudes de cambio del cliente            | ✘    | ✘              | ✘             | ✘              | ✘                     | ✔               |
+
 
 
 **Reveer si tambien se le permite al rol de admin*
