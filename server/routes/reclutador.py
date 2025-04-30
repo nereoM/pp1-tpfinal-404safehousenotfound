@@ -5,6 +5,7 @@ from models.extensions import db
 from models.schemes import Oferta_laboral
 from flask import request, jsonify
 from flask_jwt_extended import get_jwt_identity
+from models.schemes import Usuario, Rol, Empresa
 
 reclutador_bp = Blueprint("reclutador", __name__)
 
@@ -57,11 +58,20 @@ def crear_oferta_laboral():
 
         if not all([nombre, descripcion, location, employment_type, workplace_type, salary_min, salary_max, currency, experience_level]):
             return jsonify({"error": "Faltan datos obligatorios para crear la oferta laboral."}), 400
-
-        id_empresa = get_jwt_identity()
-
+        # obtener la empresa a la que pertenece el reclutador y asignar el id_empresa a la oferta
+        # obtener la empresa a traves del usuario
+        id_reclutador = get_jwt_identity()
+        reclutador = Usuario.query.filter_by(id=id_reclutador).first()
+        if not reclutador:
+            return jsonify({"error": "Reclutador no encontrado."}), 404
+        
+        id_empresa = reclutador.id_empresa
+        empresa = Empresa.query.filter_by(id=id_empresa).first()
+        if not empresa:
+            return jsonify({"error": "Empresa no encontrada."}), 404
+        
         nueva_oferta = Oferta_laboral(
-            id_empresa=id_empresa,
+            id_empresa=empresa.id,
             nombre=nombre,
             descripcion=descripcion,
             location=location,
@@ -82,7 +92,12 @@ def crear_oferta_laboral():
         db.session.add(nueva_oferta)
         db.session.commit()
 
-        return jsonify({"message": "Oferta laboral creada exitosamente.", "id_oferta": nueva_oferta.id}), 201
+        return jsonify({
+            "message": "Oferta laboral creada exitosamente.", 
+            "id_oferta": nueva_oferta.id,
+            "nombre": nueva_oferta.nombre,
+            "empresa": empresa.nombre
+        }), 201
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
