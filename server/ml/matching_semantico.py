@@ -1,8 +1,7 @@
 from sklearn.metrics.pairwise import cosine_similarity
-from main import modelo_sbert
+from .modelo import modelo_sbert
+
 import re
-
-
 
 def dividir_cv_en_partes(cv_texto):
     bloques = re.split(r"[./;•|\n\-]+", cv_texto)

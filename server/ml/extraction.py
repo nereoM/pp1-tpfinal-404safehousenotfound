@@ -1,7 +1,7 @@
 import pdfplumber
 from docx import Document
 import os
-from matching_semantico import evaluar_cv_semantico
+from .matching_semantico import evaluar_cv_semantico
 import json
 
 def extraer_texto_pdf(ruta):
@@ -60,5 +60,23 @@ Mi formación se vincula estrechamente con distintas áreas del campo tecnológi
 Además, tengo experiencia en la gestión de bases de datos, programación en lenguajes como Java, Python y C, y un fuerte interés por las metodologías ágiles como Scrum. Me interesa particularmente continuar creciendo como software developer, enfocándome en soluciones escalables y colaborativas.
 """
 
-# print(evaluar_cv_semantico(cv, ["python", "scrum", "programación", "licenciado", "flask"]))
+cv_marketing = """
+Soy una profesional con más de 3 años de experiencia en la planificación y ejecución de campañas publicitarias. 
+Durante mi recorrido he liderado proyectos de promoción de marca en redes sociales, optimizado contenidos y gestionado presupuestos destinados a anuncios digitales. 
+Mi enfoque está en la creación de estrategias de comunicación efectivas, así como en el análisis de métricas para mejorar el alcance y la conversión.
+
+He trabajado con herramientas como Google Ads, Meta Business Suite y plataformas de email marketing. 
+Mi objetivo es seguir creciendo en el área de posicionamiento online y aportar valor a marcas que buscan escalar su presencia en el mercado digital.
+"""
+palabras_clave = [
+    "publicidad digital",
+    "estrategia de marketing",
+    "social media",
+    "analítica digital",
+    "branding",
+    "SEM",
+    "marketing online"
+]
+
+# print(evaluar_cv_semantico(cv_marketing, palabras_clave))
 
