@@ -103,8 +103,6 @@ class Oferta_laboral(db.Model):
     experience_level = db.Column(db.String(50), nullable=False)
     posted_at = db.Column(db.DateTime, default=db.func.now())
     is_active = db.Column(db.Boolean, default=True)
-    modelo = db.Column(db.LargeBinary, nullable=False)
-    vectorizador = db.Column(db.LargeBinary, nullable=False)
     palabras_clave = db.Column(db.Text, nullable=False)
     fecha_publicacion = db.Column(db.DateTime, default=db.func.now())
     fecha_cierre = db.Column(db.DateTime, nullable=True)

@@ -1,9 +1,8 @@
 import pdfplumber
 from docx import Document
 import os
-#from models.schemes import CV, Oferta_laboral
-from flask_jwt_extended import get_jwt_identity
 from matching_semantico import evaluar_cv_semantico
+import json
 
 def extraer_texto_pdf(ruta):
     texto = ""
@@ -17,43 +16,29 @@ def extraer_texto_word(ruta):
     doc = Document(ruta)
     return "\n".join([p.text for p in doc.paragraphs])
 
+def obtener_palabras_clave(palabras_clave_json):
+    try:
+        return json.loads(palabras_clave_json)
+    except Exception as e:
+        print(f"Error al convertir JSON a lista: {e}")
+        return []
 
-texto_cv = extraer_texto_pdf(os.path.join("uploads/cvs", "file.pdf"))
+# texto_cv = extraer_texto_pdf(os.path.join("uploads/cvs", "file.pdf"))
 
-"""
-def predecir_cv(id_oferta, cv):
-    id_candidato = get_jwt_identity()
-    cv = CV.query.filter_by(id_candidato=id_candidato).first()
+def predecir_cv(palabras_clave, cv):
+    lista_palabras = obtener_palabras_clave(palabras_clave)
+    if not lista_palabras:
+        raise Exception("No se encontraron palabras clave en la oferta laboral.")
     if not cv:
         raise Exception("No se encontró el CV para el usuario actual.")
     if cv.tipo_archivo == "application/pdf":
-        texto_cv = extraer_texto_pdf(cv.url_cv)
+        texto_cv = extraer_texto_pdf(cv)
     elif cv.tipo_archivo == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        texto_cv = extraer_texto_word(cv.url_cv)
-    else:
-        raise Exception("Formato de archivo no soportado.")
-    oferta = Oferta_laboral.query.get(id_oferta)
-    palabras_clave = oferta.palabras_clave.split(",")
-    modelo = oferta.modelo
-    vectorizador = oferta.vectorizador
-
-    return evaluar_cv_supervised(texto_cv, palabras_clave, modelo, vectorizador)
-"""
-
-"""
-def recuperar_cv(ruta_cv):
-    id_candidato = get_jwt_identity()
-    cv = CV.query.filter_by(id_candidato=id_candidato).first()
-    if not cv:
-        raise Exception("No se encontró el CV para el usuario actual.")
-    if cv.tipo_archivo == "application/pdf":
-        return extraer_texto_pdf(ruta_cv)
-    elif cv.tipo_archivo == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        return extraer_texto_word(ruta_cv)
+        texto_cv = extraer_texto_word(cv)
     else:
         raise Exception("Formato de archivo no soportado.")
 
-"""
+    return evaluar_cv_semantico(texto_cv, lista_palabras)
 
 
 corpus = [

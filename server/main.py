@@ -15,6 +15,8 @@ from initialize_admins import create_admins
 from models.extensions import mail
 from flask_migrate import Migrate
 
+from sentence_transformers import SentenceTransformer
+
 app = Flask(__name__)
 app.config.from_object(Config)
 mail.init_app(app)
@@ -22,6 +24,7 @@ jwt = JWTManager(app)
 jwt.init_app(app)
 #CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+modelo_sbert = SentenceTransformer("all-MiniLM-L6-v2")
 db.init_app(app)
 
 app.register_blueprint(auth_bp, url_prefix="/auth")

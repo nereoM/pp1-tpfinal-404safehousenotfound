@@ -41,32 +41,49 @@ def tiene_cv():
 def postularme():
     data = request.get_json()
     id_oferta = data.get("id_oferta")
+    id_cv = data.get("id_cv")
 
-    if not id_oferta:
-        return jsonify({"error": "Falta el id de la oferta laboral"}), 400
+    if not id_oferta or not id_cv:
+        return jsonify({"error": "Falta id de oferta o CV seleccionado"}), 400
 
     id_candidato = get_jwt_identity()
 
-    cv = CV.query.filter_by(id_candidato=id_candidato).order_by(CV.fecha_subida.desc()).first()
-
+    cv = CV.query.filter_by(id=id_cv, id_candidato=id_candidato).first()
     if not cv:
-        return jsonify({
-            "error": "No se encontró un CV para postularse",
-            "needs_cv": True
-        }), 409
+        return jsonify({"error": "CV inválido o no pertenece al usuario"}), 403
+    
+    oferta = Oferta_laboral.query.get(id_oferta)
+    if not oferta:
+        return jsonify({"error": "Oferta laboral no encontrada"}), 404
 
-    postulacion = Job_Application(
+    nueva_postulacion = Job_Application(
         id_candidato=id_candidato,
         id_oferta=id_oferta,
-        is_apto=predecir_cv(id_oferta, cv.url_cv)
+        is_apto=predecir_cv(oferta.palabras_clave, cv.url_cv),
+        fecha_postulacion=datetime.now(timezone.utc),
+        id_cv=id_cv
     )
 
-    db.session.add(postulacion)
+    db.session.add(nueva_postulacion)
     db.session.commit()
-    
-    print(postulacion.is_apto)
 
-    return jsonify({"message": "Postulación realizada exitosamente", "cv_usado": cv.url_cv}), 201
+    return jsonify({"message": "Postulación realizada correctamente."}), 201
+
+@candidato_bp.route("/mis-cvs", methods=["GET"])
+@role_required(["candidato"])
+def listar_cvs():
+    id_candidato = get_jwt_identity()
+    cvs = CV.query.filter_by(id_candidato=id_candidato).order_by(CV.fecha_subida.desc()).all()
+
+    return jsonify([
+        {
+            "id": cv.id,
+            "url": cv.url_cv,
+            "tipo_archivo": cv.tipo_archivo,
+            "fecha_subida": cv.fecha_subida.isoformat()
+        }
+        for cv in cvs
+    ]), 200
 
 
 @candidato_bp.route("/upload-cv", methods=["POST"])

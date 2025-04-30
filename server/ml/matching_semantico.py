@@ -1,11 +1,10 @@
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
+from main import modelo_sbert
 import re
 
-modelo_sbert = SentenceTransformer("all-MiniLM-L6-v2")
+
 
 def dividir_cv_en_partes(cv_texto):
-    # 1. Cortar por puntuación y separadores
     bloques = re.split(r"[./;•|\n\-]+", cv_texto)
 
     partes = []
@@ -13,11 +12,10 @@ def dividir_cv_en_partes(cv_texto):
         bloque = bloque.strip()
         if bloque:
             partes.append(bloque)
-            # 2. Agregar también las palabras individuales del bloque
             palabras = bloque.split()
             partes.extend([p.strip() for p in palabras if p.strip()])
 
-    return list(set(partes))  # opcional: eliminar duplicados
+    return list(set(partes))
 
 def evaluar_cv_semantico(cv_texto, palabras_clave, umbral_individual=0.55):
     partes_cv = dividir_cv_en_partes(cv_texto)
