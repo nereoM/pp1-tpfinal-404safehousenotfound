@@ -59,9 +59,9 @@ def postularme():
     nueva_postulacion = Job_Application(
         id_candidato=id_candidato,
         id_oferta=id_oferta,
+        id_cv=id_cv,
         is_apto=predecir_cv(oferta.palabras_clave, cv.url_cv),
         fecha_postulacion=datetime.now(timezone.utc),
-        id_cv=id_cv
     )
 
     db.session.add(nueva_postulacion)

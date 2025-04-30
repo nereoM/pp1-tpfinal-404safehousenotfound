@@ -118,6 +118,17 @@ class Job_Application(db.Model):
     
     candidato = db.relationship('Usuario', backref='cv_files')
 
+class Licencia(db.Model):
+    __tablename__ = "licencias"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_empleado = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
+    tipo = db.Column(db.String(50), nullable=False)
+    descripcion = db.Column(db.Text, nullable=True)
+    fecha_inicio = db.Column(db.DateTime, nullable=True)
+    fecha_fin = db.Column(db.DateTime, nullable=True)
+    certificado_url = db.Column(db.String(255), nullable=True) # AL MENOS POR AHORA
+    estado = db.Column(db.String(50), nullable=False)
+
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)
 
