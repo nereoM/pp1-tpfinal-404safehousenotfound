@@ -334,9 +334,9 @@ export default function Login() {
                 </span>
               </div>
 
-              {loginError && <p className="text-red-500 text-sm text-center">{loginError}</p>}
+              {loginError && <p id="login-error" className="text-red-500 text-sm text-center">{loginError}</p>}
 
-              <button type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"disabled={loadingLogin}>
+              <button id="login-button"  type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"disabled={loadingLogin}>
               {loadingLogin ? "Cargando..." : "Ingresar"}
               </button>
 
@@ -389,7 +389,7 @@ export default function Login() {
 
               <div className="text-sm text-center text-gray-300">
                 ¿No tenés usuario?{' '}
-                <button type="button" onClick={() =>  {resetLoginFields();  setFlipped(true)}} className="text-blue-400 hover:underline">
+                <button id="toggle-to-register" type="button" onClick={() =>  {resetLoginFields();  setFlipped(true)}} className="text-blue-400 hover:underline">
                   Registrate acá
                 </button>
               </div>
@@ -433,16 +433,16 @@ export default function Login() {
               </div>
 
               {/* Mensaje de error o éxito */}
-              {registerError && <p className="text-red-500 text-sm text-center">{registerError}</p>}
+              {registerError && <p id="register-error" className="text-red-500 text-sm text-center">{registerError}</p>}
               {registerSuccess && <p className="text-green-500 text-sm text-center">¡Registro exitoso! Verifique su email</p>}  {/* Mensaje de éxito */}
 
-              <button type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"disabled={loadingRegister}>
+              <button id="register-button" type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"disabled={loadingRegister}>
               {loadingRegister ? "Cargando..." : "Registrarse"}
               </button>
 
               <div className="text-sm text-center text-gray-300">
                 ¿Ya tienes cuenta?{' '}
-                <button type="button" onClick={() => {resetRegisterFields();  setFlipped(false);}} className="text-blue-400 hover:underline">
+                <button type="button" id="toggle-to-login" onClick={() => {resetRegisterFields();  setFlipped(false);}} className="text-blue-400 hover:underline">
                   Inicia sesión acá
                 </button>
               </div>
