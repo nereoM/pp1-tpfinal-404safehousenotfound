@@ -7,6 +7,7 @@ import CandidatoHome from "./pages/CandidatoHome";
 import Lobby from "./pages/Lobby";
 import Pagos from "./pages/Pagos"; 
 import AdminEmpHome from "./pages/AdminEmpHome";
+import ManagerHome from "./pages/ManagerHome";
 
 import Productos from "./pages/Productos";
 import Precios from "./pages/Precios";
@@ -26,6 +27,7 @@ function App() {
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/pagos" element={<Pagos />} /> 
         <Route path="/adminemp/home" element={<AdminEmpHome />} /> 
+        <Route path="/manager/home" element={<ManagerHome />} />
       </Routes>
     </BrowserRouter>
   );

@@ -69,7 +69,7 @@ export default function AnalistaHome() {
       <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl p-6 sm:p-8 md:p-10 space-y-6 overflow-y-auto">
         <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 text-center">Bienvenido, {user?.nombre}</h1>
         <p className="text-gray-700 text-base sm:text-lg text-center">
-          Este es tu panel de administración. Aquí podrás acceder a todas las herramientas necesarias para gestionar los procesos de RRHH.
+          Tu Rol es Analista de Recursos Humanos. Este es tu panel de administración. Aquí podrás acceder a todas las herramientas necesarias para gestionar los procesos de RRHH.
         </p>
 
         {/* Información del usuario */}
