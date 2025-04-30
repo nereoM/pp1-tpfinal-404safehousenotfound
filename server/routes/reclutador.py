@@ -2,10 +2,9 @@ import json
 from flask import Blueprint, jsonify
 from auth.decorators import role_required
 from models.extensions import db
-from models.schemes import Oferta_laboral
+from models.schemes import Oferta_laboral, Licencia
 from flask import request, jsonify
 from flask_jwt_extended import get_jwt_identity
-from models.schemes import Usuario, Rol, Empresa
 
 reclutador_bp = Blueprint("reclutador", __name__)
 
@@ -38,4 +37,23 @@ def definir_palabras_clave(id_oferta):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-    
+@reclutador_bp.route("/solicitud-licencia", methods=["POST"])
+@role_required(["reclutador"])
+def solicitar_licencia():
+    data = request.get_json()
+    tipo_licencia = data.get("lic_type")
+    descripcion = data.get("description")
+
+    id_empleado = get_jwt_identity()
+
+    nueva_licencia = Licencia(
+        id_empleado=id_empleado,
+        tipo=tipo_licencia,
+        descripcion=descripcion,
+        estado="pendiente"
+    )
+
+    db.session.add(nueva_licencia)
+    db.session.commit()
+
+    return jsonify({"message": "Solicitud de licencia enviada exitosamente"}), 201
