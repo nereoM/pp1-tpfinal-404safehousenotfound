@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from auth.decorators import role_required
 import os
 from werkzeug.utils import secure_filename
-from models.schemes import Usuario, Rol, TarjetaCredito, Empresa
+from models.schemes import Usuario, Rol, TarjetaCredito, Empresa, Oferta_laboral
 from models.extensions import db
 from flask_jwt_extended import get_jwt_identity
 from datetime import datetime, timezone
@@ -166,3 +166,53 @@ def registrar_empresa():
 
         return jsonify({"message": "Empresa registrada exitosamente"}), 201
     return jsonify({"error": "Usuario no encontrado"}), 404
+
+@candidato_bp.route("/empresas", methods=["GET"])
+@role_required(["candidato"])
+def obtener_empresas():
+    empresas = Empresa.query.all()
+    resultado = [
+        {
+            "id": empresa.id,
+            "nombre": empresa.nombre,
+            "correo": empresa.correo
+        }
+        for empresa in empresas
+    ]
+    return jsonify(resultado), 200
+
+@candidato_bp.route("/empresas/<string:nombre_empresa>/ofertas", methods=["GET"])
+@role_required(["candidato"])
+def obtener_ofertas_por_nombre_empresa(nombre_empresa):
+    # Buscar la empresa por su nombre
+    empresa = Empresa.query.filter_by(nombre=nombre_empresa).first()
+    if not empresa:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    # Obtener las ofertas laborales asociadas a la empresa
+    ofertas = Oferta_laboral.query.filter_by(id_empresa=empresa.id).all()
+    resultado = [
+        {
+            "id": oferta.id,
+            "nombre": oferta.nombre,
+            "descripcion": oferta.descripcion,
+            "location": oferta.location,
+            "employment_type": oferta.employment_type,
+            "workplace_type": oferta.workplace_type,
+            "salary_min": oferta.salary_min,
+            "salary_max": oferta.salary_max,
+            "currency": oferta.currency,
+            "experience_level": oferta.experience_level,
+            "fecha_publicacion": oferta.fecha_publicacion,
+            "fecha_cierre": oferta.fecha_cierre
+        }
+        for oferta in ofertas
+    ]
+    return jsonify({
+        "empresa": {
+            "id": empresa.id,
+            "nombre": empresa.nombre,
+            "correo": empresa.correo
+        },
+        "ofertas": resultado
+    }), 200
