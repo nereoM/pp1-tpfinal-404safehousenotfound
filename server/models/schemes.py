@@ -113,6 +113,7 @@ class Job_Application(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_candidato = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     id_oferta = db.Column(db.Integer, db.ForeignKey('ofertas_laborales.id'), nullable=False)
+    id_cv = db.Column(db.Integer, db.ForeignKey("cvs.id"), nullable=False)
     is_apto = db.Column(db.Boolean, nullable=False)
     fecha_postulacion = db.Column(db.DateTime, default=db.func.now())
     

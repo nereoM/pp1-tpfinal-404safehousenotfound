@@ -2,7 +2,7 @@ import json
 from flask import Blueprint, jsonify
 from auth.decorators import role_required
 from models.extensions import db
-from models.schemes import Oferta_laboral
+from models.schemes import Oferta_laboral, Licencia
 from flask import request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from models.schemes import Oferta_laboral, Licencia, Job_Application, Usuario, CV
