@@ -101,7 +101,6 @@ class Oferta_laboral(db.Model):
     salary_max = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(10), nullable=False)
     experience_level = db.Column(db.String(50), nullable=False)
-    posted_at = db.Column(db.DateTime, default=db.func.now())
     is_active = db.Column(db.Boolean, default=True)
     palabras_clave = db.Column(db.Text, nullable=False)
     fecha_publicacion = db.Column(db.DateTime, default=db.func.now())
