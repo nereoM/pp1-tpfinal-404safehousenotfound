@@ -20,7 +20,7 @@ export function JobCard({ titulo, empresa, coincidencia, palabrasClave, fecha, p
 
       <button
         onClick={onPostularse}
-        className="mt-3 bg-black text-white px-3 py-1 rounded hover:bg-gray-800"
+        className="mt-3 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors"
       >
         Postularse
       </button>
