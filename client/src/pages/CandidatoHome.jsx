@@ -1,12 +1,23 @@
+// 📁 src/pages/CandidatoHome.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, LogOut, List, FileText, UserPlus } from "lucide-react";
+import { User, LogOut, List, FileText, UserPlus, Edit } from "lucide-react";
+import PageLayout from "../components/PageLayout";
+import { TopBar } from "../components/TopBar";
+import { ProfileCard } from "../components/ProfileCard";
+import { JobCard } from "../components/JobCard";
+import { SearchBar } from "../components/SearchBar";
 
 export default function CandidatoHome() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [newPhoto, setNewPhoto] = useState(null);
+  const [previewPhoto, setPreviewPhoto] = useState(null);
+  const [editedNombre, setEditedNombre] = useState("");
+  const [editedCorreo, setEditedCorreo] = useState("");
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -18,12 +29,12 @@ export default function CandidatoHome() {
           credentials: "include",
         });
 
-        if (!res.ok) {
-          throw new Error("No se pudo obtener los datos del usuario");
-        }
+        if (!res.ok) throw new Error("No se pudo obtener los datos del usuario");
 
         const data = await res.json();
-        setUser(data);
+        setUser({ ...data, nombre: "Pelon Musk" });
+        setEditedNombre("Pelon Musk");
+        setEditedCorreo(data.correo);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -54,9 +65,35 @@ export default function CandidatoHome() {
     }
   };
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    setNewPhoto(file);
+    setPreviewPhoto(URL.createObjectURL(file));
+  };
+
+  const handleSubmitProfile = async () => {
+    const formData = new FormData();
+    formData.append("nombre", editedNombre);
+    formData.append("correo", editedCorreo);
+    if (newPhoto) formData.append("foto", newPhoto);
+
+    try {
+      const res = await fetch(`${API_URL}/usuarios/actualizar-perfil`, {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Error al actualizar el perfil");
+      setShowModal(false);
+      location.reload();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   if (loading || error) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-blue-600">
+      <div className="h-screen w-full flex items-center justify-center bg-sky-200">
         <div className={`text-lg ${error ? "text-red-500" : "text-white"}`}>
           {error || "Cargando..."}
         </div>
@@ -64,101 +101,84 @@ export default function CandidatoHome() {
     );
   }
 
+  const ofertas = [
+    {
+      titulo: "Ingeniería Civil",
+      empresa: "Techint",
+      coincidencia: 87,
+      palabrasClave: ["AutoCAD", "Plant 3D", "Revit"],
+    },
+    {
+      titulo: "QA Analyst",
+      empresa: "Nintendo",
+      coincidencia: 13,
+      palabrasClave: ["Unity Engine con C#", "Testing", "Jira"],
+    },
+  ];
+
   return (
-    <div className="min-h-screen w-full bg-blue-100 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl p-6 sm:p-8 md:p-10 space-y-6 overflow-y-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 text-center">
-          Bienvenido, {user?.nombre}
-        </h1>
-        <p className="text-gray-700 text-base sm:text-lg text-center">
-          ¡Gracias por formar parte de nuestro equipo!
-        </p>
+    <PageLayout>
+      <TopBar username={user?.nombre} onLogout={handleLogout}>
+        <div className="flex items-center gap-6">
+          <SearchBar onSearch={(value) => console.log("Buscando:", value)} />
+        </div>
+      </TopBar>
 
-        {/* Información del usuario */}
-        <div className="text-sm sm:text-base space-y-2">
-          <p className="text-gray-700">Correo: {user?.correo}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <div className="relative">
+          <ProfileCard
+            nombre={user?.nombre}
+            correo={user?.correo}
+            cvUrl={user?.cvUrl || "#"}
+            fotoUrl={previewPhoto || user?.fotoUrl || undefined}
+          />
+          <button
+            onClick={() => setShowModal(true)}
+            className="absolute top-2 right-2 p-1 bg-sky-100 border border-sky-300 rounded-full shadow hover:bg-sky-200"
+          >
+            <Edit size={16} />
+          </button>
         </div>
 
-        {/* Opciones de navegación */}
-        <div className="grid grid-cols-1 gap-4 w-full mt-6">
-          {/* Ver perfil */}
-          <div className="flex items-center gap-4 p-4 bg-teal-100 rounded-lg shadow-md cursor-pointer hover:bg-teal-200 transition w-full">
-            <User className="text-teal-600 w-6 h-6" />
-            <span className="text-gray-800 text-base sm:text-lg">
-              Ver perfil
-            </span>
-          </div>
-
-          {/* Cargar CV */}
-          <div className="flex items-center gap-4 p-4 bg-blue-100 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 transition w-full">
-            <FileText className="text-blue-600 w-6 h-6" />
-            <span className="text-gray-800 text-base sm:text-lg">
-              Cargar CV
-            </span>
-          </div>
-
-          {/* Ver listado de ofertas */}
-          <div className="flex items-center gap-4 p-4 bg-yellow-100 rounded-lg shadow-md cursor-pointer hover:bg-yellow-200 transition w-full">
-            <List className="text-yellow-600 w-6 h-6" />
-            <span className="text-gray-800 text-base sm:text-lg">
-              Ver Listado de Ofertas
-            </span>
-          </div>
-
-          {/* Ver mis postulaciones */}
-          <div className="flex items-center gap-4 p-4 bg-purple-100 rounded-lg shadow-md cursor-pointer hover:bg-purple-200 transition w-full">
-            <UserPlus className="text-purple-600 w-6 h-6" />
-            <span className="text-gray-800 text-base sm:text-lg">
-              Ver Mis Postulaciones
-            </span>
-          </div>
-
-          {/* Suscribirse*/}
-          <div
-            onClick={() => navigate("/pagos")}
-            className="flex items-center gap-4 p-4 bg-indigo-100 rounded-lg shadow-md cursor-pointer hover:bg-indigo-200 transition w-full"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-indigo-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 21v-2a4 4 0 014-4h10a4 4 0 014 4v2M16 3H8a2 2 0 00-2 2v4h12V5a2 2 0 00-2-2z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 12h.01"
-              />
-            </svg>
-            <span className="text-gray-800 text-base sm:text-lg">
-              ¿Tenés una empresa? Suscribite y accede a todos nuestros beneficios
-            </span>
-          </div>
-
-          {/* Cerrar sesión */}
-          <div
-            onClick={handleLogout}
-            className="flex items-center gap-4 p-4 bg-red-100 rounded-lg shadow-md cursor-pointer hover:bg-red-200 transition w-full"
-          >
-            <LogOut className="text-red-600 w-6 h-6" />
-            <span className="text-gray-800 text-base sm:text-lg">
-              Cerrar Sesión
-            </span>
-          </div>
+        <div className="col-span-2 space-y-4">
+          <h2 className="text-xl font-bold text-sky-800">Ofertas recomendadas</h2>
+          {ofertas.map((oferta, index) => (
+            <JobCard
+              key={index}
+              {...oferta}
+              onPostularse={() => alert(`Te postulaste a ${oferta.titulo}`)}
+            />
+          ))}
         </div>
-
-        <p className="text-center text-sm text-gray-500 mt-4">
-          Accede a todas las funciones exclusivas para gestionar tu perfil y explorar nuevas oportunidades laborales.
-        </p>
       </div>
-    </div>
+
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-sky-50 p-6 rounded-lg shadow-xl w-full max-w-md space-y-4">
+            <h2 className="text-xl font-semibold">Editar perfil</h2>
+            <input
+              type="text"
+              value={editedNombre}
+              onChange={(e) => setEditedNombre(e.target.value)}
+              placeholder="Nombre"
+              className="w-full p-2 border rounded"
+            />
+            <input
+              type="email"
+              value={editedCorreo}
+              onChange={(e) => setEditedCorreo(e.target.value)}
+              placeholder="Correo"
+              className="w-full p-2 border rounded"
+            />
+            <input type="file" accept="image/*" onChange={handlePhotoChange} />
+            {previewPhoto && <img src={previewPhoto} alt="Vista previa" className="w-24 h-24 object-cover rounded-full mt-2" />}
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-300 rounded">Cancelar</button>
+              <button onClick={handleSubmitProfile} className="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700">Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </PageLayout>
   );
 }
