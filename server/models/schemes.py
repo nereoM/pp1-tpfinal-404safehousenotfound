@@ -161,6 +161,16 @@ class Licencia(db.Model):
     estado = db.Column(db.String(50), nullable=False)
     id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), nullable=False)
 
+class Preferencias_empresa(db.Model):
+    __tablename__ = "preferencias_empresa"
+    id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), primary_key=True)
+    slogan = db.Column(db.String(100), nullable=False)
+    descripcion = db.Column(db.Text, nullable=True)
+    logo_url = db.Column(db.String(255), nullable=True)
+    color_principal = db.Column(db.String(7), nullable=False) # COLOR HEX
+    color_secundario = db.Column(db.String(7), nullable=False)
+    color_texto = db.Column(db.String(7), nullable=False)
+
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)
 
