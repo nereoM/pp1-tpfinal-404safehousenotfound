@@ -110,7 +110,7 @@ class Oferta_laboral(db.Model):
 
 class Oferta_analista(db.Model):
     __tablename__ = 'ofertas_analista'
-    id_oferta = db.Column(db.Integer, db.ForeingKey('ofertas_laborales.id'), primary_key=True)
+    id_oferta = db.Column(db.Integer, db.ForeignKey('ofertas_laborales.id'), primary_key=True)
     id_analista = db.Column(db.Integer, db.ForeignKey('usuarios.id'), primary_key=True)
 
 class Job_Application(db.Model):
