@@ -3,7 +3,6 @@ export function ProfileCard({ nombre, correo, cvUrl, fotoUrl }) {
       <div className="bg-white p-4 rounded shadow space-y-2 text-center">
         {fotoUrl && (
           <img
-            src={fotoUrl}
             alt="Foto de perfil"
             className="w-24 h-24 object-cover rounded-full mx-auto"
           />
