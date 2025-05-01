@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import Cropper from "react-easy-crop";
 import { Building, UserPlus, Settings, Users, Edit } from "lucide-react";
 import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
@@ -11,6 +12,9 @@ export default function AdminEmpHome() {
   const [editedNombre, setEditedNombre] = useState("Admin Empresa");
   const [editedCorreo, setEditedCorreo] = useState("admin@empresa.com");
   const [previewPhoto, setPreviewPhoto] = useState(null);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
 
   const user = {
     nombre: "Admin",
@@ -20,7 +24,6 @@ export default function AdminEmpHome() {
   };
 
   const acciones = [
-
     {
       icon: UserPlus,
       titulo: "Crear Managers",
@@ -43,7 +46,10 @@ export default function AdminEmpHome() {
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
-    if (file) setPreviewPhoto(URL.createObjectURL(file));
+    if (file) {
+      setPhotoFile(URL.createObjectURL(file));
+      setPreviewPhoto(file);
+    }
   };
 
   return (
@@ -72,8 +78,9 @@ export default function AdminEmpHome() {
             <ProfileCard
               nombre={editedNombre}
               correo={editedCorreo}
-              fotoUrl={previewPhoto || user.fotoUrl}
+              fotoUrl={photoFile || user.fotoUrl}
               showCvLink={false}
+              size="xl"
             />
             <button
               onClick={() => setEditProfile(true)}
@@ -138,6 +145,29 @@ export default function AdminEmpHome() {
                 onChange={handlePhotoChange}
                 className="w-full p-2 text-sm text-gray-500"
               />
+              {photoFile && (
+                <div className="relative w-48 h-48 mx-auto mt-4">
+                  <Cropper
+                    image={photoFile}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={1}
+                    cropShape="round"
+                    showGrid={false}
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                  />
+                  <input
+                    type="range"
+                    min="1"
+                    max="3"
+                    step="0.1"
+                    value={zoom}
+                    onChange={(e) => setZoom(parseFloat(e.target.value))}
+                    className="w-full mt-4"
+                  />
+                </div>
+              )}
               <div className="flex justify-end gap-3 mt-6">
                 <button onClick={() => setEditProfile(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
                   Cancelar
@@ -167,7 +197,7 @@ export default function AdminEmpHome() {
                 />
                 <input
                   type="password"
-                  placeholder="Contraseña"
+                  placeholder="Credencial"
                   className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
