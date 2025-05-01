@@ -1,158 +1,194 @@
-import { useState, useEffect } from "react";
-import { LogOut, User, UserPlus, List } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Building, UserPlus, Settings, Users, Edit } from "lucide-react";
+import { TopBar } from "../components/TopBar";
+import { ProfileCard } from "../components/ProfileCard";
+import PageLayout from "../components/PageLayout";
 
 export default function AdminEmpHome() {
   const [showModal, setShowModal] = useState(false);
-  const [userInfo, setUserInfo] = useState({ username: "", empresa: "" });
+  const [editProfile, setEditProfile] = useState(false);
+  const [editedNombre, setEditedNombre] = useState("Admin Empresa");
+  const [editedCorreo, setEditedCorreo] = useState("admin@empresa.com");
+  const [previewPhoto, setPreviewPhoto] = useState(null);
 
-  const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL;
+  const user = {
+    nombre: "Admin",
+    apellido: "Empresa",
+    correo: "admin@empresa.com",
+    fotoUrl: "https://i.pravatar.cc/150?img=11"
+  };
 
-  useEffect(() => {
-    const info = localStorage.getItem("userInfo");
-    if (info) {
-      setUserInfo(JSON.parse(info));
-    }
-  }, []);
+  const acciones = [
 
-  const handleOpenModal = () => setShowModal(true);
-  const handleCloseModal = () => setShowModal(false);
+    {
+      icon: UserPlus,
+      titulo: "Crear Managers",
+      descripcion: "Designá managers para gestionar ofertas y equipos.",
+      onClick: () => setShowModal(true),
+    },
+    {
+      icon: Users,
+      titulo: "Gestionar Usuarios",
+      descripcion: "Visualizá y administrá los usuarios de tu empresa.",
+      onClick: () => alert("Funcionalidad no implementada aún"),
+    },
+    {
+      icon: Settings,
+      titulo: "Configurar empresa",
+      descripcion: "Ajustes de estilo y datos empresariales.",
+      onClick: () => alert("Funcionalidad no implementada aún"),
+    },
+  ];
 
-  const handleLogout = async () => {
-    try {
-      await fetch(`${API_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      localStorage.removeItem("userInfo");
-      navigate("/login");
-    } catch (err) {
-      console.error("Error al cerrar sesión:", err);
-    }
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) setPreviewPhoto(URL.createObjectURL(file));
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex flex-col items-center py-10 px-4 relative">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+      className={`min-h-screen bg-white ${editProfile ? "backdrop-blur-sm" : ""}`}
+    >
+      <PageLayout>
+        <TopBar username={`${user.nombre} ${user.apellido}`} onLogout={() => alert("Logout")} />
 
-     
-      <img src="/iconoblack.png" alt="Logo" className="w-12 h-12 absolute top-4 left-4" />
+        <div className="px-4 py-6">
+          <div className="mx-auto w-fit bg-blue-100 text-blue-800 text-sm font-medium px-4 py-2 rounded-full border border-blue-200 shadow-sm">
+            Gestión empresarial avanzada
+          </div>
+        </div>
 
-      <h1 className="text-3xl font-bold text-indigo-700 mb-8">Panel de Administración de Empresa</h1>
-      <p className="text-gray-700 mb-10 text-center">
-        Bienvenido, <strong>{userInfo.username}</strong> - Empresa: <strong>{userInfo.empresa}</strong>
-      </p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="relative"
+          >
+            <ProfileCard
+              nombre={editedNombre}
+              correo={editedCorreo}
+              fotoUrl={previewPhoto || user.fotoUrl}
+              showCvLink={false}
+            />
+            <button
+              onClick={() => setEditProfile(true)}
+              className="absolute top-2 right-2 p-1 bg-white border border-gray-300 rounded-full hover:bg-gray-100"
+            >
+              <Edit size={16} />
+            </button>
+          </motion.div>
 
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-        <button onClick={() => {}} className="flex items-center justify-center p-6 bg-teal-500 hover:bg-teal-600 text-white rounded-xl transition space-x-4 shadow-lg">
-          <User className="w-8 h-8" />
-          <span>Ver Perfil</span>
-        </button>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="md:col-span-2 space-y-4"
+          >
+            <h2 className="text-lg font-semibold text-gray-800">Acciones disponibles</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.1, duration: 0.4, ease: "easeOut" }}
+                  onClick={onClick}
+                  className="cursor-pointer border border-blue-100 hover:border-blue-300 p-5 rounded-xl shadow-sm transition hover:shadow-md bg-white"
+                >
+                  <Icon className="w-6 h-6 text-blue-500 mb-2" />
+                  <h3 className="text-base font-semibold text-gray-800">{titulo}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{descripcion}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
 
-        <button onClick={handleOpenModal} className="flex items-center justify-center p-6 bg-green-500 hover:bg-green-600 text-white rounded-xl transition space-x-4 shadow-lg">
-          <UserPlus className="w-8 h-8" />
-          <span>Registrar Manager</span>
-        </button>
+        {editProfile && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="fixed inset-0 flex items-center justify-center z-50"
+          >
+            <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl border border-gray-200">
+              <h2 className="text-xl font-bold text-center text-gray-800 mb-6">Editar perfil</h2>
+              <input
+                type="text"
+                value={editedNombre}
+                onChange={(e) => setEditedNombre(e.target.value)}
+                placeholder="Nombre completo"
+                className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="email"
+                value={editedCorreo}
+                onChange={(e) => setEditedCorreo(e.target.value)}
+                placeholder="Correo"
+                className="w-full p-3 mb-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="w-full p-2 text-sm text-gray-500"
+              />
+              <div className="flex justify-end gap-3 mt-6">
+                <button onClick={() => setEditProfile(false)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                  Cancelar
+                </button>
+                <button onClick={() => setEditProfile(false)} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow">
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
-        <button onClick={() => {}} className="flex items-center justify-center p-6 bg-blue-500 hover:bg-blue-600 text-white rounded-xl transition space-x-4 shadow-lg">
-          <List className="w-8 h-8" />
-          <span>Listado de Managers</span>
-        </button>
-
-        <button onClick={handleLogout} className="flex items-center justify-center p-6 bg-red-500 hover:bg-red-600 text-white rounded-xl transition space-x-4 shadow-lg">
-          <LogOut className="w-8 h-8" />
-          <span>Cerrar Sesión</span>
-        </button>
-      </div>
-
-   
-      {showModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md relative animate-fade-in-down overflow-hidden">
-
-            <h2 className="text-2xl font-bold text-indigo-700 mb-4 text-center">Registrar Manager</h2>
-
-            <p className="text-sm text-center text-gray-500 mb-6">
-              Estás registrando un Manager para: <strong>{userInfo.empresa}</strong>
-            </p>
-
-            <form className="space-y-4">
-
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-1">Nombre</label>
+        {showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl border border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-800 mb-4 text-center">Crear nuevo Manager</h2>
+              <div className="space-y-3">
                 <input
                   type="text"
-                  placeholder="Ej: Fulano"
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 hover:ring-2 hover:ring-indigo-300 transition"
+                  placeholder="Nombre"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-1">Apellido</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Mengano"
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 hover:ring-2 hover:ring-indigo-300 transition"
-                />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-1">Email</label>
                 <input
                   type="email"
-                  placeholder="Ej: fulano@gmail.com"
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 hover:ring-2 hover:ring-indigo-300 transition"
+                  placeholder="Correo electrónico"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </div>
-
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-1">Contraseña</label>
                 <input
                   type="password"
-                  placeholder="Contraseña segura"
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 hover:ring-2 hover:ring-indigo-300 transition"
+                  placeholder="Contraseña"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-
-              <div>
-                <label className="block text-gray-700 text-sm font-medium mb-1">Confirmar Contraseña</label>
-                <input
-                  type="password"
-                  placeholder="Repetir contraseña"
-                  className="w-full p-3 border border-gray-300 rounded-lg bg-white text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 hover:ring-2 hover:ring-indigo-300 transition"
-                />
-              </div>
-
-              
-              <div className="flex justify-between mt-6">
+              <div className="flex justify-end gap-2 mt-6">
                 <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-6 py-2 rounded-lg bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium transition"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
                 >
                   Cancelar
                 </button>
                 <button
-                  type="button"
-                  className="px-6 py-2 rounded-lg bg-indigo-300 text-white font-medium transition cursor-not-allowed"
+                  onClick={() => alert("Creación simulada")}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
-                  Registrar
+                  Crear
                 </button>
               </div>
-            </form>
-
-           
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              ✖
-            </button>
-
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </PageLayout>
+    </motion.div>
   );
 }
