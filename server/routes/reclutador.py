@@ -6,6 +6,8 @@ from models.schemes import Oferta_laboral, Licencia
 from flask import request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from models.schemes import Oferta_laboral, Licencia, Job_Application, Usuario, CV
+import os
+from werkzeug.utils import secure_filename
 
 reclutador_bp = Blueprint("reclutador", __name__)
 
@@ -77,15 +79,81 @@ def solicitar_licencia():
     descripcion = data.get("description")
 
     id_empleado = get_jwt_identity()
+    empleado = Usuario.query.filter_by(id=id_empleado).first()
 
     nueva_licencia = Licencia(
         id_empleado=id_empleado,
         tipo=tipo_licencia,
         descripcion=descripcion,
-        estado="pendiente"
+        estado="pendiente",
+        id_empresa=empleado.id_empresa
     )
 
     db.session.add(nueva_licencia)
     db.session.commit()
 
     return jsonify({"message": "Solicitud de licencia enviada exitosamente"}), 201
+
+@reclutador_bp.route("/mis-licencias", methods=["GET"])
+@role_required(["reclutador"])
+def ver_mis_licencias():
+    id_reclutador = get_jwt_identity()
+    licencias = Licencia.query.filter_by(id_empleado=id_reclutador).all()
+
+    resultado = [
+        {
+            "id": licencia.id,
+            "tipo": licencia.tipo,
+            "descripcion": licencia.descripcion,
+            "estado": licencia.estado,
+            "certificado_url": licencia.certificado_url  # URL del certificado si existe
+        }
+        for licencia in licencias
+    ]
+
+    return jsonify(resultado), 200
+
+UPLOAD_FOLDER = "uploads/certificados"  # Carpeta donde se guardarán los certificados
+ALLOWED_EXTENSIONS = {"pdf"}
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@reclutador_bp.route("/subir-certificado/<int:id_licencia>", methods=["POST"])
+@role_required(["reclutador"])
+def subir_certificado(id_licencia):
+    # Verificar si la licencia existe y pertenece al reclutador
+    id_reclutador = get_jwt_identity()
+    licencia = Licencia.query.get(id_licencia)
+
+    if not licencia:
+        return jsonify({"error": "Licencia no encontrada"}), 404
+
+    if licencia.id_empleado != id_reclutador:
+        return jsonify({"error": "No tienes permiso para modificar esta licencia"}), 403
+
+    if licencia.estado != "aprobado":
+        return jsonify({"error": "Solo se pueden subir certificados para licencias aprobadas"}), 400
+
+    # Verificar si se envió un archivo
+    if "file" not in request.files:
+        return jsonify({"error": "No se encontró ningún archivo"}), 400
+
+    file = request.files["file"]
+
+    # Verificar si el archivo tiene un nombre válido y es un PDF
+    if file.filename == "" or not allowed_file(file.filename):
+        return jsonify({"error": "Formato de archivo no permitido. Solo se aceptan archivos PDF"}), 400
+
+    # Guardar el archivo en el servidor
+    filename = secure_filename(file.filename)
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(filepath)
+
+    # Actualizar la licencia con la URL del certificado
+    licencia.certificado_url = f"/{UPLOAD_FOLDER}/{filename}"
+    db.session.commit()
+
+    return jsonify({"message": "Certificado subido exitosamente", "certificado_url": licencia.certificado_url}), 200

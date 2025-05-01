@@ -159,7 +159,7 @@ class Licencia(db.Model):
     fecha_fin = db.Column(db.DateTime, nullable=True)
     certificado_url = db.Column(db.String(255), nullable=True)  # AL MENOS POR AHORA
     estado = db.Column(db.String(50), nullable=False)
-
+    id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), nullable=False)
 
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)

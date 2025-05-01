@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from auth.decorators import role_required
-from models.schemes import Usuario, Rol, Empresa, Oferta_laboral
+from models.schemes import Usuario, Rol, Empresa, Oferta_laboral, Licencia
 from models.extensions import db
 import secrets
 from flask_jwt_extended import get_jwt_identity
@@ -74,7 +74,7 @@ def register_reclutador():
     }), 201
 
 @manager_bp.route("/crear_oferta_laboral", methods=["POST"])
-@role_required(["reclutador"])
+@role_required(["manager"])
 def crear_oferta_laboral():
     try:
         data = request.get_json()
@@ -104,7 +104,7 @@ def crear_oferta_laboral():
         id_manager = get_jwt_identity()
         manager = Usuario.query.filter_by(id=id_manager).first()
         if not manager:
-            return jsonify({"error": "Reclutador no encontrado."}), 404
+            return jsonify({"error": "Manager no encontrado."}), 404
         
         id_empresa = manager.id_empresa
         empresa = Empresa.query.filter_by(id=id_empresa).first()
@@ -141,3 +141,71 @@ def crear_oferta_laboral():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@manager_bp.route("/visualizar-licencias-solicitadas", methods=["GET"])
+@role_required(["manager"])
+def visualizar_licencias():
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.filter_by(id=id_manager).first()
+    empresa = Empresa.query.filter_by(id=manager.id_empresa).first()
+
+    licencias = Licencia.query.filter_by(id_empresa=empresa.id).all()
+
+    resultado = []
+    for licencia in licencias:
+        empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
+        resultado.append({
+            "id_licencia": licencia.id,
+            "empleado": f"{empleado.nombre} {empleado.apellido}",
+            "tipo": licencia.tipo,
+            "descripcion": licencia.descripcion,
+            "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+            "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+            "estado": licencia.estado
+        })
+    
+    return jsonify(resultado), 200
+
+@manager_bp.route("/evaluar-licencia/<int:id_licencia>", methods=["PUT"])
+@role_required(["manager"])
+def evaluar_licencia(id_licencia):
+    # Obtener los datos enviados en la solicitud
+    data = request.get_json()
+    nuevo_estado = data.get("estado")  # "aprobado" o "rechazado"
+    
+    if nuevo_estado not in ["aprobado", "rechazado"]:
+        return jsonify({"error": "El estado debe ser 'aprobado' o 'rechazado'"}), 400
+
+    # Obtener el ID del manager autenticado
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    if not manager or not manager.id_empresa:
+        return jsonify({"error": "El manager no tiene una empresa asociada"}), 403
+
+    # Verificar que la licencia pertenece a la empresa del manager
+    licencia = Licencia.query.get(id_licencia)
+    if not licencia:
+        return jsonify({"error": "Licencia no encontrada"}), 404
+
+    if licencia.id_empresa != manager.id_empresa:
+        return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
+
+    # Actualizar el estado de la licencia
+    licencia.estado = nuevo_estado
+    db.session.commit()
+
+    # Verificar si la licencia aprobada tiene un certificado
+    if nuevo_estado == "aprobado" and licencia.certificado_url:
+        licencia.estado = "activa"
+        db.session.commit()
+
+    return jsonify({
+        "message": f"Licencia {nuevo_estado} exitosamente.",
+        "licencia": {
+            "id": licencia.id,
+            "empleado": licencia.id_empleado,
+            "tipo": licencia.tipo,
+            "descripcion": licencia.descripcion,
+            "estado": licencia.estado,
+            "certificado_url": licencia.certificado_url
+        }
+    }), 200
