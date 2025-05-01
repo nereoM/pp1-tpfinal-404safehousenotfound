@@ -107,7 +107,12 @@ class Oferta_laboral(db.Model):
     fecha_cierre = db.Column(db.DateTime, nullable=True)
 
     empresa = db.relationship("Empresa", backref="ofertas_laborales")
-    
+
+class Oferta_analista(db.Model):
+    __tablename__ = 'ofertas_analista'
+    id_oferta = db.Column(db.Integer, db.ForeingKey('ofertas_laborales.id'), primary_key=True)
+    id_analista = db.Column(db.Integer, db.ForeignKey('usuarios.id'), primary_key=True)
+
 class Job_Application(db.Model):
     __tablename__ = 'job_application'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
