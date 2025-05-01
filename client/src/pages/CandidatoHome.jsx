@@ -1,4 +1,3 @@
-// 📁 src/pages/CandidatoHome.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit } from "lucide-react";
