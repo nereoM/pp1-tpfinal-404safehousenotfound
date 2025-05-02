@@ -1,15 +1,24 @@
-export function TopBar({ username, onLogout, children }) {
+import { useTheme } from "./ThemeContext";
+
+
+
+export function TopBar({ username, onLogout }) {
+  const { theme } = useTheme();
+
   return (
-    <header className="flex justify-between items-center py-4 border-b border-gray-300">
-      <div className="flex items-center gap-6">
-        <h1 className="text-2xl font-bold text-blue-600">SIGRH+</h1>
-        {children}
+    <header
+      className="w-full px-6 py-3 flex justify-between items-center shadow"
+      style={{ backgroundColor: theme.color_princ, color: theme.color_texto }}
+    >
+      <div className="flex items-center gap-3">
+        <img src={theme.logo_url} alt="Logo" className="h-8" />
+        <h1 className="font-bold text-lg">{theme.slogan}</h1>
       </div>
       <div className="flex items-center gap-4">
-        <span className="font-medium">Bienvenido, {username}</span>
+        <span>{username}</span>
         <button
           onClick={onLogout}
-          className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+          className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded"
         >
           Cerrar sesión
         </button>

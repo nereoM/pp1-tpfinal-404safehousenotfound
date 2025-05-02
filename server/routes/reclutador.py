@@ -5,9 +5,10 @@ from models.extensions import db
 from models.schemes import Oferta_laboral, Licencia
 from flask import request, jsonify
 from flask_jwt_extended import get_jwt_identity
-from models.schemes import Oferta_laboral, Licencia, Job_Application, Usuario, CV
+from models.schemes import Oferta_laboral, Licencia, Job_Application, Usuario, CV, Empresa
 import os
 from werkzeug.utils import secure_filename
+from datetime import datetime, timezone
 
 reclutador_bp = Blueprint("reclutador", __name__)
 
@@ -92,7 +93,20 @@ def solicitar_licencia():
     db.session.add(nueva_licencia)
     db.session.commit()
 
-    return jsonify({"message": "Solicitud de licencia enviada exitosamente"}), 201
+    return jsonify({
+        "message": "Solicitud de licencia enviada exitosamente",
+        "licencia": {
+            "id": nueva_licencia.id,
+            "tipo": nueva_licencia.tipo,
+            "descripcion": nueva_licencia.descripcion,
+            "estado": nueva_licencia.estado,
+            "fecha_inicio": nueva_licencia.fecha_inicio.isoformat() if nueva_licencia.fecha_inicio else None,
+            "empresa": {
+                "id": nueva_licencia.id_empresa,
+                "nombre": Empresa.query.get(nueva_licencia.id_empresa).nombre
+            } 
+        }
+    }), 201
 
 @reclutador_bp.route("/mis-licencias", methods=["GET"])
 @role_required(["reclutador"])
@@ -102,11 +116,19 @@ def ver_mis_licencias():
 
     resultado = [
         {
-            "id": licencia.id,
-            "tipo": licencia.tipo,
-            "descripcion": licencia.descripcion,
-            "estado": licencia.estado,
-            "certificado_url": licencia.certificado_url  # URL del certificado si existe
+            "licencia": {
+                "licencia": {
+                    "id_licencia": licencia.id,
+                    "tipo": licencia.tipo,
+                    "descripcion": licencia.descripcion,
+                    "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+                    "estado": licencia.estado,
+                    "empresa": {
+                        "id": licencia.id_empresa,
+                        "nombre": Empresa.query.get(licencia.id_empresa).nombre
+                    }
+                }
+            }
         }
         for licencia in licencias
     ]
