@@ -119,6 +119,7 @@ def configurar_preferencias():
         return jsonify({
             "message": "Preferencias creadas exitosamente",
             "preferencias": {
+                "id_empresa": id_empresa,
                 "slogan": preferencias.slogan,
                 "descripcion": preferencias.descripcion,
                 "color_princ": preferencias.color_princ,
@@ -138,6 +139,7 @@ def configurar_preferencias():
     return jsonify({
         "message": "Preferencias actualizadas exitosamente",
         "preferencias": {
+                "id_empresa": id_empresa,
                 "slogan": preferencias.slogan,
                 "descripcion": preferencias.descripcion,
                 "color_princ": preferencias.color_princ,
