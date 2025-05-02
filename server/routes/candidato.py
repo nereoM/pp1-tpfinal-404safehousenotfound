@@ -65,7 +65,7 @@ def postularme():
         id_candidato=id_candidato,
         id_oferta=id_oferta,
         id_cv=id_cv,
-        is_apto=predecir_cv(oferta.palabras_clave, cv.url_cv),
+        is_apto=predecir_cv(oferta.palabras_clave, cv),
         fecha_postulacion=datetime.now(timezone.utc),
     )
 
@@ -113,7 +113,7 @@ def upload_cv():
         
         tipo_archivo = file.mimetype
 
-        url_cv = f"/uploads/{filename}"
+        url_cv = f"uploads/cvs/{filename}"
 
         nuevo_cv = CV(
             id_candidato=id_candidato,

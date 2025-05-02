@@ -32,9 +32,9 @@ def predecir_cv(palabras_clave, cv):
     if not cv:
         raise Exception("No se encontró el CV para el usuario actual.")
     if cv.tipo_archivo == "application/pdf":
-        texto_cv = extraer_texto_pdf(cv)
+        texto_cv = extraer_texto_pdf(cv.url_cv)
     elif cv.tipo_archivo == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        texto_cv = extraer_texto_word(cv)
+        texto_cv = extraer_texto_word(cv.url_cv)
     else:
         raise Exception("Formato de archivo no soportado.")
 
