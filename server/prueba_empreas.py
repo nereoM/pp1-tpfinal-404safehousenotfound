@@ -34,6 +34,7 @@ def cargar_empresas_y_preferencias():
             correo = f"admin@{nombre.lower().replace(' ', '')}.com"
             username = nombre.lower().replace(' ', '') + "_admin"
 
+            # Crear usuario sin id_empresa por ahora
             admin_emp = Usuario(
                 nombre="Admin",
                 apellido=nombre,
@@ -42,14 +43,20 @@ def cargar_empresas_y_preferencias():
                 contrasena="Admin123!"
             )
             db.session.add(admin_emp)
-            db.session.flush()  # Obtener id del admin creado
+            db.session.flush()  # Para obtener admin_emp.id
 
+            # Asignar rol
             db.session.add(UsuarioRol(id_usuario=admin_emp.id, id_rol=rol_admin_emp.id))
 
+            # Crear empresa y asociar al admin
             nueva = Empresa(nombre=nombre, id_admin_emp=admin_emp.id)
             db.session.add(nueva)
             db.session.flush()  # Para obtener nueva.id
 
+            # Asociar el admin con su empresa
+            admin_emp.id_empresa = nueva.id
+
+            # Crear preferencias visuales
             pref = Preferencias_empresa(
                 id_empresa=nueva.id,
                 color_principal=preferencias[i]["color_principal"],
