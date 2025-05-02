@@ -167,7 +167,7 @@ def registrar_empresa():
         (Usuario.username == identifier) | (Usuario.correo == identifier)
     ).first()
     if user:
-        if not nombre_tarjeta or not numero_tarjeta or not cvv_tarjeta:
+        if not nombre_tarjeta or not numero_tarjeta or not cvv_tarjeta or not tipo_tarjeta:
             return jsonify({"error": "Los datos de la tarjeta son obligatorios"}), 400
         if not nombre_empresa:
             return jsonify({"error": "El nombre de la empresa es obligatorio"}), 400
