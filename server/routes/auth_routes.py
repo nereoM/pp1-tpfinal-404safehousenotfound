@@ -52,6 +52,13 @@ def register():
             {"error": "Nombre, apellido, username, email y password son requeridos"}
         ), 400
 
+    nombre_valido = validar_nombre(nombre)
+
+    if not nombre_valido:
+        return jsonify(
+            {"error": "El nombre no puede contener caracteres especiales"}
+        ), 400
+
     email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
     if not re.match(email_regex, email):
         return jsonify({"error": "Formato de email no valido"}), 400
@@ -254,3 +261,8 @@ def get_user_info():
             "roles": [r.slug for r in user.roles],
         }
     )
+
+
+def validar_nombre(nombre: str) -> bool:
+    # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
+    return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
