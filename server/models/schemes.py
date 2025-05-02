@@ -72,7 +72,7 @@ class CV(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_candidato = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
     url_cv = db.Column(db.String(255), nullable=False)
-    tipo_archivo = db.Column(db.String(50))
+    tipo_archivo = db.Column(db.String(200))
     fecha_subida = db.Column(db.DateTime, default=db.func.now())
 
     usuario = db.relationship("Usuario", backref="cvs")
