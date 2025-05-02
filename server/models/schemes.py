@@ -19,6 +19,7 @@ class Usuario(db.Model):
     id_empresa = db.Column(
         db.Integer, db.ForeignKey("empresas.id"), nullable=True
     )  # Relación con Empresa
+    id_superior = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=True)
 
     @hybrid_property
     def contrasena(self):

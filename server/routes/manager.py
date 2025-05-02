@@ -53,7 +53,8 @@ def register_reclutador():
         username=username,
         correo=email,
         contrasena=temp_password,
-        id_empresa=id_empresa
+        id_empresa=id_empresa,
+        id_superior=id_manager
     )
     nuevo_reclutador.roles.append(reclutador_role)
 
@@ -67,9 +68,17 @@ def register_reclutador():
             "username": username,
             "password": temp_password
         },
-        "empresa": {
-            "id": id_empresa,
-            "nombre": Empresa.query.get(id_empresa).nombre  # Obtener el nombre de la empresa
+        "reclutador": {
+            "id": nuevo_reclutador.id,
+            "nombre": nuevo_reclutador.nombre,
+            "apellido": nuevo_reclutador.apellido,
+            "username": nuevo_reclutador.username,
+            "email": nuevo_reclutador.correo,
+            "empresa": {
+                "id": nuevo_reclutador.id_empresa,
+                "nombre": Empresa.query.get(id_empresa).nombre
+            },
+            "id_superior": nuevo_reclutador.id_superior
         }
     }), 201
 
@@ -153,15 +162,27 @@ def visualizar_licencias():
     resultado = []
     for licencia in licencias:
         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
-        resultado.append({
-            "id_licencia": licencia.id,
-            "empleado": f"{empleado.nombre} {empleado.apellido}",
-            "tipo": licencia.tipo,
-            "descripcion": licencia.descripcion,
-            "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
-            "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
-            "estado": licencia.estado
-        })
+        if empleado.id_superior == manager.id and empleado.id_empresa == manager.id_empresa:
+            resultado.append({
+                "licencia": {
+                    "id_licencia": licencia.id,
+                    "empleado": {
+                        "id": licencia.id_empleado,
+                        "nombre": empleado.nombre,
+                        "apellido": empleado.apellido,
+                        "username": empleado.username,
+                        "email": empleado.correo
+                    },
+                    "tipo": licencia.tipo,
+                    "descripcion": licencia.descripcion,
+                    "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+                    "estado": licencia.estado,
+                    "empresa": {
+                        "id": licencia.id_empresa,
+                        "nombre": empresa.nombre
+                    }
+                }
+            })
     
     return jsonify(resultado), 200
 
@@ -172,40 +193,71 @@ def evaluar_licencia(id_licencia):
     data = request.get_json()
     nuevo_estado = data.get("estado")  # "aprobado" o "rechazado"
     
-    if nuevo_estado not in ["aprobado", "rechazado"]:
-        return jsonify({"error": "El estado debe ser 'aprobado' o 'rechazado'"}), 400
+    if nuevo_estado not in ["aprobado", "rechazado", "activa"]:
+        return jsonify({"error": "El estado debe ser 'aprobada', 'rechazada' o 'activa'"}), 400
 
     # Obtener el ID del manager autenticado
     id_manager = get_jwt_identity()
     manager = Usuario.query.get(id_manager)
-    if not manager or not manager.id_empresa:
-        return jsonify({"error": "El manager no tiene una empresa asociada"}), 403
 
     # Verificar que la licencia pertenece a la empresa del manager
     licencia = Licencia.query.get(id_licencia)
     if not licencia:
         return jsonify({"error": "Licencia no encontrada"}), 404
 
-    if licencia.id_empresa != manager.id_empresa:
+    empleado = Usuario.query.get(licencia.id_empleado)
+
+    if licencia.id_empresa != manager.id_empresa and empleado.id_superior != manager.id:
         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
-
-    # Actualizar el estado de la licencia
-    licencia.estado = nuevo_estado
-    db.session.commit()
-
-    # Verificar si la licencia aprobada tiene un certificado
-    if nuevo_estado == "aprobado" and licencia.certificado_url:
-        licencia.estado = "activa"
+    
+    empresa = Empresa.query.get(licencia.id_empresa)
+    
+    if licencia.estado == "pendiente":
+        if nuevo_estado in ["aprobada", "rechazada"]:
+            licencia.estado = nuevo_estado
+            db.session.commit()
+            return jsonify({
+                "message": f"Licencia {nuevo_estado} exitosamente",
+                "licencia": {
+                    "id_licencia": licencia.id,
+                    "empleado": {
+                        "id": licencia.id_empleado,
+                        "nombre": empleado.nombre,
+                        "apellido": empleado.apellido,
+                        "username": empleado.username,
+                        "email": empleado.correo
+                    },
+                    "tipo": licencia.tipo,
+                    "descripcion": licencia.descripcion,
+                    "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+                    "estado": licencia.estado,
+                    "empresa": {
+                        "id": licencia.id_empresa,
+                        "nombre": empresa.nombre
+                    }
+                }
+            }), 200
+    elif licencia.estado == "aprobada" and nuevo_estado == "activa" and licencia.certificado_url:
+        licencia.estado = nuevo_estado
         db.session.commit()
-
-    return jsonify({
-        "message": f"Licencia {nuevo_estado} exitosamente.",
-        "licencia": {
-            "id": licencia.id,
-            "empleado": licencia.id_empleado,
-            "tipo": licencia.tipo,
-            "descripcion": licencia.descripcion,
-            "estado": licencia.estado,
-            "certificado_url": licencia.certificado_url
-        }
-    }), 200
+        return jsonify({
+            "message": f"Licencia en estado {nuevo_estado} exitosa",
+            "licencia": {
+                    "id_licencia": licencia.id,
+                    "empleado": {
+                        "id": licencia.id_empleado,
+                        "nombre": empleado.nombre,
+                        "apellido": empleado.apellido,
+                        "username": empleado.username,
+                        "email": empleado.correo
+                    },
+                    "tipo": licencia.tipo,
+                    "descripcion": licencia.descripcion,
+                    "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+                    "estado": licencia.estado,
+                    "empresa": {
+                        "id": licencia.id_empresa,
+                        "nombre": empresa.nombre
+                    }
+                }
+        }), 200
