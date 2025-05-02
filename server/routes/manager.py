@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from auth.decorators import role_required
-from models.schemes import Usuario, Rol, Empresa, Oferta_laboral, Licencia
+from models.schemes import Usuario, Rol, Empresa, Oferta_laboral, Licencia, Oferta_analista
 from models.extensions import db
 import secrets
 from flask_jwt_extended import get_jwt_identity
@@ -209,3 +209,31 @@ def evaluar_licencia(id_licencia):
             "certificado_url": licencia.certificado_url
         }
     }), 200
+
+
+@manager_bp.route("/asignar-analista-oferta", methods=["POST"])
+@role_required(["manager"])
+def asignar_analista_a_oferta(id_oferta, id_analista):
+    oferta = Oferta_laboral.query.get(id_oferta)
+    analista = Usuario.query.get(id_analista)
+    id_empresa = analista.id_empresa
+
+
+    if not oferta or not analista:
+        return jsonify({"error": "Oferta o analista no encontrado."}), 404
+    if id_empresa != oferta.id_empresa:
+        return jsonify({"error": "El analista no pertenece a la misma empresa que la oferta."}), 403
+    
+    oferta_analista = Oferta_analista(
+        id_oferta=oferta.id,
+        id_analista=analista.id
+    )
+    db.session.add(oferta_analista)
+
+    return jsonify({
+        "message": "Analista asignado a la oferta laboral exitosamente.",
+        "oferta": oferta.nombre,
+        "analista": analista.username
+    }), 201
+
+    
