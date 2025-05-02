@@ -1,4 +1,6 @@
-export function ProfileCard({ nombre, correo, cvUrl, fotoUrl, showCvLink = true }) {
+export function ProfileCard({ nombre, correo, cvUrl, fotoUrl }) {
+  const API_URL = import.meta.env.VITE_API_URL;
+
   return (
     <div className="bg-white p-4 rounded shadow space-y-2 text-center">
       {fotoUrl && (
@@ -10,14 +12,15 @@ export function ProfileCard({ nombre, correo, cvUrl, fotoUrl, showCvLink = true 
       )}
       <div className="text-lg font-semibold">{nombre}</div>
       <div className="text-sm text-gray-500">{correo}</div>
-      {showCvLink && cvUrl && (
+
+      {cvUrl && (
         <a
-          href={cvUrl}
+          href={`${API_URL}${cvUrl}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-500 underline text-sm"
+          className="inline-block px-3 py-1 mt-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm shadow"
         >
-          Ver CV
+          📄 Ver CV subido
         </a>
       )}
     </div>

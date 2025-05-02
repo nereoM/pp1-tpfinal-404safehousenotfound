@@ -1,16 +1,7 @@
-import { useTheme } from "./ThemeContext";
-
-
-
 export default function PageLayout({ children }) {
-  const { theme } = useTheme();
-
   return (
-    <main
-      className="min-h-screen"
-      style={{ backgroundColor: theme.color_sec }}
-    >
-      {children}
-    </main>
+    <div className="min-h-screen bg-gray-100 text-gray-800">
+      <div className="max-w-6xl mx-auto px-4 py-6">{children}</div>
+    </div>
   );
 }
