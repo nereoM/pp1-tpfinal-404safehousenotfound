@@ -116,7 +116,7 @@ def ver_mis_licencias():
 
     resultado = [
         {
-            "licencia": {
+            "licencias": {
                 "licencia": {
                     "id_licencia": licencia.id,
                     "tipo": licencia.tipo,
@@ -126,7 +126,8 @@ def ver_mis_licencias():
                     "empresa": {
                         "id": licencia.id_empresa,
                         "nombre": Empresa.query.get(licencia.id_empresa).nombre
-                    }
+                    },
+                    "certificado_url": licencia.certificado_url if licencia.certificado_url else None
                 }
             }
         }
@@ -149,14 +150,15 @@ def subir_certificado(id_licencia):
     # Verificar si la licencia existe y pertenece al reclutador
     id_reclutador = get_jwt_identity()
     licencia = Licencia.query.get(id_licencia)
+    empleado = Usuario.query.filter_by(id=id_reclutador).first()
 
     if not licencia:
         return jsonify({"error": "Licencia no encontrada"}), 404
 
-    if licencia.id_empleado != id_reclutador:
+    if licencia.id_empleado != empleado.id:
         return jsonify({"error": "No tienes permiso para modificar esta licencia"}), 403
 
-    if licencia.estado != "aprobado":
+    if licencia.estado != "aprobada":
         return jsonify({"error": "Solo se pueden subir certificados para licencias aprobadas"}), 400
 
     # Verificar si se envió un archivo

@@ -180,7 +180,8 @@ def visualizar_licencias():
                     "empresa": {
                         "id": licencia.id_empresa,
                         "nombre": empresa.nombre
-                    }
+                    },
+                    "certificado_url": licencia.certificado_url if licencia.certificado_url else None
                 }
             })
     
@@ -193,7 +194,7 @@ def evaluar_licencia(id_licencia):
     data = request.get_json()
     nuevo_estado = data.get("estado")  # "aprobado" o "rechazado"
     
-    if nuevo_estado not in ["aprobado", "rechazado", "activa"]:
+    if nuevo_estado not in ["aprobada", "rechazada", "activa"]:
         return jsonify({"error": "El estado debe ser 'aprobada', 'rechazada' o 'activa'"}), 400
 
     # Obtener el ID del manager autenticado
@@ -234,7 +235,8 @@ def evaluar_licencia(id_licencia):
                     "empresa": {
                         "id": licencia.id_empresa,
                         "nombre": empresa.nombre
-                    }
+                    },
+                    "certificado_url": licencia.certificado_url if licencia.certificado_url else None
                 }
             }), 200
     elif licencia.estado == "aprobada" and nuevo_estado == "activa" and licencia.certificado_url:
