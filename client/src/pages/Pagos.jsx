@@ -99,10 +99,10 @@ export default function Pagos() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-800 font-sans flex flex-col items-center justify-center px-6 py-12">
-      
-      {/*Botón de retroceso */}
+
+      {/* Botón de retroceso que redirige al login */}
       <button
-        onClick={() => window.history.back()}
+        onClick={() => window.location.href = '/login'}
         className="absolute top-4 left-4 md:top-8 md:left-8 bg-white p-2 rounded-full shadow hover:bg-gray-100 transition"
         aria-label="Volver"
       >
