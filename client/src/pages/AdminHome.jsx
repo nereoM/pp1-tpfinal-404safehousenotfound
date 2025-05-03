@@ -29,7 +29,7 @@ export default function AdminRootHome() {
         color_principal: "#2563eb",
         color_secundario: "#f3f4f6",
         color_texto: "#000000",
-        slogan: "Bienvenido al panel de administración root",
+        slogan: "Bienvenido al panel de Administración Root",
     };
 
     // Acciones disponibles para el admin-404
