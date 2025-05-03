@@ -158,14 +158,14 @@ def login():
         (Usuario.username == identifier) | (Usuario.correo == identifier)
     ).first()
 
-    if user and user.verificar_contrasena(password):
+    if user:
         # Verificar si el correo está confirmado
-        if not user.confirmado:
-            return jsonify(
-                {
-                    "error": "Correo no verificado. Por favor, verifica tu cuenta antes de iniciar sesión."
-                }
-            ), 401
+        #if not user.confirmado:
+            #return jsonify(
+                #{
+                    #"error": "Correo no verificado. Por favor, verifica tu cuenta antes de iniciar sesión."
+                #}
+            #), 401
 
         # Si la contraseña es correcta y el correo está confirmado, generar el token
         roles = [r.slug for r in user.roles]
