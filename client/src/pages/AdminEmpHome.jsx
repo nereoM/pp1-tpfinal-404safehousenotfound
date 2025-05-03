@@ -6,53 +6,29 @@ import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
 import { JobCard } from "../components/JobCard";
+import { UserPlus, Users, Settings, Edit } from "lucide-react";
 
 export default function AdminEmpHome() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
 
-  // Carga de usuario autenticado
+  // Carga del usuario autenticado
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, { credentials: "include" });
+    fetch(`${import.meta.env.VITE_API_URL}/auth/me`, { credentials: "include" })
+      .then(res => {
         if (!res.ok) throw new Error("Error al autenticar");
-        const data = await res.json();
-        console.log("✅ Usuario cargado:", data);
-        setUser(data);
-      } catch (err) {
-        console.error("❌ Error al obtener usuario:", err);
-      } finally {
-        setLoadingUser(false);
-      }
-    }
-    fetchUser();
+        return res.json();
+      })
+      .then(data => setUser(data))
+      .catch(err => console.error("❌ Error al obtener usuario:", err))
+      .finally(() => setLoadingUser(false));
   }, []);
 
-  // Determinar ID de empresa (fallback a user.id)
-    // Add override for testing company ID
-  const [overrideEmpresaId, setOverrideEmpresaId] = useState(null);
-  // Determine which company ID to use: override or user.id_empresa
-  const empresaId = overrideEmpresaId ?? user?.id_empresa;
-  if (overrideEmpresaId !== null) {
-    console.log(`🔧 Usando overrideEmpresaId: ${overrideEmpresaId}`);
-  } else if (user && !user.id_empresa) {
-    console.warn(
-      `⚠️ user.id_empresa indefinido, overrideEmpresaId vacío; preferencias no se cargarán hasta definir ID.`
-    );
-  }
-  console.log("🏭 ID de empresa para estilos:", empresaId);
-  if (user && !user.id_empresa) {
-    console.warn(
-      `⚠️ user.id_empresa indefinido, usando user.id (${user.id}) como empresaId fallback.`
-    );
-  }
-  console.log("🏭 ID de empresa para estilos:", empresaId);
-
-  // Uso del hook de estilos SIEMPRE, manteniendo el orden de Hooks
+  // Obtener ID de empresa directamente de usuario
+  const empresaId = user?.id_empresa;
   const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
 
-  // Estados de carga
+  // Manejo de estados de carga
   if (loadingUser) {
     return <div className="p-10 text-center">Cargando usuario…</div>;
   }
@@ -63,7 +39,7 @@ export default function AdminEmpHome() {
     return <div className="p-10 text-center">Cargando preferencias de empresa…</div>;
   }
 
-  // Valores por defecto + merge con estilos obtenidos
+  // Valores por defecto y merge con estilos del back
   const estilosSafe = {
     color_principal: estilos?.color_principal ?? "#2563eb",
     color_secundario: estilos?.color_secundario ?? "#f3f4f6",
@@ -71,28 +47,35 @@ export default function AdminEmpHome() {
     slogan: estilos?.slogan ?? "Bienvenido",
   };
 
+  // Acciones disponibles para el admin-emp
+  const acciones = [
+    {
+      icon: UserPlus,
+      titulo: "Crear Managers",
+      descripcion: "Designá managers para gestionar ofertas y equipos.",
+      onClick: () => {/* abrir modal de registro de manager */},
+    },
+    {
+      icon: Users,
+      titulo: "Gestionar Usuarios",
+      descripcion: "Visualizá y administrá los usuarios de tu empresa.",
+      onClick: () => alert("Funcionalidad en desarrollo"),
+    },
+    {
+      icon: Settings,
+      titulo: "Configurar Empresa",
+      descripcion: "Ajustes de estilo y datos empresariales.",
+      onClick: () => alert("Funcionalidad en desarrollo"),
+    },
+  ];
+
   return (
-    <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
+    <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe, loading: loadingEstilos }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
         <PageLayout>
-          {/* Override para probar diferentes empresas si user.id_empresa es indefinido */}
-          {user && user.id_empresa == null && (
-            <div className="px-4 py-4 bg-white/10 backdrop-blur-xl rounded mb-4 text-center">
-              <label className="text-white mr-2">ID Empresa (test):</label>
-              <input
-                type="number"
-                placeholder="Ej: 12"
-                value={overrideEmpresaId ?? ''}
-                onChange={(e) => setOverrideEmpresaId(e.target.value ? parseInt(e.target.value) : null)}
-                className="p-1 rounded text-black"
-              />
-            </div>
-          )}
           <TopBar
-            username={user.username}
-            onLogout={() => {
-              // TODO: manejar logout
-            }}
+            username={`${user.nombre} ${user.apellido}`}
+            onLogout={() => {/* manejar logout */}}
             style={{ backgroundColor: estilosSafe.color_principal }}
           />
 
@@ -111,26 +94,55 @@ export default function AdminEmpHome() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
             <motion.div
-              className="relative"
-              initial={{ x: -10, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.4 }}
+              className="relative"
             >
               <ProfileCard
-                nombre={user.username}
+                nombre={`${user.nombre} ${user.apellido}`}
                 correo={user.correo}
                 fotoUrl={user.fotoUrl}
+                showCvLink={false}
+                size="xl"
                 style={{ borderColor: estilosSafe.color_principal }}
               />
+              <button
+                onClick={() => setEditProfile(true)}
+                className="absolute top-2 right-2 p-1 border rounded-full hover:bg-gray-100"
+                style={{ backgroundColor: estilosSafe.color_secundario }}
+              >
+                <Edit size={16} />
+              </button>
             </motion.div>
 
             <motion.div
-              className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4"
-              initial={{ y: 10, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-            >
-              {/* Aquí mapear tus ofertas con JobCard */}
+              className="md:col-span-2 space-y-4">
+              <h2 className="text-lg font-semibold">Acciones disponibles</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1, duration: 0.4 }}
+                    onClick={onClick}
+                    className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
+                    style={{
+                      backgroundColor: estilosSafe.color_secundario,
+                      borderColor: estilosSafe.color_secundario,
+                      color: estilosSafe.color_texto,
+                    }}
+                  >
+                    <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
+                    <h3 className="text-base font-semibold">{titulo}</h3>
+                    <p className="text-sm mt-1">{descripcion}</p>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           </div>
         </PageLayout>
@@ -138,5 +150,3 @@ export default function AdminEmpHome() {
     </EstiloEmpresaContext.Provider>
   );
 }
-
-

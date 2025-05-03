@@ -14,6 +14,24 @@ admin_emp_bp = Blueprint("admin_emp", __name__)
 def admin_emp_home():
     return jsonify({"message": "Bienvenido al Inicio de Admin-emp"}), 200
 
+@admin_emp_bp.route("/empresa/<int:id_empresa>/preferencias", methods=["GET"])
+def obtener_preferencias_empresa(id_empresa):
+    pref = Preferencias_empresa.query.filter_by(id_empresa=id_empresa).first()
+    if not pref:
+        return jsonify({"mensaje": "Sin preferencias"}), 404
+
+    return jsonify({
+        "id_empresa": id_empresa,        
+        "slogan": pref.slogan,
+        "descripcion": pref.descripcion,
+        "logo_url": pref.logo_url,
+        "color_principal": pref.color_principal,
+        "color_secundario": pref.color_secundario,
+        "color_texto": pref.color_texto
+    }), 200
+
+
+
 @admin_emp_bp.route("/registrar-manager", methods=["POST"])
 @role_required(["admin-emp"])
 def registrar_manager():

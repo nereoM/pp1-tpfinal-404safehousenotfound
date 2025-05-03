@@ -26,12 +26,13 @@ jwt.init_app(app)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 db.init_app(app)
 
-app.register_blueprint(auth_bp, url_prefix="/auth")
-app.register_blueprint(admin_404_bp, url_prefix="/api")
-app.register_blueprint(candidato_bp, url_prefix="/api")
+app.register_blueprint(auth_bp,       url_prefix="/auth")
+app.register_blueprint(candidato_bp,  url_prefix="/api")
 app.register_blueprint(reclutador_bp, url_prefix="/api")
-app.register_blueprint(manager_bp, url_prefix="/api")
-app.register_blueprint(admin_emp_bp, url_prefix="/api")
+app.register_blueprint(manager_bp,    url_prefix="/api")
+app.register_blueprint(admin_emp_bp,  url_prefix="/api")
+app.register_blueprint(admin_404_bp,  url_prefix="/api")
+
 
 
 migrate = Migrate(app, db)
