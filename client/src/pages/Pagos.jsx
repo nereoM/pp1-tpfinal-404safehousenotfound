@@ -65,7 +65,7 @@ export default function Pagos() {
       const data = await res.json();
 
       if (!res.ok) {
-        console.error("Respuesta del servidor:", data); // 🔥🔥🔥
+        console.error("Respuesta del servidor:", data);
         throw new Error(data?.error || "Error desconocido en registro de empresa.");
       }
 
@@ -79,7 +79,26 @@ export default function Pagos() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-800 font-sans flex flex-col items-center justify-center px-6 py-12">
+    <div className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-800 font-sans flex flex-col items-center justify-center px-6 py-12">
+      
+      {/*Botón de retroceso */}
+      <button
+        onClick={() => window.history.back()}
+        className="absolute top-4 left-4 md:top-8 md:left-8 bg-white p-2 rounded-full shadow hover:bg-gray-100 transition"
+        aria-label="Volver"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 text-gray-700"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
       <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <div className="space-y-6">
           <h1 className="text-4xl font-bold text-indigo-700">
