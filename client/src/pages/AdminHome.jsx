@@ -1,128 +1,158 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Settings, FileText, UserPlus, LogOut, List, BarChart2 } from "lucide-react";
+import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
+import PageLayout from "../components/PageLayout";
+import { TopBar } from "../components/TopBar";
+import { ProfileCard } from "../components/ProfileCard";
+import { Users, Settings, BarChart2, FileText } from "lucide-react";
 
-export default function AdminHome() {
+export default function AdminRootHome() {
+    const [user, setUser] = useState(null);
+    const [loadingUser, setLoadingUser] = useState(true);
     const navigate = useNavigate();
-    const [admin, setAdmin] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
 
-    const API_URL = import.meta.env.VITE_API_URL;
-
+    // Carga del usuario autenticado
     useEffect(() => {
-        const fetchAdminData = async () => {
-            try {
-                const res = await fetch(`${API_URL}/auth/me`, {
-                    method: "GET",
-                    credentials: "include"
-                });
+        fetch(`${import.meta.env.VITE_API_URL}/auth/me`, { credentials: "include" })
+            .then(res => {
+                if (!res.ok) throw new Error("Error al autenticar");
+                return res.json();
+            })
+            .then(data => setUser(data))
+            .catch(err => console.error("❌ Error al obtener usuario:", err))
+            .finally(() => setLoadingUser(false));
+    }, []);
 
-                if (!res.ok) {
-                    throw new Error("No se pudo obtener los datos del administrador");
-                }
-
-                const data = await res.json();
-                setAdmin(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAdminData();
-    }, [API_URL]);
-
-    const handleLogout = async () => {
-        try {
-            const res = await fetch(`${API_URL}/auth/logout`, {
-                method: "POST",
-                credentials: "include"
-            });
-
-            if (res.ok) {
-                navigate("/login");
-            } else {
-                const errorData = await res.json();
-                console.error("Error en el logout:", errorData);
-                alert("Error al cerrar sesión");
-            }
-        } catch (err) {
-            console.error("Error en el fetch:", err);
-            alert("Error al cerrar sesión");
-        }
+    // Obtener estilos del sistema, si es necesario
+    const estilosSafe = {
+        color_principal: "#2563eb",
+        color_secundario: "#f3f4f6",
+        color_texto: "#000000",
+        slogan: "Bienvenido al panel de administración root",
     };
 
-    if (loading || error) {
-        return (
-            <div className="h-screen w-full flex items-center justify-center bg-blue-600">
-                <div className={`text-lg ${error ? "text-red-500" : "text-white"}`}>
-                    {error || "Cargando..."}
-                </div>
-            </div>
-        );
+    // Acciones disponibles para el admin-404
+    const acciones = [
+        {
+            icon: Users,
+            titulo: "Gestionar Empresas",
+            descripcion: "Visualiza y administra todas las empresas registradas.",
+            onClick: () => alert("Funcionalidad en desarrollo"),
+        },
+        {
+            icon: BarChart2,
+            titulo: "Generar Reportes Globales",
+            descripcion: "Genera reportes sobre el sistema global de usuarios y empresas.",
+            onClick: () => alert("Funcionalidad en desarrollo"),
+        },
+        {
+            icon: FileText,
+            titulo: "Ver Solicitudes del Sistema",
+            descripcion: "Revisa las solicitudes funcionales y no funcionales del sistema.",
+            onClick: () => alert("Funcionalidad en desarrollo"),
+        },
+        {
+            icon: Settings,
+            titulo: "Configurar Sistema",
+            descripcion: "Ajustes generales y configuración del sistema.",
+            onClick: () => alert("Funcionalidad en desarrollo"),
+        },
+    ];
+
+    // Función de logout
+    const handleLogout = () => {
+        fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+            method: "POST",
+            credentials: "include",
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Error al cerrar sesión");
+                navigate("/login");
+            })
+            .catch(err => console.error("Error al cerrar sesión:", err));
+    };
+
+    if (loadingUser) {
+        return <div className="p-10 text-center">Cargando usuario…</div>;
+    }
+
+    if (!user) {
+        return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
     }
 
     return (
-        <div className="min-h-screen w-full bg-blue-100 flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl p-6 sm:p-8 md:p-10 space-y-6 overflow-y-auto">
-                <h1 className="text-2xl sm:text-3xl font-bold text-blue-700 text-center">Menú de Administrador</h1>
-                <p className="text-gray-700 text-base sm:text-lg text-center">
-                    Bienvenido, {admin?.nombre}. Este panel te permite gestionar todo lo relacionado con el sistema.
-                </p>
+        <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+                <PageLayout>
+                    <TopBar
+                        username={`${user.nombre} ${user.apellido}`}
+                        onLogout={handleLogout}
+                        style={{ backgroundColor: estilosSafe.color_principal }}
+                    />
 
-                {/* Información del administrador */}
-                <div className="text-sm sm:text-base space-y-2">
-                    <p className="text-gray-700">Correo: {admin?.correo}</p>
-                </div>
-
-                {/* Opciones */}
-                <div className="grid grid-cols-1 gap-4 w-full">
-                    {/* Ver perfil */}
-                    <div className="flex items-center gap-4 p-4 bg-teal-100 rounded-lg shadow-md cursor-pointer hover:bg-teal-200 transition w-full">
-                        <User className="text-teal-600 w-6 h-6" />
-                        <span className="text-gray-800 text-base sm:text-lg">Ver perfil</span>
+                    <div className="px-4 py-6">
+                        <div
+                            className="mx-auto w-fit text-sm font-medium px-4 py-2 rounded-full border shadow-sm"
+                            style={{
+                                backgroundColor: estilosSafe.color_secundario,
+                                borderColor: estilosSafe.color_principal,
+                                color: estilosSafe.color_texto,
+                            }}
+                        >
+                            {estilosSafe.slogan}
+                        </div>
                     </div>
 
-                    {/* Ver dashboard */}
-                    <div className="flex items-center gap-4 p-4 bg-yellow-100 rounded-lg shadow-md cursor-pointer hover:bg-yellow-200 transition w-full">
-                        <BarChart2 className="text-yellow-600 w-6 h-6" />
-                        <span className="text-gray-800 text-base sm:text-lg">Ver dashboard</span>
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+                        <motion.div
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.4 }}
+                            className="relative"
+                        >
+                            <ProfileCard
+                                nombre={`${user?.nombre} ${user?.apellido}`}
+                                correo={user?.correo}
+                                fotoUrl="https://i.postimg.cc/3x2SrWdX/360-F-64676383-Ldbmhi-NM6-Ypzb3-FM4-PPu-FP9r-He7ri8-Ju.webp"
+                                showCvLink={false}
+                                size="xl"
+                                style={{ borderColor: estilosSafe.color_principal }}
+                            />
+                        </motion.div>
 
-                    {/* Gestionar usuarios y roles */}
-                    <div className="flex items-center gap-4 p-4 bg-purple-100 rounded-lg shadow-md cursor-pointer hover:bg-purple-200 transition w-full">
-                        <UserPlus className="text-purple-600 w-6 h-6" />
-                        <span className="text-gray-800 text-base sm:text-lg">Gestionar usuarios y roles</span>
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.4 }}
+                            className="md:col-span-2 space-y-4"
+                        >
+                            <h2 className="text-lg font-semibold">Acciones disponibles</h2>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
+                                    <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.1, duration: 0.4 }}
+                                        onClick={onClick}
+                                        className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
+                                        style={{
+                                            backgroundColor: estilosSafe.color_secundario,
+                                            borderColor: estilosSafe.color_secundario,
+                                            color: estilosSafe.color_texto,
+                                        }}
+                                    >
+                                        <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
+                                        <h3 className="text-base font-semibold">{titulo}</h3>
+                                        <p className="text-sm mt-1">{descripcion}</p>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
                     </div>
-
-                    {/* Ver listado de campañas */}
-                    <div className="flex items-center gap-4 p-4 bg-blue-100 rounded-lg shadow-md cursor-pointer hover:bg-blue-200 transition w-full">
-                        <List className="text-blue-600 w-6 h-6" />
-                        <span className="text-gray-800 text-base sm:text-lg">Ver listado de campañas</span>
-                    </div>
-
-                    {/* Generar reporte */}
-                    <div className="flex items-center gap-4 p-4 bg-green-100 rounded-lg shadow-md cursor-pointer hover:bg-green-200 transition w-full">
-                        <FileText className="text-green-600 w-6 h-6" />
-                        <span className="text-gray-800 text-base sm:text-lg">Generar reporte</span>
-                    </div>
-
-                    {/* Cerrar sesión */}
-                    <div
-                        onClick={handleLogout}
-                        className="flex items-center gap-4 p-4 bg-red-100 rounded-lg shadow-md cursor-pointer hover:bg-red-200 transition w-full"
-                    >
-                        <LogOut className="text-red-600 w-6 h-6" />
-                        <span className="text-gray-800 text-base sm:text-lg">Cerrar sesión</span>
-                    </div>
-                </div>
-
-                <p className="text-center text-sm text-gray-500 mt-4">
-                    Accede a las opciones exclusivas para administrar y configurar el sistema de manera efectiva.
-                </p>
-            </div>
-        </div>
+                </PageLayout>
+            </motion.div>
+        </EstiloEmpresaContext.Provider>
     );
 }
