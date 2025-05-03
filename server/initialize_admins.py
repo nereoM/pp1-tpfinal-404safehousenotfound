@@ -11,7 +11,7 @@ def create_admins():
 
     # Create 6 admin users
     admin_users = [
-        {"nombre": f"admin{i}", "apellido": f"labo{i}", "username": f"admin{i}-404", "correo": f"admin{i}_404@gmail.com", "contrasena": "pass123"}
+        {"nombre": f"admin{i}", "apellido": f"labo{i}", "username": f"admin{i}-404", "correo": f"admin{i}_404@gmail.com", "contrasena": "Pass123."}
         for i in range(1, 7)
     ]
 
