@@ -12,13 +12,32 @@ export default function Pagos() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Expresión regular para caracteres válidos (solo letras y números)
+  const validCharacters = /^[a-zA-Z0-9 ]+$/;
+
+  // Función para validar que los campos no contengan caracteres especiales
+  const validarCampo = (campo) => {
+    if (!validCharacters.test(campo)) {
+      return "Ningún campo debe contener caracteres especiales.";
+    }
+    return null;
+  };
+
   const validarCampos = () => {
     // Validación de número de tarjeta (entre 13 y 19 dígitos numéricos)
     const cardRegex = /^\d{13,19}$/;
-    // Validación de CVV (3 dígitos )
+    // Validación de CVV (3 dígitos)
     const cvvRegex = /^\d{3}$/;
     // Tipos de tarjeta válidos (puedes agregar más tipos según sea necesario)
     const tiposValidos = ["visa", "mastercard", "amex", "naranja", "cabal"];
+
+    // Validar campos sin caracteres especiales
+    const errorUsername = validarCampo(username);
+    if (errorUsername) return errorUsername;
+    const errorCardName = validarCampo(cardName);
+    if (errorCardName) return errorCardName;
+    const errorCompanyName = validarCampo(companyName);
+    if (errorCompanyName) return errorCompanyName;
 
     if (!cardRegex.test(cardNumber)) return "Número de tarjeta inválido.";
     if (!cvvRegex.test(cardCVV)) return "El CVV debe tener 3 dígitos.";
