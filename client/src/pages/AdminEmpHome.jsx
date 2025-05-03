@@ -6,7 +6,6 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
-import { JobCard } from "../components/JobCard";
 import { UserPlus, Users, Settings, Edit } from "lucide-react";
 
 export default function AdminEmpHome() {
@@ -14,7 +13,7 @@ export default function AdminEmpHome() {
   const [loadingUser, setLoadingUser] = useState(true);
   const navigate = useNavigate(); 
 
-  // Carga del usuario autenticado
+  // carga user
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/me`, { credentials: "include" })
       .then(res => {
@@ -26,7 +25,7 @@ export default function AdminEmpHome() {
       .finally(() => setLoadingUser(false));
   }, []);
 
-  // Obtener ID de empresa directamente de usuario
+  // obtengo id de empresa con user
   const empresaId = user?.id_empresa;
   const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
 
@@ -41,15 +40,16 @@ export default function AdminEmpHome() {
     return <div className="p-10 text-center">Cargando preferencias de empresa…</div>;
   }
 
-  // Valores por defecto y merge con estilos del back
+  // valores por defectos si no hay estilos de empresa
   const estilosSafe = {
     color_principal: estilos?.color_principal ?? "#2563eb",
     color_secundario: estilos?.color_secundario ?? "#f3f4f6",
     color_texto: estilos?.color_texto ?? "#000000",
     slogan: estilos?.slogan ?? "Bienvenido",
+    logo_url: estilos?.logo_url ?? null,    
   };
 
-  // Acciones disponibles para el admin-emp
+  // acciones admin-emp
   const acciones = [
     {
       icon: UserPlus,
@@ -148,13 +148,13 @@ export default function AdminEmpHome() {
                     className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
                     style={{
                       backgroundColor: estilosSafe.color_secundario,
-                      borderColor: estilosSafe.color_secundario,
+                      borderColor: estilosSafe.color_principal,
                       color: estilosSafe.color_texto,
                     }}
                   >
-                    <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
-                    <h3 className="text-base font-semibold">{titulo}</h3>
-                    <p className="text-sm mt-1">{descripcion}</p>
+                    <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_principal }} />
+                    <h3 className="text-base font-semibold" style={{ color: estilosSafe.color_texto }}>{titulo}</h3>
+                    <p className="text-sm mt-1" style={{ color: estilosSafe.color_texto }}>{descripcion}</p>
                   </motion.div>
                 ))}
               </div>
