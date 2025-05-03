@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import PageLayout from "../components/PageLayout";
@@ -11,6 +12,7 @@ import { UserPlus, Users, Settings, Edit } from "lucide-react";
 export default function AdminEmpHome() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const navigate = useNavigate(); 
 
   // Carga del usuario autenticado
   useEffect(() => {
@@ -69,13 +71,26 @@ export default function AdminEmpHome() {
     },
   ];
 
+  // Función de logout
+  const handleLogout = () => {
+    fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Error al cerrar sesión");
+        navigate("/login"); 
+      })
+      .catch(err => console.error("Error al cerrar sesión:", err));
+  };
+
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe, loading: loadingEstilos }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
         <PageLayout>
           <TopBar
             username={`${user.nombre} ${user.apellido}`}
-            onLogout={() => {/* manejar logout */}}
+            onLogout={handleLogout}
             style={{ backgroundColor: estilosSafe.color_principal }}
           />
 
