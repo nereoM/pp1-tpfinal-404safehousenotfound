@@ -45,7 +45,7 @@ export default function AdminEmpHome() {
     color_principal: estilos?.color_principal ?? "#2563eb",
     color_secundario: estilos?.color_secundario ?? "#f3f4f6",
     color_texto: estilos?.color_texto ?? "#000000",
-    slogan: estilos?.slogan ?? "Bienvenido",
+    slogan: estilos?.slogan ?? "Bienvenido al panel de Administración de Empresa",
     logo_url: estilos?.logo_url ?? null,    
   };
 
@@ -55,7 +55,7 @@ export default function AdminEmpHome() {
       icon: UserPlus,
       titulo: "Crear Managers",
       descripcion: "Designá managers para gestionar ofertas y equipos.",
-      onClick: () => {/* abrir modal de registro de manager */},
+      onClick: () => alert("Funcionalidad en desarrollo"),
     },
     {
       icon: Users,
