@@ -17,6 +17,7 @@ from flask_migrate import Migrate
 
 from ml.modelo import modelo_sbert
 
+
 app = Flask(__name__)
 app.config.from_object(Config)
 mail.init_app(app)
@@ -58,5 +59,4 @@ def iniciar_db():
             
 if __name__ == "__main__":
     iniciar_db()
-    
     app.run(debug=True)
