@@ -12,11 +12,40 @@ export default function Pagos() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const validarCampos = () => {
+    // Validación de número de tarjeta (entre 13 y 19 dígitos numéricos)
+    const cardRegex = /^\d{13,19}$/;
+    // Validación de CVV (3 dígitos )
+    const cvvRegex = /^\d{3}$/;
+    // Tipos de tarjeta válidos (puedes agregar más tipos según sea necesario)
+    const tiposValidos = ["visa", "mastercard", "amex", "naranja", "cabal"];
+
+    if (!cardRegex.test(cardNumber)) return "Número de tarjeta inválido.";
+    if (!cvvRegex.test(cardCVV)) return "El CVV debe tener 3 dígitos.";
+    if (!tiposValidos.includes(cardType.trim().toLowerCase())) {
+      return "Tipo de tarjeta no válido. Ej: Visa, Mastercard...";
+    }
+
+    // Validación de campos vacíos
+    if (!username || !cardName || !companyName) {
+      return "Todos los campos son obligatorios.";
+    }
+
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setSuccess("");
+
+    const errorValidacion = validarCampos();
+    if (errorValidacion) {
+      setLoading(false);
+      setError(errorValidacion);
+      return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/api/registrar-empresa`, {
@@ -32,14 +61,14 @@ export default function Pagos() {
           company_name: companyName
         }),
       });
-    
+
       const data = await res.json();
-    
+
       if (!res.ok) {
         console.error("Respuesta del servidor:", data); // 🔥🔥🔥
         throw new Error(data?.error || "Error desconocido en registro de empresa.");
       }
-    
+
       setSuccess("¡Suscripción completada con éxito!");
     } catch (err) {
       console.error(err);
@@ -47,7 +76,7 @@ export default function Pagos() {
     } finally {
       setLoading(false);
     }
-  }    
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-800 font-sans flex flex-col items-center justify-center px-6 py-12">
@@ -151,7 +180,6 @@ export default function Pagos() {
             </button>
           </form>
         </div>
-
       </div>
     </div>
   );

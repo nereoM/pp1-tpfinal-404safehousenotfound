@@ -32,7 +32,7 @@ def role_required(required_roles):
 
             user_roles = [r.slug for r in user.roles]
             if not any(role in user_roles for role in required_roles):
-                return jsonify({"error": "Access forbidden: insufficient role"}), 403
+                return jsonify({"error": "Acceso denegado: rol no autorizado"}), 403
 
             return fn(*args, **kwargs)
         decorator.__name__ = fn.__name__
