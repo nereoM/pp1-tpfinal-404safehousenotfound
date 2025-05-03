@@ -243,7 +243,7 @@ export default function Login() {
       }
 
       // Redirigir según los roles del usuario
-      if (user.roles.includes("admin")) {
+      if (user.roles.includes("admin-404")) {
         navigate("/admin/home");
       } else if (user.roles.includes("rrhh")) {
         navigate("/analista/home");
@@ -252,7 +252,6 @@ export default function Login() {
       } else {
         navigate("/candidato/home");
       }
-      
 
     } catch (err) {
       setLoginError(err.message || "Ocurrió un error. Intentá nuevamente.");
@@ -368,7 +367,7 @@ export default function Login() {
                         return;
                       }
 
-                      if (user.roles.includes("admin")) {
+                      if (user.roles.includes("admin-404")) {
                         navigate("/admin/home");
                       } else if (user.roles.includes("rrhh")) {
                         navigate("/analista/home");
