@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime, timezone
+from sqlalchemy.sql.expression import func
 
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request
@@ -144,7 +145,7 @@ def upload_cv():
         db.session.add(nuevo_cv)
         db.session.commit()
 
-        return jsonify({"message": "CV subido exitosamente", "file_path": url_cv}), 201
+        return jsonify({"message": "CV subido exitosamente", "file_path": url_cv, "filename": filename}), 201
 
     return jsonify({"error": "Formato de archivo no permitido"}), 400
 
@@ -289,7 +290,13 @@ def recomendar_ofertas():
         else:
             return jsonify({"error": "Formato de CV no compatible"}), 400
 
-        ofertas = Oferta_laboral.query.filter_by(is_active=True).all()
+        ofertas = (
+            db.session.query(Oferta_laboral)
+            .filter_by(is_active=True)
+            .order_by(func.rand())
+            .limit(10)
+            .all()
+        )
         recomendaciones = []
 
         for oferta in ofertas:
@@ -316,6 +323,19 @@ def recomendar_ofertas():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+def obtener_nombre_apellido_candidato():
+    id_candidato = get_jwt_identity()
+    candidato = Usuario.query.get(id_candidato)
+    if not candidato:
+        return jsonify({"error": "Candidato no encontrado"}), 404
+
+    return {
+        "nombre": candidato.nombre,
+        "apellido": candidato.apellido,
+        "username": candidato.username,
+        "correo": candidato.correo,
+    }
 
 
 def construir_query_con_filtros(req, query):
