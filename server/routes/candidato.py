@@ -31,15 +31,23 @@ def candidato_home():
     return jsonify({"message": "Bienvenido al dashboard de candidato"}), 200
 
 
-UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads/cvs")
-ALLOWED_EXTENSIONS = {"pdf", "doc", "docx"}
-candidato_bp.config = {"UPLOAD_FOLDER": UPLOAD_FOLDER}
+UPLOAD_FOLDER_CV = os.path.join(os.getcwd(), "uploads", "cvs")
+UPLOAD_FOLDER_IMG = os.path.join(os.getcwd(), "uploads", "fotos")
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ALLOWED_CV_EXTENSIONS = {"pdf", "doc", "docx"}
+ALLOWED_IMG_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
+
+candidato_bp.config = {
+    "UPLOAD_FOLDER": UPLOAD_FOLDER_CV,
+    "IMAGE_UPLOAD_FOLDER": UPLOAD_FOLDER_IMG
+}
+
+os.makedirs(UPLOAD_FOLDER_CV, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER_IMG, exist_ok=True)
 
 
 def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_CV_EXTENSIONS
 
 
 @candidato_bp.route("/tiene-cv", methods=["GET"])
@@ -110,6 +118,50 @@ def listar_cvs():
         ]
     ), 200
 
+def allowed_image(filename):
+    allowed_extensions = {"png", "jpg", "jpeg", "gif"}
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
+
+@candidato_bp.route("/subir-image", methods=["POST"])
+@role_required(["candidato"])
+def upload_image():
+    if "file" not in request.files:
+        return jsonify({"error": "No se encontró ningún archivo"}), 400
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"error": "No se seleccionó ningún archivo"}), 400
+
+    if file and allowed_image(file.filename):
+        id_candidato = get_jwt_identity()
+        usuario = Usuario.query.get(id_candidato)
+
+        if not usuario:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        ext = file.filename.rsplit(".", 1)[1].lower()
+        filename = f"usuario_{id_candidato}.{ext}"
+        upload_folder = candidato_bp.config["IMAGE_UPLOAD_FOLDER"]
+        filepath = os.path.join(upload_folder, filename)
+
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+        file.save(filepath)
+
+        url_imagen = f"uploads/imagenes/{filename}"
+        usuario.foto_url = url_imagen
+
+        db.session.commit()
+
+        return jsonify({
+            "message": "Imagen subida exitosamente",
+            "file_path": url_imagen,
+            "filename": filename
+        }), 201
+
+    return jsonify({"error": "Formato de imagen no permitido"}), 400
 
 @candidato_bp.route("/upload-cv", methods=["POST"])
 @role_required(["candidato"])
@@ -324,6 +376,7 @@ def recomendar_ofertas():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+@candidato_bp.route("/info-candidato", methods=["GET"])
 def obtener_nombre_apellido_candidato():
     id_candidato = get_jwt_identity()
     candidato = Usuario.query.get(id_candidato)
