@@ -161,7 +161,12 @@ export default function CandidatoHome() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
       <PageLayout>
         <TopBar username={`${user?.nombre} ${user?.apellido}`} onLogout={() => navigate("/login")} />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
+        <div className="px-4 py-6">
+          <div className="mx-auto w-fit text-sm font-medium px-4 py-2 rounded-full border shadow-sm bg-gray-100 border-blue-600 text-black">
+            Bienvenido al panel de Candidato
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
           <div>
             <ProfileCard
               nombre={`${user?.nombre} ${user?.apellido}`}
@@ -218,7 +223,7 @@ export default function CandidatoHome() {
                   type="text"
                   placeholder="Buscar..."
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-40 group-focus-within:w-60 p-2 pl-10 border border-gray-300 rounded focus:outline-none"
+                  className="w-full p-2 pl-10 border border-gray-300 rounded focus:border-blue-500 focus:outline-none"
                 />
                 <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
               </div>
