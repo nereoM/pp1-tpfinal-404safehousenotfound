@@ -33,7 +33,7 @@ export default function CandidatoHome() {
     const fetchData = async () => {
       try {
         const [userRes, cvRes] = await Promise.all([
-          fetch(`${API_URL}/auth/me`, { credentials: "include" }),
+          fetch(`${API_URL}/api/info-candidato`, { credentials: "include" }),
           fetch(`${API_URL}/api/mis-cvs`, { credentials: "include" })
         ]);
 

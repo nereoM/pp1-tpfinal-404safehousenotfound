@@ -6,6 +6,7 @@ from sqlalchemy.sql.expression import func
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
 from ml.matching_semantico import dividir_cv_en_partes
 from ml.modelo import modelo_sbert
@@ -419,6 +420,7 @@ def recomendar_ofertas():
         return jsonify({"error": str(e)}), 500
     
 @candidato_bp.route("/info-candidato", methods=["GET"])
+@jwt_required()
 def obtener_nombre_apellido_candidato():
     id_candidato = get_jwt_identity()
     candidato = Usuario.query.get(id_candidato)
