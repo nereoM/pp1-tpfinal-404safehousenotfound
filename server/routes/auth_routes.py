@@ -159,6 +159,8 @@ def login():
     ).first()
 
     if user:
+        if not user.verificar_contrasena(password):
+            return jsonify({"error": "Credenciales inválidas"}), 401
         # Verificar si el correo está confirmado
         #if not user.confirmado:
             #return jsonify(
