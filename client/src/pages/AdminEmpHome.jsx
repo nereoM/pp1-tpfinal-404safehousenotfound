@@ -8,11 +8,15 @@ import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
 import { UserPlus, Users, Settings, Edit } from "lucide-react";
 import isLightColor from "../components/isLightColor";
+import GestionUsuarios from "../components/GestionUsuarios";
+import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
 
 export default function AdminEmpHome() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalUsuarios, setModalUsuarios] = useState(false);
+  const [modalPreferencias, setModalPreferencias] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [formData, setFormData] = useState({ nombre: "", apellido: "", username: "", email: "" });
   const navigate = useNavigate(); 
@@ -30,6 +34,11 @@ export default function AdminEmpHome() {
 
   const empresaId = user?.id_empresa;
   const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
+
+  const handleActualizarEstilos = () => {
+    setModalPreferencias(false);
+    setTimeout(() => window.location.reload(), 300);
+  };
 
   if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
   if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
@@ -54,13 +63,13 @@ export default function AdminEmpHome() {
       icon: Users,
       titulo: "Gestionar Usuarios",
       descripcion: "Visualizá y administrá los usuarios de tu empresa.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      onClick: () => setModalUsuarios(true),
     },
     {
       icon: Settings,
       titulo: "Configurar Empresa",
       descripcion: "Ajustes de estilo y datos empresariales.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      onClick: () => setModalPreferencias(true),
     },
   ];
 
@@ -92,7 +101,9 @@ export default function AdminEmpHome() {
 
       const data = await res.json();
       if (res.ok) {
-        setMensaje(`Manager creado correctamente.\nUsuario: ${data.credentials.username}\nCredencial temporal: ${data.credentials.password}`);
+        setMensaje(
+          `Usuario creado correctamente.\n\nUser: ${data.credentials.username}\nCredencial temporal: ${data.credentials.password}`
+        );
         setFormData({ nombre: "", apellido: "", username: "", email: "" });
       } else {
         setMensaje(`Error: ${data.error}`);
@@ -180,6 +191,17 @@ export default function AdminEmpHome() {
             </motion.div>
           </div>
 
+          {modalUsuarios && <GestionUsuarios onClose={() => setModalUsuarios(false)} textColor={estilosSafe.color_texto} />}
+
+          {modalPreferencias && (
+            <PreferenciasEmpresa
+              idEmpresa={empresaId}
+              onClose={() => setModalPreferencias(false)}
+              estilosEmpresa={estilosSafe}
+              onActualizar={handleActualizarEstilos}
+            />
+          )}
+
           {modalOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
@@ -198,7 +220,8 @@ export default function AdminEmpHome() {
                     placeholder="Nombre"
                     value={formData.nombre}
                     onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                    className="w-full p-2 border border-gray-300 rounded text-black"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    style={{ color: "#000" }}
                   />
 
                   <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Apellido</label>
@@ -207,7 +230,8 @@ export default function AdminEmpHome() {
                     placeholder="Apellido"
                     value={formData.apellido}
                     onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
-                    className="w-full p-2 border border-gray-300 rounded text-black"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    style={{ color: "#000" }}
                   />
 
                   <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Username</label>
@@ -216,7 +240,8 @@ export default function AdminEmpHome() {
                     placeholder="Username"
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full p-2 border border-gray-300 rounded text-black"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    style={{ color: "#000" }}
                   />
 
                   <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Email</label>
@@ -225,7 +250,8 @@ export default function AdminEmpHome() {
                     placeholder="Email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full p-2 border border-gray-300 rounded text-black"
+                    className="w-full p-2 border border-gray-300 rounded"
+                    style={{ color: "#000" }}
                   />
                 </div>
 

@@ -14,21 +14,43 @@ admin_emp_bp = Blueprint("admin_emp", __name__)
 def admin_emp_home():
     return jsonify({"message": "Bienvenido al Inicio de Admin-emp"}), 200
 
-@admin_emp_bp.route("/empresa/<int:id_empresa>/preferencias", methods=["GET"])
-def obtener_preferencias_empresa(id_empresa):
-    pref = Preferencias_empresa.query.filter_by(id_empresa=id_empresa).first()
-    if not pref:
-        return jsonify({"mensaje": "Sin preferencias"}), 404
+@admin_emp_bp.route("/empresa/<int:id_empresa>/preferencias", methods=["GET", "PUT"])
+@role_required(["admin-emp"])
+def preferencias_empresa(id_empresa):
+    if request.method == "GET":
+        pref = Preferencias_empresa.query.filter_by(id_empresa=id_empresa).first()
+        if not pref:
+            return jsonify({"mensaje": "Sin preferencias"}), 404
 
-    return jsonify({
-        "id_empresa": id_empresa,        
-        "slogan": pref.slogan,
-        "descripcion": pref.descripcion,
-        "logo_url": pref.logo_url,
-        "color_principal": pref.color_principal,
-        "color_secundario": pref.color_secundario,
-        "color_texto": pref.color_texto
-    }), 200
+        return jsonify({
+            "id_empresa": id_empresa,
+            "slogan": pref.slogan,
+            "descripcion": pref.descripcion,
+            "logo_url": pref.logo_url,
+            "color_principal": pref.color_principal,
+            "color_secundario": pref.color_secundario,
+            "color_texto": pref.color_texto
+        }), 200
+
+    elif request.method == "PUT":
+        data = request.get_json()
+        pref = Preferencias_empresa.query.filter_by(id_empresa=id_empresa).first()
+        if not pref:
+            pref = Preferencias_empresa(id_empresa=id_empresa)
+
+        pref.slogan = data.get("slogan")
+        pref.descripcion = data.get("descripcion")
+        pref.logo_url = data.get("logo_url")
+        pref.color_principal = data.get("color_principal")
+        pref.color_secundario = data.get("color_secundario")
+        pref.color_texto = data.get("color_texto")
+
+        db.session.add(pref)
+        db.session.commit()
+
+        return jsonify({"mensaje": "Preferencias actualizadas correctamente"}), 200
+
+
     
 @admin_emp_bp.route("/empleados-admin", methods=["GET"])
 @role_required(["admin-emp"])
