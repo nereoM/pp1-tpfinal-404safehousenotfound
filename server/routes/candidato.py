@@ -294,6 +294,31 @@ def obtener_todas_las_ofertas():
     ]
     return jsonify(resultado), 200
 
+@candidato_bp.route("/ofertas-filtradas", methods=["GET"])
+@role_required(["candidato"])
+def obtener_ofertas_filtradas():
+    try:
+        filtros = request.args.to_dict()
+        query = construir_query_con_filtros(filtros)
+        ofertas = query.all()  # 👈 esto te faltó
+
+        resultado = [
+            {
+                "id": oferta.id,
+                "nombre_oferta": oferta.nombre,
+                "empresa": oferta.empresa.nombre,
+                "palabras_clave": json.loads(oferta.palabras_clave or "[]"),
+            }
+            for oferta in ofertas
+        ]
+        return jsonify(resultado), 200
+
+    except Exception as e:
+        print("Error en /ofertas-filtradas:", e)
+        return jsonify({"error": str(e)}), 500
+
+
+
 
 @candidato_bp.route("/empresas/<string:nombre_empresa>/ofertas", methods=["GET"])
 @role_required(["candidato"])
@@ -408,48 +433,33 @@ def obtener_nombre_apellido_candidato():
     }
 
 
-def construir_query_con_filtros(req, query):
-    # Extraccion de query params
-    nombre = req.args.get("nombre")
-    workplace_type = req.args.get("workplace_type")
-    employment_type = req.args.get("employment_type")
-    salary_min = req.args.get("salary_min", type=int)
-    salary_max = req.args.get("salary_max", type=int)
-    experience_level = req.args.get("experience_level")
-    location = req.args.get("location")
-    fecha_cierre = req.args.get("fecha_cierre")
-    fecha_publicacion = req.args.get("fecha_publicacion")
 
-    # Parse de fechas
-    try:
-        if fecha_publicacion:
-            fecha_publicacion = datetime.fromisoformat(fecha_publicacion)
-        if fecha_cierre:
-            fecha_cierre = datetime.fromisoformat(fecha_cierre)
-    except ValueError:
-        return jsonify({"error": "Formato de fecha inválido. Usa YYYY-MM-DD."}), 400
+def construir_query_con_filtros(filtros):
 
-    # Aplicar filtros en caso de que estén presentes
-    if nombre:
-        query = query.filter(Oferta_laboral.nombre.ilike(f"%{nombre}%"))
-    if salary_min is not None:
-        query = query.filter(Oferta_laboral.salary_min >= salary_min)
-    if salary_max is not None:
-        query = query.filter(Oferta_laboral.salary_max <= salary_max)
-    if employment_type is not None:
-        query = query.filter(Oferta_laboral.employment_type == employment_type)
-    if workplace_type is not None:
-        query = query.filter(Oferta_laboral.workplace_type == workplace_type)
-    if experience_level is not None:
-        query = query.filter(Oferta_laboral.experience_level == experience_level)
-    if location is not None:
-        query = query.filter(Oferta_laboral.location.ilike(f"%{location}%"))
-    if fecha_publicacion:
-        query = query.filter(Oferta_laboral.fecha_publicacion >= fecha_publicacion)
-    if fecha_cierre:
-        query = query.filter(Oferta_laboral.fecha_cierre <= fecha_cierre)
+    query = db.session.query(Oferta_laboral)
 
+    if 'location' in filtros and filtros['location']:
+        query = query.filter(Oferta_laboral.location.ilike(f"%{filtros['location']}%"))
 
-        
+    if 'workplace_type' in filtros and filtros['workplace_type']:
+        query = query.filter(Oferta_laboral.workplace_type == filtros['workplace_type'])
+
+    if 'employment_type' in filtros and filtros['employment_type']:
+        query = query.filter(Oferta_laboral.employment_type == filtros['employment_type'])
+
+    if 'experience_level' in filtros and filtros['experience_level']:
+        query = query.filter(Oferta_laboral.experience_level == filtros['experience_level'])
+
+    if 'salary_min' in filtros and filtros['salary_min']:
+        try:
+            query = query.filter(Oferta_laboral.salary_min >= int(filtros['salary_min']))
+        except ValueError:
+            pass  # opcional: loguear error
+
+    if 'salary_max' in filtros and filtros['salary_max']:
+        try:
+            query = query.filter(Oferta_laboral.salary_max <= int(filtros['salary_max']))
+        except ValueError:
+            pass  # opcional: loguear error
 
     return query

@@ -6,7 +6,9 @@ export function JobCard({ titulo, empresa, coincidencia, palabrasClave, fecha, p
         <div className="text-xs text-gray-500">{fecha}</div>
       </div>
       <div className="text-sm text-gray-600">{empresa}</div>
-      <div className="text-sm text-gray-700">🎯 Coincidencia: {coincidencia}%</div>
+      {coincidencia !== null && coincidencia !== undefined && (
+        <div className="text-sm text-gray-700"> Coincidencia: {coincidencia}%</div>
+      )}
 
       <div className="flex flex-wrap gap-2 text-xs text-gray-500">
         {palabrasClave.map((palabra, idx) => (

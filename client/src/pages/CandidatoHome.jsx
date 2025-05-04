@@ -6,6 +6,8 @@ import PageLayout from "../components/PageLayoutCand";
 import { TopBar } from "../components/TopBarCand";
 import { ProfileCard } from "../components/ProfileCard";
 import { JobCard } from "../components/JobCard";
+import { SearchFilters } from "../components/SearchFilters";
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -24,6 +26,7 @@ export default function CandidatoHome() {
   const [cvSeleccionado, setCvSeleccionado] = useState(null);
   const [salarioPretendido, setSalarioPretendido] = useState("");
   const [busquedaConfirmada, setBusquedaConfirmada] = useState("");
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -105,7 +108,6 @@ export default function CandidatoHome() {
               id: item.id,
               titulo: item.nombre_oferta,
               empresa: item.empresa,
-              coincidencia: 0,
               palabrasClave: item.palabras_clave,
               fecha: "Reciente",
               postulaciones: Math.floor(Math.random() * 100),
@@ -200,6 +202,52 @@ export default function CandidatoHome() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
       <PageLayout>
         <TopBar username={`${user?.nombre} ${user?.apellido}`} onLogout={() => navigate("/login")} />
+        <div className="mt-6 px-4 max-w-6xl mx-auto flex justify-end">
+  <button
+    onClick={() => setMostrarFiltros((prev) => !prev)}
+    className="text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+  >
+    {mostrarFiltros ? "Ocultar filtros" : "Mostrar filtros"}
+  </button>
+</div>
+
+{mostrarFiltros && (
+  <div className="mt-4 px-4 max-w-6xl mx-auto">
+    <h2 className="text-xl font-semibold text-gray-800 mb-4">Explorar oportunidades</h2>
+    <SearchFilters
+      onBuscar={async (filtros) => {
+        const queryParams = new URLSearchParams(filtros).toString();
+        try {
+          const res = await fetch(`${API_URL}/api/ofertas-filtradas?${queryParams}`, {
+            credentials: "include"
+          });
+          const data = await res.json();
+          console.log("📦 Ofertas filtradas recibidas:", data);
+          if (res.ok) {
+            const transformadas = data.map((item) => ({
+              id: item.id,
+              titulo: item.nombre_oferta,
+              empresa: item.empresa,
+              palabrasClave: item.palabras_clave,
+              fecha: "Reciente",
+              postulaciones: Math.floor(Math.random() * 100),
+            }));
+            setOfertas(transformadas);
+            setBusquedaConfirmada("filtros");
+            setMensajeRecomendacion("");
+          } else {
+            console.error("❌ Error al buscar con filtros:", data.error);
+          }
+        } catch (err) {
+          console.error("❌ Error de conexión:", err);
+        }
+      }}
+    />
+  </div>
+)}
+
+
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
           <div>
             <ProfileCard
@@ -251,7 +299,9 @@ export default function CandidatoHome() {
           </div>
           <div className="col-span-2">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Ofertas recomendadas</h2>
+            <h2 className="text-lg font-semibold">
+              {busquedaConfirmada.trim().length >= 3 ? "Resultados de búsqueda" : "Ofertas recomendadas"}
+            </h2>
               <div className="relative group">
                 <input
                   type="text"
@@ -267,32 +317,28 @@ export default function CandidatoHome() {
               </div>
             </div>
             {mensajeRecomendacion ? (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="flex flex-col items-center justify-center text-center bg-white border border-gray-200 p-6 rounded shadow-md"
-              >
-                <p className="text-gray-600 text-base">{mensajeRecomendacion}</p>
-              </motion.div>
-            ) : (
-              ofertasFiltradas.map((oferta, index) => (
-                <motion.div
-                  key={`oferta-${oferta.id ?? index}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.3 }}
-                >
-                  <JobCard
-                    {...oferta}
-                    onPostularse={() => {
-                      setIdOfertaSeleccionada(oferta.id);
-                      setModalOpen(true);
-                    }}
-                  />
-                </motion.div>
-              ))
-            )}
+  <motion.div>
+    <p className="text-gray-600 text-base">{mensajeRecomendacion}</p>
+  </motion.div>
+) : (
+  ofertas.map((oferta, index) => (
+    <motion.div
+      key={`oferta-${oferta.id ?? index}`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1, duration: 0.3 }}
+    >
+      <JobCard
+        {...oferta}
+        onPostularse={() => {
+          setIdOfertaSeleccionada(oferta.id);
+          setModalOpen(true);
+        }}
+      />
+    </motion.div>
+  ))
+)}
+
           </div>
         </div>
 
