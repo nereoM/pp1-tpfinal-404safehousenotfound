@@ -277,6 +277,23 @@ def obtener_empresas():
     ]
     return jsonify(resultado), 200
 
+@candidato_bp.route("/todas-las-ofertas", methods=["GET"])
+@role_required(["candidato"])
+def obtener_todas_las_ofertas():
+    ofertas = Oferta_laboral.query.filter_by(is_active=True).all()
+
+    resultado = [
+        {
+            "id": oferta.id,
+            "nombre_oferta": oferta.nombre,
+            "empresa": oferta.empresa.nombre,
+            "coincidencia": 0,  # sin coincidencia, porque no se calcula aquí
+            "palabras_clave": json.loads(oferta.palabras_clave)
+        }
+        for oferta in ofertas
+    ]
+    return jsonify(resultado), 200
+
 
 @candidato_bp.route("/empresas/<string:nombre_empresa>/ofertas", methods=["GET"])
 @role_required(["candidato"])
@@ -431,5 +448,8 @@ def construir_query_con_filtros(req, query):
         query = query.filter(Oferta_laboral.fecha_publicacion >= fecha_publicacion)
     if fecha_cierre:
         query = query.filter(Oferta_laboral.fecha_cierre <= fecha_cierre)
+
+
+        
 
     return query

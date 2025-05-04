@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit, Upload, Search, FileUp } from "lucide-react";
 import { motion } from "framer-motion";
-import PageLayout from "../components/PageLayout";
-import { TopBar } from "../components/TopBar";
+import PageLayout from "../components/PageLayoutCand";
+import { TopBar } from "../components/TopBarCand";
 import { ProfileCard } from "../components/ProfileCard";
 import { JobCard } from "../components/JobCard";
 
@@ -23,6 +23,7 @@ export default function CandidatoHome() {
   const [idOfertaSeleccionada, setIdOfertaSeleccionada] = useState(null);
   const [cvSeleccionado, setCvSeleccionado] = useState(null);
   const [salarioPretendido, setSalarioPretendido] = useState("");
+  const [busquedaConfirmada, setBusquedaConfirmada] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -85,6 +86,44 @@ export default function CandidatoHome() {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const fetchTodasLasOfertas = async () => {
+      const term = busquedaConfirmada.trim();
+      if (term.length < 3) return;
+  
+      try {
+        const res = await fetch(`${API_URL}/api/todas-las-ofertas`, { credentials: "include" });
+        const data = await res.json();
+        if (res.ok) {
+          const todas = data
+            .filter((item) =>
+              item.nombre_oferta.toLowerCase().includes(term.toLowerCase()) ||
+              item.palabras_clave.some((p) => p.toLowerCase().includes(term.toLowerCase()))
+            )
+            .map((item) => ({
+              id: item.id,
+              titulo: item.nombre_oferta,
+              empresa: item.empresa,
+              coincidencia: 0,
+              palabrasClave: item.palabras_clave,
+              fecha: "Reciente",
+              postulaciones: Math.floor(Math.random() * 100),
+            }));
+          setOfertas(todas);
+        } else {
+          console.error("❌ Error en todas-las-ofertas:", data.error);
+        }
+      } catch (err) {
+        console.error("❌ Error al buscar todas las ofertas:", err);
+      }
+    };
+  
+    fetchTodasLasOfertas();
+  }, [busquedaConfirmada]);
+  
+  
+  
 
   const handleUploadCV = async () => {
     if (!cvFile) return;
@@ -161,17 +200,12 @@ export default function CandidatoHome() {
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
       <PageLayout>
         <TopBar username={`${user?.nombre} ${user?.apellido}`} onLogout={() => navigate("/login")} />
-        <div className="px-4 py-6">
-          <div className="mx-auto w-fit text-sm font-medium px-4 py-2 rounded-full border shadow-sm bg-gray-100 border-blue-600 text-black">
-            Bienvenido al panel de Candidato
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
           <div>
             <ProfileCard
               nombre={`${user?.nombre} ${user?.apellido}`}
               correo={user?.correo}
-              fotoUrl="https://i.postimg.cc/3x2SrWdX/360-F-64676383-Ldbmhi-NM6-Ypzb3-FM4-PPu-FP9r-He7ri8-Ju.webp"
+              fotoUrl={user?.fotoUrl || "https://i.pravatar.cc/150?img=12"}
               cvUrl={cvs[0]?.url || null}
             />
             <div className="mt-3">
@@ -222,8 +256,12 @@ export default function CandidatoHome() {
                 <input
                   type="text"
                   placeholder="Buscar..."
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full p-2 pl-10 border border-gray-300 rounded focus:border-blue-500 focus:outline-none"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      setBusquedaConfirmada(e.target.value);
+                    }
+                  }}
+                  className="w-40 group-focus-within:w-60 p-2 pl-10 border border-gray-300 rounded focus:outline-none"
                 />
                 <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
               </div>
@@ -259,53 +297,54 @@ export default function CandidatoHome() {
         </div>
 
         {modalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
-              <h2 className="text-lg font-semibold">Postularse a la oferta</h2>
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
+      <h2 className="text-lg font-semibold">Postularse a la oferta</h2>
 
-              <label className="block text-sm text-gray-600 mb-1">Seleccioná un CV</label>
-              <div className="space-y-2">
-                {cvs.slice(0, 3).map((cv) => (
-                  <div
-                    key={cv.id}
-                    onClick={() => setCvSeleccionado(cv.id)}
-                    className={`flex items-center p-3 border rounded-lg cursor-pointer transition w-full ${cvSeleccionado === cv.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-100'
-                      }`}
-                  >
-                    <div className="w-10 h-12 bg-red-500 text-white font-bold flex items-center justify-center rounded-sm text-sm mr-4 shadow">
-                      PDF
-                    </div>
-                    <div className="flex-grow">
-                      <p className="text-sm font-medium leading-tight">{cv.nombre_archivo || 'CV sin nombre'}</p>
-                      <p className="text-xs text-gray-500">{new Date(cv.fecha_subida).toLocaleDateString()}</p>
-                    </div>
-                    {cvSeleccionado === cv.id && (
-                      <div className="text-blue-600 text-lg font-bold">✓</div>
-                    )}
-                  </div>
-                ))}
-                {cvs.length === 0 && (
-                  <p className="text-sm text-gray-500">No tenés CVs cargados aún.</p>
-                )}
-              </div>
+      <label className="block text-sm text-gray-600 mb-1">Seleccioná un CV</label>
+<div className="space-y-2">
+  {cvs.slice(0, 3).map((cv) => (
+    <div
+      key={cv.id}
+      onClick={() => setCvSeleccionado(cv.id)}
+      className={`flex items-center p-3 border rounded-lg cursor-pointer transition w-full ${
+        cvSeleccionado === cv.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-100'
+      }`}
+    >
+      <div className="w-10 h-12 bg-red-500 text-white font-bold flex items-center justify-center rounded-sm text-sm mr-4 shadow">
+        PDF
+      </div>
+      <div className="flex-grow">
+        <p className="text-sm font-medium leading-tight">{cv.nombre_archivo || 'CV sin nombre'}</p>
+        <p className="text-xs text-gray-500">{new Date(cv.fecha_subida).toLocaleDateString()}</p>
+      </div>
+      {cvSeleccionado === cv.id && (
+        <div className="text-blue-600 text-lg font-bold">✓</div>
+      )}
+    </div>
+  ))}
+  {cvs.length === 0 && (
+    <p className="text-sm text-gray-500">No tenés CVs cargados aún.</p>
+  )}
+</div>
 
 
-              <label className="block text-sm text-gray-600 mt-4">Salario pretendido (opcional)</label>
-              <input
-                type="number"
-                placeholder="Ej: 120000"
-                className="w-full p-2 border border-gray-300 rounded"
-                value={salarioPretendido}
-                onChange={(e) => setSalarioPretendido(e.target.value)}
-              />
+      <label className="block text-sm text-gray-600 mt-4">Salario pretendido (opcional)</label>
+      <input
+        type="number"
+        placeholder="Ej: 1200"
+        className="w-full p-2 border border-gray-300 rounded"
+        value={salarioPretendido}
+        onChange={(e) => setSalarioPretendido(e.target.value)}
+      />
 
-              <div className="flex justify-end gap-2 mt-5">
-                <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
-                <button onClick={handlePostularse} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Confirmar</button>
-              </div>
-            </div>
-          </div>
-        )}
+      <div className="flex justify-end gap-2 mt-5">
+        <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+        <button onClick={handlePostularse} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Confirmar</button>
+      </div>
+    </div>
+  </div>
+)}
 
       </PageLayout>
     </motion.div>
