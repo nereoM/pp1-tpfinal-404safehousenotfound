@@ -3,7 +3,7 @@ from auth.decorators import role_required
 from models.schemes import Usuario, Rol, Empresa, Oferta_laboral, Licencia, Oferta_analista
 from models.extensions import db
 import secrets
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 import json
 
 manager_bp = Blueprint("manager", __name__)
@@ -149,6 +149,73 @@ def crear_oferta_laboral():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@manager_bp.route("/empleados-manager", methods=["GET"])
+@role_required(["manager"])
+def ver_empleados():
+    id_manager = get_jwt_identity()
+
+    empleados = Usuario.query.filter_by(id_superior=id_manager).all()
+
+    resultado = [
+        {
+            "id": e.id,
+            "nombre": e.nombre,
+            "apellido": e.apellido,
+            "correo": e.correo,
+            "username": e.username,
+            "roles": [rol.slug for rol in e.roles],
+        }
+        for e in empleados
+    ]
+
+    return jsonify(resultado), 200
+
+@manager_bp.route("/info-manager", methods=["GET"])
+@jwt_required()
+def obtener_nombre_apellido_manager():
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    if not manager:
+        return jsonify({"error": "Manager no encontrado"}), 404
+
+    return {
+        "nombre": manager.nombre,
+        "apellido": manager.apellido,
+        "username": manager.username,
+        "correo": manager.correo,
+    }
+
+@manager_bp.route("/desvincular-reclutador/<int:id_empleado>", methods=["PUT"])
+@role_required(["manager"])
+def desvincular_empleado(id_empleado):
+    id_manager = get_jwt_identity()
+
+    empleado = Usuario.query.get(id_empleado)
+
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    if empleado.id_superior != id_manager:
+        return jsonify({"error": "No tenés permisos para desvincular a este usuario"}), 403
+
+    empleado.id_empresa = None
+    empleado.id_superior = None
+
+    empleado.roles.clear()
+    db.session.commit()
+
+    rol_candidato = Rol.query.filter_by(slug="candidato").first()
+    if not rol_candidato:
+        rol_candidato = Rol(nombre="Candidato", slug="candidato", permisos="")
+        db.session.add(rol_candidato)
+        db.session.commit()
+
+    empleado.roles.append(rol_candidato)
+    db.session.commit()
+
+    return jsonify({"message": "Empleado desvinculado correctamente"}), 200
+
 
 @manager_bp.route("/visualizar-licencias-solicitadas", methods=["GET"])
 @role_required(["manager"])

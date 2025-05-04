@@ -3,7 +3,7 @@ from auth.decorators import role_required
 from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa
 from models.extensions import db
 import secrets
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 import os
 from werkzeug.utils import secure_filename
 
@@ -29,8 +29,72 @@ def obtener_preferencias_empresa(id_empresa):
         "color_secundario": pref.color_secundario,
         "color_texto": pref.color_texto
     }), 200
+    
+@admin_emp_bp.route("/empleados-admin", methods=["GET"])
+@role_required(["admin-emp"])
+def ver_empleados_admin():
+    id_admin = get_jwt_identity()
 
+    empleados = Usuario.query.filter_by(id_superior=id_admin).all()
 
+    resultado = [
+        {
+            "id": e.id,
+            "nombre": e.nombre,
+            "apellido": e.apellido,
+            "correo": e.correo,
+            "username": e.username,
+            "roles": [rol.slug for rol in e.roles],
+        }
+        for e in empleados
+    ]
+
+    return jsonify(resultado), 200
+
+@admin_emp_bp.route("/desvincular-manager/<int:id_empleado>", methods=["PUT"])
+@role_required(["admin-emp"])
+def desvincular_empleado(id_empleado):
+    id_admin = get_jwt_identity()
+
+    empleado = Usuario.query.get(id_empleado)
+
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    if empleado.id_superior != id_admin:
+        return jsonify({"error": "No tenés permisos para desvincular a este usuario"}), 403
+
+    empleado.id_empresa = None
+    empleado.id_superior = None
+
+    empleado.roles.clear()
+    db.session.commit()
+
+    rol_candidato = Rol.query.filter_by(slug="candidato").first()
+    if not rol_candidato:
+        rol_candidato = Rol(nombre="Candidato", slug="candidato", permisos="")
+        db.session.add(rol_candidato)
+        db.session.commit()
+
+    empleado.roles.append(rol_candidato)
+    db.session.commit()
+
+    return jsonify({"message": "Empleado desvinculado correctamente"}), 200
+
+@admin_emp_bp.route("/info-admin", methods=["GET"])
+@jwt_required()
+def obtener_nombre_apellido_admin():
+    id_admin = get_jwt_identity()
+    admin = Usuario.query.get(id_admin)
+    if not admin:
+        return jsonify({"error": "Admin-emp no encontrado"}), 404
+
+    return {
+        "nombre": admin.nombre,
+        "apellido": admin.apellido,
+        "username": admin.username,
+        "correo": admin.correo,
+    }
 
 @admin_emp_bp.route("/registrar-manager", methods=["POST"])
 @role_required(["admin-emp"])
