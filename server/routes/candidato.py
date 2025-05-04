@@ -400,7 +400,7 @@ def recomendar_ofertas():
             vectores_cv = modelo_sbert.encode(partes_cv)
             vector_keywords = modelo_sbert.encode(" ".join(palabras_clave))
             max_sim = max(cosine_similarity([vector_keywords], vectores_cv)[0])
-            porcentaje = float(round(max_sim * 100, 2))
+            porcentaje = int(max_sim * 100)
 
             recomendaciones.append(
                 {
