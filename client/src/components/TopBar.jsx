@@ -1,15 +1,19 @@
 import React from "react";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
+import isLightColor from "../components/isLightColor";
 
 export function TopBar({ username, onLogout, children }) {
-  const { estilos, textColor } = useEstiloEmpresa();
-  const primary = estilos.color_principal;
-  const logoUrl = estilos.logo_url;
+  const { estilos } = useEstiloEmpresa();
+  const primary = estilos?.color_principal ?? "#2563eb";
+  const logoUrl = estilos?.logo_url ?? null;
+
+  // Ajustar color del texto según contraste del fondo (principal)
+  const contrastText = isLightColor(primary) ? "#000000" : "#ffffff";
 
   return (
     <header
       className="flex justify-between items-center py-4 px-6 border-b"
-      style={{ borderColor: primary, color: textColor }}
+      style={{ borderColor: primary, color: contrastText }}
     >
       <div className="flex items-center gap-4">
         {logoUrl ? (
@@ -33,7 +37,7 @@ export function TopBar({ username, onLogout, children }) {
           className="px-3 py-1 rounded"
           style={{
             backgroundColor: primary,
-            color: "#ffffff",
+            color: contrastText,
           }}
         >
           Cerrar sesión

@@ -5,15 +5,17 @@ export function ProfileCard({ nombre, correo, cvUrl, fotoUrl }) {
   const API_URL = import.meta.env.VITE_API_URL;
   const { estilos } = useEstiloEmpresa();
 
-  const bg   = estilos?.color_secundario  || "white";    // background = secondary
-  const bcol = estilos?.color_principal   || "#2563eb"; // border = primary
+  const bg   = estilos?.color_secundario  || "white";
+  const bcol = estilos?.color_principal   || "#2563eb";
+  const tcol = estilos?.color_texto       || "#000000"; // Agregamos el color de texto
 
   return (
     <div
       className="p-4 rounded shadow space-y-2 text-center"
       style={{
         backgroundColor: bg,
-        border: `2px solid ${bcol}`
+        border: `2px solid ${bcol}`,
+        color: tcol  // Aplicamos color de texto a todo el bloque
       }}
     >
       {fotoUrl && (
@@ -25,7 +27,7 @@ export function ProfileCard({ nombre, correo, cvUrl, fotoUrl }) {
         />
       )}
       <div className="text-lg font-semibold">{nombre}</div>
-      <div className="text-sm text-gray-500">{correo}</div>
+      <div className="text-sm opacity-80">{correo}</div>
 
       {cvUrl && (
         <a

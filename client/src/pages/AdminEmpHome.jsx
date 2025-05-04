@@ -7,13 +7,16 @@ import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
 import { UserPlus, Users, Settings, Edit } from "lucide-react";
+import isLightColor from "../components/isLightColor";
 
 export default function AdminEmpHome() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [mensaje, setMensaje] = useState("");
+  const [formData, setFormData] = useState({ nombre: "", apellido: "", username: "", email: "" });
   const navigate = useNavigate(); 
 
-  // carga user
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/me`, { credentials: "include" })
       .then(res => {
@@ -25,22 +28,13 @@ export default function AdminEmpHome() {
       .finally(() => setLoadingUser(false));
   }, []);
 
-  // obtengo id de empresa con user
   const empresaId = user?.id_empresa;
   const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
 
-  // Manejo de estados de carga
-  if (loadingUser) {
-    return <div className="p-10 text-center">Cargando usuario…</div>;
-  }
-  if (!user) {
-    return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
-  }
-  if (loadingEstilos) {
-    return <div className="p-10 text-center">Cargando preferencias de empresa…</div>;
-  }
+  if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
+  if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
+  if (loadingEstilos) return <div className="p-10 text-center">Cargando preferencias de empresa…</div>;
 
-  // valores por defectos si no hay estilos de empresa
   const estilosSafe = {
     color_principal: estilos?.color_principal ?? "#2563eb",
     color_secundario: estilos?.color_secundario ?? "#f3f4f6",
@@ -49,13 +43,12 @@ export default function AdminEmpHome() {
     logo_url: estilos?.logo_url ?? null,    
   };
 
-  // acciones admin-emp
   const acciones = [
     {
       icon: UserPlus,
       titulo: "Crear Managers",
       descripcion: "Designá managers para gestionar ofertas y equipos.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      onClick: () => setModalOpen(true),
     },
     {
       icon: Users,
@@ -71,7 +64,6 @@ export default function AdminEmpHome() {
     },
   ];
 
-  // Función de logout
   const handleLogout = () => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
       method: "POST",
@@ -84,14 +76,40 @@ export default function AdminEmpHome() {
       .catch(err => console.error("Error al cerrar sesión:", err));
   };
 
+  const crearManager = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-manager`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.nombre,
+          lastname: formData.apellido,
+          username: formData.username,
+          email: formData.email
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMensaje(`Manager creado correctamente.\nUsuario: ${data.credentials.username}\nCredencial temporal: ${data.credentials.password}`);
+        setFormData({ nombre: "", apellido: "", username: "", email: "" });
+      } else {
+        setMensaje(`Error: ${data.error}`);
+      }
+    } catch (err) {
+      setMensaje("Error al conectar con el servidor");
+    }
+  };
+
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe, loading: loadingEstilos }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
-        <PageLayout>
+        <PageLayout textColor={estilosSafe.color_texto}>
           <TopBar
             username={`${user.nombre} ${user.apellido}`}
             onLogout={handleLogout}
-            style={{ backgroundColor: estilosSafe.color_principal }}
+            textColor={estilosSafe.color_texto}
           />
 
           <div className="px-4 py-6">
@@ -121,9 +139,10 @@ export default function AdminEmpHome() {
                 showCvLink={false}
                 size="xl"
                 style={{ borderColor: estilosSafe.color_principal }}
+                textColor={estilosSafe.color_texto}
               />
               <button
-                onClick={() => setEditProfile(true)}
+                onClick={() => alert("Editar perfil próximamente")}
                 className="absolute top-2 right-2 p-1 border rounded-full hover:bg-gray-100"
                 style={{ backgroundColor: estilosSafe.color_secundario }}
               >
@@ -136,7 +155,7 @@ export default function AdminEmpHome() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
               className="md:col-span-2 space-y-4">
-              <h2 className="text-lg font-semibold">Acciones disponibles</h2>
+              <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto }}>Acciones disponibles</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
                   <motion.div
@@ -160,6 +179,70 @@ export default function AdminEmpHome() {
               </div>
             </motion.div>
           </div>
+
+          {modalOpen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
+                <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto }}>Nuevo Manager</h2>
+
+                {mensaje && (
+                  <div className="rounded p-2 text-sm text-left whitespace-pre-wrap" style={{ backgroundColor: "#f0f4ff", color: estilosSafe.color_texto }}>
+                    {mensaje}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Nombre</label>
+                  <input
+                    type="text"
+                    placeholder="Nombre"
+                    value={formData.nombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded text-black"
+                  />
+
+                  <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Apellido</label>
+                  <input
+                    type="text"
+                    placeholder="Apellido"
+                    value={formData.apellido}
+                    onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded text-black"
+                  />
+
+                  <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Username</label>
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded text-black"
+                  />
+
+                  <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Email</label>
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full p-2 border border-gray-300 rounded text-black"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-2">
+                  <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+                  <button
+                    onClick={crearManager}
+                    className="px-4 py-2 text-white rounded"
+                    style={{ backgroundColor: estilosSafe.color_principal }}
+                  >
+                    Confirmar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>
