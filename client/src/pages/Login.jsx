@@ -173,6 +173,7 @@ export default function Login() {
       return;
     }
   
+  /*
   // Validación de longitud mínima de la contraseña (8 caracteres)
   if (loginPassword.length < 8) {
     setLoginError('La contraseña debe tener al menos 8 caracteres.');
@@ -203,6 +204,7 @@ export default function Login() {
     setLoadingLogin(false);
     return;
   }
+  */
 
     setLoginError("");
     setLoginSuccess(false);
