@@ -54,7 +54,7 @@ def ver_postulantes(id_oferta):
         reclutador = Usuario.query.filter_by(id=id_reclutador).first()
         id_empresa = reclutador.id_empresa
 
-        if oferta.id_empresa != id_empresa:
+        if oferta.id_empresa != id_empresa and oferta.id_reclutador != id_reclutador:
             return jsonify({"error": "No tienes permiso para ver esta oferta"}), 403
 
         postulaciones = Job_Application.query.filter_by(id_oferta=id_oferta).all()
