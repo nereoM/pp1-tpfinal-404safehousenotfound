@@ -35,24 +35,33 @@ export default function CandidatoHome() {
         const [userRes, cvRes] = await Promise.all([
           fetch(`${API_URL}/api/info-candidato`, { credentials: "include" }),
           fetch(`${API_URL}/api/mis-cvs`, { credentials: "include" })
+
+          
         ]);
 
         if (!userRes.ok) throw new Error("Error al obtener usuario");
         if (!cvRes.ok) throw new Error("Error al obtener CVs");
 
         const userData = await userRes.json();
+        console.log("Username:", userData.username);
+        setUser(userData);
         const cvsData = await cvRes.json();
 
         setUser(userData);
         setCvs(cvsData);
         setCvSeleccionado(cvsData[0]?.id || null);
         fetchRecomendaciones();
+        
       } catch (err) {
         console.error("❌ Error en fetchData:", err);
         setError(err.message);
         setLoading(false);
       }
+
+
     };
+
+    
 
     const fetchRecomendaciones = async () => {
       try {
@@ -89,6 +98,9 @@ export default function CandidatoHome() {
 
     fetchData();
   }, []);
+
+  
+
 
   useEffect(() => {
     const fetchTodasLasOfertas = async () => {
