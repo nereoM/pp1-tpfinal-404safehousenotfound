@@ -1,5 +1,5 @@
 // Esto es temporal, cuando ande el endpoint del backend usarlo
-export const fakeOffers =  [
+export const fakeOffers = [
   {
     "currency": "USD",
     "descripcion": "We are seeking a skilled backend developer with experience in Python and Django.",

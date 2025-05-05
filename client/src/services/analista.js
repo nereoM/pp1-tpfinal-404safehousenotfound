@@ -1,27 +1,22 @@
-import { fakeOffers } from "./fakeOffers"
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const analistaService = {
-  async obtenerOfertas(){
-    return new Promise((res) => setTimeout(() => res(fakeOffers), 2000))
+  async obtenerOfertas() {
+    const url = `${API_URL}/api/reclutador/mis-ofertas-laborales`
 
-    // Descomentar este codigo de abajo cuando ande el backend
+    try {
+      const response = await fetch(url, {
+        credentials: "include"
+      })
 
-  //   const url = `${API_URL}/ofertas`
+      if (!response.ok) {
+        throw new Error()
+      }
 
-  //   try {
-  //     const response = await fetch(url, {
-  //       credentials: "include"
-  //     })
-
-  //     if(!response.ok){
-  //       throw new Error()
-  //     }
-
-  //     const json = await response.json()
-  //     return json
-  //   } catch (error) {
-  //     console.error({error});
-  //   }
-  // }
+      const json = await response.json()
+      return json.ofertas
+    } catch (error) {
+      console.error({ error });
+    }
   }
 }
