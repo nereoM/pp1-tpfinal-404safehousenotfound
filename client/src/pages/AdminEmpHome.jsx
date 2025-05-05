@@ -166,7 +166,7 @@ export default function AdminEmpHome() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
               className="md:col-span-2 space-y-4">
-              <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto }}>Acciones disponibles</h2>
+              <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto }}>Acciones disponibles: Administrador de Empresa</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
                   <motion.div

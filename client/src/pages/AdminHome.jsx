@@ -127,7 +127,7 @@ export default function AdminRootHome() {
                             transition={{ duration: 0.4 }}
                             className="md:col-span-2 space-y-4"
                         >
-                            <h2 className="text-lg font-semibold">Acciones disponibles</h2>
+                            <h2 className="text-lg font-semibold text-black">Acciones disponibles: Administrador Root</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
                                     <motion.div
