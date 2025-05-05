@@ -53,10 +53,16 @@ def register():
         ), 400
 
     nombre_valido = validar_nombre(nombre)
+    apellido_valido = validar_nombre(apellido)
 
     if not nombre_valido:
         return jsonify(
             {"error": "El nombre no puede contener caracteres especiales"}
+        ), 400
+
+    if not apellido_valido:
+        return jsonify(
+            {"error": "El apellido no puede contener caracteres especiales"}
         ), 400
 
     email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
@@ -162,12 +168,12 @@ def login():
         if not user.verificar_contrasena(password):
             return jsonify({"error": "Credenciales inválidas"}), 401
         # Verificar si el correo está confirmado
-        #if not user.confirmado:
-            #return jsonify(
-                #{
-                    #"error": "Correo no verificado. Por favor, verifica tu cuenta antes de iniciar sesión."
-                #}
-            #), 401
+        # if not user.confirmado:
+        # return jsonify(
+        # {
+        # "error": "Correo no verificado. Por favor, verifica tu cuenta antes de iniciar sesión."
+        # }
+        # ), 401
 
         # Si la contraseña es correcta y el correo está confirmado, generar el token
         roles = [r.slug for r in user.roles]
@@ -261,7 +267,7 @@ def get_user_info():
             "nombre": user.username,
             "correo": user.correo,
             "roles": [r.slug for r in user.roles],
-            "id_empresa":   user.id_empresa
+            "id_empresa": user.id_empresa,
         }
     )
 
