@@ -112,6 +112,7 @@ class Oferta_laboral(db.Model):
     __tablename__ = "ofertas_laborales"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), nullable=False)
+    id_creador = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
     nombre = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.Text, nullable=False)
     location = db.Column(db.String(100), nullable=False)

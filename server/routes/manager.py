@@ -122,6 +122,7 @@ def crear_oferta_laboral():
         
         nueva_oferta = Oferta_laboral(
             id_empresa=empresa.id,
+            id_creador=manager.id,
             nombre=nombre,
             descripcion=descripcion,
             location=location,
@@ -355,3 +356,40 @@ def asignar_analista_a_oferta(id_oferta, id_analista):
         "oferta": oferta.nombre,
         "analista": analista.username
     }), 201
+
+@manager_bp.route("/mis-ofertas-laborales", methods=["GET"])
+@role_required(["manager"])
+def obtener_ofertas():
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    empresa = Empresa.query.get(manager.id_empresa)
+
+    ofertas = Oferta_laboral.query.filter_by(id_creador=manager.id, id_empresa=empresa.id).all()
+
+    resultado = [
+        {
+            "id_oferta": oferta.id,
+            "nombre": oferta.nombre,
+            "descripcion": oferta.descripcion,
+            "location": oferta.location,
+            "employment_type": oferta.employment_type,
+            "workplace_type": oferta.workplace_type,
+            "salary_min": oferta.salary_min,
+            "salary_max": oferta.salary_max,
+            "currency": oferta.currency,
+            "experience_level": oferta.experience_level,
+            "is_active": oferta.is_active,
+            "palabras_clave": json.loads(oferta.palabras_clave),
+            "fecha_publicacion": oferta.fecha_publicacion.isoformat() if oferta.fecha_publicacion else None,
+            "fecha_cierre": oferta.fecha_cierre.isoformat() if oferta.fecha_cierre else None
+        }
+        for oferta in ofertas
+    ]
+
+    return jsonify({
+        "ofertas": resultado,
+        "empresa": {
+            "id": empresa.id,
+            "nombre": empresa.nombre
+        }
+    }), 200
