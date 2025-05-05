@@ -160,7 +160,8 @@ def registrar_manager():
         username=username,
         correo=email,
         contrasena=temp_password,
-        id_empresa=id_empresa  # Asociar el manager con la empresa del admin-emp
+        id_empresa=id_empresa,
+        id_superior=id_admin_emp  # Asociar el manager con la empresa del admin-emp
     )
     manager_role = Rol.query.filter_by(nombre="manager").first()
 
