@@ -247,10 +247,12 @@ export default function Login() {
       // Redirigir según los roles del usuario
       if (user.roles.includes("admin-404")) {
         navigate("/admin/home");
-      } else if (user.roles.includes("rrhh")) {
+      } else if (user.roles.includes("reclutador")) {
         navigate("/analista/home");
+      } else if (user.roles.includes("manager")) { 
+        navigate("/manager/home"); 
       } else if (user.roles.includes("admin-emp")) { 
-        navigate("/adminemp/home"); //
+        navigate("/adminemp/home"); 
       } else {
         navigate("/candidato/home");
       }
