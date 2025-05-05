@@ -5,14 +5,16 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
-import { Users, PlusCircle, BarChart, FileText, RotateCcw, FileLock} from 'lucide-react'; 
+import { Users, PlusCircle, BarChart, FileText, RotateCcw, FileLock } from 'lucide-react';
 
 export default function ManagerHome() {
     const [user, setUser] = useState(null);
     const [loadingUser, setLoadingUser] = useState(true);
+    const [modalOpen, setModalOpen] = useState(false);
+    const [mensaje, setMensaje] = useState("");
+    const [formData, setFormData] = useState({ nombre: "", apellido: "", username: "", email: "" });
     const navigate = useNavigate();
 
-    // Carga del usuario autenticado
     useEffect(() => {
         fetch(`${import.meta.env.VITE_API_URL}/auth/me`, { credentials: "include" })
             .then(res => {
@@ -20,11 +22,10 @@ export default function ManagerHome() {
                 return res.json();
             })
             .then(data => setUser(data))
-            .catch(err => console.error("❌ Error al obtener usuario:", err))
+            .catch(err => console.error("Error al obtener usuario:", err))
             .finally(() => setLoadingUser(false));
     }, []);
 
-    // Obtener estilos del sistema, si es necesario
     const estilosSafe = {
         color_principal: "#2563eb",
         color_secundario: "#f3f4f6",
@@ -32,7 +33,6 @@ export default function ManagerHome() {
         slogan: "Bienvenido al panel de administración de Manager",
     };
 
-    // Acciones disponibles para el Manager
     const acciones = [
         {
             icon: Users,
@@ -48,9 +48,9 @@ export default function ManagerHome() {
         },
         {
             icon: BarChart,
-            titulo: "Evaluar Desempeño del Personal",
-            descripcion: "Revisa el rendimiento y desempeño de los empleados.",
-            onClick: () => alert("Funcionalidad en desarrollo"),
+            titulo: "Crear Analista",
+            descripcion: "Registrá nuevos analistas para tu empresa.",
+            onClick: () => setModalOpen(true),
         },
         {
             icon: RotateCcw,
@@ -70,9 +70,8 @@ export default function ManagerHome() {
             descripcion: "Revisa los informes y reportes detallados del sistema.",
             onClick: () => alert("Funcionalidad en desarrollo"),
         },
-    ];    
+    ];
 
-    // Función de logout
     const handleLogout = () => {
         fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
             method: "POST",
@@ -83,6 +82,32 @@ export default function ManagerHome() {
                 navigate("/login");
             })
             .catch(err => console.error("Error al cerrar sesión:", err));
+    };
+
+    const crearAnalista = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-reclutador`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: formData.nombre,
+                    lastname: formData.apellido,
+                    username: formData.username,
+                    email: formData.email
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                setMensaje(`Analista creado correctamente.\nUsuario: ${data.credentials.username}\nPassword temporal: ${data.credentials.password}`);
+                setFormData({ nombre: "", apellido: "", username: "", email: "" });
+            } else {
+                setMensaje(`Error: ${data.error}`);
+            }
+        } catch (err) {
+            setMensaje("Error al conectar con el servidor");
+        }
     };
 
     if (loadingUser) {
@@ -163,6 +188,45 @@ export default function ManagerHome() {
                             </div>
                         </motion.div>
                     </div>
+
+                    {modalOpen && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
+                                <h2 className="text-lg font-semibold text-black">Nuevo Analista</h2>
+
+                                {mensaje && (
+                                    <div className="rounded p-2 text-sm text-left whitespace-pre-wrap bg-blue-100 text-black">
+                                        {mensaje}
+                                    </div>
+                                )}
+
+                                <div className="space-y-2">
+                                    {["nombre", "apellido", "username", "email"].map((campo) => (
+                                        <div key={campo}>
+                                            <label className="text-sm font-medium text-black capitalize">{campo}</label>
+                                            <input
+                                                type={campo === "email" ? "email" : "text"}
+                                                placeholder={campo}
+                                                value={formData[campo]}
+                                                onChange={(e) => setFormData({ ...formData, [campo]: e.target.value })}
+                                                className="w-full p-2 border border-gray-300 rounded text-black"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex justify-end gap-2 pt-2">
+                                    <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+                                    <button
+                                        onClick={crearAnalista}
+                                        className="px-4 py-2 text-white rounded bg-blue-600"
+                                    >
+                                        Confirmar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </PageLayout>
             </motion.div>
         </EstiloEmpresaContext.Provider>
