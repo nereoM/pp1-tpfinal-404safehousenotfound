@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
+import { BarChart2, FilePlus, FileText, Users } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import PageLayout from "../components/PageLayout";
-import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
-import { Users, BarChart2, FileText, FilePlus } from "lucide-react";
+import { TopBar } from "../components/TopBar";
+import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 
 export default function AnalistaHome() {
   const [user, setUser] = useState(null);
@@ -38,25 +38,25 @@ export default function AnalistaHome() {
       icon: Users,
       titulo: "Ver Listado de Ofertas Asignadas",
       descripcion: "Accede al listado de ofertas disponibles en el sistema.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      href: "/analista/ofertas"
     },
     {
       icon: FilePlus,
       titulo: "Cargar Licencias",
       descripcion: "Carga nuevas licencias o visualiza las existentes.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      href: "/analista/licencias"
     },
     {
       icon: BarChart2,
       titulo: "Visualizar Indicadores de Desempeño",
       descripcion: "Revisa los indicadores clave de desempeño de los empleados.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      href: "/analista/indicadores-desempeño"
     },
     {
       icon: FileText,
       titulo: "Visualizar Reportes",
       descripcion: "Revisa los KPIs del sistema.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      href: "/analista/reportes"
     },
   ];
 
@@ -129,13 +129,12 @@ export default function AnalistaHome() {
             >
               <h2 className="text-lg font-semibold">Acciones disponibles</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
+                {acciones.map(({ icon: Icon, titulo, descripcion, href }, idx) => (
                   <motion.div
                     key={idx}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1, duration: 0.4 }}
-                    onClick={onClick}
                     className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
                     style={{
                       backgroundColor: estilosSafe.color_secundario,
@@ -143,9 +142,11 @@ export default function AnalistaHome() {
                       color: estilosSafe.color_texto,
                     }}
                   >
-                    <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
-                    <h3 className="text-base font-semibold">{titulo}</h3>
-                    <p className="text-sm mt-1">{descripcion}</p>
+                    <Link to={href}>
+                      <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
+                      <h3 className="text-base font-semibold">{titulo}</h3>
+                      <p className="text-sm mt-1">{descripcion}</p>
+                    </Link>
                   </motion.div>
                 ))}
               </div>
