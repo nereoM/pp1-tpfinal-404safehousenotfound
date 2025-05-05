@@ -10,9 +10,11 @@ import { Users, PlusCircle, BarChart, FileText, RotateCcw, FileLock } from 'luci
 export default function ManagerHome() {
     const [user, setUser] = useState(null);
     const [loadingUser, setLoadingUser] = useState(true);
-    const [modalOpen, setModalOpen] = useState(false);
+    const [modalOfertaOpen, setModalOfertaOpen] = useState(false);
+    const [modalAnalistaOpen, setModalAnalistaOpen] = useState(false);
     const [mensaje, setMensaje] = useState("");
-    const [formData, setFormData] = useState({ nombre: "", apellido: "", username: "", email: "" });
+    const [formOferta, setFormOferta] = useState({});
+    const [formAnalista, setFormAnalista] = useState({ nombre: "", apellido: "", username: "", email: "" });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,7 +24,7 @@ export default function ManagerHome() {
                 return res.json();
             })
             .then(data => setUser(data))
-            .catch(err => console.error("Error al obtener usuario:", err))
+            .catch(err => console.error("❌ Error al obtener usuario:", err))
             .finally(() => setLoadingUser(false));
     }, []);
 
@@ -31,6 +33,55 @@ export default function ManagerHome() {
         color_secundario: "#f3f4f6",
         color_texto: "#000000",
         slogan: "Bienvenido al panel de administración de Manager",
+    };
+
+    const crearOfertaLaboral = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/crear_oferta_laboral`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formOferta)
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                setMensaje(`✅ Oferta creada: ${data.nombre} (ID: ${data.id_oferta})`);
+                setModalOfertaOpen(false);
+                setFormOferta({});
+            } else {
+                setMensaje(`⚠️ Error: ${data.error}`);
+            }
+        } catch (err) {
+            setMensaje("❌ Error al conectar con el servidor");
+        }
+    };
+
+    const crearAnalista = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-reclutador`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    name: formAnalista.nombre,
+                    lastname: formAnalista.apellido,
+                    username: formAnalista.username,
+                    email: formAnalista.email
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                setMensaje(`✅ Analista creado: ${data.credentials.username}\nPassword temporal: ${data.credentials.password}`);
+                setFormAnalista({ nombre: "", apellido: "", username: "", email: "" });
+                setModalAnalistaOpen(false);
+            } else {
+                setMensaje(`⚠️ Error: ${data.error}`);
+            }
+        } catch (err) {
+            setMensaje("❌ Error al conectar con el servidor");
+        }
     };
 
     const acciones = [
@@ -44,13 +95,13 @@ export default function ManagerHome() {
             icon: PlusCircle,
             titulo: "Publicar una Nueva Oferta",
             descripcion: "Crea y publica nuevas ofertas en el sistema.",
-            onClick: () => alert("Funcionalidad en desarrollo"),
+            onClick: () => setModalOfertaOpen(true),
         },
         {
             icon: BarChart,
             titulo: "Crear Analista",
             descripcion: "Registrá nuevos analistas para tu empresa.",
-            onClick: () => setModalOpen(true),
+            onClick: () => setModalAnalistaOpen(true),
         },
         {
             icon: RotateCcw,
@@ -84,39 +135,22 @@ export default function ManagerHome() {
             .catch(err => console.error("Error al cerrar sesión:", err));
     };
 
-    const crearAnalista = async () => {
-        try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-reclutador`, {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    name: formData.nombre,
-                    lastname: formData.apellido,
-                    username: formData.username,
-                    email: formData.email
-                })
-            });
+    if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
+    if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
 
-            const data = await res.json();
-            if (res.ok) {
-                setMensaje(`Analista creado correctamente.\nUsuario: ${data.credentials.username}\nPassword temporal: ${data.credentials.password}`);
-                setFormData({ nombre: "", apellido: "", username: "", email: "" });
-            } else {
-                setMensaje(`Error: ${data.error}`);
-            }
-        } catch (err) {
-            setMensaje("Error al conectar con el servidor");
-        }
+    const etiquetasCampos = {
+        nombre: "Nombre",
+        descripcion: "Descripción",
+        location: "Ubicación",
+        employment_type: "Tipo de empleo",
+        workplace_type: "Modalidad",
+        salary_min: "Salario mínimo",
+        salary_max: "Salario máximo",
+        currency: "Moneda",
+        experience_level: "Nivel de experiencia",
+        etiquetas: "Etiquetas",
+        fecha_cierre: "Fecha de cierre"
     };
-
-    if (loadingUser) {
-        return <div className="p-10 text-center">Cargando usuario…</div>;
-    }
-
-    if (!user) {
-        return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
-    }
 
     return (
         <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
@@ -189,26 +223,53 @@ export default function ManagerHome() {
                         </motion.div>
                     </div>
 
-                    {modalOpen && (
+                    {modalOfertaOpen && (
+                        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+                            <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow space-y-4">
+                                <h2 className="text-lg font-semibold text-black">Nueva Oferta Laboral</h2>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {Object.entries(etiquetasCampos).map(([campo, etiqueta]) => (
+                                        <div key={campo} className="col-span-1">
+                                            <label className="text-sm font-medium text-black">{etiqueta}</label>
+                                            <input
+                                                type={campo === "fecha_cierre" ? "date" : campo.includes("salary") ? "number" : "text"}
+                                                placeholder={etiqueta}
+                                                value={formOferta[campo] || ""}
+                                                onChange={(e) => setFormOferta({ ...formOferta, [campo]: e.target.value })}
+                                                className="w-full p-2 border border-gray-300 rounded text-black"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex justify-end gap-2 pt-4">
+                                    <button onClick={() => setModalOfertaOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+                                    <button
+                                        onClick={crearOfertaLaboral}
+                                        className="px-4 py-2 text-white rounded bg-blue-600"
+                                    >
+                                        Confirmar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {modalAnalistaOpen && (
                         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                             <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
                                 <h2 className="text-lg font-semibold text-black">Nuevo Analista</h2>
 
-                                {mensaje && (
-                                    <div className="rounded p-2 text-sm text-left whitespace-pre-wrap bg-blue-100 text-black">
-                                        {mensaje}
-                                    </div>
-                                )}
-
                                 <div className="space-y-2">
-                                    {["nombre", "apellido", "username", "email"].map((campo) => (
+                                    {Object.entries({ nombre: "Nombre", apellido: "Apellido", username: "Nombre de usuario", email: "Correo electrónico" }).map(([campo, etiqueta]) => (
                                         <div key={campo}>
-                                            <label className="text-sm font-medium text-black capitalize">{campo}</label>
+                                            <label className="text-sm font-medium text-black">{etiqueta}</label>
                                             <input
                                                 type={campo === "email" ? "email" : "text"}
-                                                placeholder={campo}
-                                                value={formData[campo]}
-                                                onChange={(e) => setFormData({ ...formData, [campo]: e.target.value })}
+                                                placeholder={etiqueta}
+                                                value={formAnalista[campo]}
+                                                onChange={(e) => setFormAnalista({ ...formAnalista, [campo]: e.target.value })}
                                                 className="w-full p-2 border border-gray-300 rounded text-black"
                                             />
                                         </div>
@@ -216,7 +277,7 @@ export default function ManagerHome() {
                                 </div>
 
                                 <div className="flex justify-end gap-2 pt-2">
-                                    <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+                                    <button onClick={() => setModalAnalistaOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
                                     <button
                                         onClick={crearAnalista}
                                         className="px-4 py-2 text-white rounded bg-blue-600"
@@ -225,6 +286,12 @@ export default function ManagerHome() {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {mensaje && (
+                        <div className="fixed bottom-4 right-4 bg-blue-100 text-black px-4 py-2 rounded shadow whitespace-pre-wrap">
+                            {mensaje}
                         </div>
                     )}
                 </PageLayout>
