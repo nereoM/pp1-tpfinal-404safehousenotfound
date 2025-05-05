@@ -49,6 +49,13 @@ def ver_postulantes(id_oferta):
         oferta = Oferta_laboral.query.get(id_oferta)
         if not oferta:
             return jsonify({"error": "Oferta laboral no encontrada"}), 404
+        
+        id_reclutador = get_jwt_identity()
+        reclutador = Usuario.query.filter_by(id=id_reclutador).first()
+        id_empresa = reclutador.id_empresa
+
+        if oferta.id_empresa != id_empresa:
+            return jsonify({"error": "No tienes permiso para ver esta oferta"}), 403
 
         postulaciones = Job_Application.query.filter_by(id_oferta=id_oferta).all()
 
