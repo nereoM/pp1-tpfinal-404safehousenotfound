@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export function AnalistaOfertas(){
+export default function AnalistaOfertas(){
   const [ofertas, setOfertas] = useState();
   
   useEffect(() => {

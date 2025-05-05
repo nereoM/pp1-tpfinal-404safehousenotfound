@@ -50,7 +50,7 @@ export default function AnalistaHome() {
       icon: BarChart2,
       titulo: "Visualizar Indicadores de Desempeño",
       descripcion: "Revisa los indicadores clave de desempeño de los empleados.",
-      href: "/analista/indicadores-desempeño"
+      href: "/analista/indicadores"
     },
     {
       icon: FileText,

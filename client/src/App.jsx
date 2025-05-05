@@ -9,7 +9,11 @@ import Login from "./pages/Login";
 import ManagerHome from "./pages/ManagerHome";
 import Pagos from "./pages/Pagos";
 
-import { AnalistaOfertas } from "./pages/AnalistaOfertas";
+import { AnalistaLayout } from "./components/AnalistaLayout";
+import AnalistaIndicadores from "./pages/AnalistaIndicadores";
+import AnalistaLicencias from "./pages/AnalistaLicencias";
+import AnalistaOfertas from "./pages/AnalistaOfertas";
+import AnalistaReportes from "./pages/AnalistaReportes";
 import Clientes from "./pages/Clientes";
 import Precios from "./pages/Precios";
 import Productos from "./pages/Productos";
@@ -20,8 +24,13 @@ function App() {
       <Routes>
         <Route path="/" element={<Lobby />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/analista/home" element={<AnalistaHome />} />
-        <Route path="/analista/ofertas" element={<AnalistaOfertas />} />
+        <Route path="analista" element={<AnalistaLayout />}>
+          <Route path="/analista/home" element={<AnalistaHome />} />
+          <Route path="/analista/ofertas" element={<AnalistaOfertas />} />
+          <Route path="/analista/reportes" element={<AnalistaReportes />} />
+          <Route path="/analista/licencias" element={<AnalistaLicencias />} />
+          <Route path="/analista/indicadores" element={<AnalistaIndicadores />} />
+        </Route>
         <Route path="/admin/home" element={<AdminHome />} />
         <Route path="/candidato/home" element={<CandidatoHome />} />
         <Route path="/productos" element={<Productos />} />
