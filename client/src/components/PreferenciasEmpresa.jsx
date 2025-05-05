@@ -50,11 +50,11 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-full max-w-2xl space-y-4">
-        <h2 className="text-lg font-semibold" style={{ color: estilosEmpresa.color_texto }}>Editar preferencias de empresa</h2>
+        <h2 className="text-lg font-semibold" style={{ color: "#000" }}>Editar preferencias de empresa</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium" style={{ color: estilosEmpresa.color_texto }}>Slogan</label>
+            <label className="text-sm font-medium" style={{ color: "#000" }}>Slogan</label>
             <input
               type="text"
               value={formData.slogan}
@@ -64,7 +64,7 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
           </div>
 
           <div>
-            <label className="text-sm font-medium" style={{ color: estilosEmpresa.color_texto }}>Descripción</label>
+            <label className="text-sm font-medium" style={{ color: "#000" }}>Descripción</label>
             <input
               type="text"
               value={formData.descripcion}
@@ -74,7 +74,7 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
           </div>
 
           <div>
-            <label className="text-sm font-medium" style={{ color: estilosEmpresa.color_texto }}>Logo URL</label>
+            <label className="text-sm font-medium" style={{ color: "#000" }}>Logo URL</label>
             <input
               type="text"
               value={formData.logo_url}
@@ -84,7 +84,7 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
           </div>
 
           <div>
-            <label className="text-sm font-medium" style={{ color: estilosEmpresa.color_texto }}>Color Principal</label>
+            <label className="text-sm font-medium" style={{ color: "#000" }}>Color Principal</label>
             <input
               type="color"
               value={formData.color_principal}
@@ -94,7 +94,7 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
           </div>
 
           <div>
-            <label className="text-sm font-medium" style={{ color: estilosEmpresa.color_texto }}>Color Secundario</label>
+            <label className="text-sm font-medium" style={{ color: "#000" }}>Color Secundario</label>
             <input
               type="color"
               value={formData.color_secundario}
@@ -104,7 +104,7 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
           </div>
 
           <div>
-            <label className="text-sm font-medium" style={{ color: estilosEmpresa.color_texto }}>Color de texto</label>
+            <label className="text-sm font-medium" style={{ color: "#000" }}>Color de texto</label>
             <input
               type="color"
               value={formData.color_texto}

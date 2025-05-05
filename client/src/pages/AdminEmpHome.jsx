@@ -205,16 +205,16 @@ export default function AdminEmpHome() {
           {modalOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
-                <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto }}>Nuevo Manager</h2>
+                <h2 className="text-lg font-semibold" style={{ color: "#000" }}>Nuevo Manager</h2>
 
                 {mensaje && (
-                  <div className="rounded p-2 text-sm text-left whitespace-pre-wrap" style={{ backgroundColor: "#f0f4ff", color: estilosSafe.color_texto }}>
+                  <div className="rounded p-2 text-sm text-left whitespace-pre-wrap" style={{ backgroundColor: "#f0f4ff", color: "#000" }}>
                     {mensaje}
                   </div>
                 )}
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Nombre</label>
+                  <label className="text-sm font-medium" style={{ color: "#000" }}>Nombre</label>
                   <input
                     type="text"
                     placeholder="Nombre"
@@ -224,7 +224,7 @@ export default function AdminEmpHome() {
                     style={{ color: "#000" }}
                   />
 
-                  <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Apellido</label>
+                  <label className="text-sm font-medium" style={{ color: "#000" }}>Apellido</label>
                   <input
                     type="text"
                     placeholder="Apellido"
@@ -234,7 +234,7 @@ export default function AdminEmpHome() {
                     style={{ color: "#000" }}
                   />
 
-                  <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Username</label>
+                  <label className="text-sm font-medium" style={{ color: "#000" }}>Username</label>
                   <input
                     type="text"
                     placeholder="Username"
@@ -244,7 +244,7 @@ export default function AdminEmpHome() {
                     style={{ color: "#000" }}
                   />
 
-                  <label className="text-sm font-medium" style={{ color: estilosSafe.color_texto }}>Email</label>
+                  <label className="text-sm font-medium" style={{ color: "#000" }}>Email</label>
                   <input
                     type="email"
                     placeholder="Email"
