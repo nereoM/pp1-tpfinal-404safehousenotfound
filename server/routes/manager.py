@@ -409,6 +409,7 @@ def asignar_analista_a_oferta():
 
     oferta_analista = Oferta_analista(id_oferta=oferta.id, id_analista=analista.id)
     db.session.add(oferta_analista)
+    db.session.commit()
 
     return jsonify(
         {
