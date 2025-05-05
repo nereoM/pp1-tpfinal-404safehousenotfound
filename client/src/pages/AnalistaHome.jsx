@@ -14,7 +14,7 @@ export default function AnalistaHome() {
 
   // Carga del usuario autenticado
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/auth/me`, { credentials: "include" })
+    fetch(`${import.meta.env.VITE_API_URL}/api/reclutador-home`, { credentials: "include" })
       .then(res => {
         if (!res.ok) throw new Error("Error al autenticar");
         return res.json();
@@ -127,7 +127,7 @@ export default function AnalistaHome() {
               transition={{ duration: 0.4 }}
               className="md:col-span-2 space-y-4"
             >
-              <h2 className="text-lg font-semibold">Acciones disponibles: Analista de RRHH</h2>
+              <h2 className="text-lg font-semibold text-black">Acciones disponibles: Analista de RRHH</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {acciones.map(({ icon: Icon, titulo, descripcion, href }, idx) => (
                   <motion.div

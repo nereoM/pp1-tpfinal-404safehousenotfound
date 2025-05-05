@@ -14,7 +14,7 @@ export default function AdminRootHome() {
 
     // Carga del usuario autenticado
     useEffect(() => {
-        fetch(`${import.meta.env.VITE_API_URL}/auth/me`, { credentials: "include" })
+        fetch(`${import.meta.env.VITE_API_URL}/api/info-admin`, { credentials: "include" })
             .then(res => {
                 if (!res.ok) throw new Error("Error al autenticar");
                 return res.json();

@@ -23,7 +23,21 @@ reclutador_bp = Blueprint("reclutador", __name__)
 @reclutador_bp.route("/reclutador-home", methods=["GET"])
 @role_required(["reclutador"])
 def reclutador_dashboard():
-    return jsonify({"message": "Bienvenido al dashboard de reclutador"}), 200
+    try:
+        id_reclutador = get_jwt_identity()
+        reclutador = Usuario.query.get(id_reclutador)
+        
+        if not reclutador:
+            return jsonify({"error": "Reclutador no encontrado"}), 404
+        
+        return jsonify({
+            "message": "Bienvenido al dashboard de reclutador",
+            "nombre": reclutador.nombre,
+            "apellido": reclutador.apellido
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @reclutador_bp.route("/definir_palabras_clave/<int:id_oferta>", methods=["POST"])
