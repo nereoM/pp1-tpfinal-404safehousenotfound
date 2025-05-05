@@ -7,13 +7,12 @@ export function TopBar({ username, onLogout, children }) {
   const primary = estilos?.color_principal ?? "#2563eb";
   const logoUrl = estilos?.logo_url ?? null;
 
-  // Ajustar color del texto según contraste del fondo (principal)
-  const contrastText = isLightColor(primary) ? "#000000" : "#ffffff";
+  const textColor = estilos?.color_texto ?? (isLightColor(primary) ? "#000000" : "#ffffff");
 
   return (
     <header
       className="flex justify-between items-center py-4 px-6 border-b"
-      style={{ borderColor: primary, color: contrastText }}
+      style={{ borderColor: primary, color: textColor }}
     >
       <div className="flex items-center gap-4">
         {logoUrl ? (
@@ -23,7 +22,7 @@ export function TopBar({ username, onLogout, children }) {
             className="h-8 w-auto"
           />
         ) : (
-          <h1 className="text-2xl font-bold" style={{ color: primary }}>
+          <h1 className="text-2xl font-bold" style={{ color: textColor }}>
             SIGRH+
           </h1>
         )}
@@ -37,7 +36,7 @@ export function TopBar({ username, onLogout, children }) {
           className="px-3 py-1 rounded"
           style={{
             backgroundColor: primary,
-            color: contrastText,
+            color: textColor,
           }}
         >
           Cerrar sesión
