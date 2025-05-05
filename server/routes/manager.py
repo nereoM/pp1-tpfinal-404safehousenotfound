@@ -189,7 +189,7 @@ def obtener_nombre_apellido_manager():
 @manager_bp.route("/desvincular-reclutador/<int:id_empleado>", methods=["PUT"])
 @role_required(["manager"])
 def desvincular_empleado(id_empleado):
-    id_manager = get_jwt_identity()
+    id_manager = int(get_jwt_identity())
 
     empleado = Usuario.query.get(id_empleado)
 

@@ -76,7 +76,7 @@ def ver_empleados_admin():
 @admin_emp_bp.route("/desvincular-manager/<int:id_empleado>", methods=["PUT"])
 @role_required(["admin-emp"])
 def desvincular_empleado(id_empleado):
-    id_admin = get_jwt_identity()
+    id_admin = int(get_jwt_identity())
 
     empleado = Usuario.query.get(id_empleado)
 

@@ -301,7 +301,7 @@ def obtener_ofertas_filtradas():
     try:
         filtros = request.args.to_dict()
         query = construir_query_con_filtros(filtros)
-        ofertas = query.all()  # 👈 esto te faltó
+        ofertas = query.all()
 
         resultado = [
             {
