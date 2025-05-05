@@ -1,12 +1,10 @@
 import json
 import os
 from datetime import datetime, timezone
-from sqlalchemy.sql.expression import func
 
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt_identity
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
 from ml.matching_semantico import dividir_cv_en_partes
 from ml.modelo import modelo_sbert
@@ -21,6 +19,7 @@ from models.schemes import (
     Usuario,
 )
 from sklearn.metrics.pairwise import cosine_similarity
+from sqlalchemy.sql.expression import func, or_
 from werkzeug.utils import secure_filename
 
 candidato_bp = Blueprint("candidato", __name__)
@@ -40,7 +39,7 @@ ALLOWED_IMG_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
 
 candidato_bp.config = {
     "UPLOAD_FOLDER": UPLOAD_FOLDER_CV,
-    "IMAGE_UPLOAD_FOLDER": UPLOAD_FOLDER_IMG
+    "IMAGE_UPLOAD_FOLDER": UPLOAD_FOLDER_IMG,
 }
 
 os.makedirs(UPLOAD_FOLDER_CV, exist_ok=True)
@@ -48,7 +47,9 @@ os.makedirs(UPLOAD_FOLDER_IMG, exist_ok=True)
 
 
 def allowed_file(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_CV_EXTENSIONS
+    return (
+        "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_CV_EXTENSIONS
+    )
 
 
 @candidato_bp.route("/tiene-cv", methods=["GET"])
@@ -119,9 +120,11 @@ def listar_cvs():
         ]
     ), 200
 
+
 def allowed_image(filename):
     allowed_extensions = {"png", "jpg", "jpeg", "gif"}
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
+
 
 @candidato_bp.route("/subir-image", methods=["POST"])
 @role_required(["candidato"])
@@ -156,13 +159,16 @@ def upload_image():
 
         db.session.commit()
 
-        return jsonify({
-            "message": "Imagen subida exitosamente",
-            "file_path": url_imagen,
-            "filename": filename
-        }), 201
+        return jsonify(
+            {
+                "message": "Imagen subida exitosamente",
+                "file_path": url_imagen,
+                "filename": filename,
+            }
+        ), 201
 
     return jsonify({"error": "Formato de imagen no permitido"}), 400
+
 
 @candidato_bp.route("/upload-cv", methods=["POST"])
 @role_required(["candidato"])
@@ -198,7 +204,13 @@ def upload_cv():
         db.session.add(nuevo_cv)
         db.session.commit()
 
-        return jsonify({"message": "CV subido exitosamente", "file_path": url_cv, "filename": filename}), 201
+        return jsonify(
+            {
+                "message": "CV subido exitosamente",
+                "file_path": url_cv,
+                "filename": filename,
+            }
+        ), 201
 
     return jsonify({"error": "Formato de archivo no permitido"}), 400
 
@@ -221,7 +233,12 @@ def registrar_empresa():
         (Usuario.username == identifier) | (Usuario.correo == identifier)
     ).first()
     if user:
-        if not nombre_tarjeta or not numero_tarjeta or not cvv_tarjeta or not tipo_tarjeta:
+        if (
+            not nombre_tarjeta
+            or not numero_tarjeta
+            or not cvv_tarjeta
+            or not tipo_tarjeta
+        ):
             return jsonify({"error": "Los datos de la tarjeta son obligatorios"}), 400
         if not nombre_empresa:
             return jsonify({"error": "El nombre de la empresa es obligatorio"}), 400
@@ -278,6 +295,7 @@ def obtener_empresas():
     ]
     return jsonify(resultado), 200
 
+
 @candidato_bp.route("/todas-las-ofertas", methods=["GET"])
 @role_required(["candidato"])
 def obtener_todas_las_ofertas():
@@ -289,18 +307,20 @@ def obtener_todas_las_ofertas():
             "nombre_oferta": oferta.nombre,
             "empresa": oferta.empresa.nombre,
             "coincidencia": 0,  # sin coincidencia, porque no se calcula aquí
-            "palabras_clave": json.loads(oferta.palabras_clave)
+            "palabras_clave": json.loads(oferta.palabras_clave),
         }
         for oferta in ofertas
     ]
     return jsonify(resultado), 200
+
 
 @candidato_bp.route("/ofertas-filtradas", methods=["GET"])
 @role_required(["candidato"])
 def obtener_ofertas_filtradas():
     try:
         filtros = request.args.to_dict()
-        query = construir_query_con_filtros(filtros)
+        query = db.session.query(Oferta_laboral)
+        query = construir_query_con_filtros(filtros, query)
         ofertas = query.all()
 
         resultado = [
@@ -319,8 +339,6 @@ def obtener_ofertas_filtradas():
         return jsonify({"error": str(e)}), 500
 
 
-
-
 @candidato_bp.route("/empresas/<string:nombre_empresa>/ofertas", methods=["GET"])
 @role_required(["candidato"])
 def obtener_ofertas_por_nombre_empresa(nombre_empresa):
@@ -329,9 +347,10 @@ def obtener_ofertas_por_nombre_empresa(nombre_empresa):
     if not empresa:
         return jsonify({"error": "Empresa no encontrada"}), 404
 
+    filtros = request.args.to_dict()
     query = Oferta_laboral.query.filter_by(id_empresa=empresa.id)
 
-    query = construir_query_con_filtros(request, query)
+    query = construir_query_con_filtros(filtros, query)
 
     # Obtener las ofertas laborales asociadas a la empresa
     ofertas = query.all()
@@ -412,13 +431,13 @@ def recomendar_ofertas():
                 }
             )
 
-
         recomendaciones.sort(key=lambda r: r["coincidencia"], reverse=True)
         return jsonify(recomendaciones[:3]), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+
 @candidato_bp.route("/info-candidato", methods=["GET"])
 @jwt_required()
 def obtener_nombre_apellido_candidato():
@@ -435,32 +454,43 @@ def obtener_nombre_apellido_candidato():
     }
 
 
-
-def construir_query_con_filtros(filtros):
-
-    query = db.session.query(Oferta_laboral)
-
-    if 'location' in filtros and filtros['location']:
+def construir_query_con_filtros(filtros, query):
+    if "location" in filtros and filtros["location"]:
         query = query.filter(Oferta_laboral.location.ilike(f"%{filtros['location']}%"))
 
-    if 'workplace_type' in filtros and filtros['workplace_type']:
-        query = query.filter(Oferta_laboral.workplace_type == filtros['workplace_type'])
+    if "workplace_type" in filtros and filtros["workplace_type"]:
+        query = query.filter(Oferta_laboral.workplace_type == filtros["workplace_type"])
 
-    if 'employment_type' in filtros and filtros['employment_type']:
-        query = query.filter(Oferta_laboral.employment_type == filtros['employment_type'])
+    if "employment_type" in filtros and filtros["employment_type"]:
+        query = query.filter(
+            Oferta_laboral.employment_type == filtros["employment_type"]
+        )
 
-    if 'experience_level' in filtros and filtros['experience_level']:
-        query = query.filter(Oferta_laboral.experience_level == filtros['experience_level'])
+    if "experience_level" in filtros and filtros["experience_level"]:
+        query = query.filter(
+            Oferta_laboral.experience_level == filtros["experience_level"]
+        )
 
-    if 'salary_min' in filtros and filtros['salary_min']:
+    if "keywords" in filtros and filtros["keywords"]:
+        keywords = [
+            kw.strip().lower() for kw in filtros["keywords"].split(",") if kw.strip()
+        ]
+        for kw in keywords:
+            query = query.filter(Oferta_laboral.palabras_clave.ilike(f"%{kw}%"))
+
+    if "salary_min" in filtros and filtros["salary_min"]:
         try:
-            query = query.filter(Oferta_laboral.salary_min >= int(filtros['salary_min']))
+            query = query.filter(
+                Oferta_laboral.salary_min >= int(filtros["salary_min"])
+            )
         except ValueError:
             pass  # opcional: loguear error
 
-    if 'salary_max' in filtros and filtros['salary_max']:
+    if "salary_max" in filtros and filtros["salary_max"]:
         try:
-            query = query.filter(Oferta_laboral.salary_max <= int(filtros['salary_max']))
+            query = query.filter(
+                Oferta_laboral.salary_max <= int(filtros["salary_max"])
+            )
         except ValueError:
             pass  # opcional: loguear error
 
