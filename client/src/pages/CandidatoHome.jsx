@@ -27,6 +27,7 @@ export default function CandidatoHome() {
   const [salarioPretendido, setSalarioPretendido] = useState("");
   const [busquedaConfirmada, setBusquedaConfirmada] = useState("");
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [modalLicenciaVisible, setModalLicenciaVisible] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function CandidatoHome() {
           fetch(`${API_URL}/api/info-candidato`, { credentials: "include" }),
           fetch(`${API_URL}/api/mis-cvs`, { credentials: "include" })
 
-          
+
         ]);
 
         if (!userRes.ok) throw new Error("Error al obtener usuario");
@@ -51,7 +52,7 @@ export default function CandidatoHome() {
         setCvs(cvsData);
         setCvSeleccionado(cvsData[0]?.id || null);
         fetchRecomendaciones();
-        
+
       } catch (err) {
         console.error("❌ Error en fetchData:", err);
         setError(err.message);
@@ -61,7 +62,7 @@ export default function CandidatoHome() {
 
     };
 
-    
+
 
     const fetchRecomendaciones = async () => {
       try {
@@ -99,14 +100,14 @@ export default function CandidatoHome() {
     fetchData();
   }, []);
 
-  
+
 
 
   useEffect(() => {
     const fetchTodasLasOfertas = async () => {
       const term = busquedaConfirmada.trim();
       if (term.length < 3) return;
-  
+
       try {
         const res = await fetch(`${API_URL}/api/todas-las-ofertas`, { credentials: "include" });
         const data = await res.json();
@@ -132,12 +133,12 @@ export default function CandidatoHome() {
         console.error("❌ Error al buscar todas las ofertas:", err);
       }
     };
-  
+
     fetchTodasLasOfertas();
   }, [busquedaConfirmada]);
-  
-  
-  
+
+
+
 
   const handleUploadCV = async () => {
     if (!cvFile) return;
@@ -166,6 +167,14 @@ export default function CandidatoHome() {
       console.error("❌ Error al subir CV:", error);
       alert("Error de conexión al subir CV");
     }
+  };
+
+  const mostrarModalLicencia = () => {
+    setModalLicenciaVisible(true);
+  };
+
+  const cerrarModalLicencia = () => {
+    setModalLicenciaVisible(false);
   };
 
   const handlePostularse = async () => {
@@ -215,48 +224,48 @@ export default function CandidatoHome() {
       <PageLayout>
         <TopBar username={`${user?.nombre} ${user?.apellido}`} onLogout={() => navigate("/login")} />
         <div className="mt-6 px-4 max-w-6xl mx-auto flex justify-end">
-  <button
-    onClick={() => setMostrarFiltros((prev) => !prev)}
-    className="text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
-  >
-    {mostrarFiltros ? "Ocultar filtros" : "Mostrar filtros"}
-  </button>
-</div>
+          <button
+            onClick={() => setMostrarFiltros((prev) => !prev)}
+            className="text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+          >
+            {mostrarFiltros ? "Ocultar filtros" : "Mostrar filtros"}
+          </button>
+        </div>
 
-{mostrarFiltros && (
-  <div className="mt-4 px-4 max-w-6xl mx-auto">
-    <h2 className="text-xl font-semibold text-gray-800 mb-4">Explorar oportunidades</h2>
-    <SearchFilters
-      onBuscar={async (filtros) => {
-        const queryParams = new URLSearchParams(filtros).toString();
-        try {
-          const res = await fetch(`${API_URL}/api/ofertas-filtradas?${queryParams}`, {
-            credentials: "include"
-          });
-          const data = await res.json();
-          console.log("📦 Ofertas filtradas recibidas:", data);
-          if (res.ok) {
-            const transformadas = data.map((item) => ({
-              id: item.id,
-              titulo: item.nombre_oferta,
-              empresa: item.empresa,
-              palabrasClave: item.palabras_clave,
-              fecha: "Reciente",
-              postulaciones: Math.floor(Math.random() * 100),
-            }));
-            setOfertas(transformadas);
-            setBusquedaConfirmada("filtros");
-            setMensajeRecomendacion("");
-          } else {
-            console.error("❌ Error al buscar con filtros:", data.error);
-          }
-        } catch (err) {
-          console.error("❌ Error de conexión:", err);
-        }
-      }}
-    />
-  </div>
-)}
+        {mostrarFiltros && (
+          <div className="mt-4 px-4 max-w-6xl mx-auto">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Explorar oportunidades</h2>
+            <SearchFilters
+              onBuscar={async (filtros) => {
+                const queryParams = new URLSearchParams(filtros).toString();
+                try {
+                  const res = await fetch(`${API_URL}/api/ofertas-filtradas?${queryParams}`, {
+                    credentials: "include"
+                  });
+                  const data = await res.json();
+                  console.log("📦 Ofertas filtradas recibidas:", data);
+                  if (res.ok) {
+                    const transformadas = data.map((item) => ({
+                      id: item.id,
+                      titulo: item.nombre_oferta,
+                      empresa: item.empresa,
+                      palabrasClave: item.palabras_clave,
+                      fecha: "Reciente",
+                      postulaciones: Math.floor(Math.random() * 100),
+                    }));
+                    setOfertas(transformadas);
+                    setBusquedaConfirmada("filtros");
+                    setMensajeRecomendacion("");
+                  } else {
+                    console.error("❌ Error al buscar con filtros:", data.error);
+                  }
+                } catch (err) {
+                  console.error("❌ Error de conexión:", err);
+                }
+              }}
+            />
+          </div>
+        )}
 
 
 
@@ -308,12 +317,21 @@ export default function CandidatoHome() {
                 )}
               </div>
             </div>
+
+            {/* Botón para cargar licencia */}
+            <div className="mt-6">
+              <button
+                onClick={mostrarModalLicencia}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 w-full">
+                Cargar Licencia
+              </button>
+            </div>
           </div>
           <div className="col-span-2">
             <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">
-              {busquedaConfirmada.trim().length >= 3 ? "Resultados de búsqueda" : "Ofertas recomendadas"}
-            </h2>
+              <h2 className="text-lg font-semibold">
+                {busquedaConfirmada.trim().length >= 3 ? "Resultados de búsqueda" : "Ofertas recomendadas"}
+              </h2>
               <div className="relative group">
                 <input
                   type="text"
@@ -329,80 +347,128 @@ export default function CandidatoHome() {
               </div>
             </div>
             {mensajeRecomendacion ? (
-  <motion.div>
-    <p className="text-gray-600 text-base">{mensajeRecomendacion}</p>
-  </motion.div>
-) : (
-  ofertas.map((oferta, index) => (
-    <motion.div
-      key={`oferta-${oferta.id ?? index}`}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1, duration: 0.3 }}
-    >
-      <JobCard
-        {...oferta}
-        onPostularse={() => {
-          setIdOfertaSeleccionada(oferta.id);
-          setModalOpen(true);
-        }}
-      />
-    </motion.div>
-  ))
-)}
+              <motion.div>
+                <p className="text-gray-600 text-base">{mensajeRecomendacion}</p>
+              </motion.div>
+            ) : (
+              ofertas.map((oferta, index) => (
+                <motion.div
+                  key={`oferta-${oferta.id ?? index}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.3 }}
+                >
+                  <JobCard
+                    {...oferta}
+                    onPostularse={() => {
+                      setIdOfertaSeleccionada(oferta.id);
+                      setModalOpen(true);
+                    }}
+                  />
+                </motion.div>
+              ))
+            )}
 
           </div>
         </div>
 
         {modalOpen && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
-      <h2 className="text-lg font-semibold">Postularse a la oferta</h2>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
+              <h2 className="text-lg font-semibold">Postularse a la oferta</h2>
 
-      <label className="block text-sm text-gray-600 mb-1">Seleccioná un CV</label>
-<div className="space-y-2">
-  {cvs.slice(0, 3).map((cv) => (
-    <div
-      key={cv.id}
-      onClick={() => setCvSeleccionado(cv.id)}
-      className={`flex items-center p-3 border rounded-lg cursor-pointer transition w-full ${
-        cvSeleccionado === cv.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-100'
-      }`}
-    >
-      <div className="w-10 h-12 bg-red-500 text-white font-bold flex items-center justify-center rounded-sm text-sm mr-4 shadow">
-        PDF
-      </div>
-      <div className="flex-grow">
-        <p className="text-sm font-medium leading-tight">{cv.nombre_archivo || 'CV sin nombre'}</p>
-        <p className="text-xs text-gray-500">{new Date(cv.fecha_subida).toLocaleDateString()}</p>
-      </div>
-      {cvSeleccionado === cv.id && (
-        <div className="text-blue-600 text-lg font-bold">✓</div>
-      )}
-    </div>
-  ))}
-  {cvs.length === 0 && (
-    <p className="text-sm text-gray-500">No tenés CVs cargados aún.</p>
-  )}
-</div>
+              <label className="block text-sm text-gray-600 mb-1">Seleccioná un CV</label>
+              <div className="space-y-2">
+                {cvs.slice(0, 3).map((cv) => (
+                  <div
+                    key={cv.id}
+                    onClick={() => setCvSeleccionado(cv.id)}
+                    className={`flex items-center p-3 border rounded-lg cursor-pointer transition w-full ${
+                      cvSeleccionado === cv.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-100'
+                      }`}
+                  >
+                    <div className="w-10 h-12 bg-red-500 text-white font-bold flex items-center justify-center rounded-sm text-sm mr-4 shadow">
+                      PDF
+                    </div>
+                    <div className="flex-grow">
+                      <p className="text-sm font-medium leading-tight">{cv.nombre_archivo || 'CV sin nombre'}</p>
+                      <p className="text-xs text-gray-500">{new Date(cv.fecha_subida).toLocaleDateString()}</p>
+                    </div>
+                    {cvSeleccionado === cv.id && (
+                      <div className="text-blue-600 text-lg font-bold">✓</div>
+                    )}
+                  </div>
+                ))}
+                {cvs.length === 0 && (
+                  <p className="text-sm text-gray-500">No tenés CVs cargados aún.</p>
+                )}
+              </div>
+              
+              
+              <label className="block text-sm text-gray-600 mt-4">Salario pretendido (opcional)</label>
+              <input
+                type="number"
+                placeholder="Ej: 1200"
+                className="w-full p-2 border border-gray-300 rounded"
+                value={salarioPretendido}
+                onChange={(e) => setSalarioPretendido(e.target.value)}
+              />
 
+              <div className="flex justify-end gap-2 mt-5">
+                <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+                <button onClick={handlePostularse} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Confirmar</button>
+              </div>
+            </div>
+          </div>
+        )}
 
-      <label className="block text-sm text-gray-600 mt-4">Salario pretendido (opcional)</label>
-      <input
-        type="number"
-        placeholder="Ej: 1200"
-        className="w-full p-2 border border-gray-300 rounded"
-        value={salarioPretendido}
-        onChange={(e) => setSalarioPretendido(e.target.value)}
-      />
+        {/* Modal de Solicitud de Licencia */}
+        {modalLicenciaVisible && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
+              <h2 className="text-lg font-semibold">Solicitud de Licencia</h2>
 
-      <div className="flex justify-end gap-2 mt-5">
-        <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
-        <button onClick={handlePostularse} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Confirmar</button>
-      </div>
-    </div>
-  </div>
-)}
+              {/* Campos del formulario */}
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="motivo" className="block text-sm font-medium text-gray-700">Motivo</label>
+                  <textarea
+                    id="motivo"
+                    name="motivo"
+                    rows="4"
+                    style={{ resize: 'none' }}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  ></textarea>
+                </div>
+
+                <div>
+                  <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700">Descripción</label>
+                  <textarea
+                    id="descripcion"
+                    name="descripcion"
+                    rows="4"
+                    style={{ resize: 'none' }}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex justify-end gap-2 mt-5">
+                <button
+                  onClick={cerrarModalLicencia}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
+                  Cancelar
+                </button>
+                <button
+                  onClick={cerrarModalLicencia}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </PageLayout>
     </motion.div>
