@@ -1,0 +1,100 @@
+tags:
+  - Admin Empresa
+summary: Obtener o actualizar las preferencias de una empresa
+description: Este endpoint permite a un administrador de empresa obtener o actualizar las preferencias visuales y de presentación de la empresa.
+parameters:
+  - name: id_empresa
+    in: path
+    required: true
+    type: integer
+    description: ID de la empresa
+produces:
+  - application/json
+consumes:
+  - application/json
+responses:
+  200:
+    description: Respuesta exitosa
+    schema:
+      oneOf:
+        - type: object
+          properties:
+            id_empresa:
+              type: integer
+              example: 3
+            slogan:
+              type: string
+              example: "Innovando el futuro"
+            descripcion:
+              type: string
+              example: "Empresa líder en tecnología educativa"
+            logo_url:
+              type: string
+              example: "https://ejemplo.com/logo.png"
+            color_principal:
+              type: string
+              example: "#0057B7"
+            color_secundario:
+              type: string
+              example: "#FFD700"
+            color_texto:
+              type: string
+              example: "#333333"
+        - type: object
+          properties:
+            mensaje:
+              type: string
+              example: "Preferencias actualizadas correctamente"
+  404:
+    description: Preferencias no encontradas
+    schema:
+      type: object
+      properties:
+        mensaje:
+          type: string
+          example: "Sin preferencias"
+  401:
+    description: No autorizado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Token inválido o no proporcionado"
+  403:
+    description: Rol no autorizado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Acceso denegado para este rol"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []
+definitions:
+  PreferenciasInput:
+    type: object
+    properties:
+      slogan:
+        type: string
+        example: "Innovando el futuro"
+      descripcion:
+        type: string
+        example: "Empresa líder en tecnología educativa"
+      logo_url:
+        type: string
+        example: "https://ejemplo.com/logo.png"
+      color_principal:
+        type: string
+        example: "#0057B7"
+      color_secundario:
+        type: string
+        example: "#FFD700"
+      color_texto:
+        type: string
+        example: "#333333"

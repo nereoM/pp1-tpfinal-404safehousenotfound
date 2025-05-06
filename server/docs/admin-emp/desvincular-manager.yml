@@ -1,0 +1,52 @@
+tags:
+  - Admin Empresa
+summary: Desvincular empleado
+description: Desvincula a un empleado de la empresa, eliminando su relación jerárquica y asignándole únicamente el rol de "candidato".
+parameters:
+  - name: id_empleado
+    in: path
+    required: true
+    type: integer
+    description: ID del empleado a desvincular
+produces:
+  - application/json
+responses:
+  200:
+    description: Empleado desvinculado correctamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Empleado desvinculado correctamente
+  403:
+    description: El usuario autenticado no tiene permisos sobre el empleado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: No tenés permisos para desvincular a este usuario
+  404:
+    description: Empleado no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Empleado no encontrado
+  401:
+    description: No autorizado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Token inválido o no proporcionado
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

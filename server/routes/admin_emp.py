@@ -7,6 +7,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 import os
 from werkzeug.utils import secure_filename
 import re
+from flasgger import swag_from
 
 admin_emp_bp = Blueprint("admin_emp", __name__)
 
@@ -15,6 +16,7 @@ admin_emp_bp = Blueprint("admin_emp", __name__)
 def admin_emp_home():
     return jsonify({"message": "Bienvenido al Inicio de Admin-emp"}), 200
 
+@swag_from("../docs/admin-emp/preferencias.yml")
 @admin_emp_bp.route("/empresa/<int:id_empresa>/preferencias", methods=["GET", "PUT"])
 @role_required(["admin-emp"])
 def preferencias_empresa(id_empresa):
@@ -52,7 +54,7 @@ def preferencias_empresa(id_empresa):
         return jsonify({"mensaje": "Preferencias actualizadas correctamente"}), 200
 
 
-    
+@swag_from("../docs/admin-emp/ver-empleados-admin.yml")
 @admin_emp_bp.route("/empleados-admin", methods=["GET"])
 @role_required(["admin-emp"])
 def ver_empleados_admin():
@@ -74,6 +76,7 @@ def ver_empleados_admin():
 
     return jsonify(resultado), 200
 
+@swag_from("../docs/admin-emp/desvincular-manager.yml")
 @admin_emp_bp.route("/desvincular-manager/<int:id_empleado>", methods=["PUT"])
 @role_required(["admin-emp"])
 def desvincular_empleado(id_empleado):
@@ -106,6 +109,7 @@ def desvincular_empleado(id_empleado):
 
 @admin_emp_bp.route("/info-admin", methods=["GET"])
 @jwt_required()
+@swag_from("../docs/admin-emp/info-admin.yml")
 def obtener_nombre_apellido_admin():
     id_admin = get_jwt_identity()
     admin = Usuario.query.get(id_admin)
@@ -119,6 +123,7 @@ def obtener_nombre_apellido_admin():
         "correo": admin.correo,
     }
 
+@swag_from("../docs/admin-emp/registrar-manager.yml")
 @admin_emp_bp.route("/registrar-manager", methods=["POST"])
 @role_required(["admin-emp"])
 def registrar_manager():
@@ -197,6 +202,7 @@ def registrar_manager():
         }
     }), 201
 
+@swag_from("../docs/admin-emp/configurar-preferencias.yml")
 @admin_emp_bp.route("/configurar-preferencias", methods=["PUT"])
 @role_required(["admin-emp"])
 def configurar_preferencias():
@@ -270,6 +276,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@swag_from("../docs/admin-emp/subir-logo.yml")
 @admin_emp_bp.route("/subir-logo", methods=["POST"])
 @role_required(["admin-emp"])
 def subir_logo():
