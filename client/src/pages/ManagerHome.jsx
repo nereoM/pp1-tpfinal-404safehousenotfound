@@ -177,8 +177,8 @@ export default function ManagerHome() {
       icon: FileLock,
       titulo: "Consultar Licencias",
       descripcion: "Accede a las licencias del personal y sus estados.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
-    },
+      onClick: () => window.location.href = "/manager/licencias",
+    },    
     {
       icon: FileText,
       titulo: "Ver Reportes",
