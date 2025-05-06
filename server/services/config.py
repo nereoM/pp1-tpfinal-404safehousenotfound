@@ -11,6 +11,7 @@ ENV_PATH = os.path.join(PROJECT_ROOT, ".env")
 print("📦 Cargando .env...")
 load_dotenv(dotenv_path=ENV_PATH)
 print("✅ DATABASE_URL:", os.getenv("DATABASE_URL"))
+print("📝 DOCUMENTACION: http://localhost:5000/apidocs")
 
 
 class Config:
