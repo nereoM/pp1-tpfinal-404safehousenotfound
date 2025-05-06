@@ -346,7 +346,10 @@ export default function ManagerHome() {
                 </div>
                 <div className="flex justify-end gap-2 pt-4">
                   <button
-                    onClick={() => setModalOfertaOpen(false)}
+                    onClick={() => {
+                    setModalOfertaOpen(false);
+                    setMensajeAnalista("");
+                    }}
                     className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                   >
                     Cancelar
@@ -401,7 +404,12 @@ export default function ManagerHome() {
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <button
-                    onClick={() => setModalAnalistaOpen(false)}
+                    onClick={() => {
+                      
+                    setModalAnalistaOpen(false);
+                    setMensajeAnalista("");
+                  
+                  }}
                     className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                   >
                     Cancelar
