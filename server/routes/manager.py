@@ -23,6 +23,39 @@ def manager_home():
     return jsonify({"message": "Bienvenido a la Pagina de Inicio de Manager"}), 200
 
 
+@manager_bp.route("/oferta/<int:id_oferta>/palabras-clave", methods=["PUT"])
+@role_required(["manager"])
+def editar_palabras_clave(id_oferta):
+    id_manager = int(get_jwt_identity())
+    manager = Usuario.query.get(id_manager)
+
+    if not manager:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    oferta = Oferta_laboral.query.get(id_oferta)
+    if not oferta:
+        return jsonify({"error": "Oferta no encontrada"}), 404
+
+    if oferta.id_empresa != manager.id_empresa:
+        return jsonify({"error": "No tenés permisos para editar esta oferta"}), 403
+
+    data = request.get_json()
+    nuevas_palabras = data.get("palabras_clave")
+
+    if nuevas_palabras is None:
+        return jsonify({"error": "Debés enviar 'palabras_clave' en el body"}), 400
+
+    if isinstance(nuevas_palabras, list):
+        oferta.palabras_clave = json.dumps(nuevas_palabras)
+    elif nuevas_palabras == "":
+        oferta.palabras_clave = json.dumps([])
+    else:
+        return jsonify({"error": "El campo 'palabras_clave' debe ser una lista o una cadena vacía"}), 400
+
+    db.session.commit()
+    return jsonify({"message": "Palabras clave actualizadas exitosamente"}), 200
+
+
 @manager_bp.route("/registrar-reclutador", methods=["POST"])
 @role_required(["manager"])
 def register_reclutador():
