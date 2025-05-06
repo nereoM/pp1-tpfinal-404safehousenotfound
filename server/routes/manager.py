@@ -1,6 +1,6 @@
 import json
 import secrets
-
+import re
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -34,6 +34,9 @@ def register_reclutador():
 
     if not nombre or not apellido or not username or not email:
         return jsonify({"error": "Todos los campos son requeridos"}), 400
+    
+    if not validar_nombre(nombre) or not validar_nombre(apellido):
+        return jsonify({"error": "El nombre o apellido no puede contener caracteres especiales"}), 400
 
     # Obtener el ID del manager autenticado
     id_manager = get_jwt_identity()
@@ -42,6 +45,10 @@ def register_reclutador():
     manager = Usuario.query.get(id_manager)
     if not manager or not manager.id_empresa:
         return jsonify({"error": "El manager no tiene una empresa asociada"}), 403
+    
+    email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    if not re.match(email_regex, email):
+        return jsonify({"error": "Formato de email no valido"}), 400
 
     id_empresa = manager.id_empresa  # Obtener la empresa del manager
 
@@ -458,3 +465,8 @@ def obtener_ofertas():
     return jsonify(
         {"ofertas": resultado, "empresa": {"id": empresa.id, "nombre": empresa.nombre}}
     ), 200
+
+
+def validar_nombre(nombre: str) -> bool:
+    # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
+    return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None

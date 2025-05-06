@@ -6,6 +6,7 @@ import secrets
 from flask_jwt_extended import get_jwt_identity, jwt_required
 import os
 from werkzeug.utils import secure_filename
+import re
 
 admin_emp_bp = Blueprint("admin_emp", __name__)
 
@@ -129,6 +130,9 @@ def registrar_manager():
 
     if not nombre or not apellido or not username or not email:
         return jsonify({"error": "Todos los campos son requeridos"}), 400
+    
+    if not validar_nombre(nombre) or not validar_nombre(apellido):
+        return jsonify({"error": "Nombre o apellido no válido"}), 400
 
     # Obtener el ID del admin-emp autenticado
     id_admin_emp = get_jwt_identity()
@@ -139,6 +143,10 @@ def registrar_manager():
         return jsonify({"error": "El admin-emp no tiene una empresa asociada"}), 403
 
     id_empresa = admin_emp.id_empresa  # Obtener la empresa del admin-emp
+    
+    email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    if not re.match(email_regex, email):
+        return jsonify({"error": "Formato de email no valido"}), 400
 
     # Obtener la empresa directamente a través de id_empresa
     empresa = Empresa.query.get(id_empresa)
@@ -299,3 +307,9 @@ def subir_logo():
         "message": "Logo subido exitosamente",
         "logo_url": empresa.logo_url
     }), 200
+    
+    
+def validar_nombre(nombre: str) -> bool:
+    # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
+    return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
+
