@@ -14,13 +14,13 @@ export default function AdminRootHome() {
 
     // Carga del usuario autenticado
     useEffect(() => {
-        fetch(`${import.meta.env.VITE_API_URL}/api/info-admin`, { credentials: "include" })
+        fetch(`${import.meta.env.VITE_API_URL}/auth/me`, { credentials: "include" })
             .then(res => {
                 if (!res.ok) throw new Error("Error al autenticar");
                 return res.json();
             })
             .then(data => setUser(data))
-            .catch(err => console.error("❌ Error al obtener usuario:", err))
+            .catch(err => console.error("Error al obtener usuario:", err))
             .finally(() => setLoadingUser(false));
     }, []);
 
@@ -127,7 +127,7 @@ export default function AdminRootHome() {
                             transition={{ duration: 0.4 }}
                             className="md:col-span-2 space-y-4"
                         >
-                            <h2 className="text-lg font-semibold text-black">Acciones disponibles: Administrador Root</h2>
+                            <h2 className="text-lg font-semibold">Acciones disponibles</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
                                     <motion.div
