@@ -16,6 +16,7 @@ from models.schemes import (
     Usuario,
 )
 from werkzeug.utils import secure_filename
+from flasgger import swag_from
 
 reclutador_bp = Blueprint("reclutador", __name__)
 
@@ -40,6 +41,7 @@ def reclutador_dashboard():
         return jsonify({"error": str(e)}), 500
 
 
+@swag_from('../docs/reclutador/definir-palabras-clave.yml')
 @reclutador_bp.route("/definir_palabras_clave/<int:id_oferta>", methods=["POST"])
 @role_required(["reclutador"])
 def definir_palabras_clave(id_oferta):
@@ -66,7 +68,7 @@ def definir_palabras_clave(id_oferta):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+@swag_from('../docs/reclutador/ver-candidatos-oferta.yml')
 @reclutador_bp.route("/ver_candidatos/<int:id_oferta>", methods=["GET"])
 @role_required(["reclutador"])
 def ver_postulantes(id_oferta):
@@ -105,7 +107,7 @@ def ver_postulantes(id_oferta):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+@swag_from('../docs/reclutador/solicitud-licencia.yml')
 @reclutador_bp.route("/solicitud-licencia", methods=["POST"])
 @role_required(["reclutador"])
 def solicitar_licencia():
@@ -146,7 +148,7 @@ def solicitar_licencia():
         }
     ), 201
 
-
+@swag_from('../docs/reclutador/mis-licencias.yml')
 @reclutador_bp.route("/mis-licencias", methods=["GET"])
 @role_required(["reclutador"])
 def ver_mis_licencias():
@@ -189,7 +191,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
+@swag_from('../docs/reclutador/subir-certificado.yml')
 @reclutador_bp.route("/subir-certificado/<int:id_licencia>", methods=["POST"])
 @role_required(["reclutador"])
 def subir_certificado(id_licencia):
@@ -237,7 +239,7 @@ def subir_certificado(id_licencia):
         }
     ), 200
 
-
+@swag_from('../docs/reclutador/mis-ofertas-laborales.yml')
 @reclutador_bp.route("/mis-ofertas-laborales-reclutador", methods=["GET"])
 @role_required(["reclutador"])
 def obtener_ofertas_asignadas():

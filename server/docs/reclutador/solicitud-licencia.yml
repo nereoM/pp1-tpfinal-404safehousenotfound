@@ -1,0 +1,85 @@
+tags:
+  - Reclutador
+summary: Solicitar licencia
+description: Permite a un reclutador solicitar una licencia. La solicitud queda en estado "pendiente" hasta ser evaluada.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - lic_type
+        - description
+      properties:
+        lic_type:
+          type: string
+          example: "vacaciones"
+        description:
+          type: string
+          example: "Vacaciones anuales solicitadas"
+responses:
+  201:
+    description: Solicitud de licencia enviada exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Solicitud de licencia enviada exitosamente"
+        licencia:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 12
+            tipo:
+              type: string
+              example: "vacaciones"
+            descripcion:
+              type: string
+              example: "Vacaciones anuales solicitadas"
+            estado:
+              type: string
+              example: "pendiente"
+            fecha_inicio:
+              type: string
+              format: date-time
+              nullable: true
+              example: null
+            empresa:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 5
+                nombre:
+                  type: string
+                  example: "Tech Solutions SA"
+  400:
+    description: Solicitud malformada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Faltan campos requeridos"
+  500:
+    description: Error interno del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error al procesar la solicitud"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

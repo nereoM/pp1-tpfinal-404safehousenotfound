@@ -1,0 +1,62 @@
+tags:
+  - Reclutador
+summary: Subir certificado para licencia aprobada
+description: Permite a un reclutador subir un archivo PDF como certificado para una licencia previamente aprobada.
+consumes:
+  - multipart/form-data
+produces:
+  - application/json
+parameters:
+  - name: id_licencia
+    in: path
+    required: true
+    type: integer
+    description: ID de la licencia a la que se quiere asociar el certificado.
+  - name: file
+    in: formData
+    required: true
+    type: file
+    description: Archivo PDF del certificado.
+responses:
+  200:
+    description: Certificado subido exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Certificado subido exitosamente"
+        certificado_url:
+          type: string
+          example: "/uploads/certificado_licencia_1.pdf"
+  400:
+    description: Error en la solicitud
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Formato de archivo no permitido. Solo se aceptan archivos PDF"
+  403:
+    description: El usuario no tiene permiso para modificar esta licencia
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No tienes permiso para modificar esta licencia"
+  404:
+    description: Licencia no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Licencia no encontrada"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []
