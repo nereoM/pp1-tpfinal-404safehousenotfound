@@ -16,6 +16,7 @@ export default function ManagerHome() {
   const [mensajeOferta, setMensajeOferta] = useState("");
   const [mensajeAnalista, setMensajeAnalista] = useState("");
   const [mensajeVerOfertas, setMensajeVerOferta] = useState("");
+  const [mensajeAsignacion, setMensajeAsignacion] = useState("");
   const [formOferta, setFormOferta] = useState({});
   const [formAnalista, setFormAnalista] = useState({ nombre: "", apellido: "", username: "", email: "" });
   const [ofertas, setOfertas] = useState([]);
@@ -128,7 +129,7 @@ export default function ManagerHome() {
 
   const asignarAnalista = async (ofertaId) => {
     const analistaId = selectedAnalistas[ofertaId];
-    if (!analistaId) return setMensaje("Seleccione un analista antes de asignar.");
+    if (!analistaId) return setMensajeAsignacion("Seleccione un analista antes de asignar.");
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/asignar-analista-oferta`,
@@ -140,10 +141,10 @@ export default function ManagerHome() {
         }
       );
       const data = await res.json();
-      if (res.ok) setMensaje(data.message);
+      if (res.ok) setMensajeAsignacion(data.message);
       else throw new Error(data.error || data.message);
     } catch (err) {
-      setMensaje(err.message);
+      setMensajeAsignacion(err.message);
     }
   };
 
@@ -428,6 +429,15 @@ export default function ManagerHome() {
 {modalVerOfertasOpen && (
   <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
     <div className="bg-white p-6 rounded-2xl w-3/4 max-h-[80vh] overflow-auto text-black">
+
+  {mensajeAsignacion && (
+      <div className="mb-4 text-sm text-blue-700 bg-blue-100 p-2 rounded">
+        {mensajeAsignacion}
+      </div>
+  )}  
+
+  
+
       <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
       {ofertas.length === 0 ? (
         <p>No hay ofertas disponibles.</p>
@@ -470,7 +480,10 @@ export default function ManagerHome() {
       )}
       <div className="mt-6 text-right">
         <button
-          onClick={() => setModalVerOfertasOpen(false)}
+          onClick={() => {
+          setModalVerOfertasOpen(false);
+          setMensajeAsignacion("");
+          }}
           className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
         >
           Cerrar
