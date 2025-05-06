@@ -1,6 +1,7 @@
-from flask import Flask
+from flask import Flask, redirect
 from models.extensions import db
 from services.config import Config
+from services.swagger_config import setup_swagger_ui
 
 from routes.auth_routes import auth_bp
 from routes.admin404 import admin_404_bp
@@ -17,6 +18,7 @@ from flask_migrate import Migrate
 
 from ml.modelo import modelo_sbert
 
+from flasgger import Swagger
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -34,13 +36,14 @@ app.register_blueprint(manager_bp,    url_prefix="/api")
 app.register_blueprint(admin_emp_bp,  url_prefix="/api")
 app.register_blueprint(admin_404_bp,  url_prefix="/api")
 
-
+# Para ver la documentacion ir a /apidocs
+setup_swagger_ui(app=app)
 
 migrate = Migrate(app, db)
 
 @app.route("/")
 def hello_world():
-    return "Hello, World!"
+    return redirect(location="/apidocs")
 
 def iniciar_app():
     
