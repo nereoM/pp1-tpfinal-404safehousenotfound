@@ -238,7 +238,7 @@ def subir_certificado(id_licencia):
     ), 200
 
 
-@reclutador_bp.route("/reclutador/mis-ofertas-laborales", methods=["GET"])
+@reclutador_bp.route("/mis-ofertas-laborales-reclutador", methods=["GET"])
 @role_required(["reclutador"])
 def obtener_ofertas_asignadas():
     id_reclutador = get_jwt_identity()

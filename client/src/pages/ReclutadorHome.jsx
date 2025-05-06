@@ -11,8 +11,15 @@ export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const navigate = useNavigate();
+  const [ofertasAsignadas, setOfertasAsignadas] = useState([]);
+  const [empresa, setEmpresa] = useState(null);
+  const [mensajeOfertas, setMensajeOfertas] = useState("");
+  const [modalOfertasOpen, setModalOfertasOpen] = useState(false);  
+  const [modalLicenciaOpen, setModalLicenciaOpen] = useState(false);
+  const [formLicencia, setFormLicencia] = useState({ tipo: "", descripcion: "" });
+  const [mensajeLicencia, setMensajeLicencia] = useState("");
 
-  // Carga del usuario autenticado
+
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/reclutador-home`, { credentials: "include" })
       .then(res => {
@@ -24,7 +31,6 @@ export default function ReclutadorHome() {
       .finally(() => setLoadingUser(false));
   }, []);
 
-  // Obtener estilos del sistema, si es necesario
   const estilosSafe = {
     color_principal: "#2563eb",
     color_secundario: "#f3f4f6",
@@ -32,53 +38,89 @@ export default function ReclutadorHome() {
     slogan: "Bienvenido al panel de administración de Reclutador",
   };
 
-  // Acciones disponibles para el reclutador
+  const fetchOfertasAsignadas = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mis-ofertas-laborales-reclutador`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOfertasAsignadas(data.ofertas);
+        setEmpresa(data.empresa);
+      } else {
+        throw new Error(data.error || "Error al obtener ofertas asignadas");
+      }
+    } catch (err) {
+      setMensajeOfertas(`${err.message}`);
+    }
+  };
+
+  const solicitarLicencia = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/solicitud-licencia`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lic_type: formLicencia.tipo,
+          description: formLicencia.descripcion
+        })
+      });
+  
+      const data = await res.json();
+      if (res.ok) {
+        setMensajeLicencia("Solicitud enviada correctamente.");
+        setFormLicencia({ tipo: "", descripcion: "" });
+      } else {
+        setMensajeLicencia(`Error: ${data.error}`);
+      }
+    } catch (err) {
+      setMensajeLicencia("Error al conectar con el servidor.");
+    }
+  };
+  
+
+  const openModalOfertas = () => {
+    setMensajeOfertas("");
+    fetchOfertasAsignadas();
+    setModalOfertasOpen(true);
+  };
+
   const acciones = [
     {
       icon: Users,
-      titulo: "Ver Todas las Ofertas",
-      descripcion: "Accede al listado de ofertas disponibles en el sistema.",
-      href: "/reclutador/ofertas"
-    },
-    {
-      icon: Users,
       titulo: "Ver Listado de Ofertas Asignadas",
-      descripcion: "Accede al listado de ofertas asignadas en el sistema.",
-      href: "/reclutador/ofertas"
+      descripcion: "Accede a tu listado de ofertas asignadas en el sistema",
+      onClick: openModalOfertas
     },
     {
       icon: FilePlus,
       titulo: "Cargar Licencias",
       descripcion: "Carga una nueva licencia.",
-      href: "/reclutador/licencias"
+      onClick: () => setModalLicenciaOpen(true)
     },
     {
       icon: FilePlus,
       titulo: "Gestionar Licencias",
       descripcion: "Visualizá y administrá tus licencias cargadas.",
-      href: "/reclutador/licencias"
     },
     {
       icon: BarChart2,
       titulo: "Ver Empleados",
       descripcion: "Visualizá y administrá los empleados de tu empresa.",
-      href: "/reclutador/indicadores"
     },
     {
       icon: BarChart2,
       titulo: "Visualizar Indicadores de Desempeño",
       descripcion: "Revisa los indicadores clave de desempeño de los empleados.",
-      href: "/reclutador/indicadores"
     },
     {
       icon: FileText,
       titulo: "Visualizar Reportes",
       descripcion: "Revisa los KPIs del sistema.",
-      href: "/reclutador/reportes"
     },
   ];
 
-  // Función de logout
   const handleLogout = () => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
       method: "POST",
@@ -91,13 +133,8 @@ export default function ReclutadorHome() {
       .catch(err => console.error("Error al cerrar sesión:", err));
   };
 
-  if (loadingUser) {
-    return <div className="p-10 text-center">Cargando usuario…</div>;
-  }
-
-  if (!user) {
-    return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
-  }
+  if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
+  if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
@@ -123,12 +160,7 @@ export default function ReclutadorHome() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4 }}
-              className="relative"
-            >
+            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }} className="relative">
               <ProfileCard
                 nombre={`${user?.nombre} ${user?.apellido}`}
                 correo={user?.correo}
@@ -139,20 +171,13 @@ export default function ReclutadorHome() {
               />
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="md:col-span-2 space-y-4"
-            >
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="md:col-span-2 space-y-4">
               <h2 className="text-lg font-semibold text-black">Acciones disponibles: Reclutador de RRHH</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {acciones.map(({ icon: Icon, titulo, descripcion, href }, idx) => (
+                {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
                   <motion.div
                     key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1, duration: 0.4 }}
+                    onClick={onClick}
                     className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
                     style={{
                       backgroundColor: estilosSafe.color_secundario,
@@ -160,17 +185,118 @@ export default function ReclutadorHome() {
                       color: estilosSafe.color_texto,
                     }}
                   >
-                    <Link to={href}>
-                      <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
-                      <h3 className="text-base font-semibold">{titulo}</h3>
-                      <p className="text-sm mt-1">{descripcion}</p>
-                    </Link>
+                    <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
+                    <h3 className="text-base font-semibold">{titulo}</h3>
+                    <p className="text-sm mt-1">{descripcion}</p>
                   </motion.div>
                 ))}
               </div>
             </motion.div>
           </div>
         </PageLayout>
+
+        {modalOfertasOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+            <div className="bg-white rounded-lg p-6 w-full max-w-3xl shadow space-y-4 text-black">
+              <h2 className="text-xl font-semibold">Ofertas asignadas</h2>
+
+              {mensajeOfertas && (
+                <div className="text-sm text-blue-700 bg-blue-100 p-2 rounded">
+                  {mensajeOfertas}
+                </div>
+              )}
+
+              {ofertasAsignadas.length === 0 ? (
+                <p>No hay ofertas asignadas.</p>
+              ) : (
+                <ul className="space-y-2 max-h-[60vh] overflow-y-auto">
+                  {ofertasAsignadas.map((oferta) => (
+                    <li key={oferta.id_oferta} className="p-4 border rounded shadow bg-gray-50">
+                      <h3 className="font-semibold">{oferta.nombre}</h3>
+                      <p className="text-sm">{oferta.descripcion}</p>
+                      <p className="text-xs text-gray-600">
+                        Ubicación: {oferta.location} | Modalidad: {oferta.workplace_type}
+                      </p>
+                      <p className="text-xs text-gray-600">
+                        Publicación: {oferta.fecha_publicacion?.split("T")[0]} | Cierre: {oferta.fecha_cierre?.split("T")[0]}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div className="text-right pt-4">
+                <button
+                  onClick={() => setModalOfertasOpen(false)}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+{modalLicenciaOpen && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4 text-black">
+      <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
+
+      {mensajeLicencia && (
+        <div className="text-sm text-blue-700 bg-blue-100 p-2 rounded">
+          {mensajeLicencia}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <div>
+          <label className="text-sm font-medium">Tipo de licencia</label>
+          <input
+            type="text"
+            className="w-full p-2 border border-gray-300 rounded"
+            placeholder="vacaciones, enfermedad, etc."
+            value={formLicencia.tipo}
+            onChange={(e) =>
+              setFormLicencia({ ...formLicencia, tipo: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Descripción</label>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded"
+            placeholder="Motivo o detalles adicionales"
+            value={formLicencia.descripcion}
+            onChange={(e) =>
+              setFormLicencia({ ...formLicencia, descripcion: e.target.value })
+            }
+          ></textarea>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <button
+          onClick={() => {
+            setModalLicenciaOpen(false);
+            setMensajeLicencia("");
+          }}
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={solicitarLicencia}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
       </motion.div>
     </EstiloEmpresaContext.Provider>
   );
