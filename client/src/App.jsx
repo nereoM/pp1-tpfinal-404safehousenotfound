@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AdminEmpHome from "./pages/AdminEmpHome";
 import AdminHome from "./pages/AdminHome";
 import ReclutadorHome from "./pages/ReclutadorHome";
+import CandidatoEmpHome from "./pages/CandidatoEmpHome";
 import CandidatoHome from "./pages/CandidatoHome";
 import Lobby from "./pages/Lobby";
 import Login from "./pages/Login";
@@ -25,6 +26,7 @@ function App() {
         <Route path="/reclutador/home" element={<ReclutadorHome />} />
         </Route>
         <Route path="/admin/home" element={<AdminHome />} />
+        <Route path="/candidatoemp/home" element={<CandidatoEmpHome />} />
         <Route path="/candidato/home" element={<CandidatoHome />} />
         <Route path="/productos" element={<Productos />} />
         <Route path="/precios" element={<Precios />} />
