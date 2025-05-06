@@ -274,8 +274,11 @@ def desvincular_empleado(id_empleado):
             {"error": "No tenés permisos para desvincular a este usuario"}
         ), 403
 
-    empleado.id_empresa = None
-    empleado.id_superior = None
+    if not empleado.activo:
+        return jsonify({"error": "El empleado ya está desvinculado"}), 400
+
+    empleado.activo = False
+    db.session.commit()
 
     empleado.roles.clear()
     db.session.commit()
