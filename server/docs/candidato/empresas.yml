@@ -1,0 +1,39 @@
+tags:
+  - Candidato
+summary: Obtener lista de empresas
+description: Recupera todas las empresas disponibles, mostrando su ID, nombre y correo electrónico.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de empresas obtenida exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 1
+          nombre:
+            type: string
+            example: "Mi Empresa S.A."
+          correo:
+            type: string
+            example: "contacto@miempresa.com"
+  500:
+    description: Error en el servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error interno en el servidor"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

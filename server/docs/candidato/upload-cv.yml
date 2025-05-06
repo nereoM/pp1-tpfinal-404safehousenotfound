@@ -1,0 +1,53 @@
+tags:
+  - Candidato
+summary: Subir CV
+description: Permite al candidato subir un archivo de CV en un formato permitido (ej. PDF, DOCX).
+consumes:
+  - multipart/form-data
+produces:
+  - application/json
+parameters:
+  - in: formData
+    name: file
+    type: file
+    required: true
+    description: Archivo de CV a subir
+responses:
+  201:
+    description: CV subido exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "CV subido exitosamente"
+        file_path:
+          type: string
+          example: "uploads/cvs/cv_juan.pdf"
+        filename:
+          type: string
+          example: "cv_juan.pdf"
+  400:
+    description: Error en la solicitud (sin archivo o formato no permitido)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Formato de archivo no permitido"
+  404:
+    description: Usuario no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Usuario no encontrado"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

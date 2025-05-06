@@ -1,0 +1,53 @@
+tags:
+  - Candidato
+summary: Subir imagen de perfil
+description: "Permite al candidato subir una imagen de perfil. Solo se aceptan formatos permitidos (ej: JPG, PNG)"
+consumes:
+  - multipart/form-data
+produces:
+  - application/json
+parameters:
+  - in: formData
+    name: file
+    type: file
+    required: true
+    description: Imagen a subir
+responses:
+  201:
+    description: Imagen subida exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Imagen subida exitosamente"
+        file_path:
+          type: string
+          example: "uploads/imagenes/usuario_1.png"
+        filename:
+          type: string
+          example: "usuario_1.png"
+  400:
+    description: Error en la solicitud (sin archivo o formato no permitido)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No se encontró ningún archivo"
+  404:
+    description: Usuario no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Usuario no encontrado"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

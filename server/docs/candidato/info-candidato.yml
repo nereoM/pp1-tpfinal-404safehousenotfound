@@ -1,0 +1,40 @@
+tags:
+  - Candidato
+summary: Obtener información básica del candidato
+description: Devuelve el nombre, apellido, username y correo electrónico del candidato autenticado.
+produces:
+  - application/json
+responses:
+  200:
+    description: Información del candidato obtenida correctamente
+    schema:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: "Juan"
+        apellido:
+          type: string
+          example: "Pérez"
+        username:
+          type: string
+          example: "juanp"
+        correo:
+          type: string
+          example: "juan@example.com"
+  404:
+    description: Candidato no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Candidato no encontrado"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

@@ -1,0 +1,140 @@
+tags:
+  - Candidato
+summary: Obtener ofertas laborales por nombre de empresa
+description: Recupera todas las ofertas laborales activas asociadas a una empresa específica, permitiendo aplicar filtros adicionales por query params.
+produces:
+  - application/json
+parameters:
+  - in: path
+    name: nombre_empresa
+    required: true
+    type: string
+    description: Nombre exacto de la empresa cuyas ofertas se desean obtener
+    example: "Acme Corp"
+  - in: query
+    name: location
+    type: string
+    required: false
+    description: Filtrar por ubicación
+    example: "Buenos Aires"
+  - in: query
+    name: workplace_type
+    type: string
+    required: false
+    description: Filtrar por tipo de lugar de trabajo
+    example: "remoto"
+  - in: query
+    name: employment_type
+    type: string
+    required: false
+    description: Filtrar por tipo de empleo
+    example: "tiempo completo"
+  - in: query
+    name: experience_level
+    type: string
+    required: false
+    description: Filtrar por nivel de experiencia
+    example: "senior"
+  - in: query
+    name: keywords
+    type: string
+    required: false
+    description: Filtrar por palabras clave (separadas por comas)
+    example: "python, backend"
+  - in: query
+    name: salary_min
+    type: integer
+    required: false
+    description: Filtrar por salario mínimo
+    example: 50000
+  - in: query
+    name: salary_max
+    type: integer
+    required: false
+    description: Filtrar por salario máximo
+    example: 120000
+responses:
+  200:
+    description: Ofertas encontradas para la empresa
+    schema:
+      type: object
+      properties:
+        empresa:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            nombre:
+              type: string
+              example: "Acme Corp"
+            correo:
+              type: string
+              example: "contacto@acmecorp.com"
+        ofertas:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 101
+              nombre:
+                type: string
+                example: "Desarrollador Backend"
+              descripcion:
+                type: string
+                example: "Responsable del desarrollo de APIs REST en Python."
+              location:
+                type: string
+                example: "Buenos Aires"
+              employment_type:
+                type: string
+                example: "tiempo completo"
+              workplace_type:
+                type: string
+                example: "remoto"
+              salary_min:
+                type: integer
+                example: 60000
+              salary_max:
+                type: integer
+                example: 90000
+              currency:
+                type: string
+                example: "ARS"
+              experience_level:
+                type: string
+                example: "senior"
+              fecha_publicacion:
+                type: string
+                format: date
+                example: "2025-05-01"
+              fecha_cierre:
+                type: string
+                format: date
+                example: "2025-06-01"
+  404:
+    description: Empresa no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Empresa no encontrada"
+  500:
+    description: Error del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error interno del servidor"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

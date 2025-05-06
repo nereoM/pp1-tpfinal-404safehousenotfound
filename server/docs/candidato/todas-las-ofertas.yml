@@ -1,0 +1,47 @@
+tags:
+  - Candidato
+summary: Obtener todas las ofertas activas
+description: Recupera todas las ofertas laborales activas con información relevante como nombre de la oferta, empresa, coincidencia (sin calcular), y palabras clave.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de ofertas laborales obtenida exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 1
+          nombre_oferta:
+            type: string
+            example: "Desarrollador Backend"
+          empresa:
+            type: string
+            example: "Mi Empresa S.A."
+          coincidencia:
+            type: integer
+            example: 0
+          palabras_clave:
+            type: array
+            items:
+              type: string
+            example: ["python", "backend", "desarrollador"]
+  500:
+    description: Error en el servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error interno en el servidor"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

@@ -1,0 +1,28 @@
+tags:
+  - Candidato
+summary: Check if candidate has a CV
+description: Returns whether the currently authenticated candidate has uploaded a CV.
+produces:
+  - application/json
+responses:
+  200:
+    description: Successfully retrieved CV status
+    schema:
+      type: object
+      properties:
+        has_cv:
+          type: boolean
+          example: true
+        cv_url:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://example.com/uploads/cv123.pdf"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token passed as a cookie
+security:
+  - cookieAuth: []

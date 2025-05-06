@@ -1,0 +1,77 @@
+tags:
+  - Candidato
+summary: Registrar empresa
+description: Permite al candidato registrar una nueva empresa asociada a su cuenta, junto con los datos de la tarjeta de crédito.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    description: Datos necesarios para registrar la empresa
+    required: true
+    schema:
+      $ref: '#/definitions/RegistrarEmpresaRequest'
+responses:
+  201:
+    description: Empresa registrada exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Empresa registrada exitosamente"
+  400:
+    description: Error en la solicitud (datos incompletos o inválidos)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Debe ingresar username o email"
+  404:
+    description: Usuario no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Usuario no encontrado"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []
+definitions:
+  RegistrarEmpresaRequest:
+    type: object
+    required:
+      - username
+      - card_name
+      - card_number
+      - card_cvv
+      - card_type
+      - company_name
+    properties:
+      username:
+        type: string
+        example: "juanp"
+      card_name:
+        type: string
+        example: "Juan Pérez"
+      card_number:
+        type: string
+        example: "1234567812345678"
+      card_cvv:
+        type: string
+        example: "123"
+      card_type:
+        type: string
+        example: "VISA"
+      company_name:
+        type: string
+        example: "Mi Empresa S.A."

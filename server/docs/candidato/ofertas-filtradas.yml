@@ -1,0 +1,87 @@
+tags:
+  - Candidato
+summary: Obtener ofertas laborales filtradas
+description: Recupera las ofertas laborales activas aplicando los filtros proporcionados en la solicitud, como ubicación, tipo de trabajo, nivel de experiencia, etc.
+produces:
+  - application/json
+parameters:
+  - in: query
+    name: location
+    description: Filtrar por ubicación de la oferta laboral
+    required: false
+    type: string
+    example: "Buenos Aires"
+  - in: query
+    name: workplace_type
+    description: Filtrar por tipo de lugar de trabajo (e.g., remoto, presencial)
+    required: false
+    type: string
+    example: "remoto"
+  - in: query
+    name: employment_type
+    description: Filtrar por tipo de empleo (e.g., tiempo completo, medio tiempo)
+    required: false
+    type: string
+    example: "tiempo completo"
+  - in: query
+    name: experience_level
+    description: Filtrar por nivel de experiencia (e.g., junior, senior)
+    required: false
+    type: string
+    example: "junior"
+  - in: query
+    name: keywords
+    description: Filtrar por palabras clave relacionadas con la oferta laboral (separadas por comas)
+    required: false
+    type: string
+    example: "python, backend, desarrollo"
+  - in: query
+    name: salary_min
+    description: Filtrar por salario mínimo
+    required: false
+    type: integer
+    example: 30000
+  - in: query
+    name: salary_max
+    description: Filtrar por salario máximo
+    required: false
+    type: integer
+    example: 80000
+responses:
+  200:
+    description: Lista de ofertas laborales filtradas obtenida exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 1
+          nombre_oferta:
+            type: string
+            example: "Desarrollador Frontend"
+          empresa:
+            type: string
+            example: "Mi Empresa S.A."
+          palabras_clave:
+            type: array
+            items:
+              type: string
+            example: ["python", "frontend", "desarrollador"]
+  500:
+    description: Error en el servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error interno en el servidor"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

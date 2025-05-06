@@ -70,7 +70,7 @@ def register():
     if not re.match(email_regex, email):
         return jsonify({"error": "Formato de email no valido"}), 400
 
-    contraseña_valida, mensaje = validar_contrasena(password)
+    contraseña_valida, mensaje = _validar_contrasena(password)
 
     if not contraseña_valida:
         return jsonify({"error": mensaje}), 400

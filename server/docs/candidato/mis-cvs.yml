@@ -1,0 +1,36 @@
+tags:
+  - Candidato
+summary: Listar CVs del candidato
+description: Devuelve una lista de los CVs subidos por el candidato autenticado.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de CVs obtenida exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 42
+          url:
+            type: string
+            format: uri
+            example: "https://example.com/uploads/cv_juan.pdf"
+          tipo_archivo:
+            type: string
+            example: "application/pdf"
+          fecha_subida:
+            type: string
+            format: date-time
+            example: "2024-05-01T14:23:00Z"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

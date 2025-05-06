@@ -21,6 +21,7 @@ from models.schemes import (
 from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy.sql.expression import func, or_
 from werkzeug.utils import secure_filename
+from flasgger import swag_from
 
 candidato_bp = Blueprint("candidato", __name__)
 
@@ -52,6 +53,7 @@ def allowed_file(filename):
     )
 
 
+@swag_from('../docs/candidato/tiene-cv.yml')
 @candidato_bp.route("/tiene-cv", methods=["GET"])
 @role_required(["candidato"])
 def tiene_cv():
@@ -64,6 +66,7 @@ def tiene_cv():
         return jsonify({"has_cv": False}), 200
 
 
+@swag_from('../docs/candidato/postularme.yml')
 @candidato_bp.route("/postularme", methods=["POST"])
 @role_required(["candidato"])
 def postularme():
@@ -97,7 +100,7 @@ def postularme():
 
     return jsonify({"message": "Postulación realizada correctamente."}), 201
 
-
+@swag_from('../docs/candidato/mis-cvs.yml')
 @candidato_bp.route("/mis-cvs", methods=["GET"])
 @role_required(["candidato"])
 def listar_cvs():
@@ -125,7 +128,7 @@ def allowed_image(filename):
     allowed_extensions = {"png", "jpg", "jpeg", "gif"}
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
 
-
+@swag_from('../docs/candidato/subir-image.yml')
 @candidato_bp.route("/subir-image", methods=["POST"])
 @role_required(["candidato"])
 def upload_image():
@@ -169,7 +172,7 @@ def upload_image():
 
     return jsonify({"error": "Formato de imagen no permitido"}), 400
 
-
+@swag_from('../docs/candidato/upload-cv.yml')
 @candidato_bp.route("/upload-cv", methods=["POST"])
 @role_required(["candidato"])
 def upload_cv():
@@ -214,7 +217,7 @@ def upload_cv():
 
     return jsonify({"error": "Formato de archivo no permitido"}), 400
 
-
+@swag_from('../docs/candidato/registrar-empresa.yml')
 @candidato_bp.route("/registrar-empresa", methods=["POST"])
 @role_required(["candidato"])
 def registrar_empresa():
@@ -284,7 +287,7 @@ def registrar_empresa():
         return jsonify({"message": "Empresa registrada exitosamente"}), 201
     return jsonify({"error": "Usuario no encontrado"}), 404
 
-
+@swag_from('../docs/candidato/empresas.yml')
 @candidato_bp.route("/empresas", methods=["GET"])
 @role_required(["candidato"])
 def obtener_empresas():
@@ -295,7 +298,7 @@ def obtener_empresas():
     ]
     return jsonify(resultado), 200
 
-
+@swag_from('../docs/candidato/todas-las-ofertas.yml')
 @candidato_bp.route("/todas-las-ofertas", methods=["GET"])
 @role_required(["candidato"])
 def obtener_todas_las_ofertas():
@@ -314,6 +317,7 @@ def obtener_todas_las_ofertas():
     return jsonify(resultado), 200
 
 
+@swag_from('../docs/candidato/ofertas-filtradas.yml')
 @candidato_bp.route("/ofertas-filtradas", methods=["GET"])
 @role_required(["candidato"])
 def obtener_ofertas_filtradas():
@@ -338,7 +342,7 @@ def obtener_ofertas_filtradas():
         print("Error en /ofertas-filtradas:", e)
         return jsonify({"error": str(e)}), 500
 
-
+@swag_from('../docs/candidato/ofertas-por-empresa.yml')
 @candidato_bp.route("/empresas/<string:nombre_empresa>/ofertas", methods=["GET"])
 @role_required(["candidato"])
 def obtener_ofertas_por_nombre_empresa(nombre_empresa):
@@ -382,7 +386,7 @@ def obtener_ofertas_por_nombre_empresa(nombre_empresa):
         }
     ), 200
 
-
+@swag_from('../docs/candidato/recomendaciones.yml')
 @candidato_bp.route("/recomendaciones", methods=["GET"])
 @role_required(["candidato"])
 def recomendar_ofertas():
@@ -437,9 +441,9 @@ def recomendar_ofertas():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @candidato_bp.route("/info-candidato", methods=["GET"])
 @jwt_required()
+@swag_from('../docs/candidato/info-candidato.yml')
 def obtener_nombre_apellido_candidato():
     id_candidato = get_jwt_identity()
     candidato = Usuario.query.get(id_candidato)
