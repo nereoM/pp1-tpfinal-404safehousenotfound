@@ -98,27 +98,39 @@ export default function ManagerHome() {
             onClick: () => setModalOfertaOpen(true),
         },
         {
-            icon: BarChart,
+            icon: PlusCircle,
             titulo: "Crear Analista",
             descripcion: "Registrá nuevos analistas para tu empresa.",
             onClick: () => setModalAnalistaOpen(true),
+        }, 
+        {
+            icon: Users,
+            titulo: "Gestionar Analistas",
+            descripcion: "Visualizá y administrá los analistas para tu empresa.",
+            onClick: () => alert("Funcionalidad en desarrollo"),
+        },
+        {
+            icon: PlusCircle,
+            titulo: "Crear Empleado",
+            descripcion: "Registrá nuevos empleado para tu empresa.",
+            onClick: () => alert("Funcionalidad en desarrollo"),
+        }, 
+        {
+            icon: Users,
+            titulo: "Gestionar Empleados",
+            descripcion: "Visualizá y administrá los empleados para tu empresa.",
+            onClick: () => alert("Funcionalidad en desarrollo"),
+        },
+        {
+            icon: FileLock,
+            titulo: "Gestionar Licencias",
+            descripcion: "Accede a las licencias del personal y sus estados.",
+            onClick: () => alert("Funcionalidad en desarrollo"),
         },
         {
             icon: RotateCcw,
             titulo: "Ver Análisis de Rotación",
             descripcion: "Consulta los indicadores relacionados con la rotación de personal.",
-            onClick: () => alert("Funcionalidad en desarrollo"),
-        },
-        {
-            icon: FileLock,
-            titulo: "Consultar Licencias",
-            descripcion: "Accede a las licencias del personal y sus estados.",
-            onClick: () => alert("Funcionalidad en desarrollo"),
-        },
-        {
-            icon: FileText,
-            titulo: "Ver Reportes",
-            descripcion: "Revisa los informes y reportes detallados del sistema.",
             onClick: () => alert("Funcionalidad en desarrollo"),
         },
     ];
