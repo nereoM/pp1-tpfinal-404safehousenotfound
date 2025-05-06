@@ -1,0 +1,116 @@
+tags:
+  - Admin Empresa
+summary: Configurar las preferencias de la empresa
+description: Este endpoint permite al admin-emp configurar las preferencias de la empresa, como el slogan, la descripción y los colores. Si no existen preferencias para la empresa, se crearán. Si ya existen, se actualizarán con los datos proporcionados.
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    description: Datos para configurar o actualizar las preferencias de la empresa
+    required: true
+    schema:
+      type: object
+      properties:
+        slogan:
+          type: string
+          description: El slogan de la empresa
+          example: "Transformamos tu futuro"
+        descripcion:
+          type: string
+          description: Descripción breve de la empresa
+          example: "Somos una empresa líder en innovación y tecnología."
+        color_princ:
+          type: string
+          description: Color principal de la empresa en formato hexadecimal
+          example: "#FF5733"
+        color_sec:
+          type: string
+          description: Color secundario de la empresa en formato hexadecimal
+          example: "#C70039"
+        color_texto:
+          type: string
+          description: Color del texto en formato hexadecimal
+          example: "#FFFFFF"
+responses:
+  201:
+    description: Preferencias creadas exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Preferencias creadas exitosamente
+        preferencias:
+          type: object
+          properties:
+            id_empresa:
+              type: integer
+              example: 1
+            slogan:
+              type: string
+              example: "Transformamos tu futuro"
+            descripcion:
+              type: string
+              example: "Somos una empresa líder en innovación y tecnología."
+            color_princ:
+              type: string
+              example: "#FF5733"
+            color_sec:
+              type: string
+              example: "#C70039"
+            color_texto:
+              type: string
+              example: "#FFFFFF"
+  200:
+    description: Preferencias actualizadas exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Preferencias actualizadas exitosamente
+        preferencias:
+          type: object
+          properties:
+            id_empresa:
+              type: integer
+              example: 1
+            slogan:
+              type: string
+              example: "Transformamos tu futuro"
+            descripcion:
+              type: string
+              example: "Somos una empresa líder en innovación y tecnología."
+            color_princ:
+              type: string
+              example: "#FF5733"
+            color_sec:
+              type: string
+              example: "#C70039"
+            color_texto:
+              type: string
+              example: "#FFFFFF"
+  403:
+    description: El admin-emp no tiene una empresa asociada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: El admin-emp no tiene una empresa asociada
+  400:
+    description: Error en los datos de entrada (faltan campos requeridos o formato incorrecto)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Slogan es requerido"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

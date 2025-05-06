@@ -1,0 +1,65 @@
+tags:
+  - Reclutador
+summary: Definir palabras clave para una oferta laboral
+description: Permite a un reclutador establecer o actualizar la lista de palabras clave asociadas a una oferta laboral.
+parameters:
+  - name: id_oferta
+    in: path
+    required: true
+    type: integer
+    description: ID de la oferta laboral
+  - name: body
+    in: body
+    required: true
+    schema:
+      type: object
+      required:
+        - palabras_clave
+      properties:
+        palabras_clave:
+          type: array
+          items:
+            type: string
+          example: ["Python", "Flask", "APIs"]
+produces:
+  - application/json
+responses:
+  200:
+    description: Palabras clave actualizadas correctamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Palabras clave actualizadas exitosamente"
+  400:
+    description: Solicitud inválida (lista no proporcionada o incorrecta)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Se debe enviar una lista de palabras clave"
+  404:
+    description: Oferta laboral no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No se encontró la oferta laboral con ID 123"
+  500:
+    description: Error interno del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error al procesar la solicitud"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

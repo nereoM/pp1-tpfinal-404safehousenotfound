@@ -1,0 +1,104 @@
+tags:
+  - Admin Empresa
+summary: Registrar un nuevo manager
+description: Este endpoint permite al admin-emp registrar un nuevo manager para su empresa. Se requiere que el admin-emp tenga una empresa asociada y que proporcione los detalles del nuevo manager, como nombre, apellido, username y correo electrónico.
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    description: Información del nuevo manager a registrar
+    required: true
+    schema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nombre del nuevo manager
+          example: Juan
+        lastname:
+          type: string
+          description: Apellido del nuevo manager
+          example: Pérez
+        username:
+          type: string
+          description: Nombre de usuario del nuevo manager
+          example: juanperez
+        email:
+          type: string
+          description: Correo electrónico del nuevo manager
+          example: juan.perez@empresa.com
+responses:
+  201:
+    description: Manager registrado exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Manager 'juanperez' registrado exitosamente
+        credentials:
+          type: object
+          properties:
+            username:
+              type: string
+              example: juanperez
+            password:
+              type: string
+              example: temporarypassword123
+        empresa:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            nombre:
+              type: string
+              example: Empresa XYZ
+  400:
+    description: Error en los datos de entrada (faltan campos requeridos, formato incorrecto, etc.)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Todos los campos son requeridos
+  403:
+    description: El admin-emp no tiene una empresa asociada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: El admin-emp no tiene una empresa asociada
+  404:
+    description: La empresa asociada no se pudo encontrar
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: No se pudo encontrar la empresa asociada
+  400:
+    description: El usuario ya existe
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: El usuario ya existe
+  400:
+    description: El formato de correo es incorrecto
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Formato de email no valido
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

@@ -1,0 +1,95 @@
+tags:
+  - Reclutador
+summary: Obtener ofertas laborales asignadas al reclutador
+description: Devuelve una lista de las ofertas laborales asignadas al reclutador autenticado junto con la información de la empresa.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de ofertas asignadas al reclutador
+    schema:
+      type: object
+      properties:
+        ofertas:
+          type: array
+          items:
+            type: object
+            properties:
+              id_oferta:
+                type: integer
+                example: 1
+              nombre:
+                type: string
+                example: "Desarrollador Backend"
+              descripcion:
+                type: string
+                example: "Buscamos un desarrollador con experiencia en Node.js"
+              location:
+                type: string
+                example: "Buenos Aires"
+              employment_type:
+                type: string
+                example: "Tiempo completo"
+              workplace_type:
+                type: string
+                example: "Remoto"
+              salary_min:
+                type: number
+                example: 50000
+              salary_max:
+                type: number
+                example: 100000
+              currency:
+                type: string
+                example: "ARS"
+              experience_level:
+                type: string
+                example: "Semi Senior"
+              is_active:
+                type: boolean
+                example: true
+              palabras_clave:
+                type: array
+                items:
+                  type: string
+                example: ["Node.js", "API REST", "MongoDB"]
+              fecha_publicacion:
+                type: string
+                format: date-time
+                example: "2024-12-01T10:30:00"
+              fecha_cierre:
+                type: string
+                format: date-time
+                example: "2025-01-01T23:59:59"
+        empresa:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 2
+            nombre:
+              type: string
+              example: "Tech Solutions SA"
+  401:
+    description: No autorizado (token inválido o sin sesión activa)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Token inválido o expirado"
+  403:
+    description: El usuario no tiene el rol requerido
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Acceso denegado para este rol"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

@@ -1,0 +1,90 @@
+tags:
+  - Manager
+summary: Crear una nueva oferta laboral
+description: Permite a un manager crear una oferta laboral para su empresa. Se deben enviar los campos requeridos en el body del request.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - nombre
+        - descripcion
+        - location
+        - employment_type
+        - workplace_type
+        - salary_min
+        - salary_max
+        - currency
+        - experience_level
+      properties:
+        nombre:
+          type: string
+          example: Desarrollador Full Stack
+        descripcion:
+          type: string
+          example: Desarrollo de aplicaciones web con tecnologías modernas.
+        location:
+          type: string
+          example: Buenos Aires, Argentina
+        employment_type:
+          type: string
+          enum: [full-time, part-time, contract, freelance, internship]
+          example: full-time
+        etiquetas:
+          type: string
+          description: Palabras clave separadas por comas
+          example: Python, React, SQL
+        workplace_type:
+          type: string
+          enum: [on-site, remote, hybrid]
+          example: remote
+        salary_min:
+          type: number
+          format: float
+          example: 150000
+        salary_max:
+          type: number
+          format: float
+          example: 250000
+        currency:
+          type: string
+          example: ARS
+        experience_level:
+          type: string
+          enum: [junior, semi-senior, senior]
+          example: semi-senior
+        fecha_cierre:
+          type: string
+          format: date
+          example: 2025-12-31
+responses:
+  201:
+    description: Oferta laboral creada exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Oferta laboral creada exitosamente.
+        id_oferta:
+          type: integer
+          example: 42
+        nombre:
+          type: string
+          example: Desarrollador Full Stack
+        empresa:
+          type: string
+          example: Acme Corp
+  400:
+    description: Faltan campos requeridos
+    schema:
+      type: object
+      properties:
+        error:
+          type: string

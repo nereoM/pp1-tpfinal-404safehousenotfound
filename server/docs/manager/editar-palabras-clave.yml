@@ -1,0 +1,68 @@
+tags:
+  - Manager
+summary: Editar palabras clave de una oferta laboral
+description: Permite a un manager editar las palabras clave asociadas a una oferta laboral perteneciente a su empresa.
+parameters:
+  - name: id_oferta
+    in: path
+    required: true
+    type: integer
+    description: ID de la oferta laboral
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - palabras_clave
+      properties:
+        palabras_clave:
+          oneOf:
+            - type: array
+              items:
+                type: string
+              example: ["Python", "Django", "API REST"]
+            - type: string
+              enum: [""]
+              example: ""
+          description: Lista de palabras clave o una cadena vacía para eliminarlas
+responses:
+  200:
+    description: Palabras clave actualizadas exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Palabras clave actualizadas exitosamente
+  400:
+    description: Error de validación del body
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: El campo 'palabras_clave' debe ser una lista o una cadena vacía
+  403:
+    description: El usuario no tiene permisos para modificar la oferta
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: No tenés permisos para editar esta oferta
+  404:
+    description: Usuario o oferta no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Oferta no encontrada
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

@@ -1,0 +1,73 @@
+tags:
+  - Reclutador
+summary: Ver mis licencias
+description: Permite a un reclutador obtener un listado de todas sus solicitudes de licencia.
+produces:
+  - application/json
+responses:
+  200:
+    description: Listado de licencias del reclutador
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          licencias:
+            type: object
+            properties:
+              licencia:
+                type: object
+                properties:
+                  id_licencia:
+                    type: integer
+                    example: 42
+                  tipo:
+                    type: string
+                    example: "vacaciones"
+                  descripcion:
+                    type: string
+                    example: "Licencia por vacaciones"
+                  fecha_inicio:
+                    type: string
+                    format: date-time
+                    nullable: true
+                    example: "2025-05-01T00:00:00"
+                  estado:
+                    type: string
+                    example: "pendiente"
+                  empresa:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 3
+                      nombre:
+                        type: string
+                        example: "Tech Solutions SA"
+                  certificado_url:
+                    type: string
+                    nullable: true
+                    example: "https://example.com/certificados/licencia_42.pdf"
+  401:
+    description: No autorizado. Token inválido o no provisto.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Token de autenticación requerido o inválido"
+  500:
+    description: Error interno del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error al recuperar licencias"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

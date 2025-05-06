@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from auth.decorators import role_required
 from models.schemes import Usuario, Rol, Empresa
 from models.extensions import db
+from flasgger import swag_from
 import secrets
 
 admin_404_bp = Blueprint("admin_404", __name__)
@@ -11,6 +12,7 @@ admin_404_bp = Blueprint("admin_404", __name__)
 def admin_404_home():
     return jsonify({"message": "Bienvenido al dashboard de admin-404"}), 200
 
+@swag_from("../docs/admin-404/registrar-admin-emp.yml")
 @admin_404_bp.route("/registrar-admin-emp", methods=["POST"])
 @role_required(["admin-404"])
 def registrar_admin_emp():

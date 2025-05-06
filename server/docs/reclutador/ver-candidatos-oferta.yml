@@ -1,0 +1,71 @@
+tags:
+  - Reclutador
+summary: Ver candidatos postulados a una oferta laboral
+description: Devuelve una lista de candidatos que se postularon a una oferta laboral específica, incluyendo su información básica y CV si está disponible.
+parameters:
+  - name: id_oferta
+    in: path
+    required: true
+    type: integer
+    description: ID de la oferta laboral
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de postulaciones obtenida exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id_postulacion:
+            type: integer
+            example: 42
+          nombre:
+            type: string
+            example: "Juan"
+          email:
+            type: string
+            example: "juan@example.com"
+          fecha_postulacion:
+            type: string
+            format: date-time
+            example: "2024-03-15T12:34:56"
+          is_apto:
+            type: boolean
+            example: true
+          cv_url:
+            type: string
+            nullable: true
+            example: "https://example.com/cv/juan.pdf"
+  403:
+    description: No tienes permiso para acceder a esta oferta
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No tienes permiso para ver esta oferta"
+  404:
+    description: Oferta no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Oferta laboral no encontrada"
+  500:
+    description: Error interno del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error al procesar la solicitud"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

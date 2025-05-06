@@ -1,0 +1,91 @@
+tags:
+  - Admin 404
+summary: Registrar un nuevo admin-emp y asociar una empresa
+description: Este endpoint permite registrar un nuevo admin-emp. Si el usuario ya existe, se le asigna el rol de admin-emp y se le crea una empresa asociada.
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: user
+    description: Datos del nuevo admin-emp y su empresa
+    required: true
+    schema:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Nombre del admin-emp
+          example: Juan
+        lastname:
+          type: string
+          description: Apellido del admin-emp
+          example: Pérez
+        username:
+          type: string
+          description: Nombre de usuario para el admin-emp
+          example: juanperez
+        email:
+          type: string
+          description: Correo electrónico del admin-emp
+          example: juan.perez@email.com
+        company_name:
+          type: string
+          description: Nombre de la empresa que se asocia al admin-emp
+          example: MiEmpresa S.A.
+responses:
+  200:
+    description: El usuario ya existía, se le asignó el rol admin-emp y se creó su empresa
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: El usuario ya existía, se le asignó el rol admin-emp y se creó su empresa
+  201:
+    description: Admin-EMP registrado exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Admin-EMP 'juanperez' registrado exitosamente
+        credentials:
+          type: object
+          properties:
+            username:
+              type: string
+              example: juanperez
+            password:
+              type: string
+              example: AbCdEfGh12345
+  400:
+    description: Algunos campos obligatorios están vacíos
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Todos los campos son obligatorios
+  409:
+    description: El correo ya está registrado con otro usuario
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: El usuario con ese correo ya existe
+  500:
+    description: Error interno del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Error al procesar la solicitud
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

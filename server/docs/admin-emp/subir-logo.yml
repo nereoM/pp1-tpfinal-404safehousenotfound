@@ -1,0 +1,55 @@
+tags:
+  - Admin Empresa
+summary: Subir logo para la empresa
+description: Este endpoint permite a un admin-emp subir un logo para la empresa asociada. El logo se guarda en el servidor y se actualiza en la base de datos de la empresa.
+produces:
+  - application/json
+parameters:
+  - in: formData
+    name: file
+    type: file
+    required: true
+    description: El archivo de imagen del logo de la empresa (solo PNG, JPG, JPEG)
+responses:
+  200:
+    description: Logo subido exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Logo subido exitosamente
+        logo_url:
+          type: string
+          example: "/uploads/empresa_1_logo.png"
+  400:
+    description: Error en los datos de entrada (archivo no encontrado o formato incorrecto)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Formato de archivo no permitido. Solo se aceptan PNG, JPG y JPEG
+  403:
+    description: El admin-emp no tiene una empresa asociada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: El admin-emp no tiene una empresa asociada
+  404:
+    description: Empresa no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Empresa no encontrada
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

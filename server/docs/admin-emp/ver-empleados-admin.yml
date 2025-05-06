@@ -1,0 +1,57 @@
+tags:
+  - Admin Empresa
+summary: Obtener empleados a cargo del administrador de empresa
+description: Devuelve una lista de empleados que tienen como superior jerárquico al administrador autenticado.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de empleados
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 12
+          nombre:
+            type: string
+            example: "Ana"
+          apellido:
+            type: string
+            example: "Pérez"
+          correo:
+            type: string
+            example: "ana.perez@empresa.com"
+          username:
+            type: string
+            example: "anap"
+          roles:
+            type: array
+            items:
+              type: string
+            example: ["reclutador", "analista"]
+  401:
+    description: No autorizado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Token inválido o no proporcionado"
+  403:
+    description: Acceso denegado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Acceso denegado para este rol"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

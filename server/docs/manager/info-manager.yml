@@ -1,0 +1,39 @@
+tags:
+  - Manager
+summary: Obtener información personal del manager
+description: Devuelve el nombre, apellido, nombre de usuario y correo electrónico del manager autenticado.
+produces:
+  - application/json
+responses:
+  200:
+    description: Información del manager obtenida exitosamente
+    schema:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Ana
+        apellido:
+          type: string
+          example: López
+        username:
+          type: string
+          example: analopez
+        correo:
+          type: string
+          example: ana.lopez@empresa.com
+  404:
+    description: Manager no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Manager no encontrado
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

@@ -1,0 +1,47 @@
+tags:
+  - Admin Empresa
+summary: Obtener información del administrador
+description: Retorna el nombre, apellido, username y correo electrónico del administrador autenticado.
+produces:
+  - application/json
+responses:
+  200:
+    description: Información del administrador obtenida correctamente
+    schema:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: Juan
+        apellido:
+          type: string
+          example: Pérez
+        username:
+          type: string
+          example: juanp
+        correo:
+          type: string
+          example: juan.perez@empresa.com
+  404:
+    description: Admin-emp no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Admin-emp no encontrado
+  401:
+    description: No autorizado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Token inválido o no proporcionado
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []
