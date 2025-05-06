@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export  default function AnalistaLicencias(){
+export  default function ReclutadorLicencias(){
   useEffect(() => {
     console.log("Gestion de licencias");
   }, [])

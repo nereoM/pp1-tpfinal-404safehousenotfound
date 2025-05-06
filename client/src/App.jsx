@@ -2,18 +2,18 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import AdminEmpHome from "./pages/AdminEmpHome";
 import AdminHome from "./pages/AdminHome";
-import AnalistaHome from "./pages/AnalistaHome";
+import ReclutadorHome from "./pages/ReclutadorHome";
 import CandidatoHome from "./pages/CandidatoHome";
 import Lobby from "./pages/Lobby";
 import Login from "./pages/Login";
 import ManagerHome from "./pages/ManagerHome";
 import Pagos from "./pages/Pagos";
 
-import { AnalistaLayout } from "./components/AnalistaLayout";
-import AnalistaIndicadores from "./pages/AnalistaIndicadores";
-import AnalistaLicencias from "./pages/AnalistaLicencias";
-import AnalistaOfertas from "./pages/AnalistaOfertas";
-import AnalistaReportes from "./pages/AnalistaReportes";
+import { ReclutadorLayout } from "./components/ReclutadorLayout";
+import ReclutadorIndicadores from "./pages/ReclutadorIndicadores";
+import ReclutadorLicencias from "./pages/ReclutadorLicencias";
+import ReclutadorOfertas from "./pages/ReclutadorOfertas";
+import ReclutadorReportes from "./pages/ReclutadorReportes";
 import Clientes from "./pages/Clientes";
 import Precios from "./pages/Precios";
 import Productos from "./pages/Productos";
@@ -24,12 +24,12 @@ function App() {
       <Routes>
         <Route path="/" element={<Lobby />} />
         <Route path="/login" element={<Login />} />
-        <Route path="analista" element={<AnalistaLayout />}>
-          <Route path="/analista/home" element={<AnalistaHome />} />
-          <Route path="/analista/ofertas" element={<AnalistaOfertas />} />
-          <Route path="/analista/reportes" element={<AnalistaReportes />} />
-          <Route path="/analista/licencias" element={<AnalistaLicencias />} />
-          <Route path="/analista/indicadores" element={<AnalistaIndicadores />} />
+        <Route path="reclutador" element={<ReclutadorLayout />}>
+          <Route path="/reclutador/home" element={<ReclutadorHome />} />
+          <Route path="/reclutador/ofertas" element={<ReclutadorOfertas />} />
+          <Route path="/reclutador/reportes" element={<ReclutadorReportes />} />
+          <Route path="/reclutador/licencias" element={<ReclutadorLicencias />} />
+          <Route path="/reclutador/indicadores" element={<ReclutadorIndicadores />} />
         </Route>
         <Route path="/admin/home" element={<AdminHome />} />
         <Route path="/candidato/home" element={<CandidatoHome />} />

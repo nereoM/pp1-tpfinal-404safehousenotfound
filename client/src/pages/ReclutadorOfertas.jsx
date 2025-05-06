@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { analistaService } from "../services/analista";
+import { reclutadorService } from "../services/reclutador";
 
-export default function AnalistaOfertas() {
+export default function ReclutadorOfertas() {
   const [ofertas, setOfertas] = useState();
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     setIsLoading(true)
-    analistaService.obtenerOfertas().then(setOfertas).finally(() => {
+    reclutadorService.obtenerOfertas().then(setOfertas).finally(() => {
       setIsLoading(false)
     }).catch(() => {
       setIsError(true)

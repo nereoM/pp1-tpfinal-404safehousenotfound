@@ -248,7 +248,7 @@ export default function Login() {
       if (user.roles.includes("admin-404")) {
         navigate("/admin/home");
       } else if (user.roles.includes("reclutador")) {
-        navigate("/analista/home");
+        navigate("/reclutador/home");
       } else if (user.roles.includes("manager")) { 
         navigate("/manager/home"); 
       } else if (user.roles.includes("admin-emp")) { 
@@ -374,7 +374,7 @@ export default function Login() {
                       if (user.roles.includes("admin-404")) {
                         navigate("/admin/home");
                       } else if (user.roles.includes("rrhh")) {
-                        navigate("/analista/home");
+                        navigate("/reclutador/home");
                       } else if (user.roles.includes("admin-emp")) { 
                         navigate("/adminemp/home"); //
                       } else {

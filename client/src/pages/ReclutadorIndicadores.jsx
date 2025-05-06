@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export default function AnalistaIndicadores(){
+export default function ReclutadorIndicadores(){
   useEffect(() => {
     console.log("Gestion de indicadores de desempeño");
   }, [])

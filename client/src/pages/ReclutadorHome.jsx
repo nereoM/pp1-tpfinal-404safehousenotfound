@@ -7,7 +7,7 @@ import { ProfileCard } from "../components/ProfileCard";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 
-export default function AnalistaHome() {
+export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const navigate = useNavigate();
@@ -29,52 +29,52 @@ export default function AnalistaHome() {
     color_principal: "#2563eb",
     color_secundario: "#f3f4f6",
     color_texto: "#000000",
-    slogan: "Bienvenido al panel de administración de Analista",
+    slogan: "Bienvenido al panel de administración de Reclutador",
   };
 
-  // Acciones disponibles para el analista
+  // Acciones disponibles para el reclutador
   const acciones = [
     {
       icon: Users,
       titulo: "Ver Todas las Ofertas",
       descripcion: "Accede al listado de ofertas disponibles en el sistema.",
-      href: "/analista/ofertas"
+      href: "/reclutador/ofertas"
     },
     {
       icon: Users,
       titulo: "Ver Listado de Ofertas Asignadas",
       descripcion: "Accede al listado de ofertas asignadas en el sistema.",
-      href: "/analista/ofertas"
+      href: "/reclutador/ofertas"
     },
     {
       icon: FilePlus,
       titulo: "Cargar Licencias",
       descripcion: "Carga una nueva licencia.",
-      href: "/analista/licencias"
+      href: "/reclutador/licencias"
     },
     {
       icon: FilePlus,
       titulo: "Gestionar Licencias",
       descripcion: "Visualizá y administrá tus licencias cargadas.",
-      href: "/analista/licencias"
+      href: "/reclutador/licencias"
     },
     {
       icon: BarChart2,
       titulo: "Ver Empleados",
       descripcion: "Visualizá y administrá los empleados de tu empresa.",
-      href: "/analista/indicadores"
+      href: "/reclutador/indicadores"
     },
     {
       icon: BarChart2,
       titulo: "Visualizar Indicadores de Desempeño",
       descripcion: "Revisa los indicadores clave de desempeño de los empleados.",
-      href: "/analista/indicadores"
+      href: "/reclutador/indicadores"
     },
     {
       icon: FileText,
       titulo: "Visualizar Reportes",
       descripcion: "Revisa los KPIs del sistema.",
-      href: "/analista/reportes"
+      href: "/reclutador/reportes"
     },
   ];
 
@@ -145,7 +145,7 @@ export default function AnalistaHome() {
               transition={{ duration: 0.4 }}
               className="md:col-span-2 space-y-4"
             >
-              <h2 className="text-lg font-semibold text-black">Acciones disponibles: Analista de RRHH</h2>
+              <h2 className="text-lg font-semibold text-black">Acciones disponibles: Reclutador de RRHH</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {acciones.map(({ icon: Icon, titulo, descripcion, href }, idx) => (
                   <motion.div
