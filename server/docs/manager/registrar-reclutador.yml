@@ -1,0 +1,112 @@
+tags:
+  - Manager
+summary: Registrar nuevo reclutador
+description: Permite a un manager registrar un nuevo reclutador bajo su empresa. Se genera una contraseña temporal y se asigna el rol de "reclutador".
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      required:
+        - name
+        - lastname
+        - username
+        - email
+      properties:
+        name:
+          type: string
+          example: Juan
+        lastname:
+          type: string
+          example: Pérez
+        username:
+          type: string
+          example: juanp
+        email:
+          type: string
+          format: email
+          example: juan@example.com
+responses:
+  201:
+    description: Reclutador registrado exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Reclutador 'juanp' registrado exitosamente
+        credentials:
+          type: object
+          properties:
+            username:
+              type: string
+              example: juanp
+            password:
+              type: string
+              example: R4nd0mP@ss
+        reclutador:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 23
+            nombre:
+              type: string
+              example: Juan
+            apellido:
+              type: string
+              example: Pérez
+            username:
+              type: string
+              example: juanp
+            email:
+              type: string
+              example: juan@example.com
+            empresa:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 5
+                nombre:
+                  type: string
+                  example: Acme Corp
+            id_superior:
+              type: integer
+              example: 1
+  400:
+    description: Error en los datos de entrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Todos los campos son requeridos
+  403:
+    description: Manager sin empresa asociada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: El manager no tiene una empresa asociada
+  500:
+    description: Error inesperado en el servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Error interno del servidor
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

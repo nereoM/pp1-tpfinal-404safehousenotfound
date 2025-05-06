@@ -1,0 +1,49 @@
+tags:
+  - Manager
+summary: Ver empleados del manager
+description: Devuelve una lista de los empleados que dependen directamente del manager autenticado.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de empleados obtenida exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 12
+          nombre:
+            type: string
+            example: Juan
+          apellido:
+            type: string
+            example: Pérez
+          correo:
+            type: string
+            example: juan.perez@empresa.com
+          username:
+            type: string
+            example: juanp
+          roles:
+            type: array
+            items:
+              type: string
+            example: ["reclutador"]
+  401:
+    description: No autorizado, token JWT inválido o ausente
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Token inválido o no autorizado
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

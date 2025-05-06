@@ -1,0 +1,95 @@
+tags:
+  - Manager
+summary: Obtener ofertas laborales del manager
+description: Permite al manager obtener todas las ofertas laborales que ha creado dentro de su empresa.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de ofertas laborales del manager
+    schema:
+      type: object
+      properties:
+        ofertas:
+          type: array
+          items:
+            type: object
+            properties:
+              id_oferta:
+                type: integer
+                example: 1
+              nombre:
+                type: string
+                example: "Desarrollador Backend"
+              descripcion:
+                type: string
+                example: "Desarrollador backend con experiencia en Node.js y bases de datos SQL."
+              location:
+                type: string
+                example: "Buenos Aires"
+              employment_type:
+                type: string
+                example: "Full-time"
+              workplace_type:
+                type: string
+                example: "Remoto"
+              salary_min:
+                type: integer
+                example: 50000
+              salary_max:
+                type: integer
+                example: 70000
+              currency:
+                type: string
+                example: "USD"
+              experience_level:
+                type: string
+                example: "Senior"
+              is_active:
+                type: boolean
+                example: true
+              palabras_clave:
+                type: array
+                items:
+                  type: string
+                example: ["backend", "nodejs", "sql"]
+              fecha_publicacion:
+                type: string
+                format: date-time
+                example: "2025-05-01T12:00:00Z"
+              fecha_cierre:
+                type: string
+                format: date-time
+                example: "2025-06-01T12:00:00Z"
+        empresa:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            nombre:
+              type: string
+              example: "TechCorp"
+  404:
+    description: No se encontró el manager o la empresa asociada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Manager no encontrado o empresa no asociada."
+  500:
+    description: Error interno del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error interno del servidor"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

@@ -5,6 +5,7 @@ from auth.decorators import role_required
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from models.extensions import db
+from flasgger import swag_from
 from models.schemes import (
     Empresa,
     Licencia,
@@ -16,13 +17,12 @@ from models.schemes import (
 
 manager_bp = Blueprint("manager", __name__)
 
-
 @manager_bp.route("/manager-home", methods=["GET"])
 @role_required(["manager"])
 def manager_home():
     return jsonify({"message": "Bienvenido a la Pagina de Inicio de Manager"}), 200
 
-
+@swag_from('../docs/manager/editar-palabras-clave.yml')
 @manager_bp.route("/oferta/<int:id_oferta>/palabras-clave", methods=["PUT"])
 @role_required(["manager"])
 def editar_palabras_clave(id_oferta):
@@ -55,7 +55,7 @@ def editar_palabras_clave(id_oferta):
     db.session.commit()
     return jsonify({"message": "Palabras clave actualizadas exitosamente"}), 200
 
-
+@swag_from('../docs/manager/registrar-reclutador.yml')
 @manager_bp.route("/registrar-reclutador", methods=["POST"])
 @role_required(["manager"])
 def register_reclutador():
@@ -133,7 +133,7 @@ def register_reclutador():
         }
     ), 201
 
-
+@swag_from('../docs/manager/crear-oferta-laboral.yml')
 @manager_bp.route("/crear_oferta_laboral", methods=["POST"])
 @role_required(["manager"])
 def crear_oferta_laboral():
@@ -219,7 +219,7 @@ def crear_oferta_laboral():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+@swag_from('../docs/manager/ver-empleados.yml')
 @manager_bp.route("/empleados-manager", methods=["GET"])
 @role_required(["manager"])
 def ver_empleados():
@@ -244,6 +244,7 @@ def ver_empleados():
 
 @manager_bp.route("/info-manager", methods=["GET"])
 @jwt_required()
+@swag_from('../docs/manager/info-manager.yml')
 def obtener_nombre_apellido_manager():
     id_manager = get_jwt_identity()
     manager = Usuario.query.get(id_manager)
@@ -257,7 +258,7 @@ def obtener_nombre_apellido_manager():
         "correo": manager.correo,
     }
 
-
+@swag_from('../docs/manager/desvincular-reclutador.yml')
 @manager_bp.route("/desvincular-reclutador/<int:id_empleado>", methods=["PUT"])
 @role_required(["manager"])
 def desvincular_empleado(id_empleado):
@@ -290,7 +291,7 @@ def desvincular_empleado(id_empleado):
 
     return jsonify({"message": "Empleado desvinculado correctamente"}), 200
 
-
+@swag_from('../docs/manager/visualizar-licencias-solicitadas.yml')
 @manager_bp.route("/visualizar-licencias-solicitadas", methods=["GET"])
 @role_required(["manager"])
 def visualizar_licencias():
@@ -337,7 +338,7 @@ def visualizar_licencias():
 
     return jsonify(resultado), 200
 
-
+@swag_from('../docs/manager/evaluar-licencia.yml')
 @manager_bp.route("/evaluar-licencia/<int:id_licencia>", methods=["PUT"])
 @role_required(["manager"])
 def evaluar_licencia(id_licencia):
@@ -428,7 +429,7 @@ def evaluar_licencia(id_licencia):
             }
         ), 200
 
-
+@swag_from('../docs/manager/asignar-analista-oferta.yml')
 @manager_bp.route("/asignar-analista-oferta", methods=["POST"])
 @role_required(["manager"])
 def asignar_analista_a_oferta():
@@ -459,7 +460,7 @@ def asignar_analista_a_oferta():
         }
     ), 201
 
-
+@swag_from('../docs/manager/mis-ofertas-laborales.yml')
 @manager_bp.route("/mis-ofertas-laborales", methods=["GET"])
 @role_required(["manager"])
 def obtener_ofertas():
