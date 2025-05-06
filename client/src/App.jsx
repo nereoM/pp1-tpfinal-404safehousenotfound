@@ -13,6 +13,7 @@ import { ReclutadorLayout } from "./components/ReclutadorLayout";
 import Clientes from "./pages/Clientes";
 import Precios from "./pages/Precios";
 import Productos from "./pages/Productos";
+import LicenciasManager from "./pages/LicenciasManager";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <Route path="/pagos" element={<Pagos />} /> 
         <Route path="/adminemp/home" element={<AdminEmpHome />} /> 
         <Route path="/manager/home" element={<ManagerHome />} />
+        <Route path="/manager/licencias" element={<LicenciasManager />} />
       </Routes>
     </BrowserRouter>
   );
