@@ -56,7 +56,6 @@ export default function ManagerHome() {
       const data = await res.json();
       if (res.ok) {
         setMensajeOferta(`Oferta creada: ${data.nombre} (ID: ${data.id_oferta})`);
-        setModalOfertaOpen(false);
         setFormOferta({});
       } else {
         setMensajeOferta(`Error: ${data.error}`);
@@ -86,7 +85,6 @@ export default function ManagerHome() {
           `Analista creado: ${data.credentials.username}\nContraseña temporal: ${data.credentials.password}`
         );
         setFormAnalista({ nombre: "", apellido: "", username: "", email: "" });
-        setModalAnalistaOpen(false);
       } else {
         setMensajeAnalista(`Error: ${data.error}`);
       }
