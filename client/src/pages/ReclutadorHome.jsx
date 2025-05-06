@@ -15,6 +15,10 @@ export default function ReclutadorHome() {
   const [empresa, setEmpresa] = useState(null);
   const [mensajeOfertas, setMensajeOfertas] = useState("");
   const [modalOfertasOpen, setModalOfertasOpen] = useState(false);  
+  const [modalLicenciaOpen, setModalLicenciaOpen] = useState(false);
+  const [formLicencia, setFormLicencia] = useState({ tipo: "", descripcion: "" });
+  const [mensajeLicencia, setMensajeLicencia] = useState("");
+
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/reclutador-home`, { credentials: "include" })
@@ -51,6 +55,31 @@ export default function ReclutadorHome() {
     }
   };
 
+  const solicitarLicencia = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/solicitud-licencia`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lic_type: formLicencia.tipo,
+          description: formLicencia.descripcion
+        })
+      });
+  
+      const data = await res.json();
+      if (res.ok) {
+        setMensajeLicencia("Solicitud enviada correctamente.");
+        setFormLicencia({ tipo: "", descripcion: "" });
+      } else {
+        setMensajeLicencia(`Error: ${data.error}`);
+      }
+    } catch (err) {
+      setMensajeLicencia("Error al conectar con el servidor.");
+    }
+  };
+  
+
   const openModalOfertas = () => {
     setMensajeOfertas("");
     fetchOfertasAsignadas();
@@ -68,6 +97,7 @@ export default function ReclutadorHome() {
       icon: FilePlus,
       titulo: "Cargar Licencias",
       descripcion: "Carga una nueva licencia.",
+      onClick: () => setModalLicenciaOpen(true)
     },
     {
       icon: FilePlus,
@@ -206,6 +236,67 @@ export default function ReclutadorHome() {
             </div>
           </div>
         )}
+
+{modalLicenciaOpen && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4 text-black">
+      <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
+
+      {mensajeLicencia && (
+        <div className="text-sm text-blue-700 bg-blue-100 p-2 rounded">
+          {mensajeLicencia}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <div>
+          <label className="text-sm font-medium">Tipo de licencia</label>
+          <input
+            type="text"
+            className="w-full p-2 border border-gray-300 rounded"
+            placeholder="vacaciones, enfermedad, etc."
+            value={formLicencia.tipo}
+            onChange={(e) =>
+              setFormLicencia({ ...formLicencia, tipo: e.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label className="text-sm font-medium">Descripción</label>
+          <textarea
+            className="w-full p-2 border border-gray-300 rounded"
+            placeholder="Motivo o detalles adicionales"
+            value={formLicencia.descripcion}
+            onChange={(e) =>
+              setFormLicencia({ ...formLicencia, descripcion: e.target.value })
+            }
+          ></textarea>
+        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 pt-4">
+        <button
+          onClick={() => {
+            setModalLicenciaOpen(false);
+            setMensajeLicencia("");
+          }}
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={solicitarLicencia}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Enviar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
       </motion.div>
     </EstiloEmpresaContext.Provider>
   );
