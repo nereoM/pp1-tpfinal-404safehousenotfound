@@ -1,0 +1,46 @@
+tags:
+  - Auth
+summary: Get current user info
+description: Returns information about the currently authenticated user based on their JWT token.
+produces:
+  - application/json
+responses:
+  200:
+    description: Successfully retrieved user information
+    schema:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "juan"
+        correo:
+          type: string
+          example: "juan@example.com"
+        roles:
+          type: array
+          items:
+            type: string
+          example: ["candidato"]
+        id_empresa:
+          type: integer
+          nullable: true
+          example: null
+  404:
+    description: User not found
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Usuario no encontrado"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token passed as a cookie
+security:
+  - cookieAuth: []

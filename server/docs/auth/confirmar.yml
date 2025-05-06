@@ -1,0 +1,28 @@
+tags:
+  - Auth
+summary: Confirm user email
+description: Confirms a user's email address using a token sent via email. If the token is expired or invalid, an appropriate error message is returned.
+produces:
+  - text/plain
+parameters:
+  - name: token
+    in: path
+    required: true
+    description: The email confirmation token
+    type: string
+responses:
+  200:
+    description: Email confirmed successfully
+    schema:
+      type: string
+      example: "¡Tu cuenta fue confirmada con éxito!"
+  400:
+    description: Invalid or expired token
+    schema:
+      type: string
+      example: "El enlace ha expirado. Registrate de nuevo."
+  404:
+    description: User not found
+    schema:
+      type: string
+      example: "Usuario no encontrado"

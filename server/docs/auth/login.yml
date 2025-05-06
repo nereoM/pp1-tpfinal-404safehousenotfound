@@ -1,0 +1,54 @@
+tags:
+  - Auth
+summary: Login a user
+description: Authenticates a user using their username or email and password, and returns an access token in a cookie.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    description: User login credentials
+    required: true
+    schema:
+      $ref: '#/definitions/LoginRequest'
+responses:
+  200:
+    description: Login successful
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Login successful"
+  400:
+    description: Missing credentials
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Username, email and password son requeridos"
+  401:
+    description: Invalid credentials
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Credenciales inválidas"
+definitions:
+  LoginRequest:
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+        description: Username or email
+        example: "juan@example.com"
+      password:
+        type: string
+        example: "StrongPassword123!"

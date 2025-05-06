@@ -1,0 +1,47 @@
+tags:
+  - Auth
+summary: Google OAuth login
+description: Logs in a user using a Google OAuth token. If the user doesn't exist, a new account is created with the role "candidato".
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    description: Google OAuth credential
+    required: true
+    schema:
+      $ref: '#/definitions/GoogleLoginRequest'
+responses:
+  200:
+    description: Login successful via Google
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Login Google exitoso"
+        roles:
+          type: array
+          items:
+            type: string
+          example: ["candidato"]
+  401:
+    description: Invalid token
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Token inválido"
+definitions:
+  GoogleLoginRequest:
+    type: object
+    required:
+      - credential
+    properties:
+      credential:
+        type: string
+        description: Google ID token returned by the client
+        example: "eyJhbGciOiJSUzI1NiIsImtpZCI6..."

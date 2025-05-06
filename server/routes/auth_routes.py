@@ -17,6 +17,7 @@ from itsdangerous import SignatureExpired, URLSafeTimedSerializer
 from models.extensions import db, mail
 from models.schemes import Rol, Usuario
 from services.config import Config
+from flasgger import swag_from
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -37,7 +38,7 @@ def validar_contrasena(password):
     # Si pasa todas las validaciones
     return True, "Contraseña válida."
 
-
+@swag_from('../docs/auth/register.yml')
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
@@ -122,7 +123,7 @@ def enviar_confirmacion_email(correo_destino, nombre_usuario):
     msg.body = f"Hola {nombre_usuario}, hacé clic para confirmar tu cuenta: {link}"
     mail.send(msg)
 
-
+@swag_from('../docs/auth/confirmar.yml')
 @auth_bp.route("/confirmar/<token>")
 def confirmar_email(token):
     s = URLSafeTimedSerializer(current_app.config["SECRET_KEY"])
@@ -149,7 +150,7 @@ def confirmar_email(token):
 
     return "¡Tu cuenta fue confirmada con éxito!"
 
-
+@swag_from('../docs/auth/login.yml')
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -187,14 +188,14 @@ def login():
 
     return jsonify({"error": "Credenciales Invalidas"}), 401
 
-
+@swag_from('../docs/auth/logout.yml')
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
     response = jsonify({"msg": "Logout exitoso"})
     unset_jwt_cookies(response)
     return response, 200
 
-
+@swag_from('../docs/auth/google.yml')
 @auth_bp.route("/google", methods=["POST"])
 def google_login():
     token = request.json.get("credential")
@@ -251,9 +252,9 @@ def google_login():
     except ValueError:
         return jsonify({"error": "Token inválido"}), 401
 
-
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
+@swag_from('../docs/auth/me.yml')
 def get_user_info():
     user_id = get_jwt_identity()
     user = Usuario.query.get(user_id)
