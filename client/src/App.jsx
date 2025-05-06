@@ -6,6 +6,7 @@ import ReclutadorHome from "./pages/ReclutadorHome";
 import CandidatoEmpHome from "./pages/CandidatoEmpHome";
 import CandidatoHome from "./pages/CandidatoHome";
 import Lobby from "./pages/Lobby";
+import LobbyEmp from "./pages/LobbyEmp"; 
 import Login from "./pages/Login";
 import ManagerHome from "./pages/ManagerHome";
 import Pagos from "./pages/Pagos";
@@ -21,18 +22,19 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Lobby />} />
+        <Route path="/lobbyemp" element={<LobbyEmp />} /> 
         <Route path="/login" element={<Login />} />
-        <Route path="reclutador" element={<ReclutadorLayout />}>
+        <Route path="reclutador" element={<ReclutadorLayout />} />
         <Route path="/reclutador/home" element={<ReclutadorHome />} />
-        </Route>
+        
         <Route path="/admin/home" element={<AdminHome />} />
         <Route path="/candidatoemp/home" element={<CandidatoEmpHome />} />
         <Route path="/candidato/home" element={<CandidatoHome />} />
         <Route path="/productos" element={<Productos />} />
         <Route path="/precios" element={<Precios />} />
         <Route path="/clientes" element={<Clientes />} />
-        <Route path="/pagos" element={<Pagos />} /> 
-        <Route path="/adminemp/home" element={<AdminEmpHome />} /> 
+        <Route path="/pagos" element={<Pagos />} />
+        <Route path="/adminemp/home" element={<AdminEmpHome />} />
         <Route path="/manager/home" element={<ManagerHome />} />
         <Route path="/manager/licencias" element={<LicenciasManager />} />
       </Routes>
