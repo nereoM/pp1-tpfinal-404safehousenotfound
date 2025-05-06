@@ -36,15 +36,33 @@ export default function AnalistaHome() {
   const acciones = [
     {
       icon: Users,
-      titulo: "Ver Listado de Ofertas Asignadas",
+      titulo: "Ver Todas las Ofertas",
       descripcion: "Accede al listado de ofertas disponibles en el sistema.",
+      href: "/analista/ofertas"
+    },
+    {
+      icon: Users,
+      titulo: "Ver Listado de Ofertas Asignadas",
+      descripcion: "Accede al listado de ofertas asignadas en el sistema.",
       href: "/analista/ofertas"
     },
     {
       icon: FilePlus,
       titulo: "Cargar Licencias",
-      descripcion: "Carga nuevas licencias o visualiza las existentes.",
+      descripcion: "Carga una nueva licencia.",
       href: "/analista/licencias"
+    },
+    {
+      icon: FilePlus,
+      titulo: "Gestionar Licencias",
+      descripcion: "Visualizá y administrá tus licencias cargadas.",
+      href: "/analista/licencias"
+    },
+    {
+      icon: BarChart2,
+      titulo: "Ver Empleados",
+      descripcion: "Visualizá y administrá los empleados de tu empresa.",
+      href: "/analista/indicadores"
     },
     {
       icon: BarChart2,
