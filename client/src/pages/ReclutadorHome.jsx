@@ -18,6 +18,12 @@ export default function ReclutadorHome() {
   const [modalLicenciaOpen, setModalLicenciaOpen] = useState(false);
   const [formLicencia, setFormLicencia] = useState({ tipo: "", descripcion: "" });
   const [mensajeLicencia, setMensajeLicencia] = useState("");
+  const [licencias, setLicencias] = useState([]);
+  const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
+  const [licenciaId, setLicenciaId] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [mensajeCertificado, setMensajeCertificado] = useState("");
+  
 
 
   useEffect(() => {
@@ -86,6 +92,73 @@ export default function ReclutadorHome() {
     setModalOfertasOpen(true);
   };
 
+
+ // func para obtener licencias 
+  const fetchLicencias = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mis-licencias`, {
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        console.log("Licencias obtenidas:", data);
+        setLicencias(data);
+        setModalLicenciasOpen(true);
+      } else {
+        console.error("Error al obtener licencias:", data.error);
+      }
+    } catch (err) {
+      console.error("Error al conectar con el servidor:", err);
+    }
+  };
+
+  //  abre modal y selecciona oferta
+  const seleccionarLicencia = (id_licencia) => {
+    console.log("ID recibido para subir certificado:", id_licencia);
+    if (!id_licencia) {
+      console.error("No se recibió un ID válido para la licencia.");
+      return;
+    }
+    setLicenciaId(id_licencia);
+  };
+
+  // subir certificado
+  const subirCertificado = async () => {
+    if (!selectedFile) {
+      setMensajeCertificado("Debes seleccionar un archivo PDF.");
+      return;
+    }
+
+    if (!licenciaId) {
+      setMensajeCertificado("No se encontró la licencia a la cual subir el certificado.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    console.log("Subiendo certificado para la licencia ID:", licenciaId);
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/subir-certificado/${licenciaId}`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMensajeCertificado(`Certificado subido correctamente`);
+        setModalLicenciasOpen(false); 
+      } else {
+        setMensajeCertificado(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("Error al subir el certificado:", error);
+      setMensajeCertificado("Error al conectar con el servidor.");
+    }
+  };
+
   const acciones = [
     {
       icon: Users,
@@ -103,6 +176,7 @@ export default function ReclutadorHome() {
       icon: FilePlus,
       titulo: "Gestionar Licencias",
       descripcion: "Visualizá y administrá tus licencias cargadas.",
+      onClick: fetchLicencias,
     },
     {
       icon: BarChart2,
@@ -120,6 +194,7 @@ export default function ReclutadorHome() {
       descripcion: "Revisa los KPIs del sistema.",
     },
   ];
+
 
   const handleLogout = () => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
@@ -295,6 +370,148 @@ export default function ReclutadorHome() {
   </div>
 )}
 
+
+{/* modal de gestionar licencias */}
+{modalLicenciasOpen && (
+  <div
+    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+    onClick={() => {
+      setModalLicenciasOpen(false);
+      setLicenciaId(null);
+      setSelectedFile(null);
+      setMensajeCertificado("");
+    }}
+  >
+    <div
+      className="bg-white p-6 rounded-2xl w-1/3 max-h-[70vh] overflow-auto text-black"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h2 className="text-2xl font-semibold mb-4 text-center">
+        Seleccionar Licencia y Subir Certificado
+      </h2>
+
+      
+      {licencias.length === 0 ? (
+        <p className="text-center text-gray-500">
+          No tienes licencias registradas.
+        </p>
+      ) : (
+        <ul className="space-y-2 mb-4">
+          {licencias.map((item, idx) => {
+            const { id_licencia, tipo, descripcion, estado } =
+              item.licencias.licencia;
+            return (
+              <li
+                key={idx}
+                onClick={() => setLicenciaId(id_licencia)}
+                className={`p-3 border rounded cursor-pointer hover:bg-blue-200 ${
+                  licenciaId === id_licencia ? "bg-blue-100" : ""
+                }`}
+              >
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">{tipo}</span>
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      estado === "activa"
+                        ? "bg-green-100 text-green-800"
+                        : estado === "aprobada"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {estado}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700 mt-1">{descripcion}</p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {/* sube el PDF <==> ya elegiste una licencia */}
+      {licenciaId && (
+        <>
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setSelectedFile(e.target.files[0])}
+            className="block w-full text-sm text-gray-500
+                       file:mr-4 file:py-2 file:px-4 file:rounded-lg
+                       file:border-0 file:text-sm file:font-semibold
+                       file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+
+          {mensajeCertificado && (
+            <div
+              className={`mb-4 mt-2 text-center font-semibold p-2 rounded ${
+                mensajeCertificado.includes("Error")
+                  ? "bg-red-100 text-red-700"
+                  : "bg-blue-100 text-blue-700"
+              }`}
+            >
+              {mensajeCertificado}
+            </div>
+          )}
+
+          <div className="mt-4 text-right flex gap-2">
+            <button
+              onClick={async () => {
+                if (!selectedFile) {
+                  setMensajeCertificado("❌ Debes seleccionar un PDF.");
+                  return;
+                }
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+
+                try {
+                  const res = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/subir-certificado/${licenciaId}`,
+                    {
+                      method: "POST",
+                      credentials: "include",
+                      body: formData,
+                    }
+                  );
+                  const data = await res.json();
+                  if (res.ok) {
+                    setMensajeCertificado(
+                      `Certificado subido: ${data.certificado_url}`
+                    );
+                    setTimeout(() => {
+                      setModalLicenciasOpen(false);
+                      setLicenciaId(null);
+                      setSelectedFile(null);
+                      setMensajeCertificado("");
+                    }, 1500);
+                  } else {
+                    setMensajeCertificado(`Error: ${data.error}`);
+                  }
+                } catch {
+                  setMensajeCertificado("Error al conectar con el servidor.");
+                }
+              }}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Subir
+            </button>
+            <button
+              onClick={() => {
+                setModalLicenciasOpen(false);
+                setLicenciaId(null);
+                setSelectedFile(null);
+                setMensajeCertificado("");
+              }}
+              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            >
+              Cancelar
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+)}
 
 
       </motion.div>
