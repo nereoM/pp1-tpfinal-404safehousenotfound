@@ -86,6 +86,11 @@ export default function AdminEmpHome() {
   };
 
   const crearManager = async () => {
+    if (formData.username.trim().length < 4) {
+      setMensaje("El nombre de usuario debe tener al menos 4 caracteres.");
+      return;
+    }
+  
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-manager`, {
         method: "POST",
@@ -98,11 +103,11 @@ export default function AdminEmpHome() {
           email: formData.email
         })
       });
-
+  
       const data = await res.json();
       if (res.ok) {
         setMensaje(
-          `Usuario creado correctamente.\n\nUser: ${data.credentials.username}\nCredencial temporal: ${data.credentials.password}`
+          `Usuario creado correctamente.\n\nUsername: ${data.credentials.username}\nCredencial temporal: ${data.credentials.password}`
         );
         setFormData({ nombre: "", apellido: "", username: "", email: "" });
       } else {
@@ -111,7 +116,7 @@ export default function AdminEmpHome() {
     } catch (err) {
       setMensaje("Error al conectar con el servidor");
     }
-  };
+  };  
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe, loading: loadingEstilos }}>
