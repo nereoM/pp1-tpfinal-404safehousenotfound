@@ -6,6 +6,7 @@ from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from models.extensions import db
 from flasgger import swag_from
+from datetime import datetime
 from models.schemes import (
     Empresa,
     Licencia,
@@ -16,6 +17,17 @@ from models.schemes import (
 )
 
 manager_bp = Blueprint("manager", __name__)
+
+
+def validar_fecha(fecha_str):
+    formatos_validos = ["%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"]
+    for formato in formatos_validos:
+        try:
+            datetime.strptime(fecha_str, formato)
+            return True
+        except ValueError:
+            continue
+    return False
 
 @manager_bp.route("/manager-home", methods=["GET"])
 @role_required(["manager"])
@@ -89,6 +101,9 @@ def register_reclutador():
 
     if Usuario.query.filter_by(correo=email).first():
         return jsonify({"error": "El email ya está registrado"}), 400
+    
+    if Usuario.query.filter_by(username=username).first():
+        return jsonify({"error": "El username ya está registrado"}), 400
 
     reclutador_role = db.session.query(Rol).filter_by(slug="reclutador").first()
     if not reclutador_role:
@@ -185,6 +200,20 @@ def crear_oferta_laboral():
         empresa = Empresa.query.filter_by(id=id_empresa).first()
         if not empresa:
             return jsonify({"error": "Empresa no encontrada."}), 404
+        
+        if salary_min >= salary_max:
+            return jsonify({"error": "El salario mínimo no puede ser mayor que el salario máximo."}), 400
+        
+        if salary_min < 0 or salary_max < 0:
+            return jsonify({"error": "El salario mínimo y máximo deben ser mayores o iguales a 0."}), 400
+        
+        if not validar_fecha(fecha_cierre):
+            return jsonify({"error": "Formato de fecha de cierre no válido. Debe ser YYYY-MM-DD, DD/MM/YYYY o MM-DD-YYYY."}), 400
+        
+        if fecha_cierre:
+            fecha_cierre = datetime.strptime(fecha_cierre, "%Y-%m-%d").date()
+            if fecha_cierre < datetime.now().date():
+                return jsonify({"error": "La fecha de cierre no puede ser anterior a la fecha actual."}), 400
 
         nueva_oferta = Oferta_laboral(
             id_empresa=empresa.id,
