@@ -326,7 +326,7 @@ def subir_logo():
 
 @admin_emp_bp.route("/ver-certificado/<int:certificado_url>", methods=["GET"])
 @role_required(["admin-emp"])
-def ver_cv(certificado_url):
+def ver_certificado(certificado_url):
     if not certificado_url:
         return jsonify({"error": "Certificado no encontrado"}), 404
 
