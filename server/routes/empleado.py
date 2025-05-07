@@ -6,6 +6,7 @@ from auth.decorators import role_required
 import os
 from werkzeug.utils import secure_filename
 from datetime import datetime
+from flasgger import swag_from
 
 empleado_bp = Blueprint("empleado", __name__)
 
@@ -14,6 +15,7 @@ empleado_bp = Blueprint("empleado", __name__)
 def empleado_home():
     return jsonify({"message": "Bienvenido al Inicio de Empleado"}), 200
 
+@swag_from("../docs/empleado/solicitar-licencia.yml")
 @empleado_bp.route("/solicitar-licencia", methods=["POST"])
 @role_required(["empleado"])
 def solicitar_licencia():
@@ -54,6 +56,7 @@ def solicitar_licencia():
         }
     ), 201
 
+@swag_from("../docs/empleado/mis-licencias.yml")
 @empleado_bp.route("/mis-licencias-emp", methods=["GET"])
 @role_required(["empleado"])
 def ver_mis_licencias():
@@ -94,7 +97,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
+@swag_from("../docs/empleado/subir-certificado.yml")
 @empleado_bp.route("/subir-certificado-emp/<int:id_licencia>", methods=["POST"])
 @role_required(["empleado"])
 def subir_certificado(id_licencia):

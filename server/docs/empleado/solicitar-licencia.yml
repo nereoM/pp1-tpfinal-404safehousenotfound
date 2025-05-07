@@ -1,0 +1,79 @@
+tags:
+  - Empleado
+summary: Solicitar licencia
+description: Permite a un empleado solicitar una nueva licencia. El estado inicial será "pendiente".
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    required: true
+    description: Datos de la licencia a solicitar
+    schema:
+      type: object
+      required:
+        - lic_type
+        - description
+      properties:
+        lic_type:
+          type: string
+          example: Vacaciones
+        description:
+          type: string
+          example: Vacaciones de verano del 10 al 20 de enero
+responses:
+  201:
+    description: Solicitud de licencia creada exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Solicitud de licencia enviada exitosamente
+        licencia:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 12
+            tipo:
+              type: string
+              example: Vacaciones
+            descripcion:
+              type: string
+              example: Vacaciones de verano del 10 al 20 de enero
+            estado:
+              type: string
+              example: pendiente
+            fecha_inicio:
+              type: string
+              format: date-time
+              nullable: true
+              example: null
+            empresa:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 3
+                nombre:
+                  type: string
+                  example: Soluciones IT
+  400:
+    description: Datos inválidos o faltantes
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Faltan datos obligatorios para solicitar la licencia"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []
