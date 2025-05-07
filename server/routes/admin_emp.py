@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, send_file
 from auth.decorators import role_required
-from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa
+from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa, Licencia
 from models.extensions import db
 import secrets
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -323,7 +323,6 @@ def subir_logo():
         "logo_url": empresa.logo_url
     }), 200
 
-
 @admin_emp_bp.route("/ver-certificado/<int:certificado_url>", methods=["GET"])
 @role_required(["admin-emp"])
 def ver_certificado(certificado_url):
@@ -336,7 +335,6 @@ def ver_certificado(certificado_url):
         return send_file(file_path, as_attachment=False)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
     
 @admin_emp_bp.route("/registrar-empleados", methods=["POST"])
 @role_required(["admin-emp"])
@@ -407,7 +405,8 @@ def register_employees_from_csv(file_path):
                 correo=email,
                 username=username,
                 contrasena=secrets.token_urlsafe(8),  # Contraseña temporal
-                id_empresa=id_empresa
+                id_empresa=id_empresa,
+                id_superior=admin_emp.id
             )
 
             # Asignar el rol de empleado
@@ -441,3 +440,49 @@ def allowed_file(filename):
 def validar_nombre(nombre: str) -> bool:
     # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
     return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
+
+@admin_emp_bp.route("/licencias-solicitadas", methods=["GET"])
+@role_required(["admin-emp"])
+def visualizar_licencias():
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.filter_by(id=id_admin_emp).first()
+    empresa = Empresa.query.filter_by(id=admin_emp.id_empresa).first()
+
+    licencias = Licencia.query.filter_by(id_empresa=empresa.id).all()
+
+    resultado = []
+    for licencia in licencias:
+        empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
+        if (
+            empleado.id_superior == admin_emp.id
+            and empleado.id_empresa == admin_emp.id_empresa
+        ):
+            resultado.append(
+                {
+                    "licencia": {
+                        "id_licencia": licencia.id,
+                        "empleado": {
+                            "id": licencia.id_empleado,
+                            "nombre": empleado.nombre,
+                            "apellido": empleado.apellido,
+                            "username": empleado.username,
+                            "email": empleado.correo,
+                        },
+                        "tipo": licencia.tipo,
+                        "descripcion": licencia.descripcion,
+                        "fecha_inicio": licencia.fecha_inicio.isoformat()
+                        if licencia.fecha_inicio
+                        else None,
+                        "estado": licencia.estado,
+                        "empresa": {
+                            "id": licencia.id_empresa,
+                            "nombre": empresa.nombre,
+                        },
+                        "certificado_url": licencia.certificado_url
+                        if licencia.certificado_url
+                        else None,
+                    }
+                }
+            )
+
+    return jsonify(resultado), 200
