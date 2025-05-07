@@ -182,16 +182,19 @@ export default function ReclutadorHome() {
       icon: BarChart2,
       titulo: "Ver Empleados",
       descripcion: "Visualizá y administrá los empleados de tu empresa.",
+      onClick: () => alert("Funcionalidad en desarrollo"),
     },
     {
       icon: BarChart2,
       titulo: "Visualizar Indicadores de Desempeño",
       descripcion: "Revisa los indicadores clave de desempeño de los empleados.",
+      onClick: () => alert("Funcionalidad en desarrollo"),
     },
     {
       icon: FileText,
       titulo: "Visualizar Reportes",
       descripcion: "Revisa los KPIs del sistema.",
+      onClick: () => alert("Funcionalidad en desarrollo"),
     },
   ];
 
