@@ -70,8 +70,12 @@ export default function ManagerHome() {
     }
   };
 
-  //funcion para crear un analista
   const crearAnalista = async () => {
+    if (formAnalista.username.trim().length < 4) {
+      setMensajeAnalista("El nombre de usuario debe tener al menos 4 caracteres.");
+      return;
+    }
+  
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-reclutador`, {
         method: "POST",
@@ -84,6 +88,7 @@ export default function ManagerHome() {
           email: formAnalista.email,
         }),
       });
+      
       const data = await res.json();
       if (res.ok) {
         setMensajeAnalista(
