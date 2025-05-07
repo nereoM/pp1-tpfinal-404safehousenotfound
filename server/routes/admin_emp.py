@@ -323,7 +323,6 @@ def subir_logo():
         "logo_url": empresa.logo_url
     }), 200
 
-
 @admin_emp_bp.route("/ver-certificado/<int:certificado_url>", methods=["GET"])
 @role_required(["admin-emp"])
 def ver_certificado(certificado_url):
@@ -336,7 +335,6 @@ def ver_certificado(certificado_url):
         return send_file(file_path, as_attachment=False)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
     
 @admin_emp_bp.route("/registrar-empleados", methods=["POST"])
 @role_required(["admin-emp"])
