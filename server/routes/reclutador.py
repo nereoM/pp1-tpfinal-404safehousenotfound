@@ -240,11 +240,11 @@ def subir_certificado(id_licencia):
     ), 200
 
 
-@reclutador_bp.route("/ver-certificado/<path:url_cv>", methods=["GET"])
+@reclutador_bp.route("/ver-cv/<path:url_cv>", methods=["GET"])
 @role_required(["reclutador"])
 def ver_certificado(url_cv):
     if not url_cv:
-        return jsonify({"error": "Certificado no encontrado"}), 404
+        return jsonify({"error": "CV no encontrado"}), 404
 
     file_path = os.path.join(os.getcwd(), url_cv)
 
