@@ -408,18 +408,27 @@ def recomendar_ofertas():
         else:
             return jsonify({"error": "Formato de CV no compatible"}), 400
 
+        # Dividimos el CV en partes para analizar
+        partes_cv = dividir_cv_en_partes(texto_cv)
+
+        # Sacamos las palabras clave del CV
+        palabras_clave_cv = set(partes_cv)
+
+        # 🔍 Filtrar ofertas que tengan al menos una palabra clave similar
         ofertas = (
             db.session.query(Oferta_laboral)
-            .filter_by(is_active=True)
-            .order_by(func.rand())
+            .filter(Oferta_laboral.is_active == True)
+            .filter(
+                or_(*[Oferta_laboral.palabras_clave.like(f"%{palabra}%") for palabra in palabras_clave_cv])
+            )
             .limit(10)
             .all()
         )
+
         recomendaciones = []
 
         for oferta in ofertas:
             palabras_clave = json.loads(oferta.palabras_clave)
-            partes_cv = dividir_cv_en_partes(texto_cv)
             vectores_cv = modelo_sbert.encode(partes_cv)
             vector_keywords = modelo_sbert.encode(" ".join(palabras_clave))
             max_sim = max(cosine_similarity([vector_keywords], vectores_cv)[0])
