@@ -9,6 +9,7 @@ from routes.candidato import candidato_bp
 from routes.reclutador import reclutador_bp
 from routes.manager import manager_bp
 from routes.admin_emp import admin_emp_bp
+from routes.empleado import empleado_bp
 
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -35,6 +36,7 @@ app.register_blueprint(reclutador_bp, url_prefix="/api")
 app.register_blueprint(manager_bp,    url_prefix="/api")
 app.register_blueprint(admin_emp_bp,  url_prefix="/api")
 app.register_blueprint(admin_404_bp,  url_prefix="/api")
+app.register_blueprint(empleado_bp,   url_prefix="/api")
 
 # Para ver la documentacion ir a /apidocs
 setup_swagger_ui(app=app)
