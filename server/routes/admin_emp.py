@@ -168,6 +168,9 @@ def registrar_manager():
     existing_user = Usuario.query.filter_by(username=username).first()
     if existing_user:
         return jsonify({"error": "El usuario ya existe"}), 400
+    
+    if Usuario.query.filter_by(username=email).first():
+        return jsonify({"error": "El email ya está registrado"}), 400
 
     # Crear un nuevo usuario con el rol de manager
     new_user = Usuario(
