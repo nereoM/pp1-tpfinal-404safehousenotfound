@@ -23,6 +23,16 @@ export default function ReclutadorHome() {
   const [licenciaId, setLicenciaId] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [mensajeCertificado, setMensajeCertificado] = useState("");
+  const [modalEditarEtiquetasOpen, setModalEditarEtiquetasOpen] = useState(false);
+  const [selectedOfertaId, setSelectedOfertaId] = useState(null);
+  const [etiquetasOferta, setEtiquetasOferta] = useState([]);
+  const [nuevasEtiquetas, setNuevasEtiquetas] = useState([]);
+  const [mensajeEtiquetas, setMensajeEtiquetas] = useState("");
+  const [modalPostulantesOpen, setModalPostulantesOpen] = useState(false);
+  const [postulantes, setPostulantes] = useState([]);
+  const [cvModalOpen, setCvModalOpen] = useState(false);
+  const [cvUrl, setCvUrl] = useState(null);
+
   
 
 
@@ -159,6 +169,68 @@ export default function ReclutadorHome() {
     }
   };
 
+  // abrir modal de palabras claves
+const openEditarEtiquetas = (oferta) => {
+  setSelectedOfertaId(oferta.id_oferta);
+  setEtiquetasOferta(oferta.palabras_clave);
+  setNuevasEtiquetas(oferta.palabras_clave);
+  setMensajeEtiquetas("");
+  setModalEditarEtiquetasOpen(true);
+};
+
+// guardar palabras claves nuevas
+const saveEtiquetas = async () => {
+  try {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/definir_palabras_clave/${selectedOfertaId}`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ palabras_clave: nuevasEtiquetas }),
+      }
+    );
+    const data = await res.json();
+    if (res.ok) {
+      setMensajeEtiquetas("Etiquetas actualizadas");
+      // refresca la lista de ofertas
+      fetchOfertasAsignadas();
+      setTimeout(() => setModalEditarEtiquetasOpen(false), 1000);
+    } else {
+      setMensajeEtiquetas(`${data.error}`);
+    }
+  } catch {
+    setMensajeEtiquetas("Error al conectar con el servidor");
+  }
+};
+
+// abri modal para ver postulantes
+const openVerPostulantes = async (id_oferta) => {
+  try {
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/ver_candidatos/${id_oferta}`,
+      { credentials: "include" }
+    );
+    const data = await res.json();
+    if (res.ok) {
+      setPostulantes(data);
+      setModalPostulantesOpen(true);
+    } else {
+      setMensajeOfertas(`${data.error}`);
+    }
+  } catch {
+    setMensajeOfertas("Error al conectar al servidor");
+  }
+};
+
+// funcion para abir cv
+const openCv = (idCv) => {
+  const url = `${import.meta.env.VITE_API_URL}/api/ver-cv/${idCv}`;
+  setCvUrl(url);
+  setCvModalOpen(true);
+};
+
+
   const acciones = [
     {
       icon: Users,
@@ -288,18 +360,32 @@ export default function ReclutadorHome() {
                 <p>No hay ofertas asignadas.</p>
               ) : (
                 <ul className="space-y-2 max-h-[60vh] overflow-y-auto">
-                  {ofertasAsignadas.map((oferta) => (
-                    <li key={oferta.id_oferta} className="p-4 border rounded shadow bg-gray-50">
-                      <h3 className="font-semibold">{oferta.nombre}</h3>
-                      <p className="text-sm">{oferta.descripcion}</p>
-                      <p className="text-xs text-gray-600">
-                        Ubicación: {oferta.location} | Modalidad: {oferta.workplace_type}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        Publicación: {oferta.fecha_publicacion?.split("T")[0]} | Cierre: {oferta.fecha_cierre?.split("T")[0]}
-                      </p>
-                    </li>
-                  ))}
+            {ofertasAsignadas.map((oferta) => (
+  <li key={oferta.id_oferta} className="p-4 border rounded shadow bg-gray-50">
+    <h3 className="font-semibold">{oferta.nombre}</h3>
+    <p className="text-sm">{oferta.descripcion}</p>
+    <p className="text-xs text-gray-600">
+      Publicación: {oferta.fecha_publicacion?.split("T")[0]} | 
+      Cierre: {oferta.fecha_cierre?.split("T")[0]}
+    </p>
+
+    <div className="mt-2 flex space-x-2">
+      <button
+        onClick={() => openEditarEtiquetas(oferta)}
+        className="px-3 py-1 bg-yellow-500 text-white rounded"
+      >
+        Editar etiquetas
+      </button>
+      <button
+        onClick={() => openVerPostulantes(oferta.id_oferta)}
+        className="px-3 py-1 bg-green-500 text-white rounded"
+      >
+        Ver postulantes
+      </button>
+    </div>
+  </li>
+))}
+
                 </ul>
               )}
 
@@ -515,6 +601,217 @@ export default function ReclutadorHome() {
     </div>
   </div>
 )}
+
+
+{modalEditarEtiquetasOpen && (
+  <div
+    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+    onClick={() => {
+      setModalEditarEtiquetasOpen(false);
+      setMensajeEtiquetas("");
+    }}
+  >
+    <div
+      className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Título */}
+      <h2 className="text-2xl font-semibold mb-4 text-center text-black">
+        Editar Palabras Clave
+      </h2>
+
+      {/* palabras existentes */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium mb-1 text-black">
+          Palabras clave ({nuevasEtiquetas.length}/3)
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {nuevasEtiquetas.length > 0 ? (
+            nuevasEtiquetas.map((tag, i) => (
+              <div
+                key={i}
+                className="flex items-center bg-gray-200 text-gray-800 rounded-full px-3 py-1 text-sm"
+              >
+                {tag}
+                <button
+                  className="ml-2 font-bold text-gray-500 hover:text-gray-800"
+                  onClick={() =>
+                    setNuevasEtiquetas(nuevasEtiquetas.filter((_, idx) => idx !== i))
+                  }
+                >
+                  ×
+                </button>
+              </div>
+            ))
+          ) : (
+            <span className="text-sm text-gray-500">(Sin etiquetas)</span>
+          )}
+        </div>
+      </div>
+
+      {/* añadir etiqueta */}
+      <div className="mb-4">
+        {nuevasEtiquetas.length < 3 ? (
+          <>
+            <label className="block text-sm font-medium mb-1 text-black">
+              Añadir etiqueta
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Escribe y presiona Enter o pulsa Añadir"
+                onKeyDown={(e) => {
+                  if ((e.key === "Enter" || e.key === ",") && e.currentTarget.value) {
+                    e.preventDefault();
+                    const val = e.currentTarget.value
+                      .trim()
+                      .replace(/,$/, "")
+                      .toLowerCase();
+                    if (val && !nuevasEtiquetas.includes(val)) {
+                      setNuevasEtiquetas([...nuevasEtiquetas, val]);
+                    }
+                    e.currentTarget.value = "";
+                  }
+                }}
+                className="flex-1 p-2 border border-gray-300 rounded text-black"
+              />
+              <button
+                onClick={(e) => {
+                  const inp = e.currentTarget.previousSibling;
+                  const val = inp.value.trim().replace(/,$/, "").toLowerCase();
+                  if (val && !nuevasEtiquetas.includes(val)) {
+                    setNuevasEtiquetas([...nuevasEtiquetas, val]);
+                  }
+                  inp.value = "";
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Añadir
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="text-sm text-red-600">
+            Has alcanzado el máximo de 3 etiquetas.
+          </p>
+        )}
+      </div>
+
+
+      {mensajeEtiquetas && (
+        <div
+          className={`mb-4 p-2 rounded text-center text-sm ${
+            mensajeEtiquetas.startsWith("")
+              ? "bg-blue-100 text-blue-700"
+              : "bg-blue-100 text-blue-700"
+          }`}
+        >
+          {mensajeEtiquetas}
+        </div>
+      )}
+
+      {/* botones */}
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => {
+            setModalEditarEtiquetasOpen(false);
+            setMensajeEtiquetas("");
+          }}
+          className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={saveEtiquetas}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{modalPostulantesOpen && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalPostulantesOpen(false)}>
+    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4" onClick={e => e.stopPropagation()}>
+      <h2 className="text-xl font-semibold mb-4 text-black">Postulantes</h2>
+      {postulantes.length === 0 ? (
+        <p className="text-gray-500">No hay postulantes.</p>
+      ) : (
+        <ul className="space-y-4 max-h-[60vh] overflow-y-auto">
+          {postulantes.map((c,i) => (
+            <li key={i} className="border-b pb-3 last:border-0 flex flex-col gap-1">
+              <span className="font-medium text-black">{c.nombre}</span>
+              <span className="text-sm text-gray-700">{c.email}</span>
+              <span className="text-xs text-gray-500">{new Date(c.fecha_postulacion).toLocaleDateString()}</span>
+              {c.cv_url && (
+                <button
+                  onClick={() => openCv(c.id_cv)}
+                  className="mt-1 text-blue-600 hover:underline text-sm w-max"
+                >
+                  Ver CV
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-6 text-right">
+        <button
+          onClick={() => setModalPostulantesOpen(false)}
+          className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+{cvModalOpen && (
+  <div
+    className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 overflow-y-auto"
+    onClick={() => { setCvModalOpen(false); setCvUrl(null); }}
+  >
+    <div
+      className="bg-white p-4 rounded-lg shadow-lg w-full max-w-3xl h-[80vh] mx-4 flex flex-col"
+      onClick={e => e.stopPropagation()}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-lg font-semibold text-black">Previsualizar CV</h3>
+        <button
+          onClick={() => { setCvModalOpen(false); setCvUrl(null); }}
+          className="text-gray-600 hover:text-gray-800 text-2xl leading-none"
+        >
+          ×
+        </button>
+      </div>
+      {cvUrl ? (
+        <object data={cvUrl}
+                type="application/pdf"
+                width="100%"
+                height="100%"
+                className="flex-1 border">
+          <p className="text-center text-gray-500">
+            Tu navegador no soporta PDF embebido.&nbsp;
+            <a href={cvUrl}
+               target="_blank"
+               rel="noopener noreferrer"
+               className="text-blue-600 underline">
+              Descargar CV
+            </a>
+          </p>
+        </object>
+      ) : (
+        <p className="text-center text-gray-500">Cargando visor…</p>
+      )}
+    </div>
+  </div>
+)}
+
+
 
 
       </motion.div>
