@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from auth.decorators import role_required
 from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa
 from models.extensions import db
@@ -322,6 +322,20 @@ def subir_logo():
         "message": "Logo subido exitosamente",
         "logo_url": empresa.logo_url
     }), 200
+
+
+@admin_emp_bp.route("/ver-certificado/<int:certificado_url>", methods=["GET"])
+@role_required(["admin-emp"])
+def ver_cv(certificado_url):
+    if not certificado_url:
+        return jsonify({"error": "Certificado no encontrado"}), 404
+
+    file_path = certificado_url
+
+    try:
+        return send_file(file_path, as_attachment=False)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     
     
 @admin_emp_bp.route("/registrar-empleados", methods=["POST"])

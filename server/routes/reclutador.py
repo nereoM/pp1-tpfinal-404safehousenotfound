@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timezone
 
 from auth.decorators import role_required
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity
 from models.extensions import db
 from models.schemes import (
@@ -106,6 +106,21 @@ def ver_postulantes(id_oferta):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+@reclutador_bp.route("/ver-cv/<int:url_cv>", methods=["GET"])
+@role_required(["reclutador"])
+def ver_cv(url_cv):
+    if not url_cv:
+        return jsonify({"error": "CV no encontrado"}), 404
+
+    file_path = url_cv
+
+    try:
+        return send_file(file_path, as_attachment=False)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
 @swag_from('../docs/reclutador/solicitud-licencia.yml')
 @reclutador_bp.route("/solicitud-licencia", methods=["POST"])
