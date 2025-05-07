@@ -1,7 +1,7 @@
 tags:
   - Manager
 summary: Desvincular a un reclutador
-description: El manager desvincula a un empleado (reclutador) quitándolo de la empresa y asignándole el rol de candidato.
+description: Permite al manager desvincular a un empleado bajo su supervisión, desactivando su cuenta y asignándole el rol de candidato.
 parameters:
   - name: id_empleado
     in: path
@@ -19,6 +19,14 @@ responses:
         message:
           type: string
           example: Empleado desvinculado correctamente
+  400:
+    description: El empleado ya está desvinculado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: El empleado ya está desvinculado
   403:
     description: El manager no tiene permisos para desvincular a este usuario
     schema:

@@ -38,7 +38,7 @@ parameters:
           example: full-time
         etiquetas:
           type: string
-          description: Palabras clave separadas por comas
+          description: Palabras clave separadas por comas. Mínimo 3 caracteres por palabra.
           example: Python, React, SQL
         workplace_type:
           type: string
@@ -62,6 +62,7 @@ parameters:
         fecha_cierre:
           type: string
           format: date
+          description: Fecha de cierre opcional en formato YYYY-MM-DD. No puede ser anterior a la fecha actual.
           example: 2025-12-31
 responses:
   201:
@@ -82,9 +83,26 @@ responses:
           type: string
           example: Acme Corp
   400:
-    description: Faltan campos requeridos
+    description: Error en los datos enviados
     schema:
       type: object
       properties:
         error:
           type: string
+          example: El salario mínimo no puede ser mayor que el salario máximo.
+  404:
+    description: Manager o empresa no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Empresa no encontrada.
+  500:
+    description: Error interno del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Ocurrió un error inesperado.
