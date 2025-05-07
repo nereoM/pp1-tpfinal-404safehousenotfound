@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity
 from models.extensions import db
-from models.schemes import Empresa, Licencia, Usuario
+from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral
 from auth.decorators import role_required
 import os
 from werkzeug.utils import secure_filename
@@ -145,3 +145,32 @@ def subir_certificado(id_licencia):
             "certificado_url": licencia.certificado_url,
         }
     ), 200
+    
+@empleado_bp.route("/ver-ofertas-empresa", methods=["GET"])
+@role_required(["empleado"])
+def ver_ofertas_empresa():
+    id_empleado = get_jwt_identity()
+    empleado = Usuario.query.filter_by(id=id_empleado).first()
+
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    ofertas = (
+        Oferta_laboral.query.filter_by(id_empresa=empleado.id_empresa).all()
+    )
+
+    resultado = [
+        {
+            "id": oferta.id,
+            "titulo": oferta.titulo,
+            "descripcion": oferta.descripcion,
+            "fecha_publicacion": oferta.fecha_publicacion.isoformat(),
+            "empresa": {
+                "id": oferta.empresa.id,
+                "nombre": oferta.empresa.nombre,
+            },
+        }
+        for oferta in ofertas
+    ]
+
+    return jsonify(resultado), 200
