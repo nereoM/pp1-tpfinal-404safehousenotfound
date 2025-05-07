@@ -324,13 +324,13 @@ def subir_logo():
     }), 200
 
 @swag_from("../docs/admin-emp/ver-certificado.yml")
-@admin_emp_bp.route("/ver-certificado/<int:certificado_url>", methods=["GET"])
+@admin_emp_bp.route("/ver-certificado/<path:certificado_url>", methods=["GET"])
 @role_required(["admin-emp"])
 def ver_certificado(certificado_url):
     if not certificado_url:
         return jsonify({"error": "Certificado no encontrado"}), 404
 
-    file_path = certificado_url
+    file_path = os.path.join(os.getcwd(), certificado_url)
 
     try:
         return send_file(file_path, as_attachment=False)

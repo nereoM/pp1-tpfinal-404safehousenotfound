@@ -3,7 +3,7 @@ import os
 from datetime import datetime, timezone
 
 from auth.decorators import role_required
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity
 from models.extensions import db
 from models.schemes import (
@@ -238,6 +238,21 @@ def subir_certificado(id_licencia):
             "certificado_url": licencia.certificado_url,
         }
     ), 200
+
+
+@reclutador_bp.route("/ver-certificado/<path:url_cv>", methods=["GET"])
+@role_required(["reclutador"])
+def ver_certificado(url_cv):
+    if not url_cv:
+        return jsonify({"error": "Certificado no encontrado"}), 404
+
+    file_path = os.path.join(os.getcwd(), url_cv)
+
+    try:
+        return send_file(file_path, as_attachment=False)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @swag_from('../docs/reclutador/mis-ofertas-laborales.yml')
 @reclutador_bp.route("/mis-ofertas-laborales-reclutador", methods=["GET"])
