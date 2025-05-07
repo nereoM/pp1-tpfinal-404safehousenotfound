@@ -8,6 +8,8 @@ import os
 from werkzeug.utils import secure_filename
 import re
 from flasgger import swag_from
+import csv
+
 
 admin_emp_bp = Blueprint("admin_emp", __name__)
 
@@ -319,6 +321,106 @@ def subir_logo():
     }), 200
     
     
+@admin_emp_bp.route("/registrar-empleados", methods=["POST"])
+@role_required(["admin-emp"])
+def registrar_empleados():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join("uploads/registro_empleados", filename)
+        file.save(file_path)
+
+        try:
+            register_employees_from_csv(file_path)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    return jsonify({'error': 'Invalid file format'}), 400
+
+def register_employees_from_csv(file_path):
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        required_fields = {'nombre', 'apellido', 'email', 'username'}
+        
+        resultado = []
+
+        for row in reader:
+            # Validar que todas las columnas requeridas estén presentes
+            if not required_fields.issubset(row.keys()):
+                return jsonify({"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username"}), 400
+
+            nombre = row['nombre'].strip()
+            apellido = row['apellido'].strip()
+            email = row['email'].strip()
+            username = row['username'].strip()
+
+            # Validar los datos
+            if not validar_nombre(nombre) or not validar_nombre(apellido):
+                return jsonify({"error": "Nombre o apellido no válido"}), 400
+            
+            email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+            if not re.match(email_regex, email):
+                return jsonify({"error": "Formato de email no válido"}), 400
+
+            # Verificar si el usuario ya existe
+            existing_user = Usuario.query.filter_by(username=username).first()
+            if existing_user:
+                return jsonify({"error": f"El usuario '{username}' ya existe"}), 400
+            
+            id_admin_emp = get_jwt_identity()
+
+            # Verificar si el admin-emp tiene una empresa asociada
+            admin_emp = Usuario.query.get(id_admin_emp)
+            if not admin_emp or not admin_emp.id_empresa:
+                return jsonify({"error": "El admin-emp no tiene una empresa asociada"}), 403
+
+            id_empresa = admin_emp.id_empresa
+
+            # Crear un nuevo usuario
+            new_user = Usuario(
+                nombre=nombre,
+                apellido=apellido,
+                correo=email,
+                username=username,
+                contrasena=secrets.token_urlsafe(8),  # Contraseña temporal
+                id_empresa=id_empresa
+            )
+
+            # Asignar el rol de empleado
+            empleado_role = Rol.query.filter_by(slug="empleado").first()
+            if not empleado_role:
+                empleado_role = Rol(nombre="Empleado", slug="empleado", permisos="permisos_empleado")
+                db.session.add(empleado_role)
+                db.session.commit()
+
+            new_user.roles.append(empleado_role)
+
+            resultado.append({
+                "username": username,
+                "password": new_user.contrasena
+            })
+
+            # Guardar el usuario en la base de datos
+            db.session.add(new_user)
+
+        # Confirmar los cambios en la base de datos
+        db.session.commit()
+        return jsonify({
+            "message": "Empleados registrados exitosamente",
+            "total_empleados": len(list(reader)),
+            "empleados": resultado
+        })
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'csv'}
+
 def validar_nombre(nombre: str) -> bool:
     # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
     return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
