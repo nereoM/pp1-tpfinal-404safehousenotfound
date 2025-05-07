@@ -165,6 +165,7 @@ def crear_estructura_empresas_y_ofertas():
                     currency=o["currency"],
                     experience_level=o["experience_level"],
                     is_active=True,
+                    id_creador=manager.id,
                     palabras_clave=json.dumps(o["palabras_clave"]),
                     fecha_publicacion=datetime.utcnow(),
                     fecha_cierre=datetime.utcnow() + timedelta(days=30)
