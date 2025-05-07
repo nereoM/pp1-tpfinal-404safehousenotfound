@@ -5,6 +5,7 @@ from models.schemes import Empresa, Licencia, Usuario
 from auth.decorators import role_required
 import os
 from werkzeug.utils import secure_filename
+from datetime import datetime
 
 empleado_bp = Blueprint("empleado", __name__)
 
@@ -97,7 +98,7 @@ def allowed_file(filename):
 @empleado_bp.route("/subir-certificado-emp/<int:id_licencia>", methods=["POST"])
 @role_required(["empleado"])
 def subir_certificado(id_licencia):
-    # Verificar si la licencia existe y pertenece al reclutador
+    # Verificar si la licencia existe y pertenece al empleado
     id_empleado = get_jwt_identity()
     licencia = Licencia.query.get(id_licencia)
     empleado = Usuario.query.filter_by(id=id_empleado).first()
@@ -119,19 +120,20 @@ def subir_certificado(id_licencia):
 
     file = request.files["file"]
 
-    # Verificar si el archivo tiene un nombre válido y es un PDF
     if file.filename == "" or not allowed_file(file.filename):
         return jsonify(
             {"error": "Formato de archivo no permitido. Solo se aceptan archivos PDF"}
         ), 400
 
-    # Guardar el archivo en el servidor
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    filename = secure_filename(file.filename.rsplit(".", 1)[0])
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    nombre_final = f"{filename}_{timestamp}.{ext}"
+
+    filepath = os.path.join(UPLOAD_FOLDER, nombre_final)
     file.save(filepath)
 
-    # Actualizar la licencia con la URL del certificado
-    licencia.certificado_url = f"/{UPLOAD_FOLDER}/{filename}"
+    licencia.certificado_url = f"/{UPLOAD_FOLDER}/{nombre_final}"
     db.session.commit()
 
     return jsonify(

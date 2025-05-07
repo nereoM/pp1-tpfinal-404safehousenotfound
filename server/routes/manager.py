@@ -201,6 +201,12 @@ def crear_oferta_laboral():
         if not empresa:
             return jsonify({"error": "Empresa no encontrada."}), 404
         
+        salary_max = int(float(salary_max))
+        salary_min = int(float(salary_min))
+        
+        if salary_min == 0 and salary_max == 0:
+            return jsonify({"error": "El salario mínimo y máximo no pueden ser 0."}), 400
+
         if salary_min >= salary_max:
             return jsonify({"error": "El salario mínimo no puede ser mayor que el salario máximo."}), 400
         

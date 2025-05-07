@@ -185,17 +185,19 @@ def upload_cv():
         return jsonify({"error": "No se seleccionó ningún archivo"}), 400
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
+        id_candidato = get_jwt_identity()
+        original_filename = secure_filename(file.filename)
+
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        nombre_final = f"{original_filename.rsplit('.', 1)[0]}_{timestamp}.{original_filename.rsplit('.', 1)[1]}"
+
         upload_folder = candidato_bp.config["UPLOAD_FOLDER"]
-        filepath = os.path.join(upload_folder, filename)
+        filepath = os.path.join(upload_folder, nombre_final)
 
         file.save(filepath)
 
-        id_candidato = get_jwt_identity()
-
         tipo_archivo = file.mimetype
-
-        url_cv = f"uploads/cvs/{filename}"
+        url_cv = f"uploads/cvs/{nombre_final}"
 
         nuevo_cv = CV(
             id_candidato=id_candidato,
@@ -211,7 +213,7 @@ def upload_cv():
             {
                 "message": "CV subido exitosamente",
                 "file_path": url_cv,
-                "filename": filename,
+                "filename": nombre_final,
             }
         ), 201
 
@@ -418,7 +420,7 @@ def recomendar_ofertas():
             .filter(
                 or_(*[Oferta_laboral.palabras_clave.like(f"%{palabra}%") for palabra in palabras_clave_cv])
             )
-            .limit(10)
+            .limit(15)
             .all()
         )
 
