@@ -1,0 +1,81 @@
+tags:
+  - Admin Empresa
+summary: Visualizar licencias solicitadas
+description: |
+  Permite a un administrador de empresa visualizar las licencias solicitadas por los empleados que están bajo su supervisión dentro de la misma empresa.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de licencias solicitadas por empleados supervisados
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          licencia:
+            type: object
+            properties:
+              id_licencia:
+                type: integer
+                example: 12
+              empleado:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 5
+                  nombre:
+                    type: string
+                    example: Juan
+                  apellido:
+                    type: string
+                    example: Pérez
+                  username:
+                    type: string
+                    example: jperez
+                  email:
+                    type: string
+                    example: jperez@example.com
+              tipo:
+                type: string
+                example: Vacaciones
+              descripcion:
+                type: string
+                example: Vacaciones de invierno
+              fecha_inicio:
+                type: string
+                format: date-time
+                example: "2025-07-01T00:00:00"
+              estado:
+                type: string
+                example: Pendiente
+              empresa:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 2
+                  nombre:
+                    type: string
+                    example: Acme Corp
+              certificado_url:
+                type: string
+                nullable: true
+                example: /path/to/certificado.pdf
+  403:
+    description: El usuario no tiene una empresa asociada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: El admin-emp no tiene una empresa asociada
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

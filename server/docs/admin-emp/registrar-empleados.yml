@@ -1,0 +1,47 @@
+tags:
+  - Admin Empresa
+summary: Registrar empleados desde un archivo CSV
+description: "Permite al administrador registrar múltiples empleados mediante la carga de un archivo CSV. El archivo debe contener las siguientes columnas: `nombre`, `apellido`, `email`, `username`. Se validan los campos, el formato del email y que no haya usuarios duplicados."
+consumes:
+  - multipart/form-data
+produces:
+  - application/json
+parameters:
+  - in: formData
+    name: file
+    type: file
+    required: true
+    description: Archivo CSV que contiene los datos de los empleados a registrar.
+responses:
+  200:
+    description: Empleados registrados correctamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Empleados registrados correctamente"
+  400:
+    description: Error en la solicitud (archivo faltante, inválido o no seleccionado)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No file part"
+  500:
+    description: Error interno al procesar el archivo CSV
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error al procesar el archivo"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

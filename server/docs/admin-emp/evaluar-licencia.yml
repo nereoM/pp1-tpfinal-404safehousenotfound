@@ -1,0 +1,118 @@
+tags:
+  - Admin Empresa
+summary: Evaluar licencia de empleado
+description: Permite a un administrador de empresa cambiar el estado de una licencia solicitada por un empleado bajo su supervisión.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - name: id_licencia
+    in: path
+    required: true
+    type: integer
+    description: ID de la licencia a evaluar
+  - in: body
+    name: body
+    required: true
+    description: Estado nuevo de la licencia
+    schema:
+      type: object
+      required:
+        - estado
+      properties:
+        estado:
+          type: string
+          enum: [aprobada, rechazada, activa]
+          example: aprobada
+responses:
+  200:
+    description: Licencia evaluada exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Licencia aprobada exitosamente"
+        licencia:
+          type: object
+          properties:
+            id_licencia:
+              type: integer
+              example: 15
+            empleado:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 7
+                nombre:
+                  type: string
+                  example: Carla
+                apellido:
+                  type: string
+                  example: Gómez
+                username:
+                  type: string
+                  example: cgomez
+                email:
+                  type: string
+                  example: cgomez@example.com
+            tipo:
+              type: string
+              example: Vacaciones
+            descripcion:
+              type: string
+              example: Vacaciones anuales
+            fecha_inicio:
+              type: string
+              format: date-time
+              example: "2025-06-10T00:00:00"
+            estado:
+              type: string
+              example: aprobada
+            empresa:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 3
+                nombre:
+                  type: string
+                  example: Soluciones IT
+            certificado_url:
+              type: string
+              nullable: true
+              example: "/certificados/licencia_15.pdf"
+  400:
+    description: Solicitud inválida (estado no permitido)
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "El estado debe ser 'aprobada', 'rechazada' o 'activa'"
+  403:
+    description: No autorizado para evaluar esta licencia
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No tienes permiso para evaluar esta licencia"
+  404:
+    description: Licencia no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Licencia no encontrada"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

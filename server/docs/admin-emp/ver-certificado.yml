@@ -1,0 +1,41 @@
+summary: Ver certificado
+description: Devuelve el archivo del certificado correspondiente al ID proporcionado si existe.
+tags:
+  - Admin Empresa
+parameters:
+  - name: certificado_url
+    in: path
+    required: true
+    description: Ruta o ID del archivo del certificado.
+    schema:
+      type: integer
+responses:
+  '200':
+    description: Certificado encontrado y devuelto correctamente.
+    content:
+      application/octet-stream:
+        schema:
+          type: string
+          format: binary
+  '404':
+    description: Certificado no encontrado.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Certificado no encontrado
+  '500':
+    description: Error interno del servidor al intentar devolver el certificado.
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            error:
+              type: string
+              example: Error al devolver el archivo
+security:
+  - bearerAuth: []

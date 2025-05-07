@@ -323,6 +323,7 @@ def subir_logo():
         "logo_url": empresa.logo_url
     }), 200
 
+@swag_from("../docs/admin-emp/ver-certificado.yml")
 @admin_emp_bp.route("/ver-certificado/<int:certificado_url>", methods=["GET"])
 @role_required(["admin-emp"])
 def ver_certificado(certificado_url):
@@ -336,6 +337,7 @@ def ver_certificado(certificado_url):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+@swag_from("../docs/admin-emp/registrar-empleados.yml")
 @admin_emp_bp.route("/registrar-empleados", methods=["POST"])
 @role_required(["admin-emp"])
 def registrar_empleados():
@@ -441,6 +443,7 @@ def validar_nombre(nombre: str) -> bool:
     # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
     return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
 
+@swag_from("../docs/admin-emp/licencias-solicitadas.yml")
 @admin_emp_bp.route("/licencias-solicitadas", methods=["GET"])
 @role_required(["admin-emp"])
 def visualizar_licencias():
@@ -487,6 +490,7 @@ def visualizar_licencias():
 
     return jsonify(resultado), 200
 
+@swag_from("../docs/admin-emp/evaluar-licencia.yml")
 @admin_emp_bp.route("/evaluar-licencia-empleado/<int:id_licencia>", methods=["PUT"])
 @role_required(["admin-emp"])
 def evaluar_licencia(id_licencia):
