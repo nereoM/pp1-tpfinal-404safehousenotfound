@@ -427,4 +427,3 @@ def allowed_file(filename):
 def validar_nombre(nombre: str) -> bool:
     # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
     return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
-
