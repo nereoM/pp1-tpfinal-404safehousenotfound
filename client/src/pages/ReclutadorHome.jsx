@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
 import { BarChart2, FilePlus, FileText, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { ServerError } from "../common/error";
 import PageLayout from "../components/PageLayout";
 import { ProfileCard } from "../components/ProfileCard";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
+import { reclutadorService } from "../services/reclutadorService";
 
 export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
@@ -72,6 +74,19 @@ export default function ReclutadorHome() {
   };
 
   const solicitarLicencia = async () => {
+    reclutadorService.solicitarLicencia({
+      descripcion: formLicencia.descripcion,
+      tipoLicencia: formLicencia.tipo
+    }).then(() => {
+      setMensajeLicencia("Solicitud enviada correctamente.");
+      setFormLicencia({ tipo: "", descripcion: "" });
+    }).catch((err) => {
+      if(err instanceof ServerError){
+        setMensajeLicencia(err.message);
+      }
+      setMensajeLicencia(`Error: ${err.message}`);
+    })
+
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/solicitud-licencia`, {
         method: "POST",
