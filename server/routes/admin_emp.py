@@ -283,6 +283,12 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 # Asegúrate de que la carpeta de uploads exista
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+UPLOAD_FOLDER_EMPLEADOS = os.path.join(os.getcwd(), "uploads", "registro_empleados")
+
+if not os.path.exists(UPLOAD_FOLDER_EMPLEADOS):
+    os.makedirs(UPLOAD_FOLDER_EMPLEADOS)
+
+
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -339,6 +345,7 @@ def ver_certificado(certificado_url):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+    
 @swag_from("../docs/admin-emp/registrar-empleados.yml")
 @admin_emp_bp.route("/registrar-empleados", methods=["POST"])
 @role_required(["admin-emp"])
@@ -353,7 +360,9 @@ def registrar_empleados():
 
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file_path = os.path.join("uploads/registro_empleados", filename)
+
+        file_path = os.path.join(UPLOAD_FOLDER_EMPLEADOS, filename)
+
         file.save(file_path)
 
         try:
@@ -361,26 +370,28 @@ def registrar_empleados():
         except Exception as e:
             return jsonify({'error': str(e)}), 500
 
+        return jsonify({'message': 'Archivo procesado correctamente'}), 201
+
     return jsonify({'error': 'Invalid file format'}), 400
+
 
 def register_employees_from_csv(file_path):
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
-        required_fields = {'nombre', 'apellido', 'email', 'username'}
+        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena'}
         
         resultado = []
 
         for row in reader:
-            # Validar que todas las columnas requeridas estén presentes
             if not required_fields.issubset(row.keys()):
-                return jsonify({"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username"}), 400
+                return jsonify({"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena"}), 400
 
             nombre = row['nombre'].strip()
             apellido = row['apellido'].strip()
             email = row['email'].strip()
             username = row['username'].strip()
+            contrasena = row['contrasena'].strip()
 
-            # Validar los datos
             if not validar_nombre(nombre) or not validar_nombre(apellido):
                 return jsonify({"error": "Nombre o apellido no válido"}), 400
             
@@ -388,32 +399,28 @@ def register_employees_from_csv(file_path):
             if not re.match(email_regex, email):
                 return jsonify({"error": "Formato de email no válido"}), 400
 
-            # Verificar si el usuario ya existe
             existing_user = Usuario.query.filter_by(username=username).first()
             if existing_user:
                 return jsonify({"error": f"El usuario '{username}' ya existe"}), 400
             
             id_admin_emp = get_jwt_identity()
 
-            # Verificar si el admin-emp tiene una empresa asociada
             admin_emp = Usuario.query.get(id_admin_emp)
             if not admin_emp or not admin_emp.id_empresa:
                 return jsonify({"error": "El admin-emp no tiene una empresa asociada"}), 403
 
             id_empresa = admin_emp.id_empresa
 
-            # Crear un nuevo usuario
             new_user = Usuario(
                 nombre=nombre,
                 apellido=apellido,
                 correo=email,
                 username=username,
-                contrasena=secrets.token_urlsafe(8),  # Contraseña temporal
+                contrasena=contrasena,
                 id_empresa=id_empresa,
                 id_superior=admin_emp.id
             )
 
-            # Asignar el rol de empleado
             empleado_role = Rol.query.filter_by(slug="empleado").first()
             if not empleado_role:
                 empleado_role = Rol(nombre="Empleado", slug="empleado", permisos="permisos_empleado")
@@ -424,17 +431,16 @@ def register_employees_from_csv(file_path):
 
             resultado.append({
                 "username": username,
-                "password": new_user.contrasena
+                "password": contrasena
             })
 
-            # Guardar el usuario en la base de datos
             db.session.add(new_user)
 
-        # Confirmar los cambios en la base de datos
         db.session.commit()
+        
         return jsonify({
             "message": "Empleados registrados exitosamente",
-            "total_empleados": len(list(reader)),
+            "total_empleados": len(resultado),
             "empleados": resultado
         })
 
