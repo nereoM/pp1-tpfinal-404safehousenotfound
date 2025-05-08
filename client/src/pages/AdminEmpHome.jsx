@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Edit, FileLock, Settings, UserPlus, Users } from "lucide-react";
+import { Edit, FileLock, Settings, UserPlus, Users, Upload } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GestionUsuarios from "../components/GestionUsuarios";
@@ -120,7 +120,12 @@ export default function AdminEmpHome() {
       descripcion: "Accede a las licencias del personal y sus estados.",
       onClick: openModalLicencias
     },  
-
+    {
+      icon: Upload,
+      titulo: "Subir Empleados",
+      descripcion: "Carga un archivo CSV para registrar empleados.",
+      onClick: () => alert("En desarrollo"),
+    }    
   ];
 
   const handleLogout = () => {
