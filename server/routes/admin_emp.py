@@ -19,6 +19,7 @@ def admin_emp_home():
     return jsonify({"message": "Bienvenido al Inicio de Admin-emp"}), 200
 
 @swag_from("../docs/admin-emp/preferencias.yml")
+@swag_from("../docs/admin-emp/preferencias_put.yml")
 @admin_emp_bp.route("/empresa/<int:id_empresa>/preferencias", methods=["GET", "PUT"])
 @role_required(["admin-emp"])
 def preferencias_empresa(id_empresa):
