@@ -353,20 +353,28 @@ export default function CandidatoHome() {
                             <h2 className="text-lg font-semibold">
                                 {busquedaConfirmada.trim().length >= 3 ? "Resultados de búsqueda" : "Ofertas recomendadas"}
                             </h2>
-                            <div className="relative group">
-                                <input
-                                    type="text"
-                                    placeholder="Buscar..."
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            setBusquedaConfirmada(e.target.value);
-                                        }
-                                    }}
-                                    className="w-40 group-focus-within:w-60 p-2 pl-10 border border-gray-300 rounded focus:outline-none"
-                                />
-                                <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
-                            </div>
-                        </div>
+                            <div className="relative group flex gap-2 items-center">
+    <input
+        type="text"
+        placeholder="Buscar..."
+        onKeyDown={(e) => {
+            if (e.key === "Enter") {
+                setBusquedaConfirmada(e.target.value);
+            }
+        }}
+        className="w-40 group-focus-within:w-60 p-2 pl-10 border border-gray-300 rounded focus:outline-none"
+    />
+    <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
+    
+    <button
+        onClick={() => setBusquedaConfirmada(document.querySelector("input[placeholder='Buscar...']").value)}
+        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+    >
+        Buscar
+    </button>
+</div>
+</div>
+
                         {mensajeRecomendacion ? (
                             <motion.div>
                                 <p className="text-gray-600 text-base">{mensajeRecomendacion}</p>
