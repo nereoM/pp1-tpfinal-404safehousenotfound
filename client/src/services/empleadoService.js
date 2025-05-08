@@ -37,4 +37,10 @@ export const empleadoService = {
     const data = await fetcher({ url });
     return data;
   },
+  async obtenerOfertasEmpresa() {
+    const url = `${API_URL}/api/ver-ofertas-empresa`;
+
+    const data = await fetcher({ url });
+    return data;
+  },
 }
