@@ -9,8 +9,15 @@ export const reclutadorService = {
     const data = await fetcher({ url })
     return data.ofertas
   },
-  async obtenerCandidatos({ idOferta }) {
-    const url = `${API_URL}/api/ver_candidatos/${idOferta}`;
+  async obtenerCandidatos({ idOferta, nombre, isApto, fechaDesde, fechaHasta }) {
+    const params = new URLSearchParams();
+
+    if (nombre) params.append("nombre", nombre);
+    if (isApto !== undefined) params.append("is_apto", isApto);
+    if (fechaDesde) params.append("fecha_desde", fechaDesde);
+    if (fechaHasta) params.append("fecha_hasta", fechaHasta);
+
+    const url = `${API_URL}/api/ver_candidatos/${idOferta}/filtrar?${params.toString()}`;
 
     const data = await fetcher({ url });
     return data;
