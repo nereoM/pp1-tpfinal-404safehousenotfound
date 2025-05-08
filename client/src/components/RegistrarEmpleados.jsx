@@ -57,7 +57,7 @@ const SubirEmpleados = () => {
                 if (data.total_empleados !== undefined) {
                     setMessage(`${data.message}. Total empleados registrados: ${data.total_empleados}`);
                 } else {
-                    setMessage(`${data.message}. No se recibió el número total de empleados.`);
+                    setMessage(`${data.message}.`);
                 }
                 setError('');
             }
