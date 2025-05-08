@@ -11,7 +11,7 @@ export function JobCard({ titulo, empresa, coincidencia, palabrasClave, fecha, p
       )}
 
       <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-        {palabrasClave.map((palabra, idx) => (
+        {palabrasClave?.map((palabra, idx) => (
           <span key={idx} className="bg-gray-100 px-2 py-1 rounded-full">
             {palabra}
           </span>
