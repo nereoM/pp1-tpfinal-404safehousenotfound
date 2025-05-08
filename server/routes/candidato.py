@@ -420,7 +420,7 @@ def recomendar_ofertas():
             .filter(
                 or_(*[Oferta_laboral.palabras_clave.like(f"%{palabra}%") for palabra in palabras_clave_cv])
             )
-            .limit(15)
+            .limit(10)
             .all()
         )
 
