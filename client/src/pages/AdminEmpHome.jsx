@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Edit, FileLock, Settings, UserPlus, Users } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
-import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
-import PageLayout from "../components/PageLayout";
-import { TopBar } from "../components/TopBar";
-import { ProfileCard } from "../components/ProfileCard";
-import isLightColor from "../components/isLightColor";
 import GestionUsuarios from "../components/GestionUsuarios";
+import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
-import { UserPlus, Users, Settings, Edit, FileLock } from "lucide-react";
+import { ProfileCard } from "../components/ProfileCard";
+import { TopBar } from "../components/TopBar";
+import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
+import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 
 export default function AdminEmpHome() {
   const [user, setUser] = useState(null);
@@ -37,7 +36,7 @@ export default function AdminEmpHome() {
       .finally(() => setLoadingUser(false));
   }, []);
 
-  const empresaId = user?.id_empresa;
+  const empresaId = user?.empresa_id;
   const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
 
   const handleActualizarEstilos = () => {

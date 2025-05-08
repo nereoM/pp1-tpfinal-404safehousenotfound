@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { adminEmpService } from "../services/adminEmpService";
 
 export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa, onActualizar }) {
   const [formData, setFormData] = useState({
@@ -11,40 +12,30 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
   });
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/empresa/${idEmpresa}/preferencias`, {
-      credentials: "include"
+    adminEmpService.obtenerPreferenciasEmpresa({idEmpresa}).then((data) => {
+      setFormData({
+        slogan: data.slogan || "",
+        descripcion: data.descripcion || "",
+        logo_url: data.logo_url || "",
+        color_principal: data.color_principal || "#2563eb",
+        color_secundario: data.color_secundario || "#f3f4f6",
+        color_texto: data.color_texto || "#000000",
+      });
     })
-      .then(res => res.json())
-      .then(data => {
-        setFormData({
-          slogan: data.slogan || "",
-          descripcion: data.descripcion || "",
-          logo_url: data.logo_url || "",
-          color_principal: data.color_principal || "#2563eb",
-          color_secundario: data.color_secundario || "#f3f4f6",
-          color_texto: data.color_texto || "#000000",
-        });
-      })
-      .catch(err => console.error("Error al obtener preferencias:", err));
   }, [idEmpresa]);
 
   const guardarCambios = async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/empresa/${idEmpresa}/preferencias`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(formData)
-      });
-      if (res.ok) {
-        onActualizar();
-        onClose();
-      } else {
-        console.error("No se pudo actualizar");
-      }
-    } catch (err) {
-      console.error("Error de conexión:", err);
-    }
+    adminEmpService.configurarPreferenciasParaEmpresa({
+      idEmpresa: idEmpresa,
+      colorPrincipal: formData.color_principal,
+      colorSecundario: formData.color_secundario,
+      colorTexto: formData.color_texto,
+      descripcion: formData.descripcion,
+      slogan: formData.slogan
+    }).then(() => {
+      onActualizar();
+      onClose();
+    })
   };
 
   return (
