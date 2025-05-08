@@ -1,15 +1,40 @@
 tags:
   - Reclutador
 summary: Ver candidatos postulados a una oferta laboral
-description: Devuelve una lista de candidatos que se postularon a una oferta laboral específica, incluyendo su información básica y CV si está disponible.
+description: >
+  Devuelve una lista de candidatos que se postularon a una oferta laboral específica,
+  incluyendo su información básica, si son aptos, y el enlace a su CV si está disponible.
+produces:
+  - application/json
 parameters:
   - name: id_oferta
     in: path
     required: true
     type: integer
     description: ID de la oferta laboral
-produces:
-  - application/json
+  - name: nombre
+    in: query
+    required: false
+    type: string
+    description: Filtrar por nombre del candidato
+  - name: is_apto
+    in: query
+    required: false
+    type: string
+    enum: [true, false]
+    description: Filtrar por si el candidato fue marcado como apto
+  - name: fecha_desde
+    in: query
+    required: false
+    type: string
+    format: date
+    description: Filtrar postulaciones desde esta fecha (YYYY-MM-DD)
+  - name: fecha_hasta
+    in: query
+    required: false
+    type: string
+    format: date
+    description: Filtrar postulaciones hasta esta fecha (YYYY-MM-DD)
 responses:
   200:
     description: Lista de postulaciones obtenida exitosamente
@@ -67,5 +92,6 @@ securityDefinitions:
     type: apiKey
     in: cookie
     name: access_token_cookie
+    description: JWT token pasado como cookie
 security:
   - cookieAuth: []
