@@ -9,7 +9,8 @@ from datetime import datetime, timezone
 from flasgger import swag_from
 from sqlalchemy import or_
 from ml.modelo import modelo_sbert
-from ml.extraction import extraer_texto_pdf, extraer_texto_word, dividir_cv_en_partes
+from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
+from ml.matching_semantico import dividir_cv_en_partes
 from sklearn.metrics.pairwise import cosine_similarity
 import json
 
