@@ -259,7 +259,7 @@ def subir_certificado(id_licencia):
         }
     ), 200
 
-
+@swag_from('../docs/reclutador/ver-cv.yml')
 @reclutador_bp.route("/ver-cv/<path:url_cv>", methods=["GET"])
 @role_required(["reclutador"])
 def ver_certificado(url_cv):

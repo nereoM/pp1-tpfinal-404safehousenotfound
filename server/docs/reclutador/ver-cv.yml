@@ -1,0 +1,44 @@
+tags:
+  - Reclutador
+summary: Ver CV de un candidato
+description: Permite a un reclutador visualizar un archivo de CV previamente subido por un candidato.
+produces:
+  - application/pdf
+parameters:
+  - name: url_cv
+    in: path
+    required: true
+    type: string
+    description: Ruta relativa del archivo CV a visualizar
+responses:
+  200:
+    description: Archivo CV enviado exitosamente
+    content:
+      application/pdf:
+        schema:
+          type: string
+          format: binary
+  404:
+    description: CV no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: CV no encontrado
+  500:
+    description: Error al enviar el archivo
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Error inesperado al enviar el archivo
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []
