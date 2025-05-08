@@ -9,6 +9,7 @@ import { ProfileCard } from "../components/ProfileCard";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
+import { adminEmpService } from "../services/adminEmpService";
 
 export default function AdminEmpHome() {
   const [user, setUser] = useState(null);
@@ -57,26 +58,9 @@ export default function AdminEmpHome() {
   };
 
   const obtenerLicencias = async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/visualizar-licencias-solicitadas`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-  
-      const data = await res.json();
-  
-      if (res.ok) {
-        setLicencias(data);
-      } else {
-        throw new Error(data.error || "Error al obtener licencias");
-      }
-    } catch (error) {
-      console.error("Error al obtener las licencias:", error);
-      setMensajeLicencias("Error al cargar las licencias.");
-    }
+    adminEmpService.obtenerLicenciasSolicitadas()
+    .then(setLicencias)
+    .catch(() => setMensajeLicencias("Error al cargar las licencias."));
   };
 
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
