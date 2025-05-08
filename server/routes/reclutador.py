@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime, timezone
 
+from sqlalchemy import and_, or_
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import get_jwt_identity
@@ -69,7 +70,7 @@ def definir_palabras_clave(id_oferta):
         return jsonify({"error": str(e)}), 500
 
 @swag_from('../docs/reclutador/ver-candidatos-oferta.yml')
-@reclutador_bp.route("/ver_candidatos/<int:id_oferta>", methods=["GET"])
+@reclutador_bp.route("/ver_candidatos/<int:id_oferta>/filtrar", methods=["GET"])
 @role_required(["reclutador"])
 def ver_postulantes(id_oferta):
     try:
@@ -84,7 +85,26 @@ def ver_postulantes(id_oferta):
         if oferta.id_empresa != id_empresa and oferta.id_reclutador != id_reclutador:
             return jsonify({"error": "No tienes permiso para ver esta oferta"}), 403
 
-        postulaciones = Job_Application.query.filter_by(id_oferta=id_oferta).all()
+        nombre = request.args.get("nombre", default=None, type=str)
+        is_apto = request.args.get("is_apto", default=None, type=str)
+        fecha_desde = request.args.get("fecha_desde", default=None, type=str)
+        fecha_hasta = request.args.get("fecha_hasta", default=None, type=str)
+
+        filtros = [Job_Application.id_oferta == id_oferta]
+
+        if is_apto is not None:
+            filtros.append(Job_Application.is_apto == (is_apto.lower() == "true"))
+
+        if nombre:
+            filtros.append(Usuario.nombre.ilike(f"%{nombre}%"))
+
+        if fecha_desde:
+            filtros.append(Job_Application.fecha_postulacion >= fecha_desde)
+
+        if fecha_hasta:
+            filtros.append(Job_Application.fecha_postulacion <= fecha_hasta)
+
+        postulaciones = db.session.query(Job_Application).join(Usuario).filter(and_(*filtros)).all()
 
         resultado = []
         for post in postulaciones:

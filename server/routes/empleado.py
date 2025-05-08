@@ -149,28 +149,35 @@ def subir_certificado(id_licencia):
 @empleado_bp.route("/ver-ofertas-empresa", methods=["GET"])
 @role_required(["empleado"])
 def ver_ofertas_empresa():
-    id_empleado = get_jwt_identity()
-    empleado = Usuario.query.filter_by(id=id_empleado).first()
+    try:
+        id_empleado = get_jwt_identity()
+        empleado = Usuario.query.filter_by(id=id_empleado).first()
 
-    if not empleado:
-        return jsonify({"error": "Empleado no encontrado"}), 404
+        if not empleado:
+            return jsonify({"error": "Empleado no encontrado"}), 404
 
-    ofertas = (
-        Oferta_laboral.query.filter_by(id_empresa=empleado.id_empresa).all()
-    )
+        if not empleado.id_empresa:
+            return jsonify({"error": "No pertenecés a ninguna empresa"}), 403
 
-    resultado = [
-        {
-            "id": oferta.id,
-            "titulo": oferta.titulo,
-            "descripcion": oferta.descripcion,
-            "fecha_publicacion": oferta.fecha_publicacion.isoformat(),
-            "empresa": {
-                "id": oferta.empresa.id,
-                "nombre": oferta.empresa.nombre,
-            },
-        }
-        for oferta in ofertas
-    ]
+        ofertas = Oferta_laboral.query.filter_by(id_empresa=empleado.id_empresa).all()
 
-    return jsonify(resultado), 200
+        resultado = [
+            {
+                "id": oferta.id,
+                "nombre": oferta.nombre,
+                "id_creador": oferta.id_creador,
+                "employment_type": oferta.employment_type,
+                "descripcion": oferta.descripcion,
+                "fecha_publicacion": oferta.fecha_publicacion.isoformat(),
+                "empresa": {
+                    "id": oferta.empresa.id,
+                    "nombre": oferta.empresa.nombre,
+                },
+            }
+            for oferta in ofertas
+        ]
+
+        return jsonify(resultado), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
