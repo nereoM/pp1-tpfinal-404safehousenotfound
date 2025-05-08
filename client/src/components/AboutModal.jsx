@@ -7,7 +7,7 @@ export default function AboutModal({ onClose }) {
             SIGRH+ es un sistema de gestión de recursos humanos desarrollado por 404 Safehouse Not Found. 
             Nuestro objetivo es facilitar la organización del talento humano con tecnología accesible, potente y enfocada en las personas.
           </p>
-          <button onClick={onClose} className="text-blue-600 hover:underline text-sm">
+          <button onClick={onClose} className="text-indigo-600 hover:underline text-sm">
             Cerrar
           </button>
         </div>

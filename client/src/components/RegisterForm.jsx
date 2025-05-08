@@ -15,16 +15,16 @@ export default function RegisterForm({
       <h2 className="text-2xl font-semibold text-center text-white">Registrarse</h2>
 
       <input type="text" placeholder="Nombre" value={registerName} onChange={(e) => setRegisterName(e.target.value)}
-        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 
       <input type="text" placeholder="Apellido" value={registerSurname} onChange={(e) => setRegisterSurname(e.target.value)}
-        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 
       <input type="text" placeholder="Nombre de Usuario" value={registerUsername} onChange={(e) => setRegisterUsername(e.target.value)}
-        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 
       <input type="email" placeholder="Email" value={registerEmail} onChange={(e) => setRegisterEmail(e.target.value)}
-        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 
       <PasswordInput
         value={registerPassword}
@@ -51,7 +51,7 @@ export default function RegisterForm({
 
       <div className="text-sm text-center text-gray-300">
         ¿Ya tienes cuenta?{" "}
-        <button type="button" onClick={() => { resetRegisterFields(); setFlipped(false); }} className="text-blue-400 hover:underline">
+        <button type="button" onClick={() => { resetRegisterFields(); setFlipped(false); }} className="text-indigo-400 hover:underline">
           Inicia sesión acá
         </button>
       </div>

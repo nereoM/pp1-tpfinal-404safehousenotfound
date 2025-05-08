@@ -17,7 +17,7 @@ export default function LoginForm({
         placeholder="Usuario o Email"
         value={loginUsername}
         onChange={(e) => setLoginUsername(e.target.value)}
-        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
 
       <PasswordInput
@@ -71,7 +71,7 @@ export default function LoginForm({
 
       <div className="text-sm text-center text-gray-300">
         ¿No tenés usuario?{" "}
-        <button type="button" onClick={() => { resetLoginFields(); setFlipped(true); }} className="text-blue-400 hover:underline">
+        <button type="button" onClick={() => { resetLoginFields(); setFlipped(true); }} className="text-indigo-400 hover:underline">
           Registrate acá
         </button>
       </div>

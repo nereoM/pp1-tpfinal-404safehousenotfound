@@ -1,21 +1,22 @@
 import React from "react";
+import { Edit } from "lucide-react";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
 
-export function ProfileCard({ nombre, correo, cvUrl, fotoUrl }) {
+export function ProfileCard({ nombre, correo, cvUrl, fotoUrl, onEdit }) {
   const API_URL = import.meta.env.VITE_API_URL;
   const { estilos } = useEstiloEmpresa();
 
-  const bg   = estilos?.color_secundario  || "white";
-  const bcol = estilos?.color_principal   || "#2563eb";
-  const tcol = estilos?.color_texto       || "#000000"; // Agregamos el color de texto
+  const bg = estilos?.color_secundario || "white";
+  const bcol = estilos?.color_principal || "#2563eb";
+  const tcol = estilos?.color_texto || "#000000";
 
   return (
     <div
-      className="p-4 rounded shadow space-y-2 text-center"
+      className="p-4 rounded shadow space-y-2 text-center relative"
       style={{
         backgroundColor: bg,
         border: `2px solid ${bcol}`,
-        color: tcol  // Aplicamos color de texto a todo el bloque
+        color: tcol,
       }}
     >
       {fotoUrl && (
@@ -37,12 +38,19 @@ export function ProfileCard({ nombre, correo, cvUrl, fotoUrl }) {
           className="inline-block px-3 py-1 mt-2 text-sm rounded shadow"
           style={{
             backgroundColor: bcol,
-            color: "#fff"
+            color: "#fff",
           }}
         >
-          📄 Ver CV subido
+          Ver CV subido
         </a>
       )}
+
+      <button
+        className="absolute top-2 right-2 bg-blue-600 text-white p-1 rounded-full hover:bg-blue-700"
+        onClick={onEdit}
+      >
+        <Edit size={16} />
+      </button>
     </div>
   );
 }

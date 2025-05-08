@@ -15,11 +15,11 @@ export function SearchBar({ onSearch }) {
         placeholder="Buscar empleos..."
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full p-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-blue-300"
+        className="w-full p-2 border rounded-md shadow-sm focus:outline-none focus:ring focus:ring-indigo-300"
       />
       <button
         type="submit"
-        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
       >
         Buscar
       </button>
