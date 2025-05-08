@@ -1,14 +1,42 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from models.extensions import db
-from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral
+from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral, CV
 from auth.decorators import role_required
 import os
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timezone
 from flasgger import swag_from
+from sqlalchemy import or_
+from ml.modelo import modelo_sbert
+from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
+from ml.matching_semantico import dividir_cv_en_partes
+from sklearn.metrics.pairwise import cosine_similarity
+import json
 
 empleado_bp = Blueprint("empleado", __name__)
+
+
+UPLOAD_FOLDER_CV = os.path.join(os.getcwd(), "uploads", "cvs")
+UPLOAD_FOLDER_IMG = os.path.join(os.getcwd(), "uploads", "fotos")
+
+ALLOWED_CV_EXTENSIONS = {"pdf", "doc", "docx"}
+ALLOWED_IMG_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
+
+empleado_bp.config = {
+    "UPLOAD_FOLDER": UPLOAD_FOLDER_CV,
+    "IMAGE_UPLOAD_FOLDER": UPLOAD_FOLDER_IMG,
+}
+
+os.makedirs(UPLOAD_FOLDER_CV, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER_IMG, exist_ok=True)
+
+
+def allowed_file(filename):
+    return (
+        "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_CV_EXTENSIONS
+    )
+
 
 @empleado_bp.route("/empleado", methods=["GET"])
 @role_required(["empleado"])
@@ -178,3 +206,239 @@ def ver_ofertas_empresa():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@empleado_bp.route("/recomendaciones-empleado", methods=["GET"])
+@role_required(["empleado"])
+def recomendar_ofertas():
+    try:
+        id_empleado = get_jwt_identity()
+
+        cv = (
+            CV.query.filter_by(id_candidato=id_empleado)
+            .order_by(CV.fecha_subida.desc())
+            .first()
+        )
+        if not cv:
+            return jsonify({"error": "El empleado no tiene un CV cargado"}), 400
+
+        if cv.tipo_archivo == "application/pdf":
+            texto_cv = extraer_texto_pdf(cv.url_cv)
+        elif cv.tipo_archivo.startswith("application/vnd.openxmlformats"):
+            texto_cv = extraer_texto_word(cv.url_cv)
+        else:
+            return jsonify({"error": "Formato de CV no compatible"}), 400
+
+        partes_cv = dividir_cv_en_partes(texto_cv)
+
+        palabras_clave_cv = set(partes_cv)
+
+        ofertas = (
+            db.session.query(Oferta_laboral)
+            .filter(Oferta_laboral.is_active == True)
+            .filter(
+                or_(*[Oferta_laboral.palabras_clave.like(f"%{palabra}%") for palabra in palabras_clave_cv])
+            )
+            .limit(10)
+            .all()
+        )
+
+        recomendaciones = []
+
+        for oferta in ofertas:
+            palabras_clave = json.loads(oferta.palabras_clave)
+            vectores_cv = modelo_sbert.encode(partes_cv)
+            vector_keywords = modelo_sbert.encode(" ".join(palabras_clave))
+            max_sim = max(cosine_similarity([vector_keywords], vectores_cv)[0])
+            porcentaje = int(max_sim * 100)
+
+            recomendaciones.append(
+                {
+                    "id_oferta": oferta.id,
+                    "nombre_oferta": oferta.nombre,
+                    "empresa": oferta.empresa.nombre,
+                    "coincidencia": porcentaje,
+                    "palabras_clave": palabras_clave,
+                }
+            )
+
+        recomendaciones.sort(key=lambda r: r["coincidencia"], reverse=True)
+        return jsonify(recomendaciones[:3]), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+@empleado_bp.route("/upload-cv-empleado", methods=["POST"])
+@role_required(["empleado"])
+def upload_cv():
+    if "file" not in request.files:
+        return jsonify({"error": "No se encontró ningún archivo"}), 400
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"error": "No se seleccionó ningún archivo"}), 400
+
+    if file and allowed_file(file.filename):
+        id_candidato = get_jwt_identity()
+        original_filename = secure_filename(file.filename)
+
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        nombre_final = f"{original_filename.rsplit('.', 1)[0]}_{timestamp}.{original_filename.rsplit('.', 1)[1]}"
+
+        upload_folder = empleado_bp.config["UPLOAD_FOLDER"]
+        filepath = os.path.join(upload_folder, nombre_final)
+
+        file.save(filepath)
+
+        tipo_archivo = file.mimetype
+        url_cv = f"uploads/cvs/{nombre_final}"
+
+        nuevo_cv = CV(
+            id_candidato=id_candidato,
+            url_cv=url_cv,
+            tipo_archivo=tipo_archivo,
+            fecha_subida=datetime.now(timezone.utc),
+        )
+
+        db.session.add(nuevo_cv)
+        db.session.commit()
+
+        return jsonify(
+            {
+                "message": "CV subido exitosamente",
+                "file_path": url_cv,
+                "filename": nombre_final,
+            }
+        ), 201
+
+    return jsonify({"error": "Formato de archivo no permitido"}), 400
+
+
+@empleado_bp.route("/info-empleado", methods=["GET"])
+@jwt_required()
+def obtener_nombre_apellido_empleado():
+    id_empleado = get_jwt_identity()
+    empleado = Usuario.query.get(id_empleado)
+    if not empleado:
+        return jsonify({"error": "Candidato no encontrado"}), 404
+
+    return {
+        "nombre": empleado.nombre,
+        "apellido": empleado.apellido,
+        "username": empleado.username,
+        "correo": empleado.correo,
+    }
+
+
+@empleado_bp.route("/ofertas-filtradas-empleado", methods=["GET"])
+@role_required(["empleado"])
+def obtener_ofertas_filtradas():
+    try:
+        filtros = request.args.to_dict()
+        query = db.session.query(Oferta_laboral)
+        query = construir_query_con_filtros(filtros, query)
+        ofertas = query.all()
+
+        resultado = [
+            {
+                "id": oferta.id,
+                "nombre_oferta": oferta.nombre,
+                "empresa": oferta.empresa.nombre,
+                "palabras_clave": json.loads(oferta.palabras_clave or "[]"),
+            }
+            for oferta in ofertas
+        ]
+        return jsonify(resultado), 200
+
+    except Exception as e:
+        print("Error en /ofertas-filtradas:", e)
+        return jsonify({"error": str(e)}), 500
+
+
+@empleado_bp.route("/empresas-empleado/<string:nombre_empresa>/ofertas", methods=["GET"])
+@role_required(["empleado"])
+def obtener_ofertas_por_nombre_empresa(nombre_empresa):
+    # Buscar la empresa por su nombre
+    empresa = Empresa.query.filter_by(nombre=nombre_empresa).first()
+    if not empresa:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    filtros = request.args.to_dict()
+    query = Oferta_laboral.query.filter_by(id_empresa=empresa.id)
+
+    query = construir_query_con_filtros(filtros, query)
+
+    # Obtener las ofertas laborales asociadas a la empresa
+    ofertas = query.all()
+    resultado = [
+        {
+            "id": oferta.id,
+            "nombre": oferta.nombre,
+            "descripcion": oferta.descripcion,
+            "location": oferta.location,
+            "employment_type": oferta.employment_type,
+            "workplace_type": oferta.workplace_type,
+            "salary_min": oferta.salary_min,
+            "salary_max": oferta.salary_max,
+            "currency": oferta.currency,
+            "experience_level": oferta.experience_level,
+            "fecha_publicacion": oferta.fecha_publicacion,
+            "fecha_cierre": oferta.fecha_cierre,
+        }
+        for oferta in ofertas
+    ]
+    return jsonify(
+        {
+            "empresa": {
+                "id": empresa.id,
+                "nombre": empresa.nombre,
+                "correo": empresa.correo,
+            },
+            "ofertas": resultado,
+        }
+    ), 200
+
+
+def construir_query_con_filtros(filtros, query):
+    if "location" in filtros and filtros["location"]:
+        query = query.filter(Oferta_laboral.location.ilike(f"%{filtros['location']}%"))
+
+    if "workplace_type" in filtros and filtros["workplace_type"]:
+        query = query.filter(Oferta_laboral.workplace_type == filtros["workplace_type"])
+
+    if "employment_type" in filtros and filtros["employment_type"]:
+        query = query.filter(
+            Oferta_laboral.employment_type == filtros["employment_type"]
+        )
+
+    if "experience_level" in filtros and filtros["experience_level"]:
+        query = query.filter(
+            Oferta_laboral.experience_level == filtros["experience_level"]
+        )
+
+    if "keywords" in filtros and filtros["keywords"]:
+        keywords = [
+            kw.strip().lower() for kw in filtros["keywords"].split(",") if kw.strip()
+        ]
+        for kw in keywords:
+            query = query.filter(Oferta_laboral.palabras_clave.ilike(f"%{kw}%"))
+
+    if "salary_min" in filtros and filtros["salary_min"]:
+        try:
+            query = query.filter(
+                Oferta_laboral.salary_min >= int(filtros["salary_min"])
+            )
+        except ValueError:
+            pass  # opcional: loguear error
+
+    if "salary_max" in filtros and filtros["salary_max"]:
+        try:
+            query = query.filter(
+                Oferta_laboral.salary_max <= int(filtros["salary_max"])
+            )
+        except ValueError:
+            pass  # opcional: loguear error
+
+    return query
