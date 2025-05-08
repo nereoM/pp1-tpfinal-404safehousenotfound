@@ -65,24 +65,20 @@ def ver_mis_licencias():
 
     resultado = [
         {
-            "licencias": {
-                "licencia": {
-                    "id_licencia": licencia.id,
-                    "tipo": licencia.tipo,
-                    "descripcion": licencia.descripcion,
-                    "fecha_inicio": licencia.fecha_inicio.isoformat()
-                    if licencia.fecha_inicio
-                    else None,
-                    "estado": licencia.estado,
-                    "empresa": {
-                        "id": licencia.id_empresa,
-                        "nombre": Empresa.query.get(licencia.id_empresa).nombre,
-                    },
-                    "certificado_url": licencia.certificado_url
-                    if licencia.certificado_url
-                    else None,
-                }
-            }
+          "id_licencia": licencia.id,
+          "tipo": licencia.tipo,
+          "descripcion": licencia.descripcion,
+          "fecha_inicio": licencia.fecha_inicio.isoformat()
+          if licencia.fecha_inicio
+          else None,
+          "estado": licencia.estado,
+          "empresa": {
+              "id": licencia.id_empresa,
+              "nombre": Empresa.query.get(licencia.id_empresa).nombre,
+          },
+          "certificado_url": licencia.certificado_url
+          if licencia.certificado_url
+          else None,
         }
         for licencia in licencias
     ]
