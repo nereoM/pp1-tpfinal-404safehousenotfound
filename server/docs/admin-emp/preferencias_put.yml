@@ -20,11 +20,11 @@ parameters:
           type: string
           description: Descripción breve de la empresa
           example: "Somos una empresa líder en innovación y tecnología."
-        color_princ:
+        color_principal:
           type: string
           description: Color principal de la empresa en formato hexadecimal
           example: "#FF5733"
-        color_sec:
+        color_secundario:
           type: string
           description: Color secundario de la empresa en formato hexadecimal
           example: "#C70039"

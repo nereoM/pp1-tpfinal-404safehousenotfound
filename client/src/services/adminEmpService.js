@@ -58,8 +58,8 @@ export const adminEmpService = {
       body: JSON.stringify({
         slogan,
         descripcion,
-        color_princ: colorPrincipal,
-        color_sec: colorSecundario,
+        color_principal: colorPrincipal,
+        color_secundario: colorSecundario,
         color_texto: colorTexto,
       }),
     }
