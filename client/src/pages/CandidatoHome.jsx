@@ -27,6 +27,11 @@ export default function CandidatoHome() {
     const [salarioPretendido, setSalarioPretendido] = useState("");
     const [busquedaConfirmada, setBusquedaConfirmada] = useState("");
     const [mostrarFiltros, setMostrarFiltros] = useState(false);
+    const [modalEditarPerfilOpen, setModalEditarPerfilOpen] = useState(false);
+    const [nombre, setNombre] = useState("");
+    const [apellido, setApellido] = useState("");
+    const [username, setUsername] = useState("");
+    const [imageFile, setImageFile] = useState(null);         
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -51,6 +56,11 @@ export default function CandidatoHome() {
                 setCvs(cvsData);
                 setCvSeleccionado(cvsData[0]?.id || null);
                 fetchRecomendaciones();
+
+                setNombre(userData.nombre);
+                setApellido(userData.apellido);
+                setUsername(userData.username);
+
 
             } catch (err) {
                 console.error("❌ Error en fetchData:", err);
@@ -210,6 +220,34 @@ export default function CandidatoHome() {
         );
     }
 
+    const handleImageUpload = async () => {
+      if (!imageFile) return alert("Seleccioná una imagen");
+  
+      const formData = new FormData();
+      formData.append("file", imageFile);
+  
+      try {
+          const res = await fetch(`${API_URL}/api/subir-image`, {
+              method: "POST",
+              credentials: "include",
+              body: formData,
+          });
+  
+          const result = await res.json();
+          if (res.ok) {
+              alert("Imagen subida exitosamente");
+              setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
+              setModalEditarPerfilOpen(false); // cerrar modal después de guardar
+          } else {
+              alert("Error: " + (result.error || "desconocido"));
+          }
+      } catch (err) {
+          console.error("Error al subir imagen:", err);
+          alert("Error de conexión");
+      }
+  };
+  
+
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
             <PageLayout>
@@ -262,12 +300,13 @@ export default function CandidatoHome() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
                     <div>
-                        <ProfileCard
-                            nombre={`${user?.nombre} ${user?.apellido}`}
-                            correo={user?.correo}
-                            fotoUrl={user?.fotoUrl || "https://i.pravatar.cc/150?img=12"}
-                            cvUrl={cvs[0]?.url || null}
-                        />
+                    <ProfileCard
+                     nombre={`${user?.nombre} ${user?.apellido}`}
+                    correo={user?.correo}
+                    fotoUrl={user?.fotoUrl || "https://i.pravatar.cc/150?img=12"}
+                    cvUrl={cvs[0]?.url || null}
+                    onEdit={() => setModalEditarPerfilOpen(true)}
+                    />
                         <div className="mt-3">
                             <label className="block mb-2 text-sm text-gray-600">Seleccionar CV</label>
                             <select
@@ -402,6 +441,59 @@ export default function CandidatoHome() {
                         </div>
                     </div>
                 )}
+
+{modalEditarPerfilOpen && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
+      <h2 className="text-lg font-semibold">Editar perfil</h2>
+
+      <input
+        type="text"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
+        className="w-full p-2 border rounded"
+        placeholder="Nombre"
+      />
+      <input
+        type="text"
+        value={apellido}
+        onChange={(e) => setApellido(e.target.value)}
+        className="w-full p-2 border rounded"
+        placeholder="Apellido"
+      />
+      <input
+        type="text"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        className="w-full p-2 border rounded"
+        placeholder="Username"
+      />
+
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setImageFile(e.target.files[0])}
+        className="w-full p-2"
+      />
+
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={() => setModalEditarPerfilOpen(false)}
+          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={handleImageUpload}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
             </PageLayout>
         </motion.div>

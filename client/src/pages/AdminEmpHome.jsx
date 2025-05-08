@@ -354,7 +354,7 @@ export default function AdminEmpHome() {
       )}
 
       {mensajeEvaluacion && (
-        <div className="mb-4 text-center text-blue-700 font-semibold bg-blue-100 p-2 rounded">
+        <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
           {mensajeEvaluacion}
         </div>
       )}
@@ -388,7 +388,7 @@ export default function AdminEmpHome() {
                         href={licencia.certificado_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 underline"
+                        className="text-indigo-600 underline"
                       >
                         Ver certificado
                       </a>
@@ -416,7 +416,7 @@ export default function AdminEmpHome() {
                     {licencia.estado === "aprobada" && licencia.certificado_url && (
                       <button
                         onClick={() => evaluarLicencia(licencia.id_licencia, "activa")}
-                        className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
                       >
                         Activar
                       </button>

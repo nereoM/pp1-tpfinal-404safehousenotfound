@@ -8,7 +8,7 @@ export default function PasswordInput({ value, onChange, visible, setVisible, pl
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
       <span
         onClick={() => setVisible(!visible)}

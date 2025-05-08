@@ -27,12 +27,12 @@ export function SearchFilters({ onBuscar }) {
             type="text"
             name="location"
             placeholder="Ubicación"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           />
           <select
             name="workplace_type"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           >
             <option value="">Tipo de lugar</option>
@@ -42,7 +42,7 @@ export function SearchFilters({ onBuscar }) {
           </select>
           <select
             name="employment_type"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           >
             <option value="">Tipo de empleo</option>
@@ -52,7 +52,7 @@ export function SearchFilters({ onBuscar }) {
           </select>
           <select
             name="experience_level"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           >
             <option value="">Nivel de experiencia</option>
@@ -64,19 +64,19 @@ export function SearchFilters({ onBuscar }) {
             type="number"
             name="salary_min"
             placeholder="Salario mínimo"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           />
           <input
             type="number"
             name="salary_max"
             placeholder="Salario máximo"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           />
         </div>
         <button
-          className="w-full mt-2 bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
+          className="w-full mt-2 bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
           onClick={handleBuscar}
         >
           Buscar con filtros

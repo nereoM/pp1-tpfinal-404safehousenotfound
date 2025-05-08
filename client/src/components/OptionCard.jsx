@@ -3,7 +3,7 @@ import React from "react";
 export function OptionCard({ icon: Icon, text, color, onClick }) {
   const bgColor = {
     teal: "bg-teal-100 hover:bg-teal-200 text-teal-600",
-    blue: "bg-blue-100 hover:bg-blue-200 text-blue-600",
+    blue: "bg-indigo-100 hover:bg-indigo-200 text-indigo-600",
     yellow: "bg-yellow-100 hover:bg-yellow-200 text-yellow-600",
     purple: "bg-purple-100 hover:bg-purple-200 text-purple-600",
     indigo: "bg-indigo-100 hover:bg-indigo-200 text-indigo-600",

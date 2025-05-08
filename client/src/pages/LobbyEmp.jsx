@@ -4,7 +4,7 @@ export default function LobbyEmp() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 text-gray-800 font-sans flex flex-col">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 text-gray-800 font-sans flex flex-col">
             {/* Top Bar */}
             <div className="bg-indigo-700 text-white py-4 px-6 shadow-md h-full">
                 <div className="max-w-7xl mx-auto flex justify-between items-center h-full">

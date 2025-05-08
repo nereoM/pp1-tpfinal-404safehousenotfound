@@ -226,7 +226,7 @@ export default function CandidatoEmpHome() {
         <div className="mt-6 px-4 max-w-6xl mx-auto flex justify-end">
           <button
             onClick={() => setMostrarFiltros((prev) => !prev)}
-            className="text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+            className="text-sm px-4 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition"
           >
             {mostrarFiltros ? "Ocultar filtros" : "Mostrar filtros"}
           </button>
@@ -291,8 +291,8 @@ export default function CandidatoEmpHome() {
                 ))}
               </select>
               <div className="flex flex-col gap-2 mt-4">
-                <label htmlFor="cv-upload" className="flex items-center justify-center gap-2 p-2 border border-dashed border-blue-500 rounded cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
-                  <FileUp className="w-4 h-4 text-blue-600" /> Seleccionar archivo
+                <label htmlFor="cv-upload" className="flex items-center justify-center gap-2 p-2 border border-dashed border-indigo-500 rounded cursor-pointer bg-indigo-50 hover:bg-indigo-100 transition">
+                  <FileUp className="w-4 h-4 text-indigo-600" /> Seleccionar archivo
                 </label>
                 <input
                   id="cv-upload"
@@ -310,7 +310,7 @@ export default function CandidatoEmpHome() {
                 {cvFile && (
                   <button
                     onClick={handleUploadCV}
-                    className="flex items-center justify-center gap-2 px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition"
+                    className="flex items-center justify-center gap-2 px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700 transition"
                   >
                     <Upload className="w-4 h-4" /> Confirmar subida
                   </button>
@@ -322,7 +322,7 @@ export default function CandidatoEmpHome() {
             <div className="mt-6">
               <button
                 onClick={mostrarModalLicencia}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 w-full">
+                className="bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600 w-full">
                 Cargar Licencia
               </button>
             </div>
@@ -384,7 +384,7 @@ export default function CandidatoEmpHome() {
                     key={cv.id}
                     onClick={() => setCvSeleccionado(cv.id)}
                     className={`flex items-center p-3 border rounded-lg cursor-pointer transition w-full ${
-                      cvSeleccionado === cv.id ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:bg-gray-100'
+                      cvSeleccionado === cv.id ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:bg-gray-100'
                       }`}
                   >
                     <div className="w-10 h-12 bg-red-500 text-white font-bold flex items-center justify-center rounded-sm text-sm mr-4 shadow">
@@ -395,7 +395,7 @@ export default function CandidatoEmpHome() {
                       <p className="text-xs text-gray-500">{new Date(cv.fecha_subida).toLocaleDateString()}</p>
                     </div>
                     {cvSeleccionado === cv.id && (
-                      <div className="text-blue-600 text-lg font-bold">✓</div>
+                      <div className="text-indigo-600 text-lg font-bold">✓</div>
                     )}
                   </div>
                 ))}
@@ -416,7 +416,7 @@ export default function CandidatoEmpHome() {
 
               <div className="flex justify-end gap-2 mt-5">
                 <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
-                <button onClick={handlePostularse} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Confirmar</button>
+                <button onClick={handlePostularse} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Confirmar</button>
               </div>
             </div>
           </div>
@@ -437,7 +437,7 @@ export default function CandidatoEmpHome() {
                     name="motivo"
                     rows="4"
                     style={{ resize: 'none' }}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                   ></textarea>
                 </div>
 
@@ -448,7 +448,7 @@ export default function CandidatoEmpHome() {
                     name="descripcion"
                     rows="4"
                     style={{ resize: 'none' }}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                   ></textarea>
                 </div>
               </div>
@@ -462,7 +462,7 @@ export default function CandidatoEmpHome() {
                 </button>
                 <button
                   onClick={cerrarModalLicencia}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                  className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
                   Confirmar
                 </button>
               </div>
