@@ -376,7 +376,7 @@ export default function ManagerHome() {
               <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow space-y-4">
 
           {mensajeOferta && (
-            <div className="text-sm text-blue-700 bg-blue-100 p-2 rounded">
+            <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
               {mensajeOferta}
             </div>
           )}
@@ -424,7 +424,7 @@ export default function ManagerHome() {
                   </button>
                   <button
                     onClick={crearOfertaLaboral}
-                    className="px-4 py-2 text-white rounded bg-blue-600"
+                    className="px-4 py-2 text-white rounded bg-indigo-600"
                   >
                     Confirmar
                   </button>
@@ -437,7 +437,7 @@ export default function ManagerHome() {
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
           {mensajeAnalista && (
-            <div className="text-sm text-blue-700 bg-blue-100 p-2 rounded">
+            <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
               {mensajeAnalista}
             </div>
           )}
@@ -484,7 +484,7 @@ export default function ManagerHome() {
                   </button>
                   <button
                     onClick={crearAnalista}
-                    className="px-4 py-2 text-white rounded bg-blue-600"
+                    className="px-4 py-2 text-white rounded bg-indigo-600"
                   >
                     Confirmar
                   </button>
@@ -498,7 +498,7 @@ export default function ManagerHome() {
     <div className="bg-white p-6 rounded-2xl w-3/4 max-h-[80vh] overflow-auto text-black">
 
   {mensajeAsignacion && (
-      <div className="mb-4 text-sm text-blue-700 bg-blue-100 p-2 rounded">
+      <div className="mb-4 text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
         {mensajeAsignacion}
       </div>
   )}  
@@ -572,7 +572,7 @@ export default function ManagerHome() {
       )}
 
       {mensajeEvaluacion && (
-        <div className="mb-4 text-center text-blue-700 font-semibold bg-blue-100 p-2 rounded">
+        <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
           {mensajeEvaluacion}
         </div>
       )}
@@ -606,7 +606,7 @@ export default function ManagerHome() {
                         href={licencia.certificado_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-600 underline"
+                        className="text-indigo-600 underline"
                       >
                         Ver certificado
                       </a>
@@ -634,7 +634,7 @@ export default function ManagerHome() {
                     {licencia.estado === "aprobada" && licencia.certificado_url && (
                       <button
                         onClick={() => evaluarLicencia(licencia.id_licencia, "activa")}
-                        className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
                       >
                         Activar
                       </button>

@@ -292,7 +292,7 @@ export default function Login() {
       <div className="absolute inset-0 bg-[url('/city.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
 
       {/* sobre nosotros */}
-      <button onClick={() => setShowInfo(true)} className="absolute bottom-2 right-4 text-xs text-gray-400 hover:text-white z-20">
+      <button onClick={() => setShowInfo(true)} className="absolute bottom-2 right-4 text-xs text-gray-500 hover:text-white z-20">
         Sobre nosotros
       </button>
 
@@ -304,7 +304,7 @@ export default function Login() {
             <p className="text-sm mb-4">
               SIGRH+ es un sistema de gestión de recursos humanos desarrollado por 404 Safehouse Not Found. Nuestro objetivo es facilitar la organización del talento humano con tecnología accesible, potente y enfocada en las personas.
             </p>
-            <button onClick={() => setShowInfo(false)} className="text-blue-600 hover:underline text-sm">
+            <button onClick={() => setShowInfo(false)} className="text-indigo-600 hover:underline text-sm">
               Cerrar
             </button>
           </div>
@@ -313,7 +313,7 @@ export default function Login() {
 
 
       <div className="text-center mb-6 z-10">
-        <h1 className="text-4xl font-bold tracking-widest text-blue-400">SIGRH+</h1>
+        <h1 className="text-4xl font-bold tracking-widest text-indigo-600">SIGRH+</h1>
         <p className="text-sm italic text-gray-300 mt-2">{frase}</p>
       </div>
 
@@ -326,11 +326,11 @@ export default function Login() {
               <h2 className="text-2xl font-semibold text-center text-white">Iniciar Sesión</h2>
 
               <input type="text" placeholder="Usuario o Email" value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)}
-                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               <div className="relative">
                 <input type={loginPasswordVisible ? "text" : "password"} placeholder="Contraseña" value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 <span onClick={() => setLoginPasswordVisible(!loginPasswordVisible)}
                   className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100">
                   {loginPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
@@ -392,7 +392,7 @@ export default function Login() {
 
               <div className="text-sm text-center text-gray-300">
                 ¿No tenés usuario?{' '}
-                <button id="toggle-to-register" type="button" onClick={() =>  {resetLoginFields();  setFlipped(true)}} className="text-blue-400 hover:underline">
+                <button id="toggle-to-register" type="button" onClick={() =>  {resetLoginFields();  setFlipped(true)}} className="text-indigo-500 hover:underline">
                   Registrate acá
                 </button>
               </div>
@@ -406,20 +406,20 @@ export default function Login() {
 
               <input type="text" placeholder="Nombre" value={registerName}
                 onChange={(e) => setRegisterName(e.target.value)}
-                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               <input type="text" placeholder="Apellido" value={registerSurname}
                 onChange={(e) => setRegisterSurname(e.target.value)}
-                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               <input type="text" placeholder="Nombre de Usuario" value={registerUsername}
                 onChange={(e) => setRegisterUsername(e.target.value)}
-                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               <input type="email" placeholder="Email" value={registerEmail}
                 onChange={(e) => setRegisterEmail(e.target.value)}
-                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               <div className="relative">
                 <input type={registerPasswordVisible ? "text" : "password"} placeholder="Contraseña" value={registerPassword}
                   onChange={(e) => setRegisterPassword(e.target.value)}
-                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 <span onClick={() => setRegisterPasswordVisible(!registerPasswordVisible)}
                   className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100">
                   {registerPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
@@ -428,7 +428,7 @@ export default function Login() {
               <div className="relative">
                 <input type={registerRepeatPasswordVisible ? "text" : "password"} placeholder="Repetir Contraseña" value={registerRepeatPassword}
                   onChange={(e) => setRegisterRepeatPassword(e.target.value)}
-                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 <span onClick={() => setRegisterRepeatPasswordVisible(!registerRepeatPasswordVisible)}
                   className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100">
                   {registerRepeatPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
@@ -445,7 +445,7 @@ export default function Login() {
 
               <div className="text-sm text-center text-gray-300">
                 ¿Ya tienes cuenta?{' '}
-                <button type="button" id="toggle-to-login" onClick={() => {resetRegisterFields();  setFlipped(false);}} className="text-blue-400 hover:underline">
+                <button type="button" id="toggle-to-login" onClick={() => {resetRegisterFields();  setFlipped(false);}} className="text-indigo-500 hover:underline">
                   Inicia sesión acá
                 </button>
               </div>

@@ -351,7 +351,7 @@ const openCv = (idCv) => {
               <h2 className="text-xl font-semibold">Ofertas asignadas</h2>
 
               {mensajeOfertas && (
-                <div className="text-sm text-blue-700 bg-blue-100 p-2 rounded">
+                <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
                   {mensajeOfertas}
                 </div>
               )}
@@ -407,7 +407,7 @@ const openCv = (idCv) => {
       <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
 
       {mensajeLicencia && (
-        <div className="text-sm text-blue-700 bg-blue-100 p-2 rounded">
+        <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
           {mensajeLicencia}
         </div>
       )}
@@ -450,7 +450,7 @@ const openCv = (idCv) => {
         </button>
         <button
           onClick={solicitarLicencia}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
         >
           Enviar
         </button>
@@ -493,8 +493,8 @@ const openCv = (idCv) => {
               <li
                 key={idx}
                 onClick={() => setLicenciaId(id_licencia)}
-                className={`p-3 border rounded cursor-pointer hover:bg-blue-200 ${
-                  licenciaId === id_licencia ? "bg-blue-100" : ""
+                className={`p-3 border rounded cursor-pointer hover:bg-indigo-200 ${
+                  licenciaId === id_licencia ? "bg-indigo-100" : ""
                 }`}
               >
                 <div className="flex justify-between items-center">
@@ -528,7 +528,7 @@ const openCv = (idCv) => {
             className="block w-full text-sm text-gray-500
                        file:mr-4 file:py-2 file:px-4 file:rounded-lg
                        file:border-0 file:text-sm file:font-semibold
-                       file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                       file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
           />
 
           {mensajeCertificado && (
@@ -536,7 +536,7 @@ const openCv = (idCv) => {
               className={`mb-4 mt-2 text-center font-semibold p-2 rounded ${
                 mensajeCertificado.includes("Error")
                   ? "bg-red-100 text-red-700"
-                  : "bg-blue-100 text-blue-700"
+                  : "bg-indigo-100 text-indigo-700"
               }`}
             >
               {mensajeCertificado}
@@ -547,7 +547,7 @@ const openCv = (idCv) => {
             <button
               onClick={async () => {
                 if (!selectedFile) {
-                  setMensajeCertificado("❌ Debes seleccionar un PDF.");
+                  setMensajeCertificado("Debes seleccionar un PDF.");
                   return;
                 }
                 const formData = new FormData();
@@ -580,7 +580,7 @@ const openCv = (idCv) => {
                   setMensajeCertificado("Error al conectar con el servidor.");
                 }
               }}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600"
             >
               Subir
             </button>
@@ -684,7 +684,7 @@ const openCv = (idCv) => {
                   }
                   inp.value = "";
                 }}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
               >
                 Añadir
               </button>
@@ -702,8 +702,8 @@ const openCv = (idCv) => {
         <div
           className={`mb-4 p-2 rounded text-center text-sm ${
             mensajeEtiquetas.startsWith("")
-              ? "bg-blue-100 text-blue-700"
-              : "bg-blue-100 text-blue-700"
+              ? "bg-indigo-100 text-indigo-700"
+              : "bg-indigo-100 text-indigo-700"
           }`}
         >
           {mensajeEtiquetas}
@@ -723,7 +723,7 @@ const openCv = (idCv) => {
         </button>
         <button
           onClick={saveEtiquetas}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
         >
           Guardar
         </button>
@@ -748,7 +748,7 @@ const openCv = (idCv) => {
               {c.cv_url && (
                 <button
                   onClick={() => openCv(c.id_cv)}
-                  className="mt-1 text-blue-600 hover:underline text-sm w-max"
+                  className="mt-1 text-indigo-600 hover:underline text-sm w-max"
                 >
                   Ver CV
                 </button>
@@ -799,7 +799,7 @@ const openCv = (idCv) => {
             <a href={cvUrl}
                target="_blank"
                rel="noopener noreferrer"
-               className="text-blue-600 underline">
+               className="text-indigo-600 underline">
               Descargar CV
             </a>
           </p>

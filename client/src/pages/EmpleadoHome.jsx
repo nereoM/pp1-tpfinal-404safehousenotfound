@@ -20,11 +20,6 @@ export default function ReclutadorHome() {
   const [licenciaId, setLicenciaId] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
 
-
-
-  
-
-
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/reclutador-home`, { credentials: "include" })
       .then(res => {
@@ -237,7 +232,7 @@ export default function ReclutadorHome() {
       <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
 
       {mensajeLicencia && (
-        <div className="text-sm text-blue-700 bg-blue-100 p-2 rounded">
+        <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
           {mensajeLicencia}
         </div>
       )}
@@ -280,7 +275,7 @@ export default function ReclutadorHome() {
         </button>
         <button
           onClick={solicitarLicencia}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
         >
           Enviar
         </button>
@@ -323,8 +318,8 @@ export default function ReclutadorHome() {
               <li
                 key={idx}
                 onClick={() => setLicenciaId(id_licencia)}
-                className={`p-3 border rounded cursor-pointer hover:bg-blue-200 ${
-                  licenciaId === id_licencia ? "bg-blue-100" : ""
+                className={`p-3 border rounded cursor-pointer hover:bg-indigo-200 ${
+                  licenciaId === id_licencia ? "bg-indigo-100" : ""
                 }`}
               >
                 <div className="flex justify-between items-center">
@@ -358,7 +353,7 @@ export default function ReclutadorHome() {
             className="block w-full text-sm text-gray-500
                        file:mr-4 file:py-2 file:px-4 file:rounded-lg
                        file:border-0 file:text-sm file:font-semibold
-                       file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                       file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
           />
 
           {mensajeCertificado && (
@@ -366,7 +361,7 @@ export default function ReclutadorHome() {
               className={`mb-4 mt-2 text-center font-semibold p-2 rounded ${
                 mensajeCertificado.includes("Error")
                   ? "bg-red-100 text-red-700"
-                  : "bg-blue-100 text-blue-700"
+                  : "bg-indigo-100 text-indigo-700"
               }`}
             >
               {mensajeCertificado}
@@ -410,7 +405,7 @@ export default function ReclutadorHome() {
                   setMensajeCertificado("Error al conectar con el servidor.");
                 }
               }}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600"
             >
               Subir
             </button>
