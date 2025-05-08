@@ -1,0 +1,73 @@
+tags:
+  - Empleado
+summary: Ver ofertas laborales de la empresa
+description: Devuelve todas las ofertas laborales publicadas por la empresa a la que pertenece el empleado autenticado.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de ofertas obtenida exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 101
+          nombre:
+            type: string
+            example: Desarrollador Full Stack
+          id_creador:
+            type: integer
+            example: 5
+          employment_type:
+            type: string
+            example: Tiempo completo
+          descripcion:
+            type: string
+            example: Buscamos desarrollador con experiencia en React y Node.js
+          fecha_publicacion:
+            type: string
+            format: date-time
+            example: "2025-05-07T14:30:00"
+          empresa:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 3
+              nombre:
+                type: string
+                example: Soluciones IT
+  403:
+    description: El empleado no pertenece a ninguna empresa
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: No pertenecés a ninguna empresa
+  404:
+    description: Empleado no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Empleado no encontrado
+  500:
+    description: Error interno del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Error inesperado al obtener las ofertas
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+security:
+  - cookieAuth: []

@@ -146,6 +146,7 @@ def subir_certificado(id_licencia):
         }
     ), 200
     
+@swag_from("../docs/empleado/ver-ofertas-empresa.yml")
 @empleado_bp.route("/ver-ofertas-empresa", methods=["GET"])
 @role_required(["empleado"])
 def ver_ofertas_empresa():
