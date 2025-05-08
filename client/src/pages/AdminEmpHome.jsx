@@ -10,6 +10,7 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { adminEmpService } from "../services/adminEmpService";
+import SubirEmpleados from '../components/RegistrarEmpleados';
 
 export default function AdminEmpHome() {
   const [user, setUser] = useState(null);
@@ -21,10 +22,12 @@ export default function AdminEmpHome() {
   const [formData, setFormData] = useState({ nombre: "", apellido: "", username: "", email: "" });
   const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
   const [licencias, setLicencias] = useState([]);
-  const [mensajeLicencias, setMensajeLicencias] = useState("");  
+  const [mensajeLicencias, setMensajeLicencias] = useState("");
   const [mensajeEvaluacion, setMensajeEvaluacion] = useState("");
- 
-  const navigate = useNavigate(); 
+  const [modalSubirEmpleados, setModalSubirEmpleados] = useState(false);
+
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/info-admin`, { credentials: "include" })
@@ -54,13 +57,13 @@ export default function AdminEmpHome() {
     color_secundario: estilos?.color_secundario ?? "#f3f4f6",
     color_texto: estilos?.color_texto ?? "#000000",
     slogan: estilos?.slogan ?? "Bienvenido al panel de Administración de Empresa",
-    logo_url: estilos?.logo_url ?? null,    
+    logo_url: estilos?.logo_url ?? null,
   };
 
   const obtenerLicencias = async () => {
     adminEmpService.obtenerLicenciasSolicitadas()
-    .then(setLicencias)
-    .catch(() => setMensajeLicencias("Error al cargar las licencias."));
+      .then(setLicencias)
+      .catch(() => setMensajeLicencias("Error al cargar las licencias."));
   };
 
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
@@ -73,13 +76,13 @@ export default function AdminEmpHome() {
         },
         body: JSON.stringify({ estado: nuevoEstado }),
       });
-  
+
       const data = await res.json();
-  
+
       if (res.ok) {
         setMensajeEvaluacion(`${data.message}`);
         //refrescar la lista de licencias
-        obtenerLicencias(); 
+        obtenerLicencias();
       } else {
         setMensajeEvaluacion(`${data.error}`);
       }
@@ -119,13 +122,13 @@ export default function AdminEmpHome() {
       titulo: "Consultar Licencias",
       descripcion: "Accede a las licencias del personal y sus estados.",
       onClick: openModalLicencias
-    },  
+    },
     {
       icon: Upload,
       titulo: "Subir Empleados",
       descripcion: "Carga un archivo CSV para registrar empleados.",
-      onClick: () => alert("En desarrollo"),
-    }    
+      onClick: () => setModalSubirEmpleados(true),
+    }
   ];
 
   const handleLogout = () => {
@@ -135,7 +138,7 @@ export default function AdminEmpHome() {
     })
       .then(res => {
         if (!res.ok) throw new Error("Error al cerrar sesión");
-        navigate("/login"); 
+        navigate("/login");
       })
       .catch(err => console.error("Error al cerrar sesión:", err));
   };
@@ -145,7 +148,7 @@ export default function AdminEmpHome() {
       setMensaje("El nombre de usuario debe tener al menos 4 caracteres.");
       return;
     }
-  
+
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-manager`, {
         method: "POST",
@@ -158,7 +161,7 @@ export default function AdminEmpHome() {
           email: formData.email
         })
       });
-  
+
       const data = await res.json();
       if (res.ok) {
         setMensaje(
@@ -171,7 +174,7 @@ export default function AdminEmpHome() {
     } catch (err) {
       setMensaje("Error al conectar con el servidor");
     }
-  };  
+  };
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe, loading: loadingEstilos }}>
@@ -329,109 +332,123 @@ export default function AdminEmpHome() {
             </div>
           )}
 
+          {modalSubirEmpleados && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
+                <SubirEmpleados />
+                <div className="mt-6 text-right">
+                  <button
+                    onClick={() => setModalSubirEmpleados(false)}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
-{modalLicenciasOpen && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-    <div className="bg-white p-6 rounded-2xl w-4/5 max-h-[80vh] overflow-auto text-black">
-      <h2 className="text-2xl font-semibold mb-4 text-center">Mis Licencias</h2>
+          {modalLicenciasOpen && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+              <div className="bg-white p-6 rounded-2xl w-4/5 max-h-[80vh] overflow-auto text-black">
+                <h2 className="text-2xl font-semibold mb-4 text-center">Mis Licencias</h2>
 
-      {mensajeLicencias && (
-        <div className="mb-4 text-center text-red-600 font-semibold">
-          {mensajeLicencias}
-        </div>
-      )}
+                {mensajeLicencias && (
+                  <div className="mb-4 text-center text-red-600 font-semibold">
+                    {mensajeLicencias}
+                  </div>
+                )}
 
-      {mensajeEvaluacion && (
-        <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
-          {mensajeEvaluacion}
-        </div>
-      )}
+                {mensajeEvaluacion && (
+                  <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
+                    {mensajeEvaluacion}
+                  </div>
+                )}
 
-      {licencias.length === 0 ? (
-        <p className="text-center text-gray-500">No hay licencias solicitadas.</p>
-      ) : (
-        <table className="min-w-full table-auto border-collapse">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-4 py-2 text-left border-b">Tipo</th>
-              <th className="px-4 py-2 text-left border-b">Descripción</th>
-              <th className="px-4 py-2 text-left border-b">Fecha de Inicio</th>
-              <th className="px-4 py-2 text-left border-b">Estado</th>
-              <th className="px-4 py-2 text-left border-b">Certificado</th>
-              <th className="px-4 py-2 text-left border-b">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {licencias.map((item, index) => {
-              const licencia = item.licencia;
-              return (
-                <tr key={index} className="border-t">
-                  <td className="px-4 py-2">{licencia.tipo}</td>
-                  <td className="px-4 py-2">{licencia.descripcion}</td>
-                  <td className="px-4 py-2">{licencia.fecha_inicio || "-"}</td>
-                  <td className="px-4 py-2">{licencia.estado}</td>
-                  <td className="px-4 py-2">
-                    {licencia.certificado_url ? (
-                      <a
-                        href={licencia.certificado_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-indigo-600 underline"
-                      >
-                        Ver certificado
-                      </a>
-                    ) : (
-                      "Sin certificado"
-                    )}
-                  </td>
-                  <td className="px-4 py-2 space-x-2">
-                    {licencia.estado === "pendiente" && (
-                      <>
-                        <button
-                          onClick={() => evaluarLicencia(licencia.id_licencia, "aprobada")}
-                          className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                        >
-                          Aprobar
-                        </button>
-                        <button
-                          onClick={() => evaluarLicencia(licencia.id_licencia, "rechazada")}
-                          className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-                        >
-                          Rechazar
-                        </button>
-                      </>
-                    )}
-                    {licencia.estado === "aprobada" && licencia.certificado_url && (
-                      <button
-                        onClick={() => evaluarLicencia(licencia.id_licencia, "activa")}
-                        className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
-                      >
-                        Activar
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
+                {licencias.length === 0 ? (
+                  <p className="text-center text-gray-500">No hay licencias solicitadas.</p>
+                ) : (
+                  <table className="min-w-full table-auto border-collapse">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-4 py-2 text-left border-b">Tipo</th>
+                        <th className="px-4 py-2 text-left border-b">Descripción</th>
+                        <th className="px-4 py-2 text-left border-b">Fecha de Inicio</th>
+                        <th className="px-4 py-2 text-left border-b">Estado</th>
+                        <th className="px-4 py-2 text-left border-b">Certificado</th>
+                        <th className="px-4 py-2 text-left border-b">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {licencias.map((item, index) => {
+                        const licencia = item.licencia;
+                        return (
+                          <tr key={index} className="border-t">
+                            <td className="px-4 py-2">{licencia.tipo}</td>
+                            <td className="px-4 py-2">{licencia.descripcion}</td>
+                            <td className="px-4 py-2">{licencia.fecha_inicio || "-"}</td>
+                            <td className="px-4 py-2">{licencia.estado}</td>
+                            <td className="px-4 py-2">
+                              {licencia.certificado_url ? (
+                                <a
+                                  href={licencia.certificado_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-indigo-600 underline"
+                                >
+                                  Ver certificado
+                                </a>
+                              ) : (
+                                "Sin certificado"
+                              )}
+                            </td>
+                            <td className="px-4 py-2 space-x-2">
+                              {licencia.estado === "pendiente" && (
+                                <>
+                                  <button
+                                    onClick={() => evaluarLicencia(licencia.id_licencia, "aprobada")}
+                                    className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                                  >
+                                    Aprobar
+                                  </button>
+                                  <button
+                                    onClick={() => evaluarLicencia(licencia.id_licencia, "rechazada")}
+                                    className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                  >
+                                    Rechazar
+                                  </button>
+                                </>
+                              )}
+                              {licencia.estado === "aprobada" && licencia.certificado_url && (
+                                <button
+                                  onClick={() => evaluarLicencia(licencia.id_licencia, "activa")}
+                                  className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
+                                >
+                                  Activar
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
 
-      <div className="mt-6 text-right">
-        <button
-          onClick={() => {
-            setModalLicenciasOpen(false);
-            setMensajeLicencias("");
-            setMensajeEvaluacion("");
-          }}
-          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-        >
-          Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                <div className="mt-6 text-right">
+                  <button
+                    onClick={() => {
+                      setModalLicenciasOpen(false);
+                      setMensajeLicencias("");
+                      setMensajeEvaluacion("");
+                    }}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
         </PageLayout>
       </motion.div>
