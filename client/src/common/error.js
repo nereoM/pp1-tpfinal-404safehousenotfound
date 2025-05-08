@@ -1,11 +1,17 @@
 export class NotFoundError extends Error {
-  constructor() {
-    super("Recurso no encontrado")
+  constructor(msg = "Recurso no encontrado") {
+    super(msg)
   }
 }
 
 export class UnauthorizedError extends Error {
-  constructor() {
-    super("Insuficientes permisos")
+  constructor(msg = "Insuficientes permisos") {
+    super(msg)
+  }
+}
+
+export class ServerError extends Error {
+  constructor(msg = "Error al conectarse al server") {
+    super(msg)
   }
 }
