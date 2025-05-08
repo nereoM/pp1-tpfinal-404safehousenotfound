@@ -22,6 +22,9 @@ responses:
         correo:
           type: string
           example: juan.perez@empresa.com
+        empresa_id:
+          type: number
+          example: 4
   404:
     description: Admin-emp no encontrado
     schema:
