@@ -1,3 +1,5 @@
+import { fetcher } from "../common/fetcher";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function login(data) {
@@ -28,4 +30,13 @@ export async function login(data) {
   }
 
   return json;
+}
+
+export const authService = {
+  async obtenerInfoUsuario() {
+    const url = `${API_URL}/auth/me`
+
+    const data = await fetcher({ url })
+    return data
+  }
 }
