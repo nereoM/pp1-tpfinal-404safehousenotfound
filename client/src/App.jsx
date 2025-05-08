@@ -10,6 +10,7 @@ import LobbyEmp from "./pages/LobbyEmp";
 import Login from "./pages/Login";
 import ManagerHome from "./pages/ManagerHome";
 import Pagos from "./pages/Pagos";
+import EmpleadoHome from "./pages/EmpleadoHome"
 
 import { ReclutadorLayout } from "./components/ReclutadorLayout";
 import Clientes from "./pages/Clientes";
@@ -35,6 +36,7 @@ function App() {
         <Route path="/pagos" element={<Pagos />} />
         <Route path="/adminemp/home" element={<AdminEmpHome />} />
         <Route path="/manager/home" element={<ManagerHome />} />
+        <Route path="/empelado/home" element={<EmpleadoHome/>} />
       </Routes>
     </BrowserRouter>
   );
