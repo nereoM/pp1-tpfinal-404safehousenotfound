@@ -425,7 +425,7 @@ def listar_cvs():
         ]
     ), 200
 
-
+@swag_from('../docs/empleado/postularme.yml')
 @empleado_bp.route("/postularme-empleado", methods=["POST"])
 @role_required(["empleado"])
 def postularme():

@@ -1,0 +1,69 @@
+tags:
+  - Empleado
+summary: Postularse a una oferta laboral
+description: Permite al empleado postularse a una oferta laboral con un CV previamente cargado.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    description: Datos necesarios para postularse a la oferta
+    required: true
+    schema:
+      $ref: '#/definitions/PostularmeEmpleadoRequest'
+responses:
+  201:
+    description: Postulación realizada correctamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Postulación realizada correctamente."
+  400:
+    description: Faltan datos obligatorios
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Falta id de oferta o CV seleccionado"
+  403:
+    description: CV inválido o no pertenece al usuario, o empresa no coincide
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "No puedes postularte a esta oferta laboral"
+  404:
+    description: Empleado o oferta no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Oferta laboral no encontrada"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []
+definitions:
+  PostularmeEmpleadoRequest:
+    type: object
+    required:
+      - id_oferta
+      - id_cv
+    properties:
+      id_oferta:
+        type: integer
+        example: 12
+      id_cv:
+        type: integer
+        example: 34
