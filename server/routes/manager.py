@@ -148,6 +148,12 @@ def register_reclutador():
         }
     ), 201
 
+EMPLOYMENT_TYPES = ["Full-Time", "Part-Time", "Medio tiempo", "Contratado"]
+
+WORKPLACE_TYPES = ["Remoto", "Presencial", "Híbrido"]
+
+EXPERIENCE_LEVELS = ["Junior", "Semi Senior", "Senior", "Sin experiencia"]
+
 @swag_from('../docs/manager/crear-oferta-laboral.yml')
 @manager_bp.route("/crear_oferta_laboral", methods=["POST"])
 @role_required(["manager"])
@@ -166,6 +172,15 @@ def crear_oferta_laboral():
         currency = data.get("currency")
         experience_level = data.get("experience_level")
         fecha_cierre = data.get("fecha_cierre")
+
+        if employment_type not in EMPLOYMENT_TYPES:
+            return jsonify({"error": f"Tipo de empleo no válido. Las opciones permitidas son: {', '.join(EMPLOYMENT_TYPES)}"}), 400
+
+        if workplace_type not in WORKPLACE_TYPES:
+            return jsonify({"error": f"Modalidad de trabajo no válida. Las opciones permitidas son: {', '.join(WORKPLACE_TYPES)}"}), 400
+
+        if experience_level not in EXPERIENCE_LEVELS:
+            return jsonify({"error": f"Nivel de experiencia no válido. Las opciones permitidas son: {', '.join(EXPERIENCE_LEVELS)}"}), 400
 
         if not all(
             [
