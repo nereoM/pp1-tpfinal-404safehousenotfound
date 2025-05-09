@@ -327,6 +327,7 @@ export default function EmpleadoHome() {
           {idOfertaSeleccionada && (
             <PostularseModal
               onClose={() => setIdOfertaSeleccionada(null)}
+              idOferta={idOfertaSeleccionada}
               cvs={cvs}
             />
           )}

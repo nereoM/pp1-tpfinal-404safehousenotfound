@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { empleadoService } from "../services/empleadoService";
 
-export function PostularseModal({cvs, onClose}) {
+export function PostularseModal({cvs, onClose, idOferta}) {
   const [cvSeleccionado, setCvSeleccionado] = useState(cvs[0]);
   const [salarioPretendido, setSalarioPretendido] = useState(0);
 
   const handlePostularse = () => {
-    // TODO - Implementar endpoint para postularse como empleado
-    empleadoService.misLicencias()
+    empleadoService.postularse({idCv: cvSeleccionado , idOferta})
     .then(() => {
       onClose()
     })
