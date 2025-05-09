@@ -10,7 +10,7 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { adminEmpService } from "../services/adminEmpService";
-import SubirEmpleados from '../components/RegistrarEmpleados';
+import SubirEmpleados from "../components/RegistrarEmpleados";
 
 export default function AdminEmpHome() {
   const [user, setUser] = useState(null);
@@ -26,17 +26,13 @@ export default function AdminEmpHome() {
   const [mensajeEvaluacion, setMensajeEvaluacion] = useState("");
   const [modalSubirEmpleados, setModalSubirEmpleados] = useState(false);
 
-
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/info-admin`, { credentials: "include" })
-      .then(res => {
-        if (!res.ok) throw new Error("Error al autenticar");
-        return res.json();
-      })
-      .then(data => setUser(data))
-      .catch(err => console.error("❌ Error al obtener usuario:", err))
+    adminEmpService
+      .obtenerInfoAdminEmpresa()
+      .then(setUser)
+      .catch((err) => console.error("❌ Error al obtener usuario:", err))
       .finally(() => setLoadingUser(false));
   }, []);
 
@@ -61,41 +57,60 @@ export default function AdminEmpHome() {
   };
 
   const obtenerLicencias = async () => {
-    adminEmpService.obtenerLicenciasSolicitadas()
+    adminEmpService
+      .obtenerLicenciasSolicitadas()
       .then(setLicencias)
       .catch(() => setMensajeLicencias("Error al cargar las licencias."));
   };
 
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/evaluar-licencia/${id_licencia}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ estado: nuevoEstado }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setMensajeEvaluacion(`${data.message}`);
-        //refrescar la lista de licencias
-        obtenerLicencias();
-      } else {
-        setMensajeEvaluacion(`${data.error}`);
-      }
+      const data = await adminEmpService.evaluarLicencia({ idLicencia: id_licencia, estado: nuevoEstado });
+      setMensajeEvaluacion(data.message || "Estado actualizado correctamente.");
+      obtenerLicencias();
     } catch (error) {
       console.error("Error al evaluar licencia:", error);
-      setMensajeEvaluacion(" Error al procesar la solicitud.");
+      setMensajeEvaluacion("Error al procesar la solicitud.");
     }
   };
 
-  const openModalLicencias = () => {
-    setMensajeLicencias("");
-    obtenerLicencias();
-    setModalLicenciasOpen(true);
+  const subirEmpleadosDesdeCSV = async (file) => {
+    try {
+      const data = await adminEmpService.registrarEmpleadosDesdeCSV(file);
+      alert(data.message || "Empleados registrados correctamente.");
+    } catch (error) {
+      console.error("Error al subir empleados:", error);
+      alert("Error al registrar empleados.");
+    }
+  };
+
+  const crearManager = async () => {
+    if (formData.username.trim().length < 4) {
+      setMensaje("El nombre de usuario debe tener al menos 4 caracteres.");
+      return;
+    }
+
+    try {
+      const data = await adminEmpService.registrarManager(formData);
+      setMensaje(
+        `Usuario creado correctamente.\n\nUsername: ${data.credentials.username}\nCredencial temporal: ${data.credentials.password}`
+      );
+      setFormData({ nombre: "", apellido: "", username: "", email: "" });
+    } catch (err) {
+      setMensaje("Error al conectar con el servidor");
+    }
+  };
+
+  const handleLogout = () => {
+    fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al cerrar sesión");
+        navigate("/login");
+      })
+      .catch((err) => console.error("Error al cerrar sesión:", err));
   };
 
   const acciones = [
@@ -121,60 +136,19 @@ export default function AdminEmpHome() {
       icon: FileLock,
       titulo: "Consultar Licencias",
       descripcion: "Accede a las licencias del personal y sus estados.",
-      onClick: openModalLicencias
+      onClick: () => {
+        setMensajeLicencias("");
+        obtenerLicencias();
+        setModalLicenciasOpen(true);
+      },
     },
     {
       icon: Upload,
       titulo: "Subir Empleados",
       descripcion: "Carga un archivo CSV para registrar empleados.",
       onClick: () => setModalSubirEmpleados(true),
-    }
+    },
   ];
-
-  const handleLogout = () => {
-    fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    })
-      .then(res => {
-        if (!res.ok) throw new Error("Error al cerrar sesión");
-        navigate("/login");
-      })
-      .catch(err => console.error("Error al cerrar sesión:", err));
-  };
-
-  const crearManager = async () => {
-    if (formData.username.trim().length < 4) {
-      setMensaje("El nombre de usuario debe tener al menos 4 caracteres.");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-manager`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.nombre,
-          lastname: formData.apellido,
-          username: formData.username,
-          email: formData.email
-        })
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setMensaje(
-          `Usuario creado correctamente.\n\nUsername: ${data.credentials.username}\nCredencial temporal: ${data.credentials.password}`
-        );
-        setFormData({ nombre: "", apellido: "", username: "", email: "" });
-      } else {
-        setMensaje(`Error: ${data.error}`);
-      }
-    } catch (err) {
-      setMensaje("Error al conectar con el servidor");
-    }
-  };
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe, loading: loadingEstilos }}>
@@ -228,8 +202,11 @@ export default function AdminEmpHome() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
-              className="md:col-span-2 space-y-4">
-              <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto }}>Acciones disponibles: Administrador de Empresa</h2>
+              className="md:col-span-2 space-y-4"
+            >
+              <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto }}>
+                Acciones disponibles: Administrador de Empresa
+              </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
                   <motion.div
@@ -246,8 +223,12 @@ export default function AdminEmpHome() {
                     }}
                   >
                     <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_principal }} />
-                    <h3 className="text-base font-semibold" style={{ color: estilosSafe.color_texto }}>{titulo}</h3>
-                    <p className="text-sm mt-1" style={{ color: estilosSafe.color_texto }}>{descripcion}</p>
+                    <h3 className="text-base font-semibold" style={{ color: estilosSafe.color_texto }}>
+                      {titulo}
+                    </h3>
+                    <p className="text-sm mt-1" style={{ color: estilosSafe.color_texto }}>
+                      {descripcion}
+                    </p>
                   </motion.div>
                 ))}
               </div>
@@ -335,7 +316,7 @@ export default function AdminEmpHome() {
           {modalSubirEmpleados && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
               <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
-                <SubirEmpleados />
+                <SubirEmpleados onUpload={subirEmpleadosDesdeCSV} />
                 <div className="mt-6 text-right">
                   <button
                     onClick={() => setModalSubirEmpleados(false)}
@@ -402,7 +383,7 @@ export default function AdminEmpHome() {
                               )}
                             </td>
                             <td className="px-4 py-2 space-x-2">
-                              {licencia.estado === "pendiente" && (
+                              {licencia.estado === "pendiente" ? (
                                 <>
                                   <button
                                     onClick={() => evaluarLicencia(licencia.id_licencia, "aprobada")}
@@ -417,14 +398,10 @@ export default function AdminEmpHome() {
                                     Rechazar
                                   </button>
                                 </>
-                              )}
-                              {licencia.estado === "aprobada" && licencia.certificado_url && (
-                                <button
-                                  onClick={() => evaluarLicencia(licencia.id_licencia, "activa")}
-                                  className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
-                                >
-                                  Activar
-                                </button>
+                              ) : (
+                                <span className="text-gray-500 italic">
+                                  Licencia ya evaluada ({licencia.estado})
+                                </span>
                               )}
                             </td>
                           </tr>
@@ -449,7 +426,6 @@ export default function AdminEmpHome() {
               </div>
             </div>
           )}
-
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>
