@@ -308,21 +308,9 @@ export default function CandidatoHome() {
                     onEdit={() => setModalEditarPerfilOpen(true)}
                     />
                         <div className="mt-3">
-                            <label className="block mb-2 text-sm text-gray-600">Seleccionar CV</label>
-                            <select
-                                className="w-full p-2 border border-gray-300 rounded"
-                                value={cvSeleccionado}
-                                onChange={(e) => setCvSeleccionado(e.target.value)}
-                            >
-                                {cvs.map((cv) => (
-                                    <option key={cv.id} value={cv.id}>
-                                        {cv.nombre_archivo || new Date(cv.fecha_subida).toLocaleDateString()}
-                                    </option>
-                                ))}
-                            </select>
                             <div className="flex flex-col gap-2 mt-4">
                                 <label htmlFor="cv-upload" className="flex items-center justify-center gap-2 p-2 border border-dashed border-blue-500 rounded cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
-                                    <FileUp className="w-4 h-4 text-blue-600" /> Seleccionar archivo
+                                    <FileUp className="w-4 h-4 text-blue-600" /> Subir CV
                                 </label>
                                 <input
                                     id="cv-upload"
@@ -345,6 +333,15 @@ export default function CandidatoHome() {
                                         <Upload className="w-4 h-4" /> Confirmar subida
                                     </button>
                                 )}
+
+                             <div className="mt-4">
+                                    <button
+                                onClick={() => navigate("/pagos")}
+                                    className="block w-full text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+                                >
+                                 ¿Tienes una empresa? Suscribite acá
+                                </button>
+                            </div>
                             </div>
                         </div>
                     </div>
