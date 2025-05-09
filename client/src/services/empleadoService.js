@@ -105,5 +105,11 @@ export const empleadoService = {
 
     const data = await fetcher({ url });
     return data;
+  },
+  async obtenerMisCvs() {
+    const url = `${API_URL}/api/mis-cvs-empleado`
+
+    const data = await fetcher({ url })
+    return data
   }
 }
