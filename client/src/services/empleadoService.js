@@ -111,5 +111,22 @@ export const empleadoService = {
 
     const data = await fetcher({ url })
     return data
-  }
+  },
+  async postularse({ idOferta, idCv }) {
+    const url = `${API_URL}/api/postularme-empleado`;
+
+    const options = {
+      method: 'POST',
+      body: JSON.stringify({
+        id_oferta: idOferta,
+        id_cv: idCv,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    }
+
+    const data = await fetcher({ url, options });
+    return data
+  },
 }
