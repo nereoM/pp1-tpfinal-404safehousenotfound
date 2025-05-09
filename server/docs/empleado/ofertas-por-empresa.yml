@@ -1,0 +1,117 @@
+tags:
+  - Empleado
+summary: Obtener ofertas laborales por empresa
+description: >
+  Devuelve las ofertas laborales publicadas por una empresa específica, permitiendo aplicar filtros opcionales como modalidad, ubicación, experiencia, etc.
+parameters:
+  - name: nombre_empresa
+    in: path
+    required: true
+    type: string
+    description: Nombre exacto de la empresa
+    example: "Tech Solutions"
+  - name: modalidad
+    in: query
+    type: string
+    required: false
+    description: Modalidad de trabajo (remoto, presencial, híbrido)
+    example: "remoto"
+  - name: location
+    in: query
+    type: string
+    required: false
+    description: Ubicación de la oferta
+    example: "Buenos Aires"
+  - name: experience_level
+    in: query
+    type: string
+    required: false
+    description: Nivel de experiencia requerido
+    example: "senior"
+produces:
+  - application/json
+responses:
+  200:
+    description: Ofertas encontradas exitosamente para la empresa
+    schema:
+      type: object
+      properties:
+        empresa:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 5
+            nombre:
+              type: string
+              example: "Tech Solutions"
+            correo:
+              type: string
+              example: "contacto@techsolutions.com"
+        ofertas:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+                example: 101
+              nombre:
+                type: string
+                example: "Backend Developer"
+              descripcion:
+                type: string
+                example: "Responsable de desarrollar APIs REST con Django."
+              location:
+                type: string
+                example: "Buenos Aires"
+              employment_type:
+                type: string
+                example: "Full-Time"
+              workplace_type:
+                type: string
+                example: "Remoto"
+              salary_min:
+                type: number
+                example: 100000
+              salary_max:
+                type: number
+                example: 150000
+              currency:
+                type: string
+                example: "ARS"
+              experience_level:
+                type: string
+                example: "Senior"
+              fecha_publicacion:
+                type: string
+                format: date
+                example: "2024-11-10"
+              fecha_cierre:
+                type: string
+                format: date
+                example: "2025-01-10"
+  404:
+    description: Empresa no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Empresa no encontrada"
+  500:
+    description: Error interno al obtener ofertas de la empresa
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error inesperado"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

@@ -1,0 +1,49 @@
+tags:
+  - Empleado
+summary: Obtener información básica del empleado autenticado
+description: >
+  Devuelve el nombre, apellido, username y correo del empleado autenticado mediante JWT.
+produces:
+  - application/json
+responses:
+  200:
+    description: Información del empleado obtenida exitosamente
+    schema:
+      type: object
+      properties:
+        nombre:
+          type: string
+          example: "Martín"
+        apellido:
+          type: string
+          example: "Pérez"
+        username:
+          type: string
+          example: "martin.p"
+        correo:
+          type: string
+          example: "martin.perez@email.com"
+  404:
+    description: Empleado no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Candidato no encontrado"
+  401:
+    description: No autorizado, token inválido o no enviado
+    schema:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "Missing Authorization Cookie"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

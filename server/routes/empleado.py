@@ -208,6 +208,7 @@ def ver_ofertas_empresa():
         return jsonify({"error": str(e)}), 500
 
 
+@swag_from("../docs/empleado/recomendaciones.yml")
 @empleado_bp.route("/recomendaciones-empleado", methods=["GET"])
 @role_required(["empleado"])
 def recomendar_ofertas():
@@ -268,7 +269,7 @@ def recomendar_ofertas():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-
+@swag_from("../docs/empleado/subir-cv.yml")
 @empleado_bp.route("/upload-cv-empleado", methods=["POST"])
 @role_required(["empleado"])
 def upload_cv():
@@ -315,9 +316,9 @@ def upload_cv():
 
     return jsonify({"error": "Formato de archivo no permitido"}), 400
 
-
 @empleado_bp.route("/info-empleado", methods=["GET"])
 @jwt_required()
+@swag_from("../docs/empleado/info-empleado.yml")
 def obtener_nombre_apellido_empleado():
     id_empleado = get_jwt_identity()
     empleado = Usuario.query.get(id_empleado)
@@ -331,7 +332,7 @@ def obtener_nombre_apellido_empleado():
         "correo": empleado.correo,
     }
 
-
+@swag_from("../docs/empleado/ofertas-filtradas.yml")
 @empleado_bp.route("/ofertas-filtradas-empleado", methods=["GET"])
 @role_required(["empleado"])
 def obtener_ofertas_filtradas():
@@ -356,7 +357,7 @@ def obtener_ofertas_filtradas():
         print("Error en /ofertas-filtradas:", e)
         return jsonify({"error": str(e)}), 500
 
-
+@swag_from("../docs/empleado/ofertas-por-empresa.yml")
 @empleado_bp.route("/empresas-empleado/<string:nombre_empresa>/ofertas", methods=["GET"])
 @role_required(["empleado"])
 def obtener_ofertas_por_nombre_empresa(nombre_empresa):

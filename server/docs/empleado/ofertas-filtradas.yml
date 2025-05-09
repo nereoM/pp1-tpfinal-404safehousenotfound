@@ -1,0 +1,65 @@
+tags:
+  - Empleado
+summary: Obtener ofertas laborales filtradas
+description: >
+  Devuelve una lista de ofertas laborales activas que coinciden con los filtros provistos como parámetros de consulta.
+  Los filtros disponibles dependen de los campos utilizados en la función `construir_query_con_filtros`, como por ejemplo sector, ubicación, modalidad, etc.
+parameters:
+  - name: sector
+    in: query
+    type: string
+    required: false
+    description: Sector o rubro de la oferta laboral
+    example: "Tecnología"
+  - name: ubicacion
+    in: query
+    type: string
+    required: false
+    description: Ubicación geográfica de la oferta
+    example: "Buenos Aires"
+  - name: modalidad
+    in: query
+    type: string
+    required: false
+    description: Modalidad de trabajo (presencial, remoto, híbrido)
+    example: "remoto"
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de ofertas filtradas obtenida exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: integer
+            example: 123
+          nombre_oferta:
+            type: string
+            example: "Desarrollador Full Stack"
+          empresa:
+            type: string
+            example: "Innovar SRL"
+          palabras_clave:
+            type: array
+            items:
+              type: string
+            example: ["javascript", "react", "node.js"]
+  500:
+    description: Error interno al aplicar los filtros
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error inesperado al filtrar ofertas"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []
