@@ -366,11 +366,18 @@ def registrar_empleados():
         file.save(file_path)
 
         try:
-            register_employees_from_csv(file_path)
+            resultado = register_employees_from_csv(file_path)
+            if "error" in resultado:
+                return jsonify(resultado), 400
+
+            return jsonify({
+                "message": "Empleados registrados exitosamente",
+                "total_empleados": len(resultado),
+                "empleados": resultado
+            })
+
         except Exception as e:
             return jsonify({'error': str(e)}), 500
-
-        return jsonify({'message': 'Archivo procesado correctamente'}), 201
 
     return jsonify({'error': 'Invalid file format'}), 400
 
@@ -384,7 +391,8 @@ def register_employees_from_csv(file_path):
 
         for row in reader:
             if not required_fields.issubset(row.keys()):
-                return jsonify({"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena"}), 400
+                # Devuelve un diccionario con el error
+                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena"}
 
             nombre = row['nombre'].strip()
             apellido = row['apellido'].strip()
@@ -393,21 +401,21 @@ def register_employees_from_csv(file_path):
             contrasena = row['contrasena'].strip()
 
             if not validar_nombre(nombre) or not validar_nombre(apellido):
-                return jsonify({"error": "Nombre o apellido no válido"}), 400
+                return {"error": "Nombre o apellido no válido"}
             
             email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
             if not re.match(email_regex, email):
-                return jsonify({"error": "Formato de email no válido"}), 400
+                return {"error": "Formato de email no válido"}
 
             existing_user = Usuario.query.filter_by(username=username).first()
             if existing_user:
-                return jsonify({"error": f"El usuario '{username}' ya existe"}), 400
+                return {"error": f"El usuario '{username}' ya existe"}
             
             id_admin_emp = get_jwt_identity()
 
             admin_emp = Usuario.query.get(id_admin_emp)
             if not admin_emp or not admin_emp.id_empresa:
-                return jsonify({"error": "El admin-emp no tiene una empresa asociada"}), 403
+                return {"error": "El admin-emp no tiene una empresa asociada"}
 
             id_empresa = admin_emp.id_empresa
 
@@ -438,11 +446,7 @@ def register_employees_from_csv(file_path):
 
         db.session.commit()
         
-        return jsonify({
-            "message": "Empleados registrados exitosamente",
-            "total_empleados": len(resultado),
-            "empleados": resultado
-        })
+        return resultado
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'csv'}
