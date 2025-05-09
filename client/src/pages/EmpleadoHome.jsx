@@ -17,7 +17,7 @@ import { empleadoService } from "../services/empleadoService";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-export default function CandidatoEmpHome() {
+export default function EmpleadoHome() {
   const [searchTerm, setSearchTerm] = useState("");
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);

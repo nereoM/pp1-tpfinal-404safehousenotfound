@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { GoogleLogin } from '@react-oauth/google';
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -254,7 +254,7 @@ export default function Login() {
       } else if (user.roles.includes("admin-emp")) { 
         navigate("/adminemp/home"); 
       } else {
-        navigate("/candidato/home");
+        navigate("/empleado/home");
       }
 
     } catch (err) {
