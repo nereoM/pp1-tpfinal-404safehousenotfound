@@ -402,6 +402,29 @@ def obtener_ofertas_por_nombre_empresa(nombre_empresa):
     ), 200
 
 
+@swag_from('../docs/empleado/mis-cvs.yml')
+@empleado_bp.route("/mis-cvs-empleado", methods=["GET"])
+@role_required(["empleado"])
+def listar_cvs():
+    id_empleado = get_jwt_identity()
+    cvs = (
+        CV.query.filter_by(id_candidato=id_empleado)
+        .order_by(CV.fecha_subida.desc())
+        .all()
+    )
+
+    return jsonify(
+        [
+            {
+                "id": cv.id,
+                "url": cv.url_cv,
+                "tipo_archivo": cv.tipo_archivo,
+                "fecha_subida": cv.fecha_subida.isoformat(),
+            }
+            for cv in cvs
+        ]
+    ), 200
+
 def construir_query_con_filtros(filtros, query):
     if "location" in filtros and filtros["location"]:
         query = query.filter(Oferta_laboral.location.ilike(f"%{filtros['location']}%"))
