@@ -83,6 +83,16 @@ export default function EmpleadoHome() {
     },
   ];
 
+  const handleUploadCv = () => {
+    empleadoService.subirCV({file : cvFile})
+      .then(() => {
+        setCvPreview(null)
+        setCvFile(null)
+      })
+      .catch(() => {console.log("ERROR AL SUBIR EL CV");
+      })
+  }
+
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
       <motion.div
@@ -196,7 +206,7 @@ export default function EmpleadoHome() {
                   )}
                   {cvFile && (
                     <button
-                      // onClick={handleUploadCV}
+                      onClick={handleUploadCv}
                       className="flex items-center justify-center gap-2 px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700 transition"
                     >
                       <Upload className="w-4 h-4" /> Confirmar subida
