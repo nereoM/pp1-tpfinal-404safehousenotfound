@@ -254,7 +254,7 @@ export default function Login() {
       } else if (user.roles.includes("admin-emp")) { 
         navigate("/adminemp/home"); 
       } else {
-        navigate("/empleado/home");
+        navigate("/candidato/home");
       }
 
     } catch (err) {
