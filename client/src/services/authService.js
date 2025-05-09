@@ -33,6 +33,11 @@ export async function login(data) {
 }
 
 export const authService = {
+  /**
+ * Obtiene la información del usuario autenticado mediante JWT.
+ *
+ * @returns {Promise<Usuario>} Información del usuario
+ */
   async obtenerInfoUsuario() {
     const url = `${API_URL}/auth/me`
 

@@ -21,17 +21,22 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function EmpleadoHome() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [ofertas, setOfertas] = useState([]);
   const [cvFile, setCvFile] = useState(null);
-  const [cvs, setCvs] = useState([]);
   const [cvPreview, setCvPreview] = useState(null);
   const [idOfertaSeleccionada, setIdOfertaSeleccionada] = useState(null);
   const [cvSeleccionado, setCvSeleccionado] = useState(null);
   const [busquedaConfirmada, setBusquedaConfirmada] = useState("");
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
+
+  // Estados typeados porque son asíncronos
+  /** @type {[Usuario]} */
+  const [user, setUser] = useState(null);
+  /** @type {[CV[]]} */
+  const [cvs, setCvs] = useState([]);
+  /** @type {[Oferta[]]} */
+  const [ofertas, setOfertas] = useState([]);
 
   // Modales
   const [modalSolicitarLicencia, setmodalSolicitarLicencia] = useState(false);
