@@ -3,7 +3,9 @@ import { FileUp, Search, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LicenciasModal } from "../components/LicenciasModal";
+import { OfertasRecomendadas } from "../components/OfertasRecomendadas";
 import PageLayout from "../components/PageLayoutCand";
+import { PostularseModal } from "../components/PostularseModal";
 import { ProfileCard } from "../components/ProfileCard";
 import { SearchFilters } from "../components/SearchFilters";
 import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal";
@@ -19,17 +21,20 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export default function EmpleadoHome() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [ofertas, setOfertas] = useState([]);
   const [cvFile, setCvFile] = useState(null);
-  const [cvs, setCvs] = useState([]);
   const [cvPreview, setCvPreview] = useState(null);
   const [idOfertaSeleccionada, setIdOfertaSeleccionada] = useState(null);
   const [cvSeleccionado, setCvSeleccionado] = useState(null);
   const [busquedaConfirmada, setBusquedaConfirmada] = useState("");
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
+
+  // Estados typeados porque son asíncronos
+  /** @type {[Usuario]} */
+  const [user, setUser] = useState(null);
+  /** @type {[CV[]]} */
+  const [cvs, setCvs] = useState([]);
 
   // Modales
   const [modalSolicitarLicencia, setmodalSolicitarLicencia] = useState(false);
@@ -40,16 +45,21 @@ export default function EmpleadoHome() {
 
   useEffect(() => {
     // Cargar informacion del usuario
-    setLoading(true)
+    setLoading(true);
 
-    authService.obtenerInfoUsuario()
-    .then(setUser)
-    .catch((err) => setError(err.message))
-    .finally(() => setLoading(false))
+    authService
+      .obtenerInfoUsuario()
+      .then(setUser)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
 
-    // Cargar ofertas de la empresa perteneciente al empleado
-    empleadoService.obtenerOfertasEmpresa()
-    .then(setOfertas)
+    // Cargar cvs
+    empleadoService
+      .obtenerMisCvs()
+      .then(setCvs)
+      .catch((err) => {
+        console.error(err.message);
+      });
   }, []);
 
   if (loading) {
@@ -82,6 +92,18 @@ export default function EmpleadoHome() {
       onClick: () => setmodalSolicitarLicencia(true),
     },
   ];
+
+  const handleUploadCv = () => {
+    empleadoService
+      .subirCV({ file: cvFile })
+      .then(() => {
+        setCvPreview(null);
+        setCvFile(null);
+      })
+      .catch(() => {
+        console.log("ERROR AL SUBIR EL CV");
+      });
+  };
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
@@ -130,7 +152,7 @@ export default function EmpleadoHome() {
                         fecha: "Reciente",
                         postulaciones: Math.floor(Math.random() * 100),
                       }));
-                      setOfertas(transformadas);
+                      // setOfertas(transformadas);
                       setBusquedaConfirmada("filtros");
                     } else {
                       console.error(
@@ -196,7 +218,7 @@ export default function EmpleadoHome() {
                   )}
                   {cvFile && (
                     <button
-                      // onClick={handleUploadCV}
+                      onClick={handleUploadCv}
                       className="flex items-center justify-center gap-2 px-4 py-2 text-white bg-indigo-600 rounded hover:bg-indigo-700 transition"
                     >
                       <Upload className="w-4 h-4" /> Confirmar subida
@@ -237,7 +259,6 @@ export default function EmpleadoHome() {
                   </div>
                 </motion.div>
               </div>
-
             </div>
             <div className="col-span-2">
               <div className="flex justify-between items-center mb-4">
@@ -260,36 +281,26 @@ export default function EmpleadoHome() {
                   <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
                 </div>
               </div>
-              {
-                ofertas?.map((oferta, index) => 
-                  <motion.div
-                    key={`oferta-${oferta.id ?? index}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.3 }}
-                  >
-                    {/*
-                    Cuando tengamos el endpoint /recomendaciones para empleado se puede usar JobCard
-                    Nos faltan las palabras claves
-                    */}
-                    <p>{oferta.nombre}</p>
-                    {/* <JobCard
-                      {...oferta}
-                      onPostularse={() => {
-                        setIdOfertaSeleccionada(oferta.id);
-                        setModalOpen(true);
-                      }}
-                    /> */}
-                  </motion.div>
-                )
-              }
+              <OfertasRecomendadas onSelectOferta={(id) => setIdOfertaSeleccionada(id)} />
             </div>
           </div>
 
-          {modalLicencias && <LicenciasModal onClose={() => setModalLicencias(false)} />}
+          {modalLicencias && (
+            <LicenciasModal onClose={() => setModalLicencias(false)} />
+          )}
 
           {modalSolicitarLicencia && (
-            <SolicitarLicenciaModal onClose={() => setmodalSolicitarLicencia(false)} />
+            <SolicitarLicenciaModal
+              onClose={() => setmodalSolicitarLicencia(false)}
+            />
+          )}
+
+          {idOfertaSeleccionada && (
+            <PostularseModal
+              onClose={() => setIdOfertaSeleccionada(null)}
+              idOferta={idOfertaSeleccionada}
+              cvs={cvs}
+            />
           )}
         </PageLayout>
       </motion.div>

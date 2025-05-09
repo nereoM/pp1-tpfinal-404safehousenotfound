@@ -25,3 +25,4 @@ uploads/*
 migrations/
 
 /server/pruebas
+/server/uploads/cvs/**

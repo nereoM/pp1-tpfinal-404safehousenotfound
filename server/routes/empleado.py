@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from models.extensions import db
-from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral, CV
+from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral, CV, Job_Application
 from auth.decorators import role_required
 import os
 from werkzeug.utils import secure_filename
@@ -208,6 +208,7 @@ def ver_ofertas_empresa():
         return jsonify({"error": str(e)}), 500
 
 
+@swag_from("../docs/empleado/recomendaciones.yml")
 @empleado_bp.route("/recomendaciones-empleado", methods=["GET"])
 @role_required(["empleado"])
 def recomendar_ofertas():
@@ -268,7 +269,7 @@ def recomendar_ofertas():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-
+@swag_from("../docs/empleado/subir-cv.yml")
 @empleado_bp.route("/upload-cv-empleado", methods=["POST"])
 @role_required(["empleado"])
 def upload_cv():
@@ -315,9 +316,9 @@ def upload_cv():
 
     return jsonify({"error": "Formato de archivo no permitido"}), 400
 
-
 @empleado_bp.route("/info-empleado", methods=["GET"])
 @jwt_required()
+@swag_from("../docs/empleado/info-empleado.yml")
 def obtener_nombre_apellido_empleado():
     id_empleado = get_jwt_identity()
     empleado = Usuario.query.get(id_empleado)
@@ -331,7 +332,7 @@ def obtener_nombre_apellido_empleado():
         "correo": empleado.correo,
     }
 
-
+@swag_from("../docs/empleado/ofertas-filtradas.yml")
 @empleado_bp.route("/ofertas-filtradas-empleado", methods=["GET"])
 @role_required(["empleado"])
 def obtener_ofertas_filtradas():
@@ -356,7 +357,7 @@ def obtener_ofertas_filtradas():
         print("Error en /ofertas-filtradas:", e)
         return jsonify({"error": str(e)}), 500
 
-
+@swag_from("../docs/empleado/ofertas-por-empresa.yml")
 @empleado_bp.route("/empresas-empleado/<string:nombre_empresa>/ofertas", methods=["GET"])
 @role_required(["empleado"])
 def obtener_ofertas_por_nombre_empresa(nombre_empresa):
@@ -399,6 +400,71 @@ def obtener_ofertas_por_nombre_empresa(nombre_empresa):
             "ofertas": resultado,
         }
     ), 200
+
+
+@swag_from('../docs/empleado/mis-cvs.yml')
+@empleado_bp.route("/mis-cvs-empleado", methods=["GET"])
+@role_required(["empleado"])
+def listar_cvs():
+    id_empleado = get_jwt_identity()
+    cvs = (
+        CV.query.filter_by(id_candidato=id_empleado)
+        .order_by(CV.fecha_subida.desc())
+        .all()
+    )
+
+    return jsonify(
+        [
+            {
+                "id": cv.id,
+                "url": cv.url_cv,
+                "tipo_archivo": cv.tipo_archivo,
+                "fecha_subida": cv.fecha_subida.isoformat(),
+            }
+            for cv in cvs
+        ]
+    ), 200
+
+@swag_from('../docs/empleado/postularme.yml')
+@empleado_bp.route("/postularme-empleado", methods=["POST"])
+@role_required(["empleado"])
+def postularme():
+    data = request.get_json()
+    id_oferta = data.get("id_oferta")
+    id_cv = data.get("id_cv")
+
+    if not id_oferta or not id_cv:
+        return jsonify({"error": "Falta id de oferta o CV seleccionado"}), 400
+
+    id_empleado = get_jwt_identity()
+
+    empleado = Usuario.query.filter_by(id=id_empleado).first()
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    cv = CV.query.filter_by(id=id_cv, id_candidato=id_empleado).first()
+    if not cv:
+        return jsonify({"error": "CV inválido o no pertenece al usuario"}), 403
+
+    oferta = Oferta_laboral.query.get(id_oferta)
+    if not oferta:
+        return jsonify({"error": "Oferta laboral no encontrada"}), 404
+    
+    if empleado.id_empresa != oferta.id_empresa:
+        return jsonify({"error": "No puedes postularte a esta oferta laboral"}), 403
+
+    nueva_postulacion = Job_Application(
+        id_candidato=id_empleado,
+        id_oferta=id_oferta,
+        id_cv=id_cv,
+        is_apto=predecir_cv(oferta.palabras_clave, cv),
+        fecha_postulacion=datetime.now(timezone.utc),
+    )
+
+    db.session.add(nueva_postulacion)
+    db.session.commit()
+
+    return jsonify({"message": "Postulación realizada correctamente."}), 201
 
 
 def construir_query_con_filtros(filtros, query):

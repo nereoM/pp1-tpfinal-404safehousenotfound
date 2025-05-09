@@ -1,5 +1,5 @@
 from main import app
-from models.schemes import db, Usuario, Rol, Empresa, Oferta_laboral
+from models.schemes import db, Usuario, Rol, Empresa, Oferta_laboral, Oferta_analista
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 import json
@@ -13,14 +13,7 @@ def asignar_rol(usuario, slug_rol):
         db.session.commit()
     usuario.roles.append(rol)
 
-def crear_estructura_empresas_y_ofertas():
-    empresas_info = [
-        {"nombre": "Globant", "admin": {"nombre": "Valentina", "apellido": "Martínez", "username": "valemtz", "correo": "valentina@globant.com"}},
-        {"nombre": "Techint", "admin": {"nombre": "Carlos", "apellido": "López", "username": "carloslpz", "correo": "carlos@techint.com"}},
-        {"nombre": "Mercado Libre", "admin": {"nombre": "Julieta", "apellido": "Ramos", "username": "julir", "correo": "julieta@mercadolibre.com"}},
-    ]
-
-    ofertas_generales = [
+ofertas_generales = [
     # IT
     {
         "nombre": "Desarrollador Frontend",
@@ -190,6 +183,12 @@ def crear_estructura_empresas_y_ofertas():
     }
 ]
 
+def crear_estructura_empresas_y_ofertas():
+    empresas_info = [
+        {"nombre": "Globant", "admin": {"nombre": "Valentina", "apellido": "Martínez", "username": "valemtz", "correo": "valentina@globant.com"}},
+        {"nombre": "Techint", "admin": {"nombre": "Carlos", "apellido": "López", "username": "carloslpz", "correo": "carlos@techint.com"}},
+        {"nombre": "Mercado Libre", "admin": {"nombre": "Julieta", "apellido": "Ramos", "username": "julir", "correo": "julieta@mercadolibre.com"}},
+    ]
 
     for empresa_info in empresas_info:
         nombre_empresa = empresa_info["nombre"]
@@ -214,6 +213,7 @@ def crear_estructura_empresas_y_ofertas():
         db.session.commit()
         asignar_rol(admin_emp, "admin-emp")
 
+        # Crear managers
         manager_objs = []
         for i in range(1, 3):
             manager = Usuario(
@@ -231,7 +231,9 @@ def crear_estructura_empresas_y_ofertas():
             asignar_rol(manager, "manager")
             manager_objs.append(manager)
 
-        for i in range(1, 3):
+        # Crear reclutadores (analistas) y asignar rol
+        reclutador_objs = []
+        for i in range(1, 4):  # Tres reclutadores por empresa
             reclutador = Usuario(
                 nombre=f"Reclutador{i}_{nombre_empresa}",
                 apellido="Pérez",
@@ -245,31 +247,40 @@ def crear_estructura_empresas_y_ofertas():
             db.session.add(reclutador)
             db.session.commit()
             asignar_rol(reclutador, "reclutador")
+            reclutador_objs.append(reclutador)
 
-        for manager in manager_objs:
-            ofertas = random.sample(ofertas_generales, 3)
-            for o in ofertas:
-                nueva_oferta = Oferta_laboral(
-                    id_empresa=empresa.id,
-                    nombre=o["nombre"],
-                    descripcion=o["descripcion"],
-                    location=o["location"],
-                    employment_type=o["employment_type"],
-                    workplace_type=o["workplace_type"],
-                    salary_min=o["salary_min"],
-                    salary_max=o["salary_max"],
-                    currency=o["currency"],
-                    experience_level=o["experience_level"],
-                    is_active=True,
-                    id_creador=manager.id,
-                    palabras_clave=json.dumps(o["palabras_clave"]),
-                    fecha_publicacion=datetime.utcnow(),
-                    fecha_cierre=datetime.utcnow() + timedelta(days=30)
-                )
-                db.session.add(nueva_oferta)
+        # Crear todas las ofertas y asignarlas
+        for o in ofertas_generales:
+            nueva_oferta = Oferta_laboral(
+                id_empresa=empresa.id,
+                nombre=o["nombre"],
+                descripcion=o["descripcion"],
+                location=o["location"],
+                employment_type=o["employment_type"],
+                workplace_type=o["workplace_type"],
+                salary_min=o["salary_min"],
+                salary_max=o["salary_max"],
+                currency=o["currency"],
+                experience_level=o["experience_level"],
+                is_active=True,
+                id_creador=random.choice(manager_objs).id,
+                palabras_clave=json.dumps(o["palabras_clave"]),
+                fecha_publicacion=datetime.utcnow(),
+                fecha_cierre=datetime.utcnow() + timedelta(days=30)
+            )
+            db.session.add(nueva_oferta)
+            db.session.commit()
 
-    db.session.commit()
-    print("✅ Empresas, usuarios y ofertas creados correctamente.")
+            # 🔥 Asignación aleatoria a reclutadores
+            reclutador_asignado = random.choice(reclutador_objs)
+            asignacion = Oferta_analista(
+                id_oferta=nueva_oferta.id,
+                id_analista=reclutador_asignado.id
+            )
+            db.session.add(asignacion)
+        
+        db.session.commit()
+    print("✅ Empresas, usuarios, ofertas y asignaciones creadas correctamente.")
 
 if __name__ == "__main__":
     with app.app_context():

@@ -3,12 +3,22 @@ import { fetcher } from "../common/fetcher";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const candidatoService = {
+  /**
+   * Obtiene un listado con las empresas disponibles
+   * 
+   * @returns {Promise<Empresa[]>}
+   */
   async obtenerEmpresas() {
     const url = `${API_URL}/api/empresas`
 
     const data = await fetcher({ url });
     return data
   },
+  /**
+   * Obtiene un listado con las ofertas publicadas por una empresa
+   * 
+   * @returns {Promise<OfertasEmpresa>}
+   */
   async obtenerOfertasLaborales({
     nombreEmpresa,
     location,
@@ -34,12 +44,22 @@ export const candidatoService = {
     const data = await fetcher({ url });
     return data;
   },
+  /**
+   * Obtener informacion del candidato a partir del jwt token
+   * 
+   * @returns { Promise<[UserInfo]>}
+   */
   async obtenerInfoCandidato() {
     const url = `${API_URL}/api/info-candidato`
 
     const data = await fetcher({ url });
     return data
   },
+  /**
+   * Obtener listado de cvs subidos por el candidato
+   * 
+   * @returns { Promise<[CV]>}
+   */
   async obtenerMisCvs() {
     const url = `${API_URL}/api/mis-cvs`
 
@@ -63,6 +83,11 @@ export const candidatoService = {
     const data = await fetcher({ url, options });
     return data
   },
+  /**
+   * Obtiene ofertas labores recomendadas a partir del cv subido por el candidato
+   * 
+   * @returns {Promise<[OfertaRecomendada]>}
+   */
   async obtenerRecomendaciones() {
     const url = `${API_URL}/api/recomendaciones`
 

@@ -1,0 +1,59 @@
+tags:
+  - Empleado
+summary: Obtener recomendaciones de ofertas laborales para el empleado
+description: >
+  Devuelve hasta 3 ofertas laborales recomendadas para el empleado autenticado,
+  utilizando su CV más reciente. La recomendación se basa en la similitud semántica entre
+  las palabras clave de las ofertas laborales activas y el contenido del CV.
+produces:
+  - application/json
+responses:
+  200:
+    description: Recomendaciones generadas exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id_oferta:
+            type: integer
+            example: 101
+          nombre_oferta:
+            type: string
+            example: "Desarrollador Backend"
+          empresa:
+            type: string
+            example: "Acme Corp"
+          coincidencia:
+            type: integer
+            description: Porcentaje de coincidencia entre el CV y las palabras clave de la oferta
+            example: 87
+          palabras_clave:
+            type: array
+            items:
+              type: string
+            example: ["python", "django", "rest api"]
+  400:
+    description: CV no cargado o en formato no compatible
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "El empleado no tiene un CV cargado"
+  500:
+    description: Error interno al procesar la recomendación
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error inesperado al generar recomendaciones"
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

@@ -1,0 +1,55 @@
+tags:
+  - Empleado
+summary: Subir CV para el empleado
+description: >
+  Permite a un empleado autenticado subir un archivo de CV (PDF o Word).
+  El CV se guarda en el servidor y se registra en la base de datos.
+produces:
+  - application/json
+consumes:
+  - multipart/form-data
+parameters:
+  - in: formData
+    name: file
+    type: file
+    required: true
+    description: "El archivo de CV a subir (formatos permitidos: PDF, DOCX)"
+responses:
+  201:
+    description: CV subido exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: CV subido exitosamente
+        file_path:
+          type: string
+          example: uploads/cvs/cv_martin_20240507111245.pdf
+        filename:
+          type: string
+          example: cv_martin_20240507111245.pdf
+  400:
+    description: Error en los datos de entrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: No se encontró ningún archivo
+  500:
+    description: Error interno al subir el CV
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Error inesperado al guardar el archivo
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

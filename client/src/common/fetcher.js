@@ -1,7 +1,10 @@
-import { NotFoundError, ServerError, UnauthorizedError } from "./error";
+import { ForbiddenError, NotFoundError, ServerError, UnauthorizedError } from "./error";
 
 export async function fetcher({ url, options = {} }) {
-  const optionsWithCookies = { ...options, credentials: "include" }
+  const optionsWithCookies = {
+    ...options,
+    credentials: "include"
+  }
 
   try {
     const response = await fetch(url, optionsWithCookies);
@@ -16,6 +19,10 @@ export async function fetcher({ url, options = {} }) {
         throw new UnauthorizedError(errorBody.error)
       }
 
+      if (response.status === 403) {
+        throw new UnauthorizedError(errorBody.error)
+      }
+
       if (response.status === 404) {
         throw new NotFoundError(errorBody.error)
       }
@@ -26,7 +33,7 @@ export async function fetcher({ url, options = {} }) {
     return json
   } catch (error) {
     console.error({ error });
-    if (!(error instanceof UnauthorizedError) && !(error instanceof NotFoundError)) {
+    if (!(error instanceof UnauthorizedError) && !(error instanceof NotFoundError) && !(error instanceof ForbiddenError)) {
       throw new ServerError()
     }
     throw error;

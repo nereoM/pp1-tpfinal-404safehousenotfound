@@ -504,3 +504,4 @@ export default function CandidatoHome() {
         </motion.div>
     );
 }
+//para probar

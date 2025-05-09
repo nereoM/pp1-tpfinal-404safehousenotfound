@@ -70,7 +70,7 @@ def definir_palabras_clave(id_oferta):
         return jsonify({"error": str(e)}), 500
 
 @swag_from('../docs/reclutador/ver-candidatos-oferta.yml')
-@reclutador_bp.route("/ver_candidatos/<int:id_oferta>/filtrar", methods=["GET"])
+@reclutador_bp.route("/ver_candidatos/<int:id_oferta>", methods=["GET"])
 @role_required(["reclutador"])
 def ver_postulantes(id_oferta):
     try:

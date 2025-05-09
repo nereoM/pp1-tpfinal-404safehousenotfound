@@ -10,6 +10,12 @@ export class UnauthorizedError extends Error {
   }
 }
 
+export class ForbiddenError extends Error {
+  constructor(msg = "No es posible procesar la solicitud") {
+    super(msg)
+  }
+}
+
 export class ServerError extends Error {
   constructor(msg = "Error al conectarse al server") {
     super(msg)
