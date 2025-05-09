@@ -1,7 +1,10 @@
 import { NotFoundError, ServerError, UnauthorizedError } from "./error";
 
 export async function fetcher({ url, options = {} }) {
-  const optionsWithCookies = { ...options, credentials: "include" }
+  const optionsWithCookies = {
+    ...options,
+    credentials: "include"
+  }
 
   try {
     const response = await fetch(url, optionsWithCookies);

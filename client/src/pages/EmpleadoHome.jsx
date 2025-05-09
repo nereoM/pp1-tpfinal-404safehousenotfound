@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { FileUp, Search, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { JobCard } from "../components/JobCard";
 import { LicenciasModal } from "../components/LicenciasModal";
+import { OfertasRecomendadas } from "../components/OfertasRecomendadas";
 import PageLayout from "../components/PageLayoutCand";
 import { PostularseModal } from "../components/PostularseModal";
 import { ProfileCard } from "../components/ProfileCard";
@@ -35,8 +35,6 @@ export default function EmpleadoHome() {
   const [user, setUser] = useState(null);
   /** @type {[CV[]]} */
   const [cvs, setCvs] = useState([]);
-  /** @type {[Oferta[]]} */
-  const [ofertas, setOfertas] = useState([]);
 
   // Modales
   const [modalSolicitarLicencia, setmodalSolicitarLicencia] = useState(false);
@@ -61,26 +59,6 @@ export default function EmpleadoHome() {
       .then(setCvs)
       .catch((err) => {
         console.error(err.message);
-      });
-
-    // Cargar ofertas
-    empleadoService
-      .obtenerRecomendaciones()
-      .then((data) => {
-        console.log({ data });
-        setOfertas(
-          data.map((d) => ({
-            id: d.id_oferta,
-            titulo: d.nombre_oferta,
-            empresa: d.empresa,
-            palabrasClave: d.palabras_clave,
-            fecha: "Reciente",
-            postulaciones: Math.floor(Math.random() * 100),
-          }))
-        );
-      })
-      .catch((err) => {
-        console.log(err.message);
       });
   }, []);
 
@@ -174,7 +152,7 @@ export default function EmpleadoHome() {
                         fecha: "Reciente",
                         postulaciones: Math.floor(Math.random() * 100),
                       }));
-                      setOfertas(transformadas);
+                      // setOfertas(transformadas);
                       setBusquedaConfirmada("filtros");
                     } else {
                       console.error(
@@ -303,19 +281,7 @@ export default function EmpleadoHome() {
                   <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
                 </div>
               </div>
-              {ofertas?.map((oferta, index) => (
-                <motion.div
-                  key={`oferta-${oferta.id ?? index}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.3 }}
-                >
-                  <JobCard
-                    {...oferta}
-                    onPostularse={() => setIdOfertaSeleccionada(oferta.id)}
-                  />
-                </motion.div>
-              ))}
+              <OfertasRecomendadas onSelectOferta={(id) => setIdOfertaSeleccionada(id)} />
             </div>
           </div>
 
