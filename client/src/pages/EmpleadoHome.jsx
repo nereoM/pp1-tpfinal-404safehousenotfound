@@ -2,8 +2,10 @@ import { motion } from "framer-motion";
 import { FileUp, Search, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { JobCard } from "../components/JobCard";
 import { LicenciasModal } from "../components/LicenciasModal";
 import PageLayout from "../components/PageLayoutCand";
+import { PostularseModal } from "../components/PostularseModal";
 import { ProfileCard } from "../components/ProfileCard";
 import { SearchFilters } from "../components/SearchFilters";
 import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal";
@@ -40,16 +42,41 @@ export default function EmpleadoHome() {
 
   useEffect(() => {
     // Cargar informacion del usuario
-    setLoading(true)
+    setLoading(true);
 
-    authService.obtenerInfoUsuario()
-    .then(setUser)
-    .catch((err) => setError(err.message))
-    .finally(() => setLoading(false))
+    authService
+      .obtenerInfoUsuario()
+      .then(setUser)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
 
-    // Cargar ofertas de la empresa perteneciente al empleado
-    empleadoService.obtenerOfertasEmpresa()
-    .then(setOfertas)
+    // Cargar cvs
+    empleadoService
+      .obtenerMisCvs()
+      .then(setCvs)
+      .catch((err) => {
+        console.error(err.message);
+      });
+
+    // Cargar ofertas
+    empleadoService
+      .obtenerRecomendaciones()
+      .then((data) => {
+        console.log({ data });
+        setOfertas(
+          data.map((d) => ({
+            id: d.id_oferta,
+            titulo: d.nombre_oferta,
+            empresa: d.empresa,
+            palabrasClave: d.palabras_clave,
+            fecha: "Reciente",
+            postulaciones: Math.floor(Math.random() * 100),
+          }))
+        );
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
   }, []);
 
   if (loading) {
@@ -84,14 +111,16 @@ export default function EmpleadoHome() {
   ];
 
   const handleUploadCv = () => {
-    empleadoService.subirCV({file : cvFile})
+    empleadoService
+      .subirCV({ file: cvFile })
       .then(() => {
-        setCvPreview(null)
-        setCvFile(null)
+        setCvPreview(null);
+        setCvFile(null);
       })
-      .catch(() => {console.log("ERROR AL SUBIR EL CV");
-      })
-  }
+      .catch(() => {
+        console.log("ERROR AL SUBIR EL CV");
+      });
+  };
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
@@ -247,7 +276,6 @@ export default function EmpleadoHome() {
                   </div>
                 </motion.div>
               </div>
-
             </div>
             <div className="col-span-2">
               <div className="flex justify-between items-center mb-4">
@@ -270,36 +298,37 @@ export default function EmpleadoHome() {
                   <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
                 </div>
               </div>
-              {
-                ofertas?.map((oferta, index) => 
-                  <motion.div
-                    key={`oferta-${oferta.id ?? index}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1, duration: 0.3 }}
-                  >
-                    {/*
-                    Cuando tengamos el endpoint /recomendaciones para empleado se puede usar JobCard
-                    Nos faltan las palabras claves
-                    */}
-                    <p>{oferta.nombre}</p>
-                    {/* <JobCard
-                      {...oferta}
-                      onPostularse={() => {
-                        setIdOfertaSeleccionada(oferta.id);
-                        setModalOpen(true);
-                      }}
-                    /> */}
-                  </motion.div>
-                )
-              }
+              {ofertas?.map((oferta, index) => (
+                <motion.div
+                  key={`oferta-${oferta.id ?? index}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.3 }}
+                >
+                  <JobCard
+                    {...oferta}
+                    onPostularse={() => setIdOfertaSeleccionada(oferta.id)}
+                  />
+                </motion.div>
+              ))}
             </div>
           </div>
 
-          {modalLicencias && <LicenciasModal onClose={() => setModalLicencias(false)} />}
+          {modalLicencias && (
+            <LicenciasModal onClose={() => setModalLicencias(false)} />
+          )}
 
           {modalSolicitarLicencia && (
-            <SolicitarLicenciaModal onClose={() => setmodalSolicitarLicencia(false)} />
+            <SolicitarLicenciaModal
+              onClose={() => setmodalSolicitarLicencia(false)}
+            />
+          )}
+
+          {idOfertaSeleccionada && (
+            <PostularseModal
+              onClose={() => setIdOfertaSeleccionada(null)}
+              cvs={cvs}
+            />
           )}
         </PageLayout>
       </motion.div>
