@@ -119,9 +119,9 @@ export const empleadoService = {
     const data = await fetcher({ url });
     return data;
   },
-
   /**
-   *
+   * Obtiene ofertas labores recomendadas a partir del cv subido por el empleado
+   * 
    * @returns {Promise<[OfertaRecomendada]>}
    */
   async obtenerRecomendaciones() {
@@ -133,7 +133,7 @@ export const empleadoService = {
   /**
    * Obtiene la información básica del empleado autenticado mediante JWT.
    *
-   * @returns {Promise<EmpleadoInfo>}
+   * @returns {Promise<UserInfo>}
    */
   async obtenerInfoEmpleado() {
     const url = `${API_URL}/api/info-empleado`;

@@ -48,20 +48,25 @@
  */
 
 /**
- * @typedef {Object} EmpleadoInfo
+ * @typedef {Object} UserInfo
  * @property {string} nombre - Nombre del empleado
  * @property {string} apellido - Apellido del empleado
  * @property {string} username - Nombre de usuario del empleado
  * @property {string} correo - Correo electrónico del empleado
  */
 
+
 /**
  * @typedef {Object} OfertasEmpresa
- * @property {Object} empresa - Información sobre la empresa
- * @property {number} empresa.id - ID de la empresa
- * @property {string} empresa.nombre - Nombre de la empresa
- * @property {string} empresa.correo - Correo electrónico de la empresa
-  * @property {OfertaExtendido[]} ofertas - Lista de ofertas laborales publicadas por la empresa
+ * @property {Empresa} empresa - Información sobre la empresa
+ * @property {OfertaExtendido[]} ofertas - Lista de ofertas laborales publicadas por la empresa
+*/
+
+/**
+ * @typedef {Object} Empresa
+ * @property {number} id - ID de la empresa
+ * @property {string} nombre - Nombre de la empresa
+ * @property {string} correo - Correo electrónico de la empresa
  */
 
 /**
