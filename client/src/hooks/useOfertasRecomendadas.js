@@ -1,19 +1,18 @@
-import { createContext, use, useEffect, useState } from "react";
-import { empleadoService } from "../services/empleadoService";
 import "../types";
 
-const ofertasContext = createContext(null);
+import { useEffect, useState } from "react";
+import { empleadoService } from "../services/empleadoService";
 
-export const OfertasProvider = ({ children }) => {
+export function useOfertasRecomendadas() {
   /** @type {[Oferta[]]} */
   const [ofertas, setOfertas] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [ofertasIsLoading, setOfertasIsLoading] = useState(false);
+  const [ofertasError, setOfertasError] = useState("");
 
   useEffect(() => {
-    setIsLoading(true);
+    setOfertasIsLoading(true);
 
-    // Cargar ofertas recomemndadas
+    // Cargar ofertas
     empleadoService
       .obtenerRecomendaciones()
       .then((data) => {
@@ -29,10 +28,10 @@ export const OfertasProvider = ({ children }) => {
         );
       })
       .catch((err) => {
-        setError(err.message);
+        setOfertasError(err.message);
       })
       .finally(() => {
-        setIsLoading(false);
+        setOfertasIsLoading(false);
       });
   }, []);
 
@@ -51,30 +50,9 @@ export const OfertasProvider = ({ children }) => {
         setOfertas(transformadas);
       })
       .catch((err) => {
-        setError(err.message);
+        setOfertasError(err.message);
       });
   };
 
-  return (
-    <ofertasContext.Provider
-      value={{
-        ofertas,
-        isLoading,
-        error,
-        handlerAplicarFiltros,
-      }}
-    >
-      {children}
-    </ofertasContext.Provider>
-  );
-};
-
-export function useOfertasContext() {
-  const values = use(ofertasContext);
-
-  if (!values) {
-    throw new Error("Usar este hook adentro de OfertasProvider");
-  }
-
-  return values;
+  return { ofertas, ofertasIsLoading, ofertasError, handlerAplicarFiltros };
 }

@@ -1,13 +1,10 @@
 import { useState } from "react";
-import { useOfertasContext } from "../context/OfertasContext";
 
 const EMPLOYMENT_TYPES  = ["Full-Time", "Part-Time", "Medio tiempo"];
 const WORKPLACE_TYPES   = ["Remoto", "Presencial", "Híbrido"];
 const EXPERIENCE_LEVELS = ["Sin experiencia", "Junior", "Semi Senior", "Senior"];
 
 export function SearchFilters({ onBuscar }) {
-  const { handlerAplicarFiltros } = useOfertasContext()
-
     const [filtros, setFiltros] = useState({
       workplaceType: "",
       employmentType: "",
@@ -23,8 +20,7 @@ export function SearchFilters({ onBuscar }) {
     };
   
     const handleBuscar = () => {
-      handlerAplicarFiltros(filtros)
-      onBuscar();
+      onBuscar(filtros);
     };
   
     return (

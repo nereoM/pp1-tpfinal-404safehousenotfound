@@ -1,10 +1,7 @@
 import { motion } from "framer-motion";
 import { JobCard } from '../components/JobCard';
-import { useOfertasContext } from "../context/OfertasContext";
 
-export function OfertasRecomendadas({ onSelectOferta }) {
-  const { error, isLoading, ofertas } = useOfertasContext()
-
+export function OfertasRecomendadas({ onSelectOferta, ofertas, isLoading, error }) {
   if (error) {
     return <section>{error}</section>;
   }
