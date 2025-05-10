@@ -50,6 +50,13 @@ def descargar_certificado(filename):
     return send_from_directory(carpeta, filename)
 #### FIN AGREGADO PARA VER CERTIFICADOS ####
 
+@app.route('/uploads/fotos/<path:filename>')
+def descargar_foto(filename):
+    filename = secure_filename(filename)
+    carpeta = os.path.join(os.getcwd(), 'uploads', 'fotos')
+    return send_from_directory(carpeta, filename)
+
+
 # Para ver la documentacion ir a /apidocs
 setup_swagger_ui(app=app)
 

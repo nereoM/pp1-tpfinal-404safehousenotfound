@@ -469,6 +469,7 @@ def obtener_nombre_apellido_candidato():
         "apellido": candidato.apellido,
         "username": candidato.username,
         "correo": candidato.correo,
+        "foto_url":  candidato.foto_url 
     }
 
 
