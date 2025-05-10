@@ -13,6 +13,10 @@ export function OfertasRecomendadas({ onSelectOferta }) {
     return <section>cargando ofertas...</section>;
   }
 
+  if (!isLoading && !error && ofertas.length === 0) {
+    return <section>No hay ofertas que cumplan los filtros de busqueda</section>;
+  }
+
   return (
     <ul>
       {ofertas?.map((oferta, index) => (

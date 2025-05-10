@@ -15,7 +15,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from itsdangerous import SignatureExpired, URLSafeTimedSerializer
 from models.extensions import db, mail
-from models.schemes import Rol, Usuario
+from models.schemes import Rol, Usuario, Empresa
 from services.config import Config
 from flasgger import swag_from
 
@@ -298,6 +298,41 @@ def update_profile():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+    
+@auth_bp.route("/login/<string:nombre_empresa>", methods=["POST"])
+def login_empresa(nombre_empresa):
+    data = request.get_json()
+    identifier = data.get("username")
+    password = data.get("password")
+
+    if not identifier or not password:
+        return jsonify({"error": "Username, email y password son requeridos"}), 400
+
+    empresa = db.session.query(Empresa).filter_by(nombre=nombre_empresa).first()
+    if not empresa:
+        return jsonify({"error": f"La empresa '{nombre_empresa}' no existe"}), 404
+
+    user = Usuario.query.filter(
+        ((Usuario.username == identifier) | (Usuario.correo == identifier)) &
+        (Usuario.id_empresa == empresa.id)
+    ).first()
+
+    if user:
+        if not user.verificar_contrasena(password):
+            return jsonify({"error": "Credenciales inválidas"}), 401
+
+        if not user.activo:
+            return jsonify({"error": "Usuario inactivo"}), 401
+
+        roles = [r.slug for r in user.roles]
+        access_token = create_access_token(
+            identity=str(user.id), additional_claims={"roles": roles}
+        )
+        resp = jsonify({"message": "Login exitoso", "empresa": nombre_empresa})
+        set_access_cookies(resp, access_token)
+        return resp, 200
+
+    return jsonify({"error": "Credenciales inválidas o usuario no pertenece a esta empresa"}), 401
 
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
