@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { useOfertasContext } from "../context/OfertasContext";
 
 export function SearchFilters({ onBuscar }) {
+  const { handlerAplicarFiltros } = useOfertasContext()
+
     const [filtros, setFiltros] = useState({
-      workplace_type: "",
-      employment_type: "",
-      salary_min: "",
-      salary_max: "",
-      experience_level: "",
+      workplaceType: "",
+      employmentType: "",
+      salaryMin: "",
+      salaryMax: "",
+      experienceLevel: "",
       location: ""
     });
   
@@ -16,7 +19,8 @@ export function SearchFilters({ onBuscar }) {
     };
   
     const handleBuscar = () => {
-      onBuscar(filtros);
+      handlerAplicarFiltros(filtros)
+      onBuscar();
     };
   
     return (
@@ -31,7 +35,7 @@ export function SearchFilters({ onBuscar }) {
             onChange={handleChange}
           />
           <select
-            name="workplace_type"
+            name="workplaceType"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           >
@@ -41,7 +45,7 @@ export function SearchFilters({ onBuscar }) {
             <option value="hybrid">Híbrido</option>
           </select>
           <select
-            name="employment_type"
+            name="employmentType"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           >
@@ -51,7 +55,7 @@ export function SearchFilters({ onBuscar }) {
             <option value="freelance">Freelance</option>
           </select>
           <select
-            name="experience_level"
+            name="experienceLevel"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           >
@@ -62,14 +66,14 @@ export function SearchFilters({ onBuscar }) {
           </select>
           <input
             type="number"
-            name="salary_min"
+            name="salaryMin"
             placeholder="Salario mínimo"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           />
           <input
             type="number"
-            name="salary_max"
+            name="salaryMax"
             placeholder="Salario máximo"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}

@@ -48,6 +48,14 @@
  */
 
 /**
+ * @typedef {Object} OfertaFiltrada
+ * @property {string} empresa - Porcentaje o puntuación de coincidencia con el perfil del candidato
+ * @property {number} id - Nombre de la empresa que publicó la oferta
+ * @property {string} nombre_oferta - ID único de la oferta laboral
+ * @property {string[]} palabras_clave - Palabras clave asociadas a la oferta
+ */
+
+/**
  * @typedef {Object} UserInfo
  * @property {string} nombre - Nombre del empleado
  * @property {string} apellido - Apellido del empleado

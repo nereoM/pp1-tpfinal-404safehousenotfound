@@ -112,9 +112,7 @@ export const empleadoService = {
     if (salaryMin !== undefined) queryParams.append("salary_min", salaryMin);
     if (salaryMax !== undefined) queryParams.append("salary_max", salaryMax);
 
-    const url = `${API_URL}/api/empresas-empleado/${encodeURIComponent(
-      nombreEmpresa
-    )}/ofertas?${queryParams.toString()}`;
+    const url = `${API_URL}/api/empresas-empleado/${nombreEmpresa}/ofertas?${queryParams.toString()}`;
 
     const data = await fetcher({ url });
     return data;
@@ -141,14 +139,32 @@ export const empleadoService = {
     const data = await fetcher({ url });
     return data;
   },
-  async obtenerOfertasFiltradas({ sector, ubicacion, modalidad }) {
-    const query = new URLSearchParams();
+  /**
+   * Obtiene un listado con ofertas
+   *
+   * @returns {Promise<OfertaFiltrada[]>}
+   */
+  async obtenerOfertasFiltradas({
+    location,
+    workplaceType,
+    employmentType,
+    experienceLevel,
+    keywords,
+    salaryMin,
+    salaryMax,
+  }) {
+    const queryParams = new URLSearchParams();
 
-    if (sector) query.append("sector", sector);
-    if (ubicacion) query.append("ubicacion", ubicacion);
-    if (modalidad) query.append("modalidad", modalidad);
+    if (location) queryParams.append("location", location);
+    if (workplaceType) queryParams.append("workplace_type", workplaceType);
+    if (employmentType) queryParams.append("employment_type", employmentType);
+    if (experienceLevel)
+      queryParams.append("experience_level", experienceLevel);
+    if (keywords) queryParams.append("keywords", keywords);
+    if (salaryMin) queryParams.append("salary_min", salaryMin);
+    if (salaryMax) queryParams.append("salary_max", salaryMax);
 
-    const url = `${API_URL}/api/ofertas-filtradas-empleado?${query.toString()}`;
+    const url = `${API_URL}/api/ofertas-filtradas-empleado?${queryParams.toString()}`;
 
     const data = await fetcher({ url });
     return data;
