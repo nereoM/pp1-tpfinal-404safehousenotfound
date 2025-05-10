@@ -196,4 +196,27 @@ export const empleadoService = {
     const data = await fetcher({ url, options });
     return data;
   },
+  async subirImagen({ file }) {
+    const url = `${API_URL}/api/subir-image-empleado`;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const options = {
+      method: 'POST',
+      body: formData,
+    }
+
+    const data = await fetcher({ url, options });
+    return data;
+  },
+  /**
+   * @returns {Promise<EstadoPostulacion[]>}
+   */
+  async obtenerEstadoPostulaciones() {
+    const url = `${API_URL}/api/estado-postulaciones-empleado`
+
+    const data = await fetcher({ url })
+    return data
+  }
 };

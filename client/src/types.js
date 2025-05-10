@@ -92,3 +92,12 @@
  * @property {string} fecha_publicacion - Fecha de publicación de la oferta
  * @property {string} fecha_cierre - Fecha de cierre de la oferta
  */
+
+/**
+ * @typedef {Object} EstadoPostulacion
+ * @property {number} id_oferta
+ * @property {string} nombre_oferta
+ * @property {number} id_postulacion
+ * @property {string} fecha_postulacion
+ * @property {string} estado
+ */
