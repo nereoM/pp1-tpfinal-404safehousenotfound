@@ -10,13 +10,11 @@ export function ProfileCard({ nombre, correo, cvUrl, fotoUrl, onEdit }) {
   const bcol = estilos?.color_principal || "#2563eb";
   const tcol = estilos?.color_texto || "#000000";
 
-  // Construye la URL de la imagen, evitando prefijos duplicados
+
   const imgSrc = useMemo(() => {
     if (!fotoUrl) return null;
     const cleanPath = fotoUrl.replace(/^\/+/, "");
-    // Si la ruta ya es absoluta, usarla directamente
     if (cleanPath.startsWith("http")) return cleanPath;
-    // Prefijar API_URL y usar la ruta tal cual viene del backend
     return `${API_URL}/${cleanPath}`;
   }, [fotoUrl, API_URL]);
 
