@@ -1,0 +1,47 @@
+tags:
+  - Candidato
+summary: Obtener estado de postulaciones del candidato
+description: Devuelve una lista con las postulaciones realizadas por el candidato autenticado, incluyendo el estado de cada una.
+produces:
+  - application/json
+responses:
+  200:
+    description: Lista de postulaciones obtenida exitosamente
+    schema:
+      type: array
+      items:
+        type: object
+        properties:
+          id_postulacion:
+            type: integer
+            example: 101
+          id_oferta:
+            type: integer
+            example: 55
+          nombre_oferta:
+            type: string
+            example: "Desarrollador Frontend"
+          estado:
+            type: boolean
+            example: true
+            description: Indica si el candidato fue considerado apto para la oferta
+          fecha_postulacion:
+            type: string
+            format: date-time
+            example: "2024-04-15T10:30:00Z"
+  404:
+    description: No se encontraron postulaciones para este candidato
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: No se encontraron postulaciones para este candidato.
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []

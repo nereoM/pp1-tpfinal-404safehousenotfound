@@ -472,7 +472,7 @@ def obtener_nombre_apellido_candidato():
         "foto_url":  candidato.foto_url 
     }
 
-
+@swag_from('../docs/candidato/estado-postulaciones.yml')
 @candidato_bp.route("/estado-postulaciones-candidato", methods=["GET"])
 @role_required(["candidato"])
 def estado_postulaciones():
