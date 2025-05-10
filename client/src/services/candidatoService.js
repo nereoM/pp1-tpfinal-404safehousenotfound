@@ -157,4 +157,13 @@ export const candidatoService = {
     const data = await fetcher({ url, options });
     return data
   },
+  /**
+     * @returns {Promise<EstadoPostulacion[]>}
+     */
+  async obtenerEstadoPostulaciones() {
+    const url = `${API_URL}/api/estado-postulaciones-candidato`
+
+    const data = await fetcher({ url })
+    return data
+  }
 }
