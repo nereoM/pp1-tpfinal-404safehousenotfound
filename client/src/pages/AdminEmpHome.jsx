@@ -11,6 +11,9 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { adminEmpService } from "../services/adminEmpService";
 import SubirEmpleados from "../components/RegistrarEmpleados";
+import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminEmpHome() {
   const [user, setUser] = useState(null);
@@ -28,6 +31,11 @@ export default function AdminEmpHome() {
   const [motivoRechazo, setMotivoRechazo] = useState("");
   const [modalRechazoOpen, setModalRechazoOpen] = useState(false);
   const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);
+  const [modalEditarPerfilOpen, setModalEditarPerfilOpen] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [username, setUsername] = useState("");
+  const [modalImageFile, setModalImageFile] = useState(null); 
   const [mensajeError, setMensajeError] = useState('');
 
 
@@ -166,6 +174,23 @@ export default function AdminEmpHome() {
       .catch((err) => console.error("Error al cerrar sesión:", err));
   };
 
+    const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
+  try {
+    const res = await fetch(`${API_URL}/auth/update-profile`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
+    setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
+    setModalEditarPerfilOpen(false);
+  } catch (err) {
+    alert( err.message);
+  }
+};
+
   const acciones = [
     {
       icon: UserPlus,
@@ -241,14 +266,9 @@ export default function AdminEmpHome() {
                 size="xl"
                 style={{ borderColor: estilosSafe.color_principal }}
                 textColor={estilosSafe.color_texto}
+                onEdit={() => setModalEditarPerfilOpen(true)}
               />
-              <button
-                onClick={() => alert("Editar perfil próximamente")}
-                className="absolute top-2 right-2 p-1 border rounded-full hover:bg-gray-100"
-                style={{ backgroundColor: estilosSafe.color_secundario }}
-              >
-                <Edit size={16} />
-              </button>
+
             </motion.div>
 
             <motion.div
@@ -535,6 +555,18 @@ export default function AdminEmpHome() {
               </div>
             </div>
           )}
+
+        <ModalParaEditarPerfil
+        isOpen={modalEditarPerfilOpen}
+        onClose={() => setModalEditarPerfilOpen(false)}
+        user={user}
+        onSave={async ({ username, email, password }) => {
+            await handleProfileUpdate({ username, email, password });
+            if (modalImageFile) await handleImageUpload(modalImageFile);
+        }}
+        onFileSelect={setModalImageFile}
+        />
+          
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>

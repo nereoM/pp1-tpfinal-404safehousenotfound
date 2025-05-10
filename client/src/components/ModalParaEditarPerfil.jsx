@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Upload } from "lucide-react";
 
 export default function ModalParaEditarPerfil({
   isOpen,
@@ -12,7 +12,6 @@ export default function ModalParaEditarPerfil({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Inicializar estados cuando 'user' cambie o al abrir
   useEffect(() => {
     if (user) {
       setUsername(user.username || "");
@@ -29,10 +28,10 @@ export default function ModalParaEditarPerfil({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4 relative">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4 relative text-black">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+          className="absolute top-2 right-2 text-black hover:text-gray-700"
         >
           <X size={20} />
         </button>
@@ -41,29 +40,35 @@ export default function ModalParaEditarPerfil({
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded text-black"
           placeholder="Username"
         />
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded text-black"
           placeholder="Email"
         />
         <input
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded"
+          className="w-full p-2 border rounded text-black"
           placeholder="Nueva contraseña (opcional)"
         />
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => onFileSelect(e.target.files[0])}
-          className="w-full p-2"
-        />
+        <div className="w-full">
+          <label className="flex items-center justify-center gap-2 p-2 border border-gray-300 rounded cursor-pointer bg-gray-100 hover:bg-gray-200 transition">
+            <Upload className="w-5 h-5 text-gray-600" />
+            <span className="text-sm text-gray-700">Subir imagen</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => onFileSelect(e.target.files[0])}
+              className="hidden"
+            />
+          </label>
+        </div>
         <div className="flex justify-end gap-2 mt-4">
           <button
             onClick={onClose}
