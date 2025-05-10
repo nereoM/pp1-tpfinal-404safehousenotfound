@@ -38,6 +38,18 @@ app.register_blueprint(admin_emp_bp,  url_prefix="/api")
 app.register_blueprint(admin_404_bp,  url_prefix="/api")
 app.register_blueprint(empleado_bp,   url_prefix="/api")
 
+#### AGREGADO PARA VER CERTIFICADOS ####
+from flask import send_from_directory
+from werkzeug.utils import secure_filename
+import os
+
+@app.route('/uploads/certificados/<path:filename>')
+def descargar_certificado(filename):
+    filename = secure_filename(filename)  # evita rutas maliciosas
+    carpeta = os.path.join(os.getcwd(), 'uploads', 'certificados')
+    return send_from_directory(carpeta, filename)
+#### FIN AGREGADO PARA VER CERTIFICADOS ####
+
 # Para ver la documentacion ir a /apidocs
 setup_swagger_ui(app=app)
 

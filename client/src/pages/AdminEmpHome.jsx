@@ -63,31 +63,6 @@ export default function AdminEmpHome() {
       .catch(() => setMensajeLicencias("Error al cargar las licencias."));
   };
 
-  const descargarCertificado = async (certificadoUrl) => {
-  try {
-    const response = await fetch(certificadoUrl, {
-      method: "GET",
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("Error al descargar el certificado.");
-    }
-
-    const blob = await response.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = certificadoUrl.split("/").pop(); // Nombre del archivo
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  } catch (error) {
-    console.error("Error al descargar el certificado:", error);
-    alert("No se pudo descargar el certificado.");
-  }
-};
-
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
     try {
       const data = await adminEmpService.evaluarLicencia({ idLicencia: id_licencia, estado: nuevoEstado });
@@ -438,12 +413,14 @@ export default function AdminEmpHome() {
                             <td className="px-4 py-2">{licencia.estado}</td>
                             <td className="px-4 py-2">
                               {licencia.certificado_url ? (
-                                <button
-                                  onClick={() => descargarCertificado(licencia.certificado_url)}
+                                <a
+                                  href={`${import.meta.env.VITE_API_URL}/${licencia.certificado_url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
                                   className="text-indigo-600 underline"
                                 >
-                                  Descargar certificado
-                                </button>
+                                  Ver certificado
+                                </a>
                               ) : (
                                 "Sin certificado"
                               )}
