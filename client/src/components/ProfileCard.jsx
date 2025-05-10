@@ -8,13 +8,15 @@ export function ProfileCard({ nombre, correo, cvUrl, fotoUrl, onEdit }) {
 
   const bg = estilos?.color_secundario || "white";
   const bcol = estilos?.color_principal || "#2563eb";
-  const tcol = estilos?.color_texto || "#000000";
+  const tcol = estilos?.color_texto || "#ffffff";
 
-
+  // Construye la URL de la imagen, evitando prefijos duplicados
   const imgSrc = useMemo(() => {
     if (!fotoUrl) return null;
     const cleanPath = fotoUrl.replace(/^\/+/, "");
+    // Si la ruta ya es absoluta, usarla directamente
     if (cleanPath.startsWith("http")) return cleanPath;
+    // Prefijar API_URL y usar la ruta tal cual viene del backend
     return `${API_URL}/${cleanPath}`;
   }, [fotoUrl, API_URL]);
 
@@ -42,14 +44,17 @@ export function ProfileCard({ nombre, correo, cvUrl, fotoUrl, onEdit }) {
           Ver CV subido
         </a>
       )}
-      {onEdit && (
-        <button
-          className="absolute top-2 right-2 bg-blue-600 text-white p-1 rounded-full hover:bg-blue-700"
-          onClick={onEdit}
-        >
-          <Edit size={16} />
-        </button>
-      )}
+<button
+  onClick={onEdit}
+  className="absolute top-2 right-2 p-1 rounded-full hover:opacity-90 transition-opacity"
+  style={{
+    backgroundColor: bcol,  
+    color: tcol           
+  }}
+>
+  <Edit size={16} color={tcol} />
+</button>
+
     </div>
   );
 }
