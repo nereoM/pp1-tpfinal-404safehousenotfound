@@ -6,10 +6,8 @@ import PageLayout from "../components/PageLayoutCand";
 import { TopBar } from "../components/TopBarCand";
 import { ProfileCard } from "../components/ProfileCard";
 import { JobCard } from "../components/JobCard";
-import { SearchFilters } from "../components/SearchFilters";
+import { SearchFiltersCandidato } from "../components/SearchFiltersCandidato.jsx";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
-
-
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -287,7 +285,7 @@ export default function CandidatoHome() {
                 {mostrarFiltros && (
                     <div className="mt-4 px-4 max-w-6xl mx-auto">
                         <h2 className="text-xl font-semibold text-gray-800 mb-4">Explorar oportunidades</h2>
-                        <SearchFilters
+                        <SearchFiltersCandidato
                             onBuscar={async (filtros) => {
                                 const queryParams = new URLSearchParams(filtros).toString();
                                 try {
