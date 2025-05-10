@@ -509,6 +509,7 @@ def evaluar_licencia(id_licencia):
     # Obtener los datos enviados en la solicitud
     data = request.get_json()
     nuevo_estado = data.get("estado")  # "aprobado" o "rechazado"
+    motivo = data.get("motivo")
 
     if nuevo_estado not in ["aprobada", "rechazada", "activa"]:
         return jsonify(
@@ -534,6 +535,10 @@ def evaluar_licencia(id_licencia):
     if licencia.estado == "pendiente":
         if nuevo_estado in ["aprobada", "rechazada"]:
             licencia.estado = nuevo_estado
+
+            if motivo:
+                licencia.motivo_rechazo = motivo
+
             db.session.commit()
             return jsonify(
                 {
@@ -548,6 +553,7 @@ def evaluar_licencia(id_licencia):
                             "email": empleado.correo,
                         },
                         "tipo": licencia.tipo,
+                        "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
                         "descripcion": licencia.descripcion,
                         "fecha_inicio": licencia.fecha_inicio.isoformat()
                         if licencia.fecha_inicio

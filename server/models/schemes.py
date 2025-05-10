@@ -164,6 +164,7 @@ class Licencia(db.Model):
     certificado_url = db.Column(db.String(255), nullable=True)  # AL MENOS POR AHORA
     estado = db.Column(db.String(50), nullable=False)
     id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), nullable=False)
+    motivo_rechazo = db.Column(db.Text, nullable=True)
 
 class Preferencias_empresa(db.Model):
     __tablename__ = "preferencias_empresa"

@@ -290,7 +290,7 @@ def update_profile():
         contraseña_valida, mensaje = validar_contrasena(new_password)
         if not contraseña_valida:
             return jsonify({"error": mensaje}), 400
-        user.contrasena = new_password  # Asegúrate de que se maneje el hashing de contraseñas
+        user.contrasena = new_password
 
     try:
         db.session.commit()
