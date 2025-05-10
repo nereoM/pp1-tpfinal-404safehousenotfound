@@ -271,7 +271,8 @@ def recomendar_ofertas():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+@swag_from("../docs/empleado/subir-imagen.yml")
 @empleado_bp.route("/subir-image-empleado", methods=["POST"])
 @role_required(["empleado"])
 def upload_image():
@@ -559,7 +560,7 @@ def construir_query_con_filtros(filtros, query):
 
     return query
 
-
+@swag_from("../docs/empleado/estado-postulaciones.yml")
 @empleado_bp.route("/estado-postulaciones-empleado", methods=["GET"])
 @role_required(["empleado"])
 def estado_postulaciones():

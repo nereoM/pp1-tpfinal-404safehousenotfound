@@ -1,0 +1,53 @@
+tags:
+  - Empleado
+summary: Subir imagen de perfil del empleado
+description: Permite a un empleado autenticado subir una imagen de perfil. El archivo debe estar en formato de imagen permitido.
+consumes:
+  - multipart/form-data
+produces:
+  - application/json
+parameters:
+  - in: formData
+    name: file
+    type: file
+    required: true
+    description: Archivo de imagen a subir (jpg, jpeg, png, etc.)
+responses:
+  201:
+    description: Imagen subida exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Imagen subida exitosamente
+        file_path:
+          type: string
+          example: uploads/fotos/usuario_123.jpg
+        filename:
+          type: string
+          example: usuario_123.jpg
+  400:
+    description: Error en la subida del archivo
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Formato de imagen no permitido
+  404:
+    description: Usuario no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Usuario no encontrado
+securityDefinitions:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: access_token_cookie
+    description: JWT token pasado como cookie
+security:
+  - cookieAuth: []
