@@ -339,9 +339,14 @@ def obtener_nombre_apellido_empleado():
 @empleado_bp.route("/ofertas-filtradas-empleado", methods=["GET"])
 @role_required(["empleado"])
 def obtener_ofertas_filtradas():
+    id_empleado = get_jwt_identity()
+
     try:
+        empleado = Usuario.query.get(id_empleado)
+
         filtros = request.args.to_dict()
-        query = db.session.query(Oferta_laboral)
+        # query = db.session.query(Oferta_laboral)
+        query = Oferta_laboral.query.filter_by(id_empresa=empleado.id_empresa)
         query = construir_query_con_filtros(filtros, query)
         ofertas = query.all()
 
