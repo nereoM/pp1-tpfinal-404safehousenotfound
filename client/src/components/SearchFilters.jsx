@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const EMPLOYMENT_TYPES  = ["Full-Time", "Part-Time", "Medio tiempo"];
 const WORKPLACE_TYPES   = ["Remoto", "Presencial", "Híbrido"];
-const EXPERIENCE_LEVELS = ["Junior", "Semi Senior", "Senior", "Sin experiencia"];
+const EXPERIENCE_LEVELS = ["Sin experiencia", "Junior", "Semi Senior", "Senior"];
 
 export function SearchFilters({ onBuscar }) {
     const [filtros, setFiltros] = useState({
