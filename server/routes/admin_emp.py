@@ -9,6 +9,7 @@ from werkzeug.utils import secure_filename
 import re
 from flasgger import swag_from
 import csv
+from candidato import allowed_image
 
 
 admin_emp_bp = Blueprint("admin_emp", __name__)
@@ -17,6 +18,53 @@ admin_emp_bp = Blueprint("admin_emp", __name__)
 @role_required(["admin-emp"])
 def admin_emp_home():
     return jsonify({"message": "Bienvenido al Inicio de Admin-emp"}), 200
+
+UPLOAD_FOLDER_IMG = os.path.join(os.getcwd(), "uploads", "fotos")
+ALLOWED_IMG_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
+admin_emp_bp.image_upload_folder = UPLOAD_FOLDER_IMG
+os.makedirs(UPLOAD_FOLDER_IMG, exist_ok=True)
+
+@admin_emp_bp.route("/subir-image-admin", methods=["POST"])
+@role_required(["admin-emp"])
+def upload_image():
+    if "file" not in request.files:
+        return jsonify({"error": "No se encontró ningún archivo"}), 400
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"error": "No se seleccionó ningún archivo"}), 400
+
+    if file and allowed_image(file.filename):
+        id_admin = get_jwt_identity()
+        usuario = Usuario.query.get(id_admin)
+
+        if not usuario:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        ext = file.filename.rsplit(".", 1)[1].lower()
+        filename = f"usuario_{id_admin}.{ext}"
+
+        upload_folder = admin_emp_bp.image_upload_folder
+
+        filepath = os.path.join(upload_folder, filename)
+
+        file.save(filepath)
+
+        url_imagen = f"uploads/fotos/{filename}"
+        usuario.foto_url = url_imagen
+
+        db.session.commit()
+
+        return jsonify(
+            {
+                "message": "Imagen subida exitosamente",
+                "file_path": url_imagen,
+                "filename": filename,
+            }
+        ), 201
+
+    return jsonify({"error": "Formato de imagen no permitido"}), 400
 
 @swag_from("../docs/admin-emp/preferencias.yml")
 @swag_from("../docs/admin-emp/preferencias_put.yml")

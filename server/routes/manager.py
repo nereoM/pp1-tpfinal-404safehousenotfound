@@ -7,6 +7,8 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from models.extensions import db
 from flasgger import swag_from
 from datetime import datetime
+import os
+from candidato import allowed_image
 from models.schemes import (
     Empresa,
     Licencia,
@@ -33,6 +35,53 @@ def validar_fecha(fecha_str):
 @role_required(["manager"])
 def manager_home():
     return jsonify({"message": "Bienvenido a la Pagina de Inicio de Manager"}), 200
+
+UPLOAD_FOLDER_IMG = os.path.join(os.getcwd(), "uploads", "fotos")
+ALLOWED_IMG_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
+manager_bp.image_upload_folder = UPLOAD_FOLDER_IMG
+os.makedirs(UPLOAD_FOLDER_IMG, exist_ok=True)
+
+@manager_bp.route("/subir-image-manager", methods=["POST"])
+@role_required(["manager"])
+def upload_image():
+    if "file" not in request.files:
+        return jsonify({"error": "No se encontró ningún archivo"}), 400
+
+    file = request.files["file"]
+
+    if file.filename == "":
+        return jsonify({"error": "No se seleccionó ningún archivo"}), 400
+
+    if file and allowed_image(file.filename):
+        id_manager = get_jwt_identity()
+        usuario = Usuario.query.get(id_manager)
+
+        if not usuario:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        ext = file.filename.rsplit(".", 1)[1].lower()
+        filename = f"usuario_{id_manager}.{ext}"
+
+        upload_folder = manager_bp.image_upload_folder
+
+        filepath = os.path.join(upload_folder, filename)
+
+        file.save(filepath)
+
+        url_imagen = f"uploads/fotos/{filename}"
+        usuario.foto_url = url_imagen
+
+        db.session.commit()
+
+        return jsonify(
+            {
+                "message": "Imagen subida exitosamente",
+                "file_path": url_imagen,
+                "filename": filename,
+            }
+        ), 201
+
+    return jsonify({"error": "Formato de imagen no permitido"}), 400
 
 @swag_from('../docs/manager/editar-palabras-clave.yml')
 @manager_bp.route("/oferta/<int:id_oferta>/palabras-clave", methods=["PUT"])
