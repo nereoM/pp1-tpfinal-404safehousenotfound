@@ -251,6 +251,49 @@ def google_login():
 
     except ValueError:
         return jsonify({"error": "Token inválido"}), 401
+    
+@auth_bp.route("/update-profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+    user_id = get_jwt_identity()
+    user = Usuario.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    data = request.get_json()
+    new_username = data.get("username")
+    new_email = data.get("email")
+    new_password = data.get("password")
+
+    # Validar los datos proporcionados
+    if new_username:
+        existing_user = Usuario.query.filter(Usuario.username == new_username).first()
+        if existing_user and existing_user.id != user.id:
+            return jsonify({"error": "El username ya está en uso"}), 400
+        user.username = new_username
+
+    if new_email:
+        email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+        if not re.match(email_regex, new_email):
+            return jsonify({"error": "Formato de email no válido"}), 400
+        existing_email = Usuario.query.filter(Usuario.correo == new_email).first()
+        if existing_email and existing_email.id != user.id:
+            return jsonify({"error": "El email ya está en uso"}), 400
+        user.correo = new_email
+
+    if new_password:
+        contraseña_valida, mensaje = validar_contrasena(new_password)
+        if not contraseña_valida:
+            return jsonify({"error": mensaje}), 400
+        user.contrasena = new_password  # Asegúrate de que se maneje el hashing de contraseñas
+
+    try:
+        db.session.commit()
+        return jsonify({"message": "Perfil actualizado exitosamente"}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
