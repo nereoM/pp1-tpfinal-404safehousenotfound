@@ -8,7 +8,7 @@ from models.extensions import db
 from flasgger import swag_from
 from datetime import datetime
 import os
-from candidato import allowed_image
+from .candidato import allowed_image
 from models.schemes import (
     Empresa,
     Licencia,

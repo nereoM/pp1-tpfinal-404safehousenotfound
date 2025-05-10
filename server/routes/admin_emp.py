@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 import re
 from flasgger import swag_from
 import csv
-from candidato import allowed_image
+from .candidato import allowed_image
 
 
 admin_emp_bp = Blueprint("admin_emp", __name__)

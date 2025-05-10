@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime, timezone
-from reclutador import allowed_image
+from .candidato import allowed_image
 from sqlalchemy import and_, or_
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request, send_file
