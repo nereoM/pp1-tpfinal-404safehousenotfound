@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { adminEmpService } from "../services/adminEmpService";
 
 export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa, onActualizar }) {
   const [formData, setFormData] = useState({
@@ -12,40 +11,50 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
   });
 
   useEffect(() => {
-    adminEmpService.obtenerPreferenciasEmpresa({idEmpresa}).then((data) => {
-      setFormData({
-        slogan: data.slogan || "",
-        descripcion: data.descripcion || "",
-        logo_url: data.logo_url || "",
-        color_principal: data.color_principal || "#2563eb",
-        color_secundario: data.color_secundario || "#f3f4f6",
-        color_texto: data.color_texto || "#000000",
-      });
+    fetch(`${import.meta.env.VITE_API_URL}/api/empresa/${idEmpresa}/preferencias`, {
+      credentials: "include"
     })
+      .then(res => res.json())
+      .then(data => {
+        setFormData({
+          slogan: data.slogan || "",
+          descripcion: data.descripcion || "",
+          logo_url: data.logo_url || "",
+          color_principal: data.color_principal || "#2563eb",
+          color_secundario: data.color_secundario || "#f3f4f6",
+          color_texto: data.color_texto || "#000000",
+        });
+      })
+      .catch(err => console.error("Error al obtener preferencias:", err));
   }, [idEmpresa]);
 
   const guardarCambios = async () => {
-    adminEmpService.configurarPreferenciasParaEmpresa({
-      idEmpresa: idEmpresa,
-      colorPrincipal: formData.color_principal,
-      colorSecundario: formData.color_secundario,
-      colorTexto: formData.color_texto,
-      descripcion: formData.descripcion,
-      slogan: formData.slogan
-    }).then(() => {
-      onActualizar();
-      onClose();
-    })
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/empresa/${idEmpresa}/preferencias`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(formData)
+      });
+      if (res.ok) {
+        onActualizar();
+        onClose();
+      } else {
+        console.error("No se pudo actualizar");
+      }
+    } catch (err) {
+      console.error("Error de conexión:", err);
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white p-6 rounded-lg w-full max-w-2xl space-y-4">
-        <h2 className="text-lg font-semibold" style={{ color: "#000" }}>Editar preferencias de empresa</h2>
+        <h2 className="text-lg font-semibold" style={{ color: "black" }}>Editar preferencias de empresa</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm font-medium" style={{ color: "#000" }}>Slogan</label>
+            <label className="text-sm font-medium" style={{ color: "black"}}>Slogan</label>
             <input
               type="text"
               value={formData.slogan}
@@ -55,7 +64,7 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
           </div>
 
           <div>
-            <label className="text-sm font-medium" style={{ color: "#000" }}>Descripción</label>
+            <label className="text-sm font-medium" style={{ color: "black"}}>Descripción</label>
             <input
               type="text"
               value={formData.descripcion}
@@ -65,7 +74,7 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
           </div>
 
           <div>
-            <label className="text-sm font-medium" style={{ color: "#000" }}>Logo URL</label>
+            <label className="text-sm font-medium" style={{ color: "black" }}>Logo URL</label>
             <input
               type="text"
               value={formData.logo_url}
@@ -75,17 +84,7 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
           </div>
 
           <div>
-            <label className="text-sm font-medium" style={{ color: "#000" }}>Color Principal</label>
-            <input
-              type="color"
-              value={formData.color_principal}
-              onChange={(e) => setFormData({ ...formData, color_principal: e.target.value })}
-              className="w-full h-10"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium" style={{ color: "#000" }}>Color Secundario</label>
+            <label className="text-sm font-medium" style={{ color: "black" }}>Color Principal</label>
             <input
               type="color"
               value={formData.color_secundario}
@@ -95,7 +94,17 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
           </div>
 
           <div>
-            <label className="text-sm font-medium" style={{ color: "#000" }}>Color de texto</label>
+            <label className="text-sm font-medium" style={{ color: "black" }}>Color Secundario</label>
+            <input
+              type="color"
+              value={formData.color_principal}
+              onChange={(e) => setFormData({ ...formData, color_principal: e.target.value })}
+              className="w-full h-10"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium" style={{ color: "black" }}>Color de texto</label>
             <input
               type="color"
               value={formData.color_texto}

@@ -11,7 +11,7 @@ export function TopBar({ username, onLogout, children }) {
 
   return (
     <header
-      className="flex justify-between items-center py-4 px-6 border-b"
+      className="flex justify-between items-center py+100 px-6 border-b"
       style={{ borderColor: primary, color: textColor }}
     >
       <div className="flex items-center gap-4">
@@ -19,7 +19,7 @@ export function TopBar({ username, onLogout, children }) {
           <img
             src={logoUrl}
             alt="Logo empresa"
-            className="h-8 w-auto"
+            className="h-23 w-auto "
           />
         ) : (
           <h1 className="text-2xl font-bold" style={{ color: textColor }}>
