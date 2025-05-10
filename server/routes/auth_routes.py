@@ -176,6 +176,10 @@ def login():
         # }
         # ), 401
 
+        # Verificar si el usuario esta activo
+        if not user.activo:
+            return jsonify({"error": "Usuario inactivo"}), 401
+
         # Si la contraseña es correcta y el correo está confirmado, generar el token
         roles = [r.slug for r in user.roles]
         access_token = create_access_token(
