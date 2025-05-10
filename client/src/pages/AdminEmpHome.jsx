@@ -25,6 +25,11 @@ export default function AdminEmpHome() {
   const [mensajeLicencias, setMensajeLicencias] = useState("");
   const [mensajeEvaluacion, setMensajeEvaluacion] = useState("");
   const [modalSubirEmpleados, setModalSubirEmpleados] = useState(false);
+  const [motivoRechazo, setMotivoRechazo] = useState("");
+  const [modalRechazoOpen, setModalRechazoOpen] = useState(false);
+  const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);
+  const [mensajeError, setMensajeError] = useState('');
+
 
   const navigate = useNavigate();
 
@@ -65,13 +70,24 @@ export default function AdminEmpHome() {
 
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
     try {
-      const data = await adminEmpService.evaluarLicencia({ idLicencia: id_licencia, estado: nuevoEstado });
+      const payload = { idLicencia: id_licencia, estado: nuevoEstado };
+      if (nuevoEstado === "rechazada") {
+        payload.motivo = motivoRechazo; 
+      }
+
+      const data = await adminEmpService.evaluarLicencia(payload);
       setMensajeEvaluacion(data.message || "Estado actualizado correctamente.");
+      setMotivoRechazo("");
       obtenerLicencias();
     } catch (error) {
       console.error("Error al evaluar licencia:", error);
       setMensajeEvaluacion("Error al procesar la solicitud.");
     }
+  };
+
+  const abrirModalRechazo = (licencia) => {
+    setLicenciaSeleccionada(licencia);
+    setModalRechazoOpen(true);
   };
 
   const subirEmpleadosDesdeCSV = async (file) => {
@@ -435,7 +451,7 @@ export default function AdminEmpHome() {
                                     Aprobar
                                   </button>
                                   <button
-                                    onClick={() => evaluarLicencia(licencia.id_licencia, "rechazada")}
+                                    onClick={() => abrirModalRechazo(licencia)}
                                     className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                                   >
                                     Rechazar
@@ -459,6 +475,49 @@ export default function AdminEmpHome() {
                       })}
                     </tbody>
                   </table>
+                )}
+
+                {modalRechazoOpen && (
+                  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-full max-w-md shadow space-y-4">
+                      <h2 className="text-lg font-semibold">Indique el motivo del rechazo</h2>
+                      <textarea
+                        className="w-full p-2 border border-gray-300 rounded resize-none"
+                        rows="4"
+                        placeholder="Escriba el motivo del rechazo..."
+                        value={motivoRechazo}
+                        onChange={(e) => {
+                          setMotivoRechazo(e.target.value);
+                          setMensajeError('');  // Limpiar el mensaje de error al escribir
+                        }}
+                      ></textarea>
+
+                      {/* Mostrar mensaje de error si no se indica motivo */}
+                      {mensajeError && <p className="text-red-500 text-sm">{mensajeError}</p>}
+
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => setModalRechazoOpen(false)}
+                          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (motivoRechazo.trim()) {
+                              evaluarLicencia(licenciaSeleccionada.id_licencia, "rechazada");
+                              setModalRechazoOpen(false);
+                            } else {
+                              setMensajeError("Debe indicar un motivo para rechazar la licencia.");
+                            }
+                          }}
+                          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          Confirmar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
                 <div className="mt-6 text-right">
