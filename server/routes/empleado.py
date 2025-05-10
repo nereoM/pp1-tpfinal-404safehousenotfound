@@ -584,7 +584,7 @@ def estado_postulaciones():
             "id_postulacion": id_postulacion,
             "id_oferta": id_oferta,
             "nombre_oferta": nombre,
-            "estado": estado,
+            "estado": "Apto" if estado else "No Apto",
             "fecha_postulacion": fecha.isoformat(),
         }
         for id_postulacion, id_oferta, nombre, estado, fecha in postulaciones
