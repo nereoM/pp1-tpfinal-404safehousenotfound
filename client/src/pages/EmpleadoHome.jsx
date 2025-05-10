@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { LicenciasModal } from "../components/LicenciasModal";
 import { OfertasRecomendadas } from "../components/OfertasRecomendadas";
 import PageLayout from "../components/PageLayoutCand";
+import { PostulacionesModal } from "../components/PostulacionesModal";
 import { PostularseModal } from "../components/PostularseModal";
 import { ProfileCard } from "../components/ProfileCard";
 import { SearchFilters } from "../components/SearchFilters";
@@ -33,12 +34,14 @@ export default function EmpleadoHome() {
   const [user, setUser] = useState(null);
   /** @type {[CV[]]} */
   const [cvs, setCvs] = useState([]);
-  
+
   // Modales
+  const [modalPostulaciones, setModalPostulaciones] = useState(false);
   const [modalSolicitarLicencia, setmodalSolicitarLicencia] = useState(false);
   const [modalLicencias, setModalLicencias] = useState(false);
-  
-  const { ofertas, ofertasError, ofertasIsLoading, handlerAplicarFiltros } = useOfertasRecomendadas()
+
+  const { ofertas, ofertasError, ofertasIsLoading, handlerAplicarFiltros } =
+    useOfertasRecomendadas();
   const { estilos: estilosSafe } = useEstiloEmpresa();
   const navigate = useNavigate();
 
@@ -89,6 +92,12 @@ export default function EmpleadoHome() {
       titulo: "Solicitar Licencia",
       descripcion: "Solicituar una nueva licencia.",
       onClick: () => setmodalSolicitarLicencia(true),
+    },
+    {
+      icon: FileUp,
+      titulo: "Ver estado de mis postulaciones",
+      descripcion: "Accede al listado de tus postulaciones.",
+      onClick: () => setModalPostulaciones(true),
     },
   ];
 
@@ -274,6 +283,10 @@ export default function EmpleadoHome() {
               idOferta={idOfertaSeleccionada}
               cvs={cvs}
             />
+          )}
+
+          {modalPostulaciones && (
+            <PostulacionesModal onClose={() => setModalPostulaciones(false)} />
           )}
         </PageLayout>
       </motion.div>
