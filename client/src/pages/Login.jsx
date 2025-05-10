@@ -253,6 +253,8 @@ export default function Login() {
         navigate("/manager/home"); 
       } else if (user.roles.includes("admin-emp")) { 
         navigate("/adminemp/home"); 
+      } else if (user.roles.includes("empleado")){
+        navigate("/empleado/home");
       } else {
         navigate("/candidato/home");
       }
