@@ -63,6 +63,31 @@ export default function AdminEmpHome() {
       .catch(() => setMensajeLicencias("Error al cargar las licencias."));
   };
 
+  const descargarCertificado = async (certificadoUrl) => {
+  try {
+    const response = await fetch(certificadoUrl, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al descargar el certificado.");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = certificadoUrl.split("/").pop(); // Nombre del archivo
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } catch (error) {
+    console.error("Error al descargar el certificado:", error);
+    alert("No se pudo descargar el certificado.");
+  }
+};
+
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
     try {
       const data = await adminEmpService.evaluarLicencia({ idLicencia: id_licencia, estado: nuevoEstado });
@@ -351,6 +376,7 @@ export default function AdminEmpHome() {
                   <table className="min-w-full table-auto border-collapse">
                     <thead className="bg-gray-100">
                       <tr>
+                        <th className="px-4 py-2 text-left border-b">Empleado</th>
                         <th className="px-4 py-2 text-left border-b">Tipo</th>
                         <th className="px-4 py-2 text-left border-b">Descripción</th>
                         <th className="px-4 py-2 text-left border-b">Fecha de Inicio</th>
@@ -362,22 +388,25 @@ export default function AdminEmpHome() {
                     <tbody>
                       {licencias.map((item, index) => {
                         const licencia = item.licencia;
+                        const empleado = licencia.empleado;
+
                         return (
                           <tr key={index} className="border-t">
+                            <td className="px-4 py-2">
+                              {empleado.nombre} {empleado.apellido}
+                            </td>
                             <td className="px-4 py-2">{licencia.tipo}</td>
                             <td className="px-4 py-2">{licencia.descripcion}</td>
                             <td className="px-4 py-2">{licencia.fecha_inicio || "-"}</td>
                             <td className="px-4 py-2">{licencia.estado}</td>
                             <td className="px-4 py-2">
                               {licencia.certificado_url ? (
-                                <a
-                                  href={licencia.certificado_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
+                                <button
+                                  onClick={() => descargarCertificado(licencia.certificado_url)}
                                   className="text-indigo-600 underline"
                                 >
-                                  Ver certificado
-                                </a>
+                                  Descargar certificado
+                                </button>
                               ) : (
                                 "Sin certificado"
                               )}
@@ -398,6 +427,13 @@ export default function AdminEmpHome() {
                                     Rechazar
                                   </button>
                                 </>
+                              ) : licencia.estado === "aprobada" && licencia.certificado_url ? (
+                                <button
+                                  onClick={() => evaluarLicencia(licencia.id_licencia, "activa")}
+                                  className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
+                                >
+                                  Validar
+                                </button>
                               ) : (
                                 <span className="text-gray-500 italic">
                                   Licencia ya evaluada ({licencia.estado})
