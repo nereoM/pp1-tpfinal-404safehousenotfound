@@ -511,3 +511,38 @@ def construir_query_con_filtros(filtros, query):
             pass  # opcional: loguear error
 
     return query
+
+
+@empleado_bp.route("/estado-postulaciones-empleado", methods=["GET"])
+@role_required(["empleado"])
+def estado_postulaciones():
+    id_empleado = get_jwt_identity()
+
+    postulaciones = (
+        db.session.query(
+            Job_Application.id,
+            Oferta_laboral.id,
+            Oferta_laboral.nombre,
+            Job_Application.is_apto,
+            Job_Application.fecha_postulacion
+        )
+        .join(Oferta_laboral, Job_Application.id_oferta == Oferta_laboral.id)
+        .filter(Job_Application.id_candidato == id_empleado)
+        .all()
+    )
+
+    resultado = [
+        {
+            "id_postulacion": id_postulacion,
+            "id_oferta": id_oferta,
+            "nombre_oferta": nombre,
+            "estado": estado,
+            "fecha_postulacion": fecha.isoformat(),
+        }
+        for id_postulacion, id_oferta, nombre, estado, fecha in postulaciones
+    ]
+
+    if not resultado:
+        return jsonify({"message": "No se encontraron postulaciones para este empleado."}), 404
+
+    return jsonify(resultado), 200

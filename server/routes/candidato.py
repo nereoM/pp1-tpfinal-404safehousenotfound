@@ -466,6 +466,41 @@ def obtener_nombre_apellido_candidato():
     }
 
 
+@candidato_bp.route("/estado-postulaciones-candidato", methods=["GET"])
+@role_required(["candidato"])
+def estado_postulaciones():
+    id_candidato = get_jwt_identity()
+
+    postulaciones = (
+        db.session.query(
+            Job_Application.id,
+            Oferta_laboral.id,
+            Oferta_laboral.nombre,
+            Job_Application.is_apto,
+            Job_Application.fecha_postulacion
+        )
+        .join(Oferta_laboral, Job_Application.id_oferta == Oferta_laboral.id)
+        .filter(Job_Application.id_candidato == id_candidato)
+        .all()
+    )
+
+    resultado = [
+        {
+            "id_postulacion": id_postulacion,
+            "id_oferta": id_oferta,
+            "nombre_oferta": nombre,
+            "estado": estado,
+            "fecha_postulacion": fecha.isoformat(),
+        }
+        for id_postulacion, id_oferta, nombre, estado, fecha in postulaciones
+    ]
+
+    if not resultado:
+        return jsonify({"message": "No se encontraron postulaciones para este candidato."}), 404
+
+    return jsonify(resultado), 200
+
+
 def construir_query_con_filtros(filtros, query):
     if "location" in filtros and filtros["location"]:
         query = query.filter(Oferta_laboral.location.ilike(f"%{filtros['location']}%"))
