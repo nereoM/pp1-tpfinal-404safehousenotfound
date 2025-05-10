@@ -38,10 +38,8 @@ UPLOAD_FOLDER_IMG = os.path.join(os.getcwd(), "uploads", "fotos")
 ALLOWED_CV_EXTENSIONS = {"pdf", "doc", "docx"}
 ALLOWED_IMG_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
 
-candidato_bp.config = {
-    "UPLOAD_FOLDER": UPLOAD_FOLDER_CV,
-    "IMAGE_UPLOAD_FOLDER": UPLOAD_FOLDER_IMG,
-}
+candidato_bp.upload_folder = UPLOAD_FOLDER_CV
+candidato_bp.image_upload_folder = UPLOAD_FOLDER_IMG
 
 os.makedirs(UPLOAD_FOLDER_CV, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER_IMG, exist_ok=True)
@@ -149,11 +147,10 @@ def upload_image():
 
         ext = file.filename.rsplit(".", 1)[1].lower()
         filename = f"usuario_{id_candidato}.{ext}"
-        upload_folder = candidato_bp.config["IMAGE_UPLOAD_FOLDER"]
-        filepath = os.path.join(upload_folder, filename)
 
-        if os.path.exists(filepath):
-            os.remove(filepath)
+        upload_folder = candidato_bp.image_upload_folder
+
+        filepath = os.path.join(upload_folder, filename)
 
         file.save(filepath)
 
@@ -191,7 +188,7 @@ def upload_cv():
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         nombre_final = f"{original_filename.rsplit('.', 1)[0]}_{timestamp}.{original_filename.rsplit('.', 1)[1]}"
 
-        upload_folder = candidato_bp.config["UPLOAD_FOLDER"]
+        upload_folder = candidato_bp.upload_folder
         filepath = os.path.join(upload_folder, nombre_final)
 
         file.save(filepath)
