@@ -569,6 +569,7 @@ def evaluar_licencia(id_licencia):
         and licencia.certificado_url
     ):
         licencia.estado = nuevo_estado
+        empleado.activo = False
         db.session.commit()
         return jsonify(
             {
@@ -581,6 +582,7 @@ def evaluar_licencia(id_licencia):
                         "apellido": empleado.apellido,
                         "username": empleado.username,
                         "email": empleado.correo,
+                        "estado": "Inactivo" if empleado.activo == False else "Activo"
                     },
                     "tipo": licencia.tipo,
                     "descripcion": licencia.descripcion,
