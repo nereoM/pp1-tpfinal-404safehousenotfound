@@ -1,5 +1,9 @@
 import { useState } from "react";
 
+const EMPLOYMENT_TYPES  = ["Full-Time", "Part-Time", "Medio tiempo"];
+const WORKPLACE_TYPES   = ["Remoto", "Presencial", "Híbrido"];
+const EXPERIENCE_LEVELS = ["Junior", "Semi Senior", "Senior", "Sin experiencia"];
+
 export function SearchFilters({ onBuscar }) {
     const [filtros, setFiltros] = useState({
       workplace_type: "",
@@ -26,40 +30,46 @@ export function SearchFilters({ onBuscar }) {
           <input
             type="text"
             name="location"
+            value={filtros.location}
             placeholder="Ubicación"
             className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
             onChange={handleChange}
           />
+
           <select
             name="workplace_type"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            value={filtros.workplace_type}
             onChange={handleChange}
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
           >
             <option value="">Tipo de lugar</option>
-            <option value="remote">Remoto</option>
-            <option value="onsite">Presencial</option>
-            <option value="hybrid">Híbrido</option>
+            {WORKPLACE_TYPES.map(opt => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
           </select>
           <select
-            name="employment_type"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            onChange={handleChange}
-          >
-            <option value="">Tipo de empleo</option>
-            <option value="full-time">Tiempo completo</option>
-            <option value="part-time">Medio tiempo</option>
-            <option value="freelance">Freelance</option>
-          </select>
-          <select
-            name="experience_level"
-            className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            onChange={handleChange}
-          >
-            <option value="">Nivel de experiencia</option>
-            <option value="junior">Junior</option>
-            <option value="semi-senior">Semi-Senior</option>
-            <option value="senior">Senior</option>
-          </select>
+          name="employment_type"
+          value={filtros.employment_type}
+          onChange={handleChange}
+          className="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+        >
+          <option value="">Tipo de empleo</option>
+          {EMPLOYMENT_TYPES.map(opt => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
+
+            <select
+              name="experience_level"
+              value={filtros.experience_level}
+              onChange={handleChange}
+              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            >
+              <option value="">Nivel de experiencia</option>
+              {EXPERIENCE_LEVELS.map(opt => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
           <input
             type="number"
             name="salary_min"
