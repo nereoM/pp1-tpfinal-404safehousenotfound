@@ -157,7 +157,7 @@ def upload_image():
 
         file.save(filepath)
 
-        url_imagen = f"uploads/imagenes/{filename}"
+        url_imagen = f"uploads/fotos/{filename}"
         usuario.foto_url = url_imagen
 
         db.session.commit()
