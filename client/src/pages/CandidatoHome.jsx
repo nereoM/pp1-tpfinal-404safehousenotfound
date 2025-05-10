@@ -7,6 +7,8 @@ import { TopBar } from "../components/TopBarCand";
 import { ProfileCard } from "../components/ProfileCard";
 import { JobCard } from "../components/JobCard";
 import { SearchFilters } from "../components/SearchFilters";
+import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -31,7 +33,7 @@ export default function CandidatoHome() {
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
     const [username, setUsername] = useState("");
-    const [imageFile, setImageFile] = useState(null);         
+    const [modalImageFile, setModalImageFile] = useState(null);         
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -48,22 +50,26 @@ export default function CandidatoHome() {
                 if (!cvRes.ok) throw new Error("Error al obtener CVs");
 
                 const userData = await userRes.json();
-                console.log("Username:", userData.username);
-                setUser(userData);
+                const normalized = {
+                ...userData,
+                fotoUrl: userData.foto_url
+                };
+                console.log("Username:", normalized.username);
+                setUser(normalized);
+
                 const cvsData = await cvRes.json();
 
-                setUser(userData);
                 setCvs(cvsData);
                 setCvSeleccionado(cvsData[0]?.id || null);
                 fetchRecomendaciones();
 
-                setNombre(userData.nombre);
-                setApellido(userData.apellido);
-                setUsername(userData.username);
+                setNombre(normalized.nombre);
+                setApellido(normalized.apellido);
+                setUsername(normalized.username);
 
 
             } catch (err) {
-                console.error("❌ Error en fetchData:", err);
+                console.error("Error en fetchData:", err);
                 setError(err.message);
                 setLoading(false);
             }
@@ -99,7 +105,7 @@ export default function CandidatoHome() {
                 }));
                 setOfertas(transformadas);
             } catch (err) {
-                console.error("❌ Error en fetchRecomendaciones:", err);
+                console.error("Error en fetchRecomendaciones:", err);
                 setMensajeRecomendacion("No se pudieron cargar las recomendaciones.");
             } finally {
                 setLoading(false);
@@ -136,10 +142,10 @@ export default function CandidatoHome() {
                         }));
                     setOfertas(todas);
                 } else {
-                    console.error("❌ Error en todas-las-ofertas:", data.error);
+                    console.error("Error en todas-las-ofertas:", data.error);
                 }
             } catch (err) {
-                console.error("❌ Error al buscar todas las ofertas:", err);
+                console.error("Error al buscar todas las ofertas:", err);
             }
         };
 
@@ -173,7 +179,7 @@ export default function CandidatoHome() {
                 alert("Error: " + (result.error || "desconocido"));
             }
         } catch (error) {
-            console.error("❌ Error al subir CV:", error);
+            console.error("Error al subir CV:", error);
             alert("Error de conexión al subir CV");
         }
     };
@@ -193,15 +199,15 @@ export default function CandidatoHome() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert("✅ Postulación realizada con éxito");
+                alert("Postulación realizada con éxito");
                 setModalOpen(false);
                 setSalarioPretendido("");
             } else {
-                alert("❌ Error: " + (data.error || "desconocido"));
+                alert("Error: " + (data.error || "desconocido"));
             }
         } catch (err) {
-            console.error("❌ Error en handlePostularse:", err);
-            alert("❌ Error de conexión al postularse");
+            console.error("Error en handlePostularse:", err);
+            alert("Error de conexión al postularse");
         }
     };
 
@@ -220,11 +226,10 @@ export default function CandidatoHome() {
         );
     }
 
-    const handleImageUpload = async () => {
-      if (!imageFile) return alert("Seleccioná una imagen");
-  
-      const formData = new FormData();
-      formData.append("file", imageFile);
+    const handleImageUpload = async (file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
   
       try {
           const res = await fetch(`${API_URL}/api/subir-image`, {
@@ -237,7 +242,7 @@ export default function CandidatoHome() {
           if (res.ok) {
               alert("Imagen subida exitosamente");
               setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
-              setModalEditarPerfilOpen(false); // cerrar modal después de guardar
+              setModalEditarPerfilOpen(false); 
           } else {
               alert("Error: " + (result.error || "desconocido"));
           }
@@ -246,6 +251,24 @@ export default function CandidatoHome() {
           alert("Error de conexión");
       }
   };
+
+  const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
+  try {
+    const res = await fetch(`${API_URL}/auth/update-profile`, {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password })
+    });
+    const result = await res.json();
+    if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
+    setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
+    setModalEditarPerfilOpen(false);
+  } catch (err) {
+    alert( err.message);
+  }
+};
+
   
 
     return (
@@ -272,7 +295,7 @@ export default function CandidatoHome() {
                                         credentials: "include"
                                     });
                                     const data = await res.json();
-                                    console.log("📦 Ofertas filtradas recibidas:", data);
+                                    console.log("ofertas filtradas recibidas:");
                                     if (res.ok) {
                                         const transformadas = data.map((item) => ({
                                             id: item.id,
@@ -286,10 +309,10 @@ export default function CandidatoHome() {
                                         setBusquedaConfirmada("filtros");
                                         setMensajeRecomendacion("");
                                     } else {
-                                        console.error("❌ Error al buscar con filtros:", data.error);
+                                        console.error("Error al buscar con filtros:", data.error);
                                     }
                                 } catch (err) {
-                                    console.error("❌ Error de conexión:", err);
+                                    console.error("Error de conexión:", err);
                                 }
                             }}
                         />
@@ -447,61 +470,20 @@ export default function CandidatoHome() {
                     </div>
                 )}
 
-{modalEditarPerfilOpen && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
-      <h2 className="text-lg font-semibold">Editar perfil</h2>
+        <ModalParaEditarPerfil
+        isOpen={modalEditarPerfilOpen}
+        onClose={() => setModalEditarPerfilOpen(false)}
+        user={user}
+        onSave={async ({ username, email, password }) => {
+            await handleProfileUpdate({ username, email, password });
+            if (modalImageFile) await handleImageUpload(modalImageFile);
+        }}
+        onFileSelect={setModalImageFile}
+        />
 
-      <input
-        type="text"
-        value={nombre}
-        onChange={(e) => setNombre(e.target.value)}
-        className="w-full p-2 border rounded"
-        placeholder="Nombre"
-      />
-      <input
-        type="text"
-        value={apellido}
-        onChange={(e) => setApellido(e.target.value)}
-        className="w-full p-2 border rounded"
-        placeholder="Apellido"
-      />
-      <input
-        type="text"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        className="w-full p-2 border rounded"
-        placeholder="Username"
-      />
-
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setImageFile(e.target.files[0])}
-        className="w-full p-2"
-      />
-
-      <div className="flex justify-end gap-2">
-        <button
-          onClick={() => setModalEditarPerfilOpen(false)}
-          className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-        >
-          Cancelar
-        </button>
-        <button
-          onClick={handleImageUpload}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Guardar cambios
-        </button>
-      </div>
-    </div>
-  </div>
-)}
 
 
             </PageLayout>
         </motion.div>
     );
 }
-//para probar
