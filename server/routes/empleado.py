@@ -215,6 +215,8 @@ def recomendar_ofertas():
     try:
         id_empleado = get_jwt_identity()
 
+        empleado = Usuario.query.get(id_empleado)
+
         cv = (
             CV.query.filter_by(id_candidato=id_empleado)
             .order_by(CV.fecha_subida.desc())
@@ -237,6 +239,7 @@ def recomendar_ofertas():
         ofertas = (
             db.session.query(Oferta_laboral)
             .filter(Oferta_laboral.is_active == True)
+            .filter(Oferta_laboral.id_empresa == empleado.id_empresa)
             .filter(
                 or_(*[Oferta_laboral.palabras_clave.like(f"%{palabra}%") for palabra in palabras_clave_cv])
             )
