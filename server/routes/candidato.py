@@ -325,19 +325,28 @@ def obtener_todas_las_ofertas():
 def obtener_ofertas_filtradas():
     try:
         filtros = request.args.to_dict()
-        query = db.session.query(Oferta_laboral)
+        query = Oferta_laboral.query
         query = construir_query_con_filtros(filtros, query)
+
+        print(str(query.statement.compile(compile_kwargs={"literal_binds": True})))
+        
         ofertas = query.all()
 
-        resultado = [
-            {
-                "id": oferta.id,
-                "nombre_oferta": oferta.nombre,
-                "empresa": oferta.empresa.nombre,
-                "palabras_clave": json.loads(oferta.palabras_clave or "[]"),
-            }
-            for oferta in ofertas
-        ]
+        resultado = []
+        for oferta in ofertas:
+            try:
+                resultado.append({
+                    "id": oferta.id,
+                    "nombre_oferta": oferta.nombre,
+                    "empresa": oferta.empresa.nombre,
+                    "palabras_clave": json.loads(oferta.palabras_clave or "[]"),
+                })
+            except Exception as e:
+                print(f"Error al procesar oferta {oferta.id}: {e}")
+
+        if not resultado:
+            return jsonify({"message": "No se encontraron ofertas para los filtros aplicados."}), 404
+
         return jsonify(resultado), 200
 
     except Exception as e:
