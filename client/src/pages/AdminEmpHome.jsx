@@ -110,19 +110,56 @@ export default function AdminEmpHome() {
   };
 
   const crearManager = async () => {
-    if (formData.username.trim().length < 4) {
+    // Validaciones de los campos
+    if (!formData.nombre.trim() || formData.nombre.trim().length < 2) {
+      setMensaje("El nombre debe tener al menos 2 caracteres.");
+      return;
+    }
+    if (!formData.apellido.trim() || formData.apellido.trim().length < 2) {
+      setMensaje("El apellido debe tener al menos 2 caracteres.");
+      return;
+    }
+    if (!formData.username.trim() || formData.username.trim().length < 4) {
       setMensaje("El nombre de usuario debe tener al menos 4 caracteres.");
+      return;
+    }
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setMensaje("El correo electrónico no es válido.");
       return;
     }
 
     try {
-      const data = await adminEmpService.registrarManager(formData);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-manager`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.nombre,
+          lastname: formData.apellido,
+          username: formData.username,
+          email: formData.email,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error al registrar el manager.");
+      }
+
+      const data = await response.json();
+
+      // Mostrar mensaje de éxito
       setMensaje(
-        `Usuario creado correctamente.\n\nUsername: ${data.credentials.username}\nCredencial temporal: ${data.credentials.password}`
+        `Usuario creado correctamente.\n\nUsername: ${data.credentials.username}\nContraseña temporal: ${data.credentials.password}`
       );
+
+      // Limpiar el formulario
       setFormData({ nombre: "", apellido: "", username: "", email: "" });
-    } catch (err) {
-      setMensaje("Error al conectar con el servidor");
+    } catch (error) {
+      console.error("Error al registrar manager:", error);
+      setMensaje(error.message || "Error al conectar con el servidor.");
     }
   };
 
