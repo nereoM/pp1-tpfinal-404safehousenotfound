@@ -15,7 +15,7 @@ from .candidato import allowed_image
 admin_emp_bp = Blueprint("admin_emp", __name__)
 
 @admin_emp_bp.route("/admin-emp-home", methods=["GET"])
-@role_required(["admin-emp"])
+@role_required(["admin-emp", "manager", "reclutador"])
 def admin_emp_home():
     return jsonify({"message": "Bienvenido al Inicio de Admin-emp"}), 200
 

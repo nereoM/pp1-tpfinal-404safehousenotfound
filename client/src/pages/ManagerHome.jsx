@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
+import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
 import { Users, PlusCircle, BarChart, FileText, RotateCcw, FileLock } from 'lucide-react';
+
 
 export default function ManagerHome() {
   const [user, setUser] = useState(null);
@@ -30,22 +32,45 @@ export default function ManagerHome() {
 
 
   //trae los datos del manager
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/info-manager`, { credentials: "include" })
-      .then(res => {
-        if (!res.ok) throw new Error("Error al autenticar");
-        return res.json();
-      })
-      .then(data => setUser(data))
-      .catch(err => console.error("Error al obtener usuario:", err))
-      .finally(() => setLoadingUser(false));
-  }, []);
+useEffect(() => {
+  const cargarUsuario = async () => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+        credentials: "include"
+      });
+      if (!res.ok) throw new Error("No autenticado");
+      const data = await res.json();
+      // data ahora tiene { id, nombre, apellido, username, correo, roles, id_empresa }
+      setUser({
+        id:        data.id,
+        nombre:    data.nombre,
+        apellido:  data.apellido,
+        username:  data.username,
+        correo:    data.correo,
+        roles:     data.roles,
+        empresaId: data.id_empresa
+      });
+    } catch (err) {
+      console.error("Error al cargar usuario:", err);
+    } finally {
+      setLoadingUser(false);
+    }
+  };
+
+  cargarUsuario();
+}, []);
+
+
+
+  const empresaId = user?.empresaId;
+  const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
 
   const estilosSafe = {
-    color_principal: "#2563eb",
-    color_secundario: "#f3f4f6",
-    color_texto: "#000000",
-    slogan: "Bienvenido al panel de administración de Manager",
+    color_principal: estilos?.color_principal ?? "#2563eb",
+    color_secundario: estilos?.color_secundario ?? "#f3f4f6",
+    color_texto: estilos?.color_texto ?? "#000000",
+    slogan: estilos?.slogan ?? "Bienvenido al panel de Administración de Empresa",
+    logo_url: estilos?.logo_url ?? null,
   };
 
 

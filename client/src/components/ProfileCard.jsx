@@ -8,7 +8,7 @@ export function ProfileCard({ nombre, correo, cvUrl, fotoUrl, onEdit }) {
 
   const bg = estilos?.color_secundario || "white";
   const bcol = estilos?.color_principal || "#2563eb";
-  const tcol = estilos?.color_texto || "#ffffff";
+  const tcol = estilos?.color_texto || "#000000";
 
   // Construye la URL de la imagen, evitando prefijos duplicados
   const imgSrc = useMemo(() => {
