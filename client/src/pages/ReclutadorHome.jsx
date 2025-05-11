@@ -9,6 +9,7 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { reclutadorService } from "../services/reclutadorService";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
+import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 
 export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
@@ -38,7 +39,15 @@ export default function ReclutadorHome() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [cvUrl, setCvUrl] = useState(null);
+  const [modalEditarPerfilOpen, setModalEditarPerfilOpen] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [username, setUsername] = useState("");
+  const [modalImageFile, setModalImageFile] = useState(null);
+  const [mensajeError, setMensajeError] = useState('');
 
+
+  const API_URL = import.meta.env.VITE_API_URL;
 
 
 
@@ -59,7 +68,8 @@ export default function ReclutadorHome() {
           username: data.username,
           correo: data.correo,
           roles: data.roles,
-          empresaId: data.id_empresa
+          empresaId: data.id_empresa,
+          foto_url: data.foto_url
         });
       } catch (err) {
         console.error("Error al cargar usuario:", err);
@@ -289,6 +299,49 @@ export default function ReclutadorHome() {
     setCvModalOpen(true);
   };
 
+     const handleImageUpload = async (file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+  
+      try {
+          const res = await fetch(`${API_URL}/api/subir-image-reclutador`, {
+              method: "POST",
+              credentials: "include",
+              body: formData,
+          });
+  
+          const result = await res.json();
+          if (res.ok) {
+              alert("Imagen subida exitosamente");
+              setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
+              setModalEditarPerfilOpen(false); 
+          } else {
+              alert("Error: " + (result.error || "desconocido"));
+          }
+      } catch (err) {
+          console.error("Error al subir imagen:", err);
+          alert("Error de conexión");
+      }
+  };
+
+  const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
+    try {
+      const res = await fetch(`${API_URL}/auth/update-profile`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
+      setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
+      setModalEditarPerfilOpen(false);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
 
   const acciones = [
     {
@@ -373,11 +426,14 @@ export default function ReclutadorHome() {
               <ProfileCard
                 nombre={`${user?.nombre} ${user?.apellido}`}
                 correo={user?.correo}
-                fotoUrl="https://i.postimg.cc/3x2SrWdX/360-F-64676383-Ldbmhi-NM6-Ypzb3-FM4-PPu-FP9r-He7ri8-Ju.webp"
+                fotoUrl={user?.foto_url ? user.foto_url : "https://i.pravatar.cc/150?img=12"}
                 showCvLink={false}
                 size="xl"
                 style={{ borderColor: estilosSafe.color_principal }}
+                textColor={estilosSafe.color_texto}
+                onEdit={() => setModalEditarPerfilOpen(true)}
               />
+
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="md:col-span-2 space-y-4">
@@ -962,7 +1018,16 @@ export default function ReclutadorHome() {
   </div>
 )}
 
-
+          <ModalParaEditarPerfil
+            isOpen={modalEditarPerfilOpen}
+            onClose={() => setModalEditarPerfilOpen(false)}
+            user={user}
+            onSave={async ({ username, email, password }) => {
+              await handleProfileUpdate({ username, email, password });
+              if (modalImageFile) await handleImageUpload(modalImageFile);
+            }}
+            onFileSelect={setModalImageFile}
+          />
 
 
 
