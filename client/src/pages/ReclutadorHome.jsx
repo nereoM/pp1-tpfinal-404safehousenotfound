@@ -34,7 +34,7 @@ export default function ReclutadorHome() {
   const [modalPostulantesOpen, setModalPostulantesOpen] = useState(false);
   const [postulantes, setPostulantes] = useState([]);
   const [postulantesFiltrados, setPostulantesFiltrados] = useState([]);
-  const [filtros, setFiltros] = useState({nombre: '',email: '',is_apto: '',fecha_desde: '',fecha_hasta: ''});
+  const [filtros, setFiltros] = useState({ nombre: '', email: '', is_apto: '', fecha_desde: '', fecha_hasta: '' });
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [cvUrl, setCvUrl] = useState(null);
 
@@ -42,33 +42,33 @@ export default function ReclutadorHome() {
 
 
   //trae los datos del manager
-useEffect(() => {
-  const cargarUsuario = async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
-        credentials: "include"
-      });
-      if (!res.ok) throw new Error("No autenticado");
-      const data = await res.json();
+  useEffect(() => {
+    const cargarUsuario = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+          credentials: "include"
+        });
+        if (!res.ok) throw new Error("No autenticado");
+        const data = await res.json();
 
-      setUser({
-        id:        data.id,
-        nombre:    data.nombre,
-        apellido:  data.apellido,
-        username:  data.username,
-        correo:    data.correo,
-        roles:     data.roles,
-        empresaId: data.id_empresa
-      });
-    } catch (err) {
-      console.error("Error al cargar usuario:", err);
-    } finally {
-      setLoadingUser(false);
-    }
-  };
+        setUser({
+          id: data.id,
+          nombre: data.nombre,
+          apellido: data.apellido,
+          username: data.username,
+          correo: data.correo,
+          roles: data.roles,
+          empresaId: data.id_empresa
+        });
+      } catch (err) {
+        console.error("Error al cargar usuario:", err);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
 
-  cargarUsuario();
-}, []);
+    cargarUsuario();
+  }, []);
 
 
 
@@ -244,38 +244,38 @@ useEffect(() => {
     }
   };
 
- const openVerPostulantes = async (id_oferta) => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ver_candidatos/${id_oferta}`, {
-      method: 'GET',
-      credentials: 'include',
-    });
-    const data = await res.json();
-    
-    if (res.ok) {
-      setPostulantes(data);               // Se cargan todos los datos
-      setPostulantesFiltrados(data);      // Se muestra en pantalla inicialmente
-      setModalPostulantesOpen(true);      // Abre el modal
-    } else {
-      console.error("Error al obtener los postulantes");
-    }
-  } catch (error) {
-    console.error("Error en la petición:", error);
-  }
-};
+  const openVerPostulantes = async (id_oferta) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/ver_candidatos/${id_oferta}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      const data = await res.json();
 
-const filtrarPostulantes = (nombre, email, is_apto, fecha_desde, fecha_hasta) => {
-  const filtrados = postulantes.filter((p) => {
-    return (
-      (nombre === '' || p.nombre.toLowerCase().includes(nombre.toLowerCase())) &&
-      (email === '' || p.email.toLowerCase().includes(email.toLowerCase())) &&
-      (is_apto === '' || (is_apto === 'true' ? p.is_apto : !p.is_apto)) &&
-      (fecha_desde === '' || new Date(p.fecha_postulacion) >= new Date(fecha_desde)) &&
-      (fecha_hasta === '' || new Date(p.fecha_postulacion) <= new Date(fecha_hasta))
-    );
-  });
-  setPostulantesFiltrados(filtrados);
-};
+      if (res.ok) {
+        setPostulantes(data);               // Se cargan todos los datos
+        setPostulantesFiltrados(data);      // Se muestra en pantalla inicialmente
+        setModalPostulantesOpen(true);      // Abre el modal
+      } else {
+        console.error("Error al obtener los postulantes");
+      }
+    } catch (error) {
+      console.error("Error en la petición:", error);
+    }
+  };
+
+  const filtrarPostulantes = (nombre, email, is_apto, fecha_desde, fecha_hasta) => {
+    const filtrados = postulantes.filter((p) => {
+      return (
+        (nombre === '' || p.nombre.toLowerCase().includes(nombre.toLowerCase())) &&
+        (email === '' || p.email.toLowerCase().includes(email.toLowerCase())) &&
+        (is_apto === '' || (is_apto === 'true' ? p.is_apto : !p.is_apto)) &&
+        (fecha_desde === '' || new Date(p.fecha_postulacion) >= new Date(fecha_desde)) &&
+        (fecha_hasta === '' || new Date(p.fecha_postulacion) <= new Date(fecha_hasta))
+      );
+    });
+    setPostulantesFiltrados(filtrados);
+  };
 
   // funcion para abir cv
   const openCv = (idCv) => {
@@ -525,51 +525,62 @@ const filtrarPostulantes = (nombre, email, is_apto, fecha_desde, fecha_hasta) =>
             }}
           >
             <div
-              className="bg-white p-6 rounded-2xl w-1/3 max-h-[70vh] overflow-auto text-black"
+              className="bg-white p-6 rounded-2xl w-3/4 max-h-[70vh] overflow-auto text-black"
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="text-2xl font-semibold mb-4 text-center">
                 Seleccionar Licencia y Subir Certificado
               </h2>
 
-
               {licencias.length === 0 ? (
                 <p className="text-center text-gray-500">
                   No tienes licencias registradas.
                 </p>
               ) : (
-                <ul className="space-y-2 mb-4">
-                  {licencias.map((item, idx) => {
-                    const { id_licencia, tipo, descripcion, estado } =
-                      item.licencias.licencia;
-                    return (
-                      <li
-                        key={idx}
-                        onClick={() => setLicenciaId(id_licencia)}
-                        className={`p-3 border rounded cursor-pointer hover:bg-indigo-200 ${licenciaId === id_licencia ? "bg-indigo-100" : ""
-                          }`}
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{tipo}</span>
-                          <span
-                            className={`px-2 py-1 text-xs rounded-full ${estado === "activa"
+                <table className="w-full table-auto border border-gray-300 mb-4 text-sm">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="p-2 border">Tipo</th>
+                      <th className="p-2 border">Descripción</th>
+                      <th className="p-2 border">Estado</th>
+                      <th className="p-2 border">Motivo Rechazo (si aplica)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {licencias.map((item, idx) => {
+                      const { id_licencia, tipo, descripcion, estado, motivo_rechazo } =
+                        item.licencias.licencia;
+
+                      return (
+                        <tr
+                          key={idx}
+                          className={`cursor-pointer hover:bg-indigo-50 ${licenciaId === id_licencia ? "bg-indigo-100" : ""}`}
+                          onClick={() => setLicenciaId(id_licencia)}
+                        >
+                          <td className="p-2 border">{tipo}</td>
+                          <td className="p-2 border">{descripcion}</td>
+                          <td className="p-2 border capitalize">
+                            <span
+                              className={`px-2 py-1 text-xs rounded-full ${estado === "activa"
                                 ? "bg-green-100 text-green-800"
                                 : estado === "aprobada"
                                   ? "bg-yellow-100 text-yellow-800"
                                   : "bg-red-100 text-red-800"
-                              }`}
-                          >
-                            {estado}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700 mt-1">{descripcion}</p>
-                      </li>
-                    );
-                  })}
-                </ul>
+                                }`}
+                            >
+                              {estado}
+                            </span>
+                          </td>
+                          <td className="p-2 border text-black-600">
+                            {estado === "rechazada" && motivo_rechazo ? motivo_rechazo : "-"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               )}
 
-              {/* sube el PDF <==> ya elegiste una licencia */}
               {licenciaId && (
                 <>
                   <input
@@ -577,16 +588,16 @@ const filtrarPostulantes = (nombre, email, is_apto, fecha_desde, fecha_hasta) =>
                     accept=".pdf"
                     onChange={(e) => setSelectedFile(e.target.files[0])}
                     className="block w-full text-sm text-gray-500
-                       file:mr-4 file:py-2 file:px-4 file:rounded-lg
-                       file:border-0 file:text-sm file:font-semibold
-                       file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            file:mr-4 file:py-2 file:px-4 file:rounded-lg
+            file:border-0 file:text-sm file:font-semibold
+            file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
                   />
 
                   {mensajeCertificado && (
                     <div
                       className={`mb-4 mt-2 text-center font-semibold p-2 rounded ${mensajeCertificado.includes("Error")
-                          ? "bg-red-100 text-red-700"
-                          : "bg-indigo-100 text-indigo-700"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-indigo-100 text-indigo-700"
                         }`}
                     >
                       {mensajeCertificado}
@@ -651,6 +662,8 @@ const filtrarPostulantes = (nombre, email, is_apto, fecha_desde, fecha_hasta) =>
             </div>
           </div>
         )}
+
+
 
 
         {modalEditarEtiquetasOpen && (
@@ -751,8 +764,8 @@ const filtrarPostulantes = (nombre, email, is_apto, fecha_desde, fecha_hasta) =>
               {mensajeEtiquetas && (
                 <div
                   className={`mb-4 p-2 rounded text-center text-sm ${mensajeEtiquetas.startsWith("")
-                      ? "bg-indigo-100 text-indigo-700"
-                      : "bg-indigo-100 text-indigo-700"
+                    ? "bg-indigo-100 text-indigo-700"
+                    : "bg-indigo-100 text-indigo-700"
                     }`}
                 >
                   {mensajeEtiquetas}
@@ -781,116 +794,115 @@ const filtrarPostulantes = (nombre, email, is_apto, fecha_desde, fecha_hasta) =>
           </div>
         )}
 
-{modalPostulantesOpen && (
-  <div
-    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
-    onClick={() => setModalPostulantesOpen(false)}
-  >
-    <div
-      className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <h2 className="text-xl font-semibold mb-4 text-black">Postulantes</h2>
-
-<div className="p-4 border rounded-lg mb-4 bg-gray-800">
-  <input
-    type="text"
-    placeholder="Nombre"
-    value={filtros.nombre}
-    onChange={(e) => {
-      setFiltros({ ...filtros, nombre: e.target.value });
-      filtrarPostulantes(e.target.value, filtros.email, filtros.is_apto, filtros.fecha_desde, filtros.fecha_hasta);
-    }}
-    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
-  />
-  <input
-    type="text"
-    placeholder="Email"
-    value={filtros.email}
-    onChange={(e) => {
-      setFiltros({ ...filtros, email: e.target.value });
-      filtrarPostulantes(filtros.nombre, e.target.value, filtros.is_apto, filtros.fecha_desde, filtros.fecha_hasta);
-    }}
-    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
-  />
-  <input
-    type="date"
-    value={filtros.fecha_desde}
-    onChange={(e) => {
-      setFiltros({ ...filtros, fecha_desde: e.target.value });
-      filtrarPostulantes(filtros.nombre, filtros.email, filtros.is_apto, e.target.value, filtros.fecha_hasta);
-    }}
-    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
-  />
-  <input
-    type="date"
-    value={filtros.fecha_hasta}
-    onChange={(e) => {
-      setFiltros({ ...filtros, fecha_hasta: e.target.value });
-      filtrarPostulantes(filtros.nombre, filtros.email, filtros.is_apto, filtros.fecha_desde, e.target.value);
-    }}
-    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
-  />
-  <select
-    value={filtros.is_apto}
-    onChange={(e) => {
-      setFiltros({ ...filtros, is_apto: e.target.value });
-      filtrarPostulantes(filtros.nombre, filtros.email, e.target.value, filtros.fecha_desde, filtros.fecha_hasta);
-    }}
-    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
-  >
-    <option value="" className="text-white"> Apto </option>
-    <option value="true" className="text-white">Sí</option>
-    <option value="false" className="text-white">No</option>
-  </select>
-</div>
-
-
-{postulantesFiltrados.length === 0 ? (
-  <div className="flex flex-col items-center justify-center py-10">
-    <p className="text-gray-500 text-lg">No hay postulantes.</p>
-    <p className="text-gray-400 text-sm">Aún no se ha registrado ningún postulante para esta oferta.</p>
-  </div>
-) : (
-  <ul className="space-y-4 max-h-[60vh] overflow-y-auto">
-    {postulantesFiltrados.map((c, i) => (
-      <li key={i} className="border-b pb-3 last:border-0 flex flex-col gap-1">
-        <span className="font-medium text-black">{c.nombre}</span>
-        <span className="text-sm text-gray-700">{c.email}</span>
-        <span className="text-xs text-gray-500">
-          {new Date(c.fecha_postulacion).toLocaleDateString()}
-        </span>
-        <span className={`text-xs font-semibold px-2 py-1 rounded w-max ${
-          c.is_apto ? "bg-green-500 text-white" : "bg-red-500 text-white"
-        }`}>
-          {c.is_apto ? "Apto" : "No Apto"}
-        </span>
-
-        {c.cv_url && (
-          <a
-            href={c.cv_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-1 text-indigo-600 hover:underline text-sm w-max"
+        {modalPostulantesOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+            onClick={() => setModalPostulantesOpen(false)}
           >
-            Ver CV
-          </a>
+            <div
+              className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-xl font-semibold mb-4 text-black">Postulantes</h2>
+
+              <div className="p-4 border rounded-lg mb-4 bg-gray-800">
+                <input
+                  type="text"
+                  placeholder="Nombre"
+                  value={filtros.nombre}
+                  onChange={(e) => {
+                    setFiltros({ ...filtros, nombre: e.target.value });
+                    filtrarPostulantes(e.target.value, filtros.email, filtros.is_apto, filtros.fecha_desde, filtros.fecha_hasta);
+                  }}
+                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
+                />
+                <input
+                  type="text"
+                  placeholder="Email"
+                  value={filtros.email}
+                  onChange={(e) => {
+                    setFiltros({ ...filtros, email: e.target.value });
+                    filtrarPostulantes(filtros.nombre, e.target.value, filtros.is_apto, filtros.fecha_desde, filtros.fecha_hasta);
+                  }}
+                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
+                />
+                <input
+                  type="date"
+                  value={filtros.fecha_desde}
+                  onChange={(e) => {
+                    setFiltros({ ...filtros, fecha_desde: e.target.value });
+                    filtrarPostulantes(filtros.nombre, filtros.email, filtros.is_apto, e.target.value, filtros.fecha_hasta);
+                  }}
+                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+                />
+                <input
+                  type="date"
+                  value={filtros.fecha_hasta}
+                  onChange={(e) => {
+                    setFiltros({ ...filtros, fecha_hasta: e.target.value });
+                    filtrarPostulantes(filtros.nombre, filtros.email, filtros.is_apto, filtros.fecha_desde, e.target.value);
+                  }}
+                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+                />
+                <select
+                  value={filtros.is_apto}
+                  onChange={(e) => {
+                    setFiltros({ ...filtros, is_apto: e.target.value });
+                    filtrarPostulantes(filtros.nombre, filtros.email, e.target.value, filtros.fecha_desde, filtros.fecha_hasta);
+                  }}
+                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+                >
+                  <option value="" className="text-white"> Apto </option>
+                  <option value="true" className="text-white">Sí</option>
+                  <option value="false" className="text-white">No</option>
+                </select>
+              </div>
+
+
+              {postulantesFiltrados.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <p className="text-gray-500 text-lg">No hay postulantes.</p>
+                  <p className="text-gray-400 text-sm">Aún no se ha registrado ningún postulante para esta oferta.</p>
+                </div>
+              ) : (
+                <ul className="space-y-4 max-h-[60vh] overflow-y-auto">
+                  {postulantesFiltrados.map((c, i) => (
+                    <li key={i} className="border-b pb-3 last:border-0 flex flex-col gap-1">
+                      <span className="font-medium text-black">{c.nombre}</span>
+                      <span className="text-sm text-gray-700">{c.email}</span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(c.fecha_postulacion).toLocaleDateString()}
+                      </span>
+                      <span className={`text-xs font-semibold px-2 py-1 rounded w-max ${c.is_apto ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                        }`}>
+                        {c.is_apto ? "Apto" : "No Apto"}
+                      </span>
+
+                      {c.cv_url && (
+                        <a
+                          href={c.cv_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 text-indigo-600 hover:underline text-sm w-max"
+                        >
+                          Ver CV
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-6 text-right">
+                <button
+                  onClick={() => setModalPostulantesOpen(false)}
+                  className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
         )}
-      </li>
-    ))}
-  </ul>
-)}
-      <div className="mt-6 text-right">
-        <button
-          onClick={() => setModalPostulantesOpen(false)}
-          className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
-        >
-          Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
 
 
 
