@@ -7,6 +7,7 @@ import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
 import { Users, PlusCircle, BarChart, FileText, RotateCcw, FileLock } from 'lucide-react';
+import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 
 
 export default function ManagerHome() {
@@ -28,8 +29,15 @@ export default function ManagerHome() {
   const [licencias, setLicencias] = useState([]);
   const [mensajeLicencias, setMensajeLicencias] = useState("");  
   const [mensajeEvaluacion, setMensajeEvaluacion] = useState("");
+  const [modalEditarPerfilOpen, setModalEditarPerfilOpen] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [username, setUsername] = useState("");
+  const [modalImageFile, setModalImageFile] = useState(null);
+  const [mensajeError, setMensajeError] = useState('');
   const navigate = useNavigate();
 
+  const API_URL = import.meta.env.VITE_API_URL;
 
   //trae los datos del manager
 useEffect(() => {
@@ -48,7 +56,8 @@ useEffect(() => {
         username:  data.username,
         correo:    data.correo,
         roles:     data.roles,
-        empresaId: data.id_empresa
+        empresaId: data.id_empresa,
+        foto_url: data.foto_url
       });
     } catch (err) {
       console.error("Error al cargar usuario:", err);
@@ -237,6 +246,49 @@ useEffect(() => {
       setMensajeEvaluacion(" Error al procesar la solicitud.");
     }
   };
+
+   const handleImageUpload = async (file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+  
+      try {
+          const res = await fetch(`${API_URL}/api/subir-image-manager`, {
+              method: "POST",
+              credentials: "include",
+              body: formData,
+          });
+  
+          const result = await res.json();
+          if (res.ok) {
+              alert("Imagen subida exitosamente");
+              setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
+              setModalEditarPerfilOpen(false); 
+          } else {
+              alert("Error: " + (result.error || "desconocido"));
+          }
+      } catch (err) {
+          console.error("Error al subir imagen:", err);
+          alert("Error de conexión");
+      }
+  };
+
+  const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
+    try {
+      const res = await fetch(`${API_URL}/auth/update-profile`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
+      setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
+      setModalEditarPerfilOpen(false);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
   
   
 
@@ -351,13 +403,14 @@ useEffect(() => {
               <ProfileCard
                 nombre={`${user?.nombre} ${user?.apellido}`}
                 correo={user?.correo}
-                fotoUrl={
-                  "https://i.postimg.cc/3x2SrWdX/360-F-64676383-Ldbmhi-NM6-Ypzb3-FM4-PPu-FP9r-He7ri8-Ju.webp"
-                }
+                fotoUrl={user?.foto_url ? user.foto_url : "https://i.pravatar.cc/150?img=12"}
                 showCvLink={false}
                 size="xl"
                 style={{ borderColor: estilosSafe.color_principal }}
+                textColor={estilosSafe.color_texto}
+                onEdit={() => setModalEditarPerfilOpen(true)}
               />
+
             </motion.div>
 
             <motion.div
@@ -687,6 +740,17 @@ useEffect(() => {
     </div>
   </div>
 )}
+
+          <ModalParaEditarPerfil
+            isOpen={modalEditarPerfilOpen}
+            onClose={() => setModalEditarPerfilOpen(false)}
+            user={user}
+            onSave={async ({ username, email, password }) => {
+              await handleProfileUpdate({ username, email, password });
+              if (modalImageFile) await handleImageUpload(modalImageFile);
+            }}
+            onFileSelect={setModalImageFile}
+          />
 
 
 

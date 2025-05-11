@@ -351,6 +351,7 @@ def get_user_info():
             "correo": user.correo,
             "roles": [r.slug for r in user.roles],
             "id_empresa": user.id_empresa,
+            "foto_url":  user.foto_url
         }
     )
 
