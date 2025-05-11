@@ -35,6 +35,7 @@ export default function ReclutadorHome() {
   const [postulantes, setPostulantes] = useState([]);
   const [postulantesFiltrados, setPostulantesFiltrados] = useState([]);
   const [filtros, setFiltros] = useState({ nombre: '', email: '', is_apto: '', fecha_desde: '', fecha_hasta: '' });
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [cvUrl, setCvUrl] = useState(null);
 
@@ -262,6 +263,10 @@ export default function ReclutadorHome() {
     } catch (error) {
       console.error("Error en la petición:", error);
     }
+  };
+
+  const toggleFiltros = () => {
+  setMostrarFiltros(!mostrarFiltros);
   };
 
   const filtrarPostulantes = (nombre, email, is_apto, fecha_desde, fecha_hasta) => {
@@ -794,159 +799,169 @@ export default function ReclutadorHome() {
           </div>
         )}
 
-        {modalPostulantesOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
-            onClick={() => setModalPostulantesOpen(false)}
+{modalPostulantesOpen && (
+  <div
+    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+    onClick={() => setModalPostulantesOpen(false)}
+  >
+    <div
+      className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <h2 className="text-xl font-semibold mb-4 text-black">Postulantes</h2>
+
+      {/*button mostrar/ocultar filtros */}
+      <div className="mb-4 flex justify-between items-center">
+        <button
+          onClick={toggleFiltros}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
+        >
+          {mostrarFiltros ? "Ocultar Filtros" : "Mostrar Filtros"}
+          {mostrarFiltros ? "▲" : "▼"}
+        </button>
+      </div>
+
+      {/* contenedor con filtros  */}
+      <div
+        className={`overflow-hidden transition-all duration-300 ${
+          mostrarFiltros ? "max-h-[1000px]" : "max-h-0"
+        }`}
+      >
+        <div className="p-4 border rounded-lg mb-4 bg-gray-800">
+          <input
+            type="text"
+            placeholder="Nombre"
+            value={filtros.nombre}
+            onChange={(e) => {
+              setFiltros({ ...filtros, nombre: e.target.value });
+              filtrarPostulantes(
+                e.target.value,
+                filtros.email,
+                filtros.is_apto,
+                filtros.fecha_desde,
+                filtros.fecha_hasta
+              );
+            }}
+            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
+          />
+          <input
+            type="text"
+            placeholder="Email"
+            value={filtros.email}
+            onChange={(e) => {
+              setFiltros({ ...filtros, email: e.target.value });
+              filtrarPostulantes(
+                filtros.nombre,
+                e.target.value,
+                filtros.is_apto,
+                filtros.fecha_desde,
+                filtros.fecha_hasta
+              );
+            }}
+            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
+          />
+          <input
+            type="date"
+            value={filtros.fecha_desde}
+            onChange={(e) => {
+              setFiltros({ ...filtros, fecha_desde: e.target.value });
+              filtrarPostulantes(
+                filtros.nombre,
+                filtros.email,
+                filtros.is_apto,
+                e.target.value,
+                filtros.fecha_hasta
+              );
+            }}
+            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+          />
+          <input
+            type="date"
+            value={filtros.fecha_hasta}
+            onChange={(e) => {
+              setFiltros({ ...filtros, fecha_hasta: e.target.value });
+              filtrarPostulantes(
+                filtros.nombre,
+                filtros.email,
+                filtros.is_apto,
+                filtros.fecha_desde,
+                e.target.value
+              );
+            }}
+            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+          />
+          <select
+            value={filtros.is_apto}
+            onChange={(e) => {
+              setFiltros({ ...filtros, is_apto: e.target.value });
+              filtrarPostulantes(
+                filtros.nombre,
+                filtros.email,
+                e.target.value,
+                filtros.fecha_desde,
+                filtros.fecha_hasta
+              );
+            }}
+            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
           >
-            <div
-              className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h2 className="text-xl font-semibold mb-4 text-black">Postulantes</h2>
+            <option value="" className="text-white"> Apto </option>
+            <option value="true" className="text-white">Sí</option>
+            <option value="false" className="text-white">No</option>
+          </select>
+        </div>
+      </div>
 
-              <div className="p-4 border rounded-lg mb-4 bg-gray-800">
-                <input
-                  type="text"
-                  placeholder="Nombre"
-                  value={filtros.nombre}
-                  onChange={(e) => {
-                    setFiltros({ ...filtros, nombre: e.target.value });
-                    filtrarPostulantes(e.target.value, filtros.email, filtros.is_apto, filtros.fecha_desde, filtros.fecha_hasta);
-                  }}
-                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
-                />
-                <input
-                  type="text"
-                  placeholder="Email"
-                  value={filtros.email}
-                  onChange={(e) => {
-                    setFiltros({ ...filtros, email: e.target.value });
-                    filtrarPostulantes(filtros.nombre, e.target.value, filtros.is_apto, filtros.fecha_desde, filtros.fecha_hasta);
-                  }}
-                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
-                />
-                <input
-                  type="date"
-                  value={filtros.fecha_desde}
-                  onChange={(e) => {
-                    setFiltros({ ...filtros, fecha_desde: e.target.value });
-                    filtrarPostulantes(filtros.nombre, filtros.email, filtros.is_apto, e.target.value, filtros.fecha_hasta);
-                  }}
-                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
-                />
-                <input
-                  type="date"
-                  value={filtros.fecha_hasta}
-                  onChange={(e) => {
-                    setFiltros({ ...filtros, fecha_hasta: e.target.value });
-                    filtrarPostulantes(filtros.nombre, filtros.email, filtros.is_apto, filtros.fecha_desde, e.target.value);
-                  }}
-                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
-                />
-                <select
-                  value={filtros.is_apto}
-                  onChange={(e) => {
-                    setFiltros({ ...filtros, is_apto: e.target.value });
-                    filtrarPostulantes(filtros.nombre, filtros.email, e.target.value, filtros.fecha_desde, filtros.fecha_hasta);
-                  }}
-                  className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+      {/* postulantes */}
+      {postulantesFiltrados.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-10">
+          <p className="text-gray-500 text-lg">No hay postulantes.</p>
+          <p className="text-gray-400 text-sm">
+            Aún no se ha registrado ningún postulante para esta oferta.
+          </p>
+        </div>
+      ) : (
+        <ul className="space-y-4 max-h-[60vh] overflow-y-auto">
+          {postulantesFiltrados.map((c, i) => (
+            <li key={i} className="border-b pb-3 last:border-0 flex flex-col gap-1">
+              <span className="font-medium text-black">{c.nombre}</span>
+              <span className="text-sm text-gray-700">{c.email}</span>
+              <span className="text-xs text-gray-500">
+                {new Date(c.fecha_postulacion).toLocaleDateString()}
+              </span>
+              <span
+                className={`text-xs font-semibold px-2 py-1 rounded w-max ${
+                  c.is_apto ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                }`}
+              >
+                {c.is_apto ? "Apto" : "No Apto"}
+              </span>
+
+              {c.cv_url && (
+                <a
+                  href={c.cv_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 text-indigo-600 hover:underline text-sm w-max"
                 >
-                  <option value="" className="text-white"> Apto </option>
-                  <option value="true" className="text-white">Sí</option>
-                  <option value="false" className="text-white">No</option>
-                </select>
-              </div>
-
-
-              {postulantesFiltrados.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10">
-                  <p className="text-gray-500 text-lg">No hay postulantes.</p>
-                  <p className="text-gray-400 text-sm">Aún no se ha registrado ningún postulante para esta oferta.</p>
-                </div>
-              ) : (
-                <ul className="space-y-4 max-h-[60vh] overflow-y-auto">
-                  {postulantesFiltrados.map((c, i) => (
-                    <li key={i} className="border-b pb-3 last:border-0 flex flex-col gap-1">
-                      <span className="font-medium text-black">{c.nombre}</span>
-                      <span className="text-sm text-gray-700">{c.email}</span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(c.fecha_postulacion).toLocaleDateString()}
-                      </span>
-                      <span className={`text-xs font-semibold px-2 py-1 rounded w-max ${c.is_apto ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                        }`}>
-                        {c.is_apto ? "Apto" : "No Apto"}
-                      </span>
-
-                      {c.cv_url && (
-                        <a
-                          href={c.cv_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 text-indigo-600 hover:underline text-sm w-max"
-                        >
-                          Ver CV
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
+                  Ver CV
+                </a>
               )}
-              <div className="mt-6 text-right">
-                <button
-                  onClick={() => setModalPostulantesOpen(false)}
-                  className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
-                >
-                  Cerrar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-6 text-right">
+        <button
+          onClick={() => setModalPostulantesOpen(false)}
+          className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-
-
-
-        {cvModalOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 overflow-y-auto"
-            onClick={() => { setCvModalOpen(false); setCvUrl(null); }}
-          >
-            <div
-              className="bg-white p-4 rounded-lg shadow-lg w-full max-w-3xl h-[80vh] mx-4 flex flex-col"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-lg font-semibold text-black">Previsualizar CV</h3>
-                <button
-                  onClick={() => { setCvModalOpen(false); setCvUrl(null); }}
-                  className="text-gray-600 hover:text-gray-800 text-2xl leading-none"
-                >
-                  ×
-                </button>
-              </div>
-              {cvUrl ? (
-                <object data={cvUrl}
-                  type="application/pdf"
-                  width="100%"
-                  height="100%"
-                  className="flex-1 border">
-                  <p className="text-center text-gray-500">
-                    Tu navegador no soporta PDF embebido.&nbsp;
-                    <a href={cvUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 underline">
-                      Descargar CV
-                    </a>
-                  </p>
-                </object>
-              ) : (
-                <p className="text-center text-gray-500">Cargando visor…</p>
-              )}
-            </div>
-          </div>
-        )}
 
 
 
