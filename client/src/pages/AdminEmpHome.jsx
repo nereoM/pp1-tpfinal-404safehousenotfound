@@ -35,7 +35,7 @@ export default function AdminEmpHome() {
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [username, setUsername] = useState("");
-  const [modalImageFile, setModalImageFile] = useState(null); 
+  const [modalImageFile, setModalImageFile] = useState(null);
   const [mensajeError, setMensajeError] = useState('');
 
 
@@ -78,15 +78,31 @@ export default function AdminEmpHome() {
 
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
     try {
-      const payload = { idLicencia: id_licencia, estado: nuevoEstado };
+      const payload = { estado: nuevoEstado };
       if (nuevoEstado === "rechazada") {
-        payload.motivo = motivoRechazo; 
+        payload.motivo = motivoRechazo;
       }
 
-      const data = await adminEmpService.evaluarLicencia(payload);
-      setMensajeEvaluacion(data.message || "Estado actualizado correctamente.");
-      setMotivoRechazo("");
-      obtenerLicencias();
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/evaluar-licencia-empleado/${id_licencia}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+      console.log("Respuesta del servidor:", data);
+
+      if (response.ok) {
+        setMensajeEvaluacion(data.message || "Estado actualizado correctamente.");
+        setMotivoRechazo("");
+        obtenerLicencias();
+      } else {
+        setMensajeEvaluacion(data.error || "Error al procesar la solicitud.");
+      }
     } catch (error) {
       console.error("Error al evaluar licencia:", error);
       setMensajeEvaluacion("Error al procesar la solicitud.");
@@ -174,22 +190,22 @@ export default function AdminEmpHome() {
       .catch((err) => console.error("Error al cerrar sesión:", err));
   };
 
-    const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
-  try {
-    const res = await fetch(`${API_URL}/auth/update-profile`, {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password })
-    });
-    const result = await res.json();
-    if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
-    setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
-    setModalEditarPerfilOpen(false);
-  } catch (err) {
-    alert( err.message);
-  }
-};
+  const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
+    try {
+      const res = await fetch(`${API_URL}/auth/update-profile`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
+      setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
+      setModalEditarPerfilOpen(false);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   const acciones = [
     {
@@ -556,17 +572,17 @@ export default function AdminEmpHome() {
             </div>
           )}
 
-        <ModalParaEditarPerfil
-        isOpen={modalEditarPerfilOpen}
-        onClose={() => setModalEditarPerfilOpen(false)}
-        user={user}
-        onSave={async ({ username, email, password }) => {
-            await handleProfileUpdate({ username, email, password });
-            if (modalImageFile) await handleImageUpload(modalImageFile);
-        }}
-        onFileSelect={setModalImageFile}
-        />
-          
+          <ModalParaEditarPerfil
+            isOpen={modalEditarPerfilOpen}
+            onClose={() => setModalEditarPerfilOpen(false)}
+            user={user}
+            onSave={async ({ username, email, password }) => {
+              await handleProfileUpdate({ username, email, password });
+              if (modalImageFile) await handleImageUpload(modalImageFile);
+            }}
+            onFileSelect={setModalImageFile}
+          />
+
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>
