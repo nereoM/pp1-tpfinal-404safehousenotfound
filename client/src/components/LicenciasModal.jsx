@@ -5,10 +5,21 @@ import { SubirCertificadoModal } from "./SubirCertificado";
 export function LicenciasModal({ onClose }) {
   const [licencias, setLicencias] = useState([]);
   const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);
+  const [mensajeAdvertencia, setMensajeAdvertencia] = useState("");
 
   useEffect(() => {
     empleadoService.misLicencias().then(setLicencias);
   }, []);
+
+  const handleLicenciaSeleccionada = (licencia) => {
+    if (licencia.estado === "aprobada") {
+      setLicenciaSeleccionada(licencia.id_licencia);
+      setMensajeAdvertencia(""); // Limpiamos el mensaje si la licencia está aprobada
+    } else {
+      setLicenciaSeleccionada(null);
+      setMensajeAdvertencia("Solo puedes subir un certificado si la licencia está aprobada.");
+    }
+  };
 
   return (
     <>
@@ -21,6 +32,7 @@ export function LicenciasModal({ onClose }) {
               <thead className="bg-gray-100">
                 <tr>
                   <th className="px-4 py-2 border border-gray-300 text-left">Descripción</th>
+                  <th className="px-4 py-2 border border-gray-300 text-left">Tipo</th>
                   <th className="px-4 py-2 border border-gray-300 text-left">Estado</th>
                   <th className="px-4 py-2 border border-gray-300 text-left">Motivo (si aplica)</th>
                 </tr>
@@ -30,9 +42,10 @@ export function LicenciasModal({ onClose }) {
                   <tr
                     key={licencia.id_licencia}
                     className="cursor-pointer hover:bg-gray-100"
-                    onClick={() => setLicenciaSeleccionada(licencia.id_licencia)}
+                    onClick={() => handleLicenciaSeleccionada(licencia)}
                   >
                     <td className="px-4 py-2 border border-gray-300">{licencia.descripcion}</td>
+                    <td className="px-4 py-2 border border-gray-300">{licencia.tipo}</td>
                     <td
                       className={`px-4 py-2 border border-gray-300 font-semibold ${licencia.estado === "rechazada"
                           ? "text-red-500"
@@ -57,6 +70,12 @@ export function LicenciasModal({ onClose }) {
               </tbody>
             </table>
           </div>
+
+          {mensajeAdvertencia && (
+            <div className="text-red-500 text-sm mt-4">
+              {mensajeAdvertencia}
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 mt-5">
             <button

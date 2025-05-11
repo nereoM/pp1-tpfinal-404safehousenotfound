@@ -5,15 +5,19 @@ export function SubirCertificadoModal({ onClose, idLicencia }) {
   const [topMessage, setTopMessage] = useState("");
 
   const handleSubmit = (e) => {
-    console.log("ENVIANDO");
-
     e.preventDefault();
 
     const fileInput = e.target.querySelector('input[type="file"]');
     const file = fileInput.files[0];
 
+    // Validar si el archivo es un PDF
     if (!file) {
-      setTopMessage("Subir un archivo valido");
+      setTopMessage("Por favor, selecciona un archivo.");
+      return;
+    }
+
+    if (file.type !== "application/pdf") {
+      setTopMessage("Solo se permite subir archivos PDF.");
       return;
     }
 
@@ -25,29 +29,43 @@ export function SubirCertificadoModal({ onClose, idLicencia }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
-        <h2 className="text-lg font-semibold">Subir certificado</h2>
+      <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl space-y-6">
+        <h2 className="text-2xl font-semibold text-center text-gray-800">Subir Certificado</h2>
 
-        {topMessage && <header className="text-red-500">{topMessage}</header>}
+        {/* Mensaje de estado */}
+        {topMessage && (
+          <header
+            className={`text-sm ${topMessage.includes("correctamente") ? "text-green-500" : "text-red-500"} font-medium text-center`}
+          >
+            {topMessage}
+          </header>
+        )}
 
-        <form onSubmit={handleSubmit}>
-          <section className="flex flex-col gap-2">
-            <label htmlFor="">Subir archivo</label>
-            <input type="file" />
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <section className="flex flex-col gap-3">
+            <label htmlFor="certificado" className="text-gray-700 font-medium">Selecciona el archivo PDF</label>
+            <input
+              type="file"
+              id="certificado"
+              accept=".pdf"  // Acepta solo archivos PDF
+              className="border-2 border-gray-300 p-2 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </section>
-          <div className="flex justify-end gap-2 mt-5">
+
+          {/* Botones */}
+          <div className="flex justify-between gap-4 mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              className="w-full px-4 py-2 bg-gray-300 rounded-lg text-gray-700 hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-600"
             >
               Cerrar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              confirmar
+              Confirmar
             </button>
           </div>
         </form>
