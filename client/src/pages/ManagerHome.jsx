@@ -78,7 +78,7 @@ useEffect(() => {
     color_principal: estilos?.color_principal ?? "#2563eb",
     color_secundario: estilos?.color_secundario ?? "#f3f4f6",
     color_texto: estilos?.color_texto ?? "#000000",
-    slogan: estilos?.slogan ?? "Bienvenido al panel de Administración de Empresa",
+    slogan: estilos?.slogan ?? "Bienvenido al panel de Manager",
     logo_url: estilos?.logo_url ?? null,
   };
 
