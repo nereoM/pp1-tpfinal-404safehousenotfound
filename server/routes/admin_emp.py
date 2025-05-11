@@ -15,7 +15,7 @@ from .candidato import allowed_image
 admin_emp_bp = Blueprint("admin_emp", __name__)
 
 @admin_emp_bp.route("/admin-emp-home", methods=["GET"])
-@role_required(["admin-emp", "manager", "reclutador"])
+@role_required(["admin-emp"])
 def admin_emp_home():
     return jsonify({"message": "Bienvenido al Inicio de Admin-emp"}), 200
 
@@ -69,7 +69,7 @@ def upload_image():
 @swag_from("../docs/admin-emp/preferencias.yml")
 @swag_from("../docs/admin-emp/preferencias_put.yml")
 @admin_emp_bp.route("/empresa/<int:id_empresa>/preferencias", methods=["GET", "PUT"])
-@role_required(["admin-emp"])
+@role_required(["admin-emp", "manager", "reclutador"])
 def preferencias_empresa(id_empresa):
     if request.method == "GET":
         pref = Preferencias_empresa.query.filter_by(id_empresa=id_empresa).first()
