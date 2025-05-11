@@ -43,7 +43,7 @@ export default function Login() {
   const [registerError, setRegisterError] = useState("");
   const [registerSuccess, setRegisterSuccess] = useState(false);
 
-  const frase = "Tu oportunidad, comienza hoy.";
+  const frase = "Tu oportunidad de crecer empieza ahora.";
 
   const resetLoginFields = () => {
     setLoginUsername("");
