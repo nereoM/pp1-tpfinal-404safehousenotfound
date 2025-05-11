@@ -11,7 +11,7 @@ export function TopBar({ username, onLogout, children }) {
 
   return (
     <header
-      className="flex justify-between items-center py+100 px-6 border-b"
+      className="flex justify-between items-center py-1 px-6 border-b"
       style={{ borderColor: primary, color: textColor }}
     >
       <div className="flex items-center gap-4">
