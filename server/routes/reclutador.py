@@ -134,6 +134,7 @@ def ver_postulantes(id_oferta):
             return jsonify({"error": "No tienes permiso para ver esta oferta"}), 403
 
         nombre = request.args.get("nombre", default=None, type=str)
+        email = request.args.get("email", type=str)
         is_apto = request.args.get("is_apto", default=None, type=str)
         fecha_desde = request.args.get("fecha_desde", default=None, type=str)
         fecha_hasta = request.args.get("fecha_hasta", default=None, type=str)
@@ -146,29 +147,41 @@ def ver_postulantes(id_oferta):
         if nombre:
             filtros.append(Usuario.nombre.ilike(f"%{nombre}%"))
 
+        if email:
+            filtros.append(Usuario.correo.ilike(f"%{email}%"))
+
         if fecha_desde:
             filtros.append(Job_Application.fecha_postulacion >= fecha_desde)
 
         if fecha_hasta:
             filtros.append(Job_Application.fecha_postulacion <= fecha_hasta)
 
-        postulaciones = db.session.query(Job_Application).join(Usuario).filter(and_(*filtros)).all()
-
-        resultado = []
-        for post in postulaciones:
-            candidato = Usuario.query.get(post.id_candidato)
-            cv = CV.query.get(post.id_cv) if post.id_cv else None
-
-            resultado.append(
-                {
-                    "id_postulacion": post.id,
-                    "nombre": candidato.nombre,
-                    "email": candidato.correo,
-                    "fecha_postulacion": post.fecha_postulacion.isoformat(),
-                    "is_apto": post.is_apto,
-                    "cv_url": cv.url_cv if cv else None,
-                }
+        postulaciones = (
+            db.session.query(
+                Job_Application.id,
+                Usuario.nombre,
+                Usuario.correo,
+                Job_Application.fecha_postulacion,
+                Job_Application.is_apto,
+                CV.url_cv
             )
+            .join(Usuario, Usuario.id == Job_Application.id_candidato)
+            .outerjoin(CV, CV.id == Job_Application.id_cv)
+            .filter(and_(*filtros))
+            .all()
+        )
+
+        resultado = [
+            {
+                "id_postulacion": id_postulacion,
+                "nombre": nombre,
+                "email": email,
+                "fecha_postulacion": fecha.isoformat(),
+                "is_apto": is_apto,
+                "cv_url": cv_url,
+            }
+            for id_postulacion, nombre, email, fecha, is_apto, cv_url in postulaciones
+        ]
 
         return jsonify(resultado), 200
 
