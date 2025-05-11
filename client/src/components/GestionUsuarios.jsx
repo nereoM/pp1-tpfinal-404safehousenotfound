@@ -42,21 +42,23 @@ export default function GestionUsuarios({ onClose, textColor }) {
                 </tr>
               </thead>
               <tbody>
-                {empleados.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2 border-b" style={{ color: "#000" }}>{emp.nombre} {emp.apellido}</td>
-                    <td className="px-4 py-2 border-b" style={{ color: "#000" }}>{emp.correo}</td>
-                    <td className="px-4 py-2 border-b" style={{ color: "#000" }}>{emp.roles.join(", ")}</td>
-                    <td className="px-4 py-2 border-b text-right">
-                      <button
-                        onClick={() => setConfirmModal({ open: true, id: emp.id })}
-                        className="text-red-600 hover:underline text-sm font-medium"
-                      >
-                        Desvincular
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {empleados
+                  .filter((emp) => !emp.roles.includes("candidato"))
+                  .map((emp) => (
+                    <tr key={emp.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-2 border-b" style={{ color: "#000" }}>{emp.nombre} {emp.apellido}</td>
+                      <td className="px-4 py-2 border-b" style={{ color: "#000" }}>{emp.correo}</td>
+                      <td className="px-4 py-2 border-b" style={{ color: "#000" }}>{emp.roles.join(", ")}</td>
+                      <td className="px-4 py-2 border-b text-right">
+                        <button
+                          onClick={() => setConfirmModal({ open: true, id: emp.id })}
+                          className="text-red-600 hover:underline text-sm font-medium"
+                        >
+                          Desvincular
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
