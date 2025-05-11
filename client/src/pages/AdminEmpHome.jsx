@@ -190,6 +190,32 @@ export default function AdminEmpHome() {
       .catch((err) => console.error("Error al cerrar sesión:", err));
   };
 
+      const handleImageUpload = async (file) => {
+    if (!file) return;
+    const formData = new FormData();
+    formData.append("file", file);
+  
+      try {
+          const res = await fetch(`${API_URL}/api/subir-image-admin`, {
+              method: "POST",
+              credentials: "include",
+              body: formData,
+          });
+  
+          const result = await res.json();
+          if (res.ok) {
+              alert("Imagen subida exitosamente");
+              setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
+              setModalEditarPerfilOpen(false); 
+          } else {
+              alert("Error: " + (result.error || "desconocido"));
+          }
+      } catch (err) {
+          console.error("Error al subir imagen:", err);
+          alert("Error de conexión");
+      }
+  };
+
   const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
     try {
       const res = await fetch(`${API_URL}/auth/update-profile`, {
@@ -277,7 +303,7 @@ export default function AdminEmpHome() {
               <ProfileCard
                 nombre={`${user?.nombre} ${user?.apellido}`}
                 correo={user?.correo}
-                fotoUrl="https://i.postimg.cc/3x2SrWdX/360-F-64676383-Ldbmhi-NM6-Ypzb3-FM4-PPu-FP9r-He7ri8-Ju.webp"
+                fotoUrl={user?.fotoUrl ? user.fotoUrl : "https://i.pravatar.cc/150?img=12"}
                 showCvLink={false}
                 size="xl"
                 style={{ borderColor: estilosSafe.color_principal }}

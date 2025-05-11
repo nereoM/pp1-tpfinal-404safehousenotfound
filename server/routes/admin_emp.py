@@ -175,7 +175,8 @@ def obtener_nombre_apellido_admin():
         "apellido": admin.apellido,
         "username": admin.username,
         "correo": admin.correo,
-        "empresa_id" : admin.id_empresa
+        "empresa_id" : admin.id_empresa,
+        "foto_url":  admin.foto_url
     }
 
 @swag_from("../docs/admin-emp/registrar-manager.yml")
