@@ -522,7 +522,7 @@ export default function ReclutadorHome() {
               <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
 
               {mensajeLicencia && (
-                <div className="text-sm text-red-700 bg-red-100 p-2 rounded">
+                <div className="text-sm text-gray-100 bg-indigo-600 p-2 rounded">
                   {mensajeLicencia}
                 </div>
               )}
