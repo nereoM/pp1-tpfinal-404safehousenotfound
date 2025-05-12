@@ -56,6 +56,12 @@ def descargar_foto(filename):
     carpeta = os.path.join(os.getcwd(), 'uploads', 'fotos')
     return send_from_directory(carpeta, filename)
 
+@app.route('/uploads/cvs/<path:filename>')
+def descargar_cv(filename):
+    filename = secure_filename(filename)
+    carpeta = os.path.join(os.getcwd(), 'uploads', 'cvs')
+    return send_from_directory(carpeta, filename)
+
 
 # Para ver la documentacion ir a /apidocs
 setup_swagger_ui(app=app)

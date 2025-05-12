@@ -125,7 +125,7 @@ export default function CandidatoHome() {
           type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
         }`}
       >
-        {type === "success" ? <CheckCircle /> : <XCircle />}
+        {type === "success"}
         <span>{message}</span>
         <button className="ml-2 text-lg" onClick={onClose}>×</button>
       </motion.div>
@@ -179,34 +179,33 @@ export default function CandidatoHome() {
 
 
 
-    const handleUploadCV = async () => {
-        if (!cvFile) return;
-        const formData = new FormData();
-        formData.append("file", cvFile);
+const handleUploadCV = async () => {
+    if (!cvFile) return;
 
-        try {
-            const res = await fetch(`${API_URL}/api/upload-cv`, {
-                method: "POST",
-                credentials: "include",
-                body: formData,
-            });
+    const formData = new FormData();
+    formData.append("file", cvFile);
 
-            const result = await res.json();
-            if (res.ok) {
-                addToast("CV subido exitosamente");
-                setCvFile(null);
-                setCvPreview(null);
-                setCvs((prev) => [result, ...prev]);
-                setCvSeleccionado(result.id);
-                setMensajeRecomendacion("");
-            } else {
-                addToast("Error: " + (result.error || "desconocido"));
-            }
-        } catch (error) {
-            console.error("Error al subir CV:", error);
-            addToast("Error de conexión al subir CV");
+    try {
+        const res = await fetch(`${API_URL}/api/upload-cv`, {
+            method: "POST",
+            credentials: "include",
+            body: formData,
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+            addToast("¡CV subido exitosamente!");
+            setCvFile(null);
+            setCvPreview(null);
+            window.location.reload();
+        } else {
+            addToast("Error: " + (result.error || "desconocido"), "error");
         }
-    };
+    } catch (error) {
+        console.error("Error al subir CV:", error);
+        addToast("Error de conexión al subir CV", "error");
+    }
+};
 
     const handlePostularse = async () => {
         if (!cvSeleccionado) return addToast("Elegí un CV para completar tu postulación");
@@ -360,7 +359,7 @@ export default function CandidatoHome() {
                      nombre={`${user?.nombre} ${user?.apellido}`}
                     correo={user?.correo}
                     fotoUrl={user?.fotoUrl || "https://i.pravatar.cc/150?img=12"}
-                    cvUrl={cvs[0]?.url || null}
+                    cvUrl={`/${cvs[0]?.url}` || null}
                     onEdit={() => setModalEditarPerfilOpen(true)}
                     />
                         <div className="mt-3">
@@ -393,7 +392,7 @@ export default function CandidatoHome() {
                              <div className="mt-4">
                                     <button
                                 onClick={() => navigate("/pagos")}
-                                    className="block w-full text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+                                    className="block w-full text-base px-4 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
                                 >
                                  ¿Sos parte de una empresa? Suscribite y obtené beneficios exclusivos.
                                 </button>
@@ -472,7 +471,7 @@ export default function CandidatoHome() {
                                             PDF
                                         </div>
                                         <div className="flex-grow">
-                                            <p className="text-sm font-medium leading-tight">{cv.nombre_archivo || 'CV sin nombre'}</p>
+                                            <p className="text-sm font-medium leading-tight">  {cv.url.split('/').pop().split('_').slice(0, -1).join('_')}</p>
                                             <p className="text-xs text-gray-500">{new Date(cv.fecha_subida).toLocaleDateString()}</p>
                                         </div>
                                         {cvSeleccionado === cv.id && (
