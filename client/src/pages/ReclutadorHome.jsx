@@ -293,11 +293,11 @@ export default function ReclutadorHome() {
   };
 
   // funcion para abir cv
-  const openCv = (idCv) => {
-    const url = `${import.meta.env.VITE_API_URL}/api/ver-cv/${idCv}`;
-    setCvUrl(url);
-    setCvModalOpen(true);
-  };
+const openCv = (idCv) => {
+  // Generar la URL completa sin el prefijo del router
+  const url = `${import.meta.env.VITE_API_URL}/uploads/cvs/${idCv}`;
+  window.open(url, "_blank");
+};
 
      const handleImageUpload = async (file) => {
     if (!file) return;
@@ -992,16 +992,16 @@ export default function ReclutadorHome() {
                 {c.is_apto ? "Apto" : "No Apto"}
               </span>
 
-              {c.cv_url && (
-                <a
-                  href={c.cv_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 text-indigo-600 hover:underline text-sm w-max"
-                >
-                  Ver CV
-                </a>
-              )}
+                {c.cv_url && (
+                    <a
+                        href={`${import.meta.env.VITE_API_URL}/${c.cv_url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 text-indigo-600 hover:underline text-sm w-max"
+                    >
+                        Ver CV
+                    </a>
+                )}
             </li>
           ))}
         </ul>
