@@ -45,6 +45,7 @@ export default function ReclutadorHome() {
   const [username, setUsername] = useState("");
   const [modalImageFile, setModalImageFile] = useState(null);
   const [mensajeError, setMensajeError] = useState('');
+  
 
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -611,6 +612,7 @@ const openCv = (idCv) => {
                     {licencias.map((item, idx) => {
                       const { id_licencia, tipo, descripcion, estado, motivo_rechazo } =
                         item.licencias.licencia;
+                        
 
                       return (
                         <tr
@@ -631,10 +633,18 @@ const openCv = (idCv) => {
                             >
                               {estado}
                             </span>
-                          </td>
-                          <td className="p-2 border text-black-600">
-                            {estado === "rechazada" && motivo_rechazo ? motivo_rechazo : "-"}
-                          </td>
+                    </td>
+                    <td className="px-4 py-2 border border-gray-300">
+                      {estado === "rechazada" ? (
+                        <span className="text-sm text-red-500 italic">
+                          {motivo_rechazo ?? "Sin motivo especificado"}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+
+
                         </tr>
                       );
                     })}

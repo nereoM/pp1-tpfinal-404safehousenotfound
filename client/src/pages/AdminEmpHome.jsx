@@ -303,7 +303,7 @@ export default function AdminEmpHome() {
               <ProfileCard
                 nombre={`${user?.nombre} ${user?.apellido}`}
                 correo={user?.correo}
-                fotoUrl={user?.fotoUrl ? user.fotoUrl : "https://i.pravatar.cc/150?img=12"}
+                fotoUrl={user?.fotoUrl ? user.fotoUrl : "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"}
                 showCvLink={false}
                 size="xl"
                 style={{ borderColor: estilosSafe.color_principal }}
