@@ -403,7 +403,7 @@ useEffect(() => {
               <ProfileCard
                 nombre={`${user?.nombre} ${user?.apellido}`}
                 correo={user?.correo}
-                fotoUrl={user?.foto_url ? user.foto_url : "https://i.pravatar.cc/150?img=12"}
+                fotoUrl={user?.foto_url ? user.foto_url : "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"}
                 showCvLink={false}
                 size="xl"
                 style={{ borderColor: estilosSafe.color_principal }}
