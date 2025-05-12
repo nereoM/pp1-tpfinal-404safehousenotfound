@@ -6,6 +6,7 @@ import PageLayout from "../components/PageLayoutCand";
 import { TopBar } from "../components/TopBarCand";
 import { ProfileCard } from "../components/ProfileCard";
 import { JobCard } from "../components/JobCard";
+import { CheckCircle, XCircle } from "lucide-react";
 import { SearchFiltersCandidato } from "../components/SearchFiltersCandidato.jsx";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 
@@ -16,6 +17,7 @@ export default function CandidatoHome() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [toasts, setToasts] = useState([]);
     const [ofertas, setOfertas] = useState([]);
     const [cvFile, setCvFile] = useState(null);
     const [cvs, setCvs] = useState([]);
@@ -104,7 +106,7 @@ export default function CandidatoHome() {
                 setOfertas(transformadas);
             } catch (err) {
                 console.error("Error en fetchRecomendaciones:", err);
-                setMensajeRecomendacion("No se pudieron cargar las recomendaciones.");
+                setMensajeRecomendacion("No pudimos obtener recomendaciones en este momento. Vuelve a intentarlo más tarde.");
             } finally {
                 setLoading(false);
             }
@@ -112,6 +114,30 @@ export default function CandidatoHome() {
 
         fetchData();
     }, []);
+
+
+      const Toast = ({ message, type, onClose }) => (
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        exit={{ opacity: 0, y: -10 }} 
+        className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${
+          type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+        }`}
+      >
+        {type === "success" ? <CheckCircle /> : <XCircle />}
+        <span>{message}</span>
+        <button className="ml-2 text-lg" onClick={onClose}>×</button>
+      </motion.div>
+    );
+    
+    const addToast = (message, type = "success") => {
+        const id = Date.now();
+        setToasts((prev) => [...prev, { id, message, type }]);
+        setTimeout(() => {
+            setToasts((prev) => prev.filter((toast) => toast.id !== id));
+        }, 5000);
+    };
 
 
 
@@ -167,23 +193,23 @@ export default function CandidatoHome() {
 
             const result = await res.json();
             if (res.ok) {
-                alert("CV subido exitosamente");
+                addToast("CV subido exitosamente");
                 setCvFile(null);
                 setCvPreview(null);
                 setCvs((prev) => [result, ...prev]);
                 setCvSeleccionado(result.id);
                 setMensajeRecomendacion("");
             } else {
-                alert("Error: " + (result.error || "desconocido"));
+                addToast("Error: " + (result.error || "desconocido"));
             }
         } catch (error) {
             console.error("Error al subir CV:", error);
-            alert("Error de conexión al subir CV");
+            addToast("Error de conexión al subir CV");
         }
     };
 
     const handlePostularse = async () => {
-        if (!cvSeleccionado) return alert("Seleccioná un CV para postularte");
+        if (!cvSeleccionado) return addToast("Elegí un CV para completar tu postulación");
         try {
             const res = await fetch(`${API_URL}/api/postularme`, {
                 method: "POST",
@@ -197,15 +223,15 @@ export default function CandidatoHome() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert("Postulación realizada con éxito");
+                addToast("Postulación realizada con éxito");
                 setModalOpen(false);
                 setSalarioPretendido("");
             } else {
-                alert("Error: " + (data.error || "desconocido"));
+                addToast("Error: " + (data.error || "desconocido"));
             }
         } catch (err) {
             console.error("Error en handlePostularse:", err);
-            alert("Error de conexión al postularse");
+            addToast("Error de conexión al postularse");
         }
     };
 
@@ -219,7 +245,7 @@ export default function CandidatoHome() {
     if (loading) {
         return (
             <div className="h-screen w-full flex items-center justify-center bg-gray-100">
-                <div className="text-lg text-gray-600">Cargando...</div>
+                <div className="text-lg text-gray-600">Obteniendo información, por favor espera...</div>
             </div>
         );
     }
@@ -238,15 +264,15 @@ export default function CandidatoHome() {
   
           const result = await res.json();
           if (res.ok) {
-              alert("Imagen subida exitosamente");
+              addToast("Imagen subida exitosamente");
               setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
               setModalEditarPerfilOpen(false); 
           } else {
-              alert("Error: " + (result.error || "desconocido"));
+              addToast("Error: " + (result.error || "desconocido"));
           }
       } catch (err) {
           console.error("Error al subir imagen:", err);
-          alert("Error de conexión");
+          addToast("Error de conexión");
       }
   };
 
@@ -263,7 +289,7 @@ export default function CandidatoHome() {
     setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
     setModalEditarPerfilOpen(false);
   } catch (err) {
-    alert( err.message);
+    addToast( err.message);
   }
 };
 
@@ -281,6 +307,15 @@ export default function CandidatoHome() {
                         {mostrarFiltros ? "Ocultar filtros" : "Mostrar filtros"}
                     </button>
                 </div>
+
+            {toasts.map((toast) => (
+                <Toast 
+                    key={toast.id} 
+                    message={toast.message} 
+                    type={toast.type} 
+                    onClose={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))} 
+                />
+            ))}
 
                 {mostrarFiltros && (
                     <div className="mt-4 px-4 max-w-6xl mx-auto">
@@ -351,7 +386,7 @@ export default function CandidatoHome() {
                                         onClick={handleUploadCV}
                                         className="flex items-center justify-center gap-2 px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition"
                                     >
-                                        <Upload className="w-4 h-4" /> Confirmar subida
+                                        <Upload className="w-4 h-4" /> Subir CV
                                     </button>
                                 )}
 
@@ -360,7 +395,7 @@ export default function CandidatoHome() {
                                 onClick={() => navigate("/pagos")}
                                     className="block w-full text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
                                 >
-                                 ¿Tienes una empresa? Suscribite acá
+                                 ¿Sos parte de una empresa? Suscribite y obtené beneficios exclusivos.
                                 </button>
                             </div>
                             </div>
@@ -446,7 +481,7 @@ export default function CandidatoHome() {
                                     </div>
                                 ))}
                                 {cvs.length === 0 && (
-                                    <p className="text-sm text-gray-500">No tenés CVs cargados aún.</p>
+                                    <p className="text-sm text-gray-500">Aún no has cargado un CV. Subí uno para acceder a más oportunidades.</p>
                                 )}
                             </div>
 
