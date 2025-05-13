@@ -1,8 +1,11 @@
-import React, { useMemo } from "react";
 import { Edit } from "lucide-react";
+import React, { useMemo } from "react";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
 
 export function ProfileCard({ nombre, correo, cvUrl, fotoUrl, onEdit }) {
+  console.log({fotoUrl});
+  
+
   const API_URL = import.meta.env.VITE_API_URL;
   const { estilos } = useEstiloEmpresa();
 

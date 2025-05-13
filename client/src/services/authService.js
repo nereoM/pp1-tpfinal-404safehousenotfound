@@ -44,13 +44,27 @@ export const authService = {
     const data = await fetcher({ url })
     return data
   },
-  async logout(){
-    const url  = `${API_URL}/auth/logout`
+  async logout() {
+    const url = `${API_URL}/auth/logout`
 
     const options = {
       method: "POST"
     }
 
-    await fetcher({url, options})
+    await fetcher({ url, options })
+  },
+  async updateProfile({ email, password, username }) {
+    const url = `${API_URL}/auth/update-profile`
+
+    const options = {
+      method: "PUT",
+      body: JSON.stringify({ email, password, username }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+
+    const data = await fetcher({ url, options })
+    return data
   }
 }

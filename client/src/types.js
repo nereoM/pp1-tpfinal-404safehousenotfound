@@ -22,6 +22,9 @@
  * @property {string} correo - Correo electrónico
  * @property {string[]} roles - Lista de roles asignados al usuario
  * @property {number|null} id_empresa - ID de la empresa asociada (puede ser null)
+ * @property {string} apellido - apellido del usuario
+ * @property {string} username - username
+ * @property {string} foto_url - url de la foto de perfil
  */
 
 

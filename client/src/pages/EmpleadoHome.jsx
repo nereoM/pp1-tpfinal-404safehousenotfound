@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
-import { FileSearchIcon, FileUp, Search, SquareChartGanttIcon, Upload } from "lucide-react";
+import {
+  FileSearchIcon,
+  FileUp,
+  Search,
+  SquareChartGanttIcon,
+  Upload,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LicenciasModal } from "../components/LicenciasModal";
+import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil";
 import { OfertasRecomendadas } from "../components/OfertasRecomendadas";
 import PageLayout from "../components/PageLayoutCand";
 import { PostulacionesModal } from "../components/PostulacionesModal";
@@ -38,6 +45,8 @@ export default function EmpleadoHome() {
   const [modalPostulaciones, setModalPostulaciones] = useState(false);
   const [modalSolicitarLicencia, setmodalSolicitarLicencia] = useState(false);
   const [modalLicencias, setModalLicencias] = useState(false);
+  const [modalEditarPefil, setModalEditarPerfil] = useState(false);
+  const [modalImageFile, setModalImageFile] = useState(null);
 
   const { ofertas, ofertasIsLoading, ofertasError, handlerAplicarFiltros } =
     useOfertasRecomendadas();
@@ -131,6 +140,29 @@ export default function EmpleadoHome() {
       .catch((err) => console.error("Error al cerrar sesión:", err));
   };
 
+  const handleUpdateProfile = ({ email, username, password }) => {
+    authService
+      .updateProfile({ email, username, password })
+      .then(() => {
+        setModalEditarPerfil(false);
+      })
+      .catch((err) => console.log(err.message));
+  };
+
+  const handleImageUpload = (file) => {
+    if (!file) return;
+    empleadoService
+      .subirImagen({ file })
+      .then((result) => {
+        alert("Imagen subida exitosamente");
+        setUser((prev) => ({ ...prev, foto_url: result.file_path }));
+        setModalEditarPerfil(false);
+      })
+      .catch((err) => {
+        alert("Error: " + (err.message || "desconocido"));
+      });
+  };
+
   return (
     <EstiloEmpresaContext.Provider value={{ estilos }}>
       <motion.div
@@ -182,10 +214,11 @@ export default function EmpleadoHome() {
                 nombre={`${user?.nombre} ${user?.apellido}`}
                 correo={user?.correo}
                 fotoUrl={
-                  user?.fotoUrl ||
+                  user?.foto_url ||
                   "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"
                 }
                 cvUrl={cvs[0]?.url || null}
+                onEdit={() => setModalEditarPerfil(true)}
               />
               <div className="mt-3">
                 <label className="block mb-2 text-sm text-gray-600">
@@ -203,9 +236,15 @@ export default function EmpleadoHome() {
                     </option>
                   ))}
                 </select>
-                <div className="flex flex-col gap-2 mt-4" style={{ color: estilos.color_principal, borderColor: estilos.color_principal }}>
+                <div
+                  className="flex flex-col gap-2 mt-4"
+                  style={{
+                    color: estilos.color_principal,
+                    borderColor: estilos.color_principal,
+                  }}
+                >
                   <label
-                    style={{backgroundColor: estilos.color_secundario}}
+                    style={{ backgroundColor: estilos.color_secundario }}
                     htmlFor="cv-upload"
                     className="flex items-center justify-center gap-2 p-2 border border-dashed rounded cursor-pointer hover:bg-indigo-100 transition"
                   >
@@ -334,6 +373,17 @@ export default function EmpleadoHome() {
           {modalPostulaciones && (
             <PostulacionesModal onClose={() => setModalPostulaciones(false)} />
           )}
+
+          <ModalParaEditarPerfil
+            isOpen={modalEditarPefil}
+            onClose={() => setModalEditarPerfil(false)}
+            user={user}
+            onSave={({ username, email, password }) => {
+              handleUpdateProfile({ username, email, password });
+              if (modalImageFile) handleImageUpload(modalImageFile);
+            }}
+            onFileSelect={setModalImageFile}
+          />
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>
