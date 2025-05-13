@@ -1,0 +1,69 @@
+tags:
+  - Auth
+summary: Iniciar sesión en una empresa
+description: Permite a un usuario iniciar sesión en el contexto de una empresa específica utilizando su nombre de usuario o correo electrónico y contraseña. Devuelve un token JWT si la autenticación es exitosa.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: path
+    name: nombre_empresa
+    required: true
+    type: string
+    description: Nombre de la empresa en la que desea iniciar sesión
+  - in: body
+    name: body
+    description: Credenciales del usuario
+    required: true
+    schema:
+      $ref: '#/definitions/LoginEmpresaRequest'
+responses:
+  200:
+    description: Login exitoso
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Login exitoso"
+        empresa:
+          type: string
+          example: "mi_empresa"
+  400:
+    description: Datos incompletos o inválidos
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Username, email y password son requeridos"
+  401:
+    description: Credenciales inválidas o usuario inactivo
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Credenciales inválidas o usuario no pertenece a esta empresa"
+  404:
+    description: Empresa no encontrada
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "La empresa 'mi_empresa' no existe"
+definitions:
+  LoginEmpresaRequest:
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+        example: "usuario123"
+      password:
+        type: string
+        example: "MiPasswordSegura123!"

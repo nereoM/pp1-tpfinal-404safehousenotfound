@@ -1,0 +1,61 @@
+tags:
+  - Auth
+summary: Actualizar perfil de usuario
+description: Actualiza la información del perfil del usuario autenticado. Permite modificar el nombre de usuario, email y contraseña con las validaciones correspondientes.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    description: Datos para actualizar el perfil
+    required: true
+    schema:
+      $ref: '#/definitions/UpdateProfileRequest'
+responses:
+  200:
+    description: Perfil actualizado exitosamente
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Perfil actualizado exitosamente"
+  400:
+    description: Datos inválidos o error de validación
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "El username ya está en uso"
+  404:
+    description: Usuario no encontrado
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Usuario no encontrado"
+  500:
+    description: Error interno del servidor
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Error interno del servidor"
+definitions:
+  UpdateProfileRequest:
+    type: object
+    properties:
+      username:
+        type: string
+        example: "nuevo_username"
+      email:
+        type: string
+        example: "nuevo_email@example.com"
+      password:
+        type: string
+        example: "NuevaContraseñaFuerte123!"

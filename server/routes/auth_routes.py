@@ -255,9 +255,10 @@ def google_login():
 
     except ValueError:
         return jsonify({"error": "Token inválido"}), 401
-    
+
 @auth_bp.route("/update-profile", methods=["PUT"])
 @jwt_required()
+@swag_from('../docs/auth/update-profile.yml')    
 def update_profile():
     user_id = get_jwt_identity()
     user = Usuario.query.get(user_id)
@@ -300,6 +301,7 @@ def update_profile():
         return jsonify({"error": str(e)}), 500
     
 @auth_bp.route("/login/<string:nombre_empresa>", methods=["POST"])
+@swag_from('../docs/auth/login-empresa.yml')
 def login_empresa(nombre_empresa):
     data = request.get_json()
     identifier = data.get("username")
