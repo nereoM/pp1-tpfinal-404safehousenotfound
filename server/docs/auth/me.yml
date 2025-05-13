@@ -19,6 +19,12 @@ responses:
         correo:
           type: string
           example: "juan@example.com"
+        username:
+          type: string
+          example: juangomez
+        apellido:
+          type: string
+          example: gomex
         roles:
           type: array
           items:
