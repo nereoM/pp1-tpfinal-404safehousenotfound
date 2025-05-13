@@ -7,7 +7,7 @@ def setup_swagger_ui(app):
       "title": "SIGRH+ Rest API",
       "description": "Documentacion de endpoints de la API de SIGRH+",
       "version": "1.0"
-     },
+    },
     # "securityDefinitions": {
     #   "cookieAuth": {
     #             "type": "apiKey",
@@ -25,6 +25,11 @@ def setup_swagger_ui(app):
   app.config['SWAGGER'] = {
     'title': 'SIGRH+ Rest API',
     'uiversion': 3,
-    'template': './resources/flasgger/swagger_ui.html'
+    'template': './resources/flasgger/swagger_ui.html',
+    'ui_params': {
+        'apisSorter': 'method',
+        'operationsSorter': 'method',
+        'tagsSorter': 'alpha',
+    },
   }
   Swagger(app, template=template)
