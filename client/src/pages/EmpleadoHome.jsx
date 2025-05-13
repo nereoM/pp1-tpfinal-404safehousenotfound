@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { FileUp, Search, Upload } from "lucide-react";
+import { FileSearchIcon, FileUp, Search, SquareChartGanttIcon, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LicenciasModal } from "../components/LicenciasModal";
@@ -10,11 +10,9 @@ import { PostularseModal } from "../components/PostularseModal";
 import { ProfileCard } from "../components/ProfileCard";
 import { SearchFilters } from "../components/SearchFilters";
 import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal";
-import { TopBar } from "../components/TopBarCand";
-import {
-  EstiloEmpresaContext,
-  useEstiloEmpresa,
-} from "../context/EstiloEmpresaContext";
+import { TopBar } from "../components/TopBar";
+import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
+import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { useOfertasRecomendadas } from "../hooks/useOfertasRecomendadas";
 import { authService } from "../services/authService";
 import { empleadoService } from "../services/empleadoService";
@@ -28,6 +26,7 @@ export default function EmpleadoHome() {
   const [cvSeleccionado, setCvSeleccionado] = useState(null);
   const [busquedaConfirmada, setBusquedaConfirmada] = useState("");
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Estados typeados porque son asíncronos
   /** @type {[Usuario]} */
@@ -40,10 +39,20 @@ export default function EmpleadoHome() {
   const [modalSolicitarLicencia, setmodalSolicitarLicencia] = useState(false);
   const [modalLicencias, setModalLicencias] = useState(false);
 
-  const { ofertas, ofertasError, ofertasIsLoading, handlerAplicarFiltros } =
+  const { ofertas, ofertasIsLoading, ofertasError, handlerAplicarFiltros } =
     useOfertasRecomendadas();
-  const { estilos: estilosSafe } = useEstiloEmpresa();
+  const { estilos } = useEmpresaEstilos(user?.id_empresa);
   const navigate = useNavigate();
+
+  const ofertasFiltradas = ofertas
+    .filter(
+      (o) =>
+        o.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        o.palabrasClave.some((p) =>
+          p.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    )
+    .sort((a, b) => b.coincidencia - a.coincidencia);
 
   useEffect(() => {
     // Cargar informacion del usuario
@@ -82,7 +91,7 @@ export default function EmpleadoHome() {
 
   const acciones = [
     {
-      icon: FileUp,
+      icon: FileSearchIcon,
       titulo: "Ver Mis Licencias",
       descripcion: "Accede al listado tus licencias.",
       onClick: () => setModalLicencias(true),
@@ -94,7 +103,7 @@ export default function EmpleadoHome() {
       onClick: () => setmodalSolicitarLicencia(true),
     },
     {
-      icon: FileUp,
+      icon: SquareChartGanttIcon,
       titulo: "Ver estado de mis postulaciones",
       descripcion: "Accede al listado de tus postulaciones.",
       onClick: () => setModalPostulaciones(true),
@@ -113,8 +122,17 @@ export default function EmpleadoHome() {
       });
   };
 
+  const handleLogout = () => {
+    authService
+      .logout()
+      .then(() => {
+        navigate("/login");
+      })
+      .catch((err) => console.error("Error al cerrar sesión:", err));
+  };
+
   return (
-    <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
+    <EstiloEmpresaContext.Provider value={{ estilos }}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -123,8 +141,21 @@ export default function EmpleadoHome() {
         <PageLayout>
           <TopBar
             username={`${user?.nombre} ${user?.apellido}`}
-            onLogout={() => navigate("/login")}
+            onLogout={handleLogout}
           />
+          <div className="px-4 py-6">
+            <div
+              className="mx-auto w-fit text-sm font-medium px-4 py-2 rounded-full border shadow-sm"
+              style={{
+                backgroundColor: estilos.color_secundario,
+                borderColor: estilos.color_principal,
+                color: estilos.color_texto,
+              }}
+            >
+              {estilos.slogan}
+            </div>
+          </div>
+
           <div className="mt-6 px-4 max-w-6xl mx-auto flex justify-end">
             <button
               onClick={() => setMostrarFiltros((prev) => !prev)}
@@ -150,7 +181,10 @@ export default function EmpleadoHome() {
               <ProfileCard
                 nombre={`${user?.nombre} ${user?.apellido}`}
                 correo={user?.correo}
-                fotoUrl={user?.fotoUrl || "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"}
+                fotoUrl={
+                  user?.fotoUrl ||
+                  "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"
+                }
                 cvUrl={cvs[0]?.url || null}
               />
               <div className="mt-3">
@@ -169,13 +203,13 @@ export default function EmpleadoHome() {
                     </option>
                   ))}
                 </select>
-                <div className="flex flex-col gap-2 mt-4">
+                <div className="flex flex-col gap-2 mt-4" style={{ color: estilos.color_principal, borderColor: estilos.color_principal }}>
                   <label
+                    style={{backgroundColor: estilos.color_secundario}}
                     htmlFor="cv-upload"
-                    className="flex items-center justify-center gap-2 p-2 border border-dashed border-indigo-500 rounded cursor-pointer bg-indigo-50 hover:bg-indigo-100 transition"
+                    className="flex items-center justify-center gap-2 p-2 border border-dashed rounded cursor-pointer hover:bg-indigo-100 transition"
                   >
-                    <FileUp className="w-4 h-4 text-indigo-600" /> Seleccionar
-                    archivo
+                    <FileUp className="w-4 h-4" /> Seleccionar archivo
                   </label>
                   <input
                     id="cv-upload"
@@ -219,17 +253,27 @@ export default function EmpleadoHome() {
                           onClick={onClick}
                           className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
                           style={{
-                            backgroundColor: estilosSafe.color_secundario,
-                            borderColor: estilosSafe.color_secundario,
-                            color: estilosSafe.color_texto,
+                            backgroundColor: estilos.color_secundario,
+                            borderColor: estilos.color_principal,
+                            color: estilos.color_texto,
                           }}
                         >
                           <Icon
                             className="w-6 h-6 mb-2"
-                            style={{ color: estilosSafe.color_texto }}
+                            style={{ color: estilos.color_principal }}
                           />
-                          <h3 className="text-base font-semibold">{titulo}</h3>
-                          <p className="text-sm mt-1">{descripcion}</p>
+                          <h3
+                            className="text-base font-semibold"
+                            style={{ color: estilos.color_texto }}
+                          >
+                            {titulo}
+                          </h3>
+                          <p
+                            className="text-sm mt-1"
+                            style={{ color: estilos.color_texto }}
+                          >
+                            {descripcion}
+                          </p>
                         </motion.div>
                       )
                     )}
@@ -242,12 +286,14 @@ export default function EmpleadoHome() {
                 <h2 className="text-lg font-semibold">
                   {busquedaConfirmada.trim().length >= 3
                     ? "Resultados de búsqueda"
-                    : "Ofertas recomendadas"}
+                    : "Ofertas rofertasFiltradas"}
                 </h2>
                 <div className="relative group">
                   <input
                     type="text"
                     placeholder="Buscar..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         setBusquedaConfirmada(e.target.value);
@@ -262,7 +308,7 @@ export default function EmpleadoHome() {
                 onSelectOferta={(id) => setIdOfertaSeleccionada(id)}
                 isLoading={ofertasIsLoading}
                 error={ofertasError}
-                ofertas={ofertas}
+                ofertas={ofertasFiltradas}
               />
             </div>
           </div>

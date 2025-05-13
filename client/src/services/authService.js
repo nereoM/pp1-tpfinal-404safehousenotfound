@@ -43,5 +43,14 @@ export const authService = {
 
     const data = await fetcher({ url })
     return data
+  },
+  async logout(){
+    const url  = `${API_URL}/auth/logout`
+
+    const options = {
+      method: "POST"
+    }
+
+    await fetcher({url, options})
   }
 }
