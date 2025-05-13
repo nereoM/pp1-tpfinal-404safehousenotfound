@@ -15,7 +15,11 @@ export function useEstadoPostulaciones() {
     empleadoService
       .obtenerEstadoPostulaciones()
       .then(setPostulaciones)
-      .catch((err) => setError(err.message))
+      .catch((err) => {
+        if (!err.message === "No se encontraron postulaciones para este empleado.")
+          setError(err.message)
+      }
+      )
       .finally(() => {
         setLoading(false);
       });
