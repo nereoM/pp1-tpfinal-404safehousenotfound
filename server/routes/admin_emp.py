@@ -69,7 +69,7 @@ def upload_image():
 @swag_from("../docs/admin-emp/preferencias.yml")
 @swag_from("../docs/admin-emp/preferencias_put.yml")
 @admin_emp_bp.route("/empresa/<int:id_empresa>/preferencias", methods=["GET", "PUT"])
-@role_required(["admin-emp", "manager", "reclutador"])
+@role_required(["admin-emp", "manager", "reclutador", "empleado"])
 def preferencias_empresa(id_empresa):
     if request.method == "GET":
         pref = Preferencias_empresa.query.filter_by(id_empresa=id_empresa).first()
