@@ -36,5 +36,26 @@ def predecir_rend_futuro(ruta_csv, ruta_modelo='server/ml/trained_models/perform
         print(f"Error inesperado: {str(e)}")
         return None
     
+def predecir_rend_futuro_individual(empleado_data, ruta_modelo='server/ml/trained_models/performance_model.pkl'):
+
+    modelo = joblib.load(ruta_modelo)
+
+    columnas = [
+        'desempeno_previo', 
+        'cantidad_proyectos', 
+        'tamano_equipo', 
+        'horas_extras', 
+        'antiguedad', 
+        'horas_capacitacion'
+    ]
+
+    df = pd.DataFrame([empleado_data], columns=columnas)
+    
+    df['rendimiento_futuro_predicho'] = modelo.predict(df)
+
+    df.to_csv("server/ml/data/rendFut_predichos_use&predict.csv", index=False)
+
+    return df.loc[0, 'rendimiento_futuro_predicho']
+    
 if __name__ == "__main__":
     predecir_rend_futuro("server/ml/data/info_empleados.csv")

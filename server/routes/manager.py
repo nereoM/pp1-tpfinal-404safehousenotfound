@@ -615,3 +615,39 @@ def obtener_ofertas():
 def validar_nombre(nombre: str) -> bool:
     # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
     return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
+
+
+@manager_bp.route("/rendimiento-futuro/<int:id_empleado>", methods=["GET"])
+@role_required(["manager"])
+def obtener_rendimiento_futuro(id_empleado):
+    try:
+        # Obtener datos del empleado
+        empleado = Usuario.query.get(id_empleado)
+        if not empleado:
+            return jsonify({"error": "Empleado no encontrado"}), 404
+
+        # Datos para la predicción
+        datos_empleado = {
+            "desempeno_previo": empleado.desempeno_previo,
+            "cantidad_proyectos": empleado.cantidad_proyectos,
+            "tamano_equipo": empleado.tamano_equipo,
+            "horas_extras": empleado.horas_extras,
+            "antiguedad": empleado.antiguedad,
+            "horas_capacitacion": empleado.horas_capacitacion
+        }
+
+        # Obtener la predicción
+        #rendimiento_futuro = predecir_rend_futuro(datos_empleado)
+
+        # Devolver la respuesta
+        return jsonify({
+            "id_empleado": empleado.id,
+            "nombre": empleado.nombre,
+            #"rendimiento_futuro_predicho": rendimiento_futuro,
+            "detalles": datos_empleado
+        }), 200
+
+    except Exception as e:
+        print(f"Error en /rendimiento-futuro: {e}")
+        return jsonify({"error": str(e)}), 500
+

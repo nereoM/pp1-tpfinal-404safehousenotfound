@@ -177,6 +177,21 @@ class Preferencias_empresa(db.Model):
     color_secundario = db.Column(db.String(7), nullable=False)
     color_texto = db.Column(db.String(7), nullable=False)
 
+class RendimientoEmpleado(db.Model):
+    __tablename__ = 'rendimiento_empleados'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    desempeno_previo = db.Column(db.Float, nullable=False)
+    cantidad_proyectos = db.Column(db.Integer, nullable=False)
+    tamano_equipo = db.Column(db.Integer, nullable=False)
+    horas_extras = db.Column(db.Integer, nullable=False)
+    antiguedad = db.Column(db.Integer, nullable=False)
+    horas_capacitacion = db.Column(db.Integer, nullable=False)
+
+    # Relación con Usuario
+    usuario = db.relationship('Usuario', backref='rendimiento')
+
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)
 
