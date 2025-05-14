@@ -27,3 +27,5 @@ migrations/
 /server/pruebas
 /server/uploads/cvs/**
 /server/uploads/fotos/**
+
+/server/ml/data
