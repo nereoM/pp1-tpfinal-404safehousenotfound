@@ -29,3 +29,4 @@ migrations/
 /server/uploads/fotos/**
 
 /server/ml/data
+/server/ml/trained_models
