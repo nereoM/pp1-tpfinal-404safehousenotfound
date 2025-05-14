@@ -17,6 +17,7 @@ from models.schemes import (
     Rol,
     Usuario,
 )
+from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro_individual
 
 manager_bp = Blueprint("manager", __name__)
 
@@ -637,13 +638,13 @@ def obtener_rendimiento_futuro(id_empleado):
         }
 
         # Obtener la predicción
-        #rendimiento_futuro = predecir_rend_futuro(datos_empleado)
+        rendimiento_futuro = predecir_rend_futuro_individual(datos_empleado)
 
         # Devolver la respuesta
         return jsonify({
             "id_empleado": empleado.id,
             "nombre": empleado.nombre,
-            #"rendimiento_futuro_predicho": rendimiento_futuro,
+            "rendimiento_futuro_predicho": rendimiento_futuro,
             "detalles": datos_empleado
         }), 200
 

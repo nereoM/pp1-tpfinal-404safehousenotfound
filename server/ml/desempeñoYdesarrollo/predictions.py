@@ -53,9 +53,21 @@ def predecir_rend_futuro_individual(empleado_data, ruta_modelo='server/ml/traine
     
     df['rendimiento_futuro_predicho'] = modelo.predict(df)
 
-    df.to_csv("server/ml/data/rendFut_predichos_use&predict.csv", index=False)
+    # df.to_csv("server/ml/data/rendFutInd_predichos_use&predict.csv", index=False)
 
     return df.loc[0, 'rendimiento_futuro_predicho']
     
 if __name__ == "__main__":
     predecir_rend_futuro("server/ml/data/info_empleados.csv")
+
+    datos_empleado = {
+    "desempeno_previo": 10,
+    "cantidad_proyectos": 5,
+    "tamano_equipo": 11,
+    "horas_extras": 16,
+    "antiguedad": 5,
+    "horas_capacitacion": 3
+    }
+
+    resultado = predecir_rend_futuro_individual(datos_empleado)
+    print(f"Rendimiento futuro predicho: {resultado}")
