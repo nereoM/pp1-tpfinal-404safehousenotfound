@@ -139,3 +139,124 @@ def add_future_performance(ruta_csv):
     # print(f"Save_path: {os.path.join(save_path, nombre_archivo)}")
 
     return df, os.path.join(save_path, nombre_archivo)
+
+def add_risks(ruta_csv):
+    try:
+        df = pd.read_csv(ruta_csv)
+    except FileNotFoundError:
+        print(f"Error: No se encontró el archivo {ruta_csv}")
+        return None
+    
+    # Verificar que existe la columna rendimiento_futuro
+    if 'rendimiento_futuro' not in df.columns:
+        print("Error: Falta la columna 'rendimiento_futuro' en el dataset")
+        return None
+    
+    def calcular_riesgo_rotacion(ausencias, tardes, tempranas, desempeno):
+        # Calculamos un score basado en los diferentes factores
+        score = 0
+        
+        # Ponderación de cada factor
+        score += ausencias * 0.4       # Ausencias tienen mayor peso
+        score += tardes * 0.3          # Llegadas tarde
+        score += tempranas * 0.3       # Salidas tempranas
+        score -= desempeno * 0.5      # Buen desempeño reduce el riesgo
+        
+        # Determinamos el nivel de riesgo
+        if score < 5:
+            return "bajo"
+        elif 5 <= score < 10:
+            return "medio"
+        else:
+            return "alto"
+    
+    def calcular_riesgo_despido(ausencias, tardes, tempranas, desempeno, riesgo_rotacion, rendimiento_futuro):
+        # Convertimos el riesgo de rotación a un valor numérico
+        riesgo_rotacion_val = {"bajo": 1, "medio": 3, "alto": 5}[riesgo_rotacion]
+        
+        # Calculamos el score
+        score = 0
+        score += ausencias * 0.5       # Ausencias son muy importantes para despido
+        score += tardes * 0.2
+        score += tempranas * 0.3
+        score -= desempeno * 0.4       # Buen desempeño reduce riesgo de despido
+        score += riesgo_rotacion_val * 2  # Riesgo de rotación influye
+        
+        # Ajuste basado en rendimiento futuro (4-10)
+        # Bajo rendimiento futuro (4-6) aumenta riesgo
+        # Alto rendimiento futuro (8-10) disminuye riesgo
+        if rendimiento_futuro <= 6:
+            score += 4  # Aumenta riesgo significativamente
+        elif rendimiento_futuro >= 8:
+            score -= 3  # Reduce riesgo considerablemente
+        
+        # Determinamos el nivel de riesgo
+        if score < 8:
+            return "bajo"
+        elif 8 <= score < 15:
+            return "medio"
+        else:
+            return "alto"
+    
+    def calcular_riesgo_renuncia(ausencias, tardes, tempranas, riesgo_rotacion, riesgo_despido, rendimiento_futuro):
+        # Convertimos los riesgos a valores numéricos
+        riesgo_rotacion_val = {"bajo": 1, "medio": 3, "alto": 5}[riesgo_rotacion]
+        riesgo_despido_val = {"bajo": 1, "medio": 3, "alto": 5}[riesgo_despido]
+        
+        # Calculamos el score
+        score = 0
+        score += ausencias * 0.3       # Ausencias influyen pero no tanto
+        score += tardes * 0.4         # Llegadas tarde pueden indicar descontento
+        score += tempranas * 0.3      # Salidas tempranas también
+        score += riesgo_rotacion_val * 1.5
+        score += riesgo_despido_val * 1.5
+        
+        # Ajuste basado en rendimiento futuro
+        # Alto rendimiento futuro (8-10) aumenta riesgo por oportunidades externas
+        # Medio rendimiento (6-8) tiene impacto neutro
+        # Bajo rendimiento (<6) reduce riesgo (menos oportunidades)
+        if rendimiento_futuro >= 8:
+            score += 4  # Aumenta riesgo por atractivo en mercado
+        elif rendimiento_futuro <= 5:
+            score -= 2  # Reduce riesgo por menor demanda externa
+        
+        # Determinamos el nivel de riesgo
+        if score < 7:
+            return "bajo"
+        elif 7 <= score < 14:
+            return "medio"
+        else:
+            return "alto"
+
+    # Aplicamos las funciones a cada fila del DataFrame
+    df['Riesgo de rotacion'] = df.apply(lambda x: calcular_riesgo_rotacion(
+        x['ausencias_injustificadas'], 
+        x['llegadas_tarde'], 
+        x['salidas_tempranas'],
+        x['desempeno_previo']
+    ), axis=1)
+    
+    df['Riesgo de despido'] = df.apply(lambda x: calcular_riesgo_despido(
+        x['ausencias_injustificadas'],
+        x['llegadas_tarde'], 
+        x['salidas_tempranas'],
+        x['desempeno_previo'],
+        x['Riesgo de rotacion'],
+        x['rendimiento_futuro']
+    ), axis=1)
+    
+    df['Riesgo de renuncia'] = df.apply(lambda x: calcular_riesgo_renuncia(
+        x['ausencias_injustificadas'], 
+        x['llegadas_tarde'],
+        x['salidas_tempranas'],
+        x['Riesgo de rotacion'],
+        x['Riesgo de despido'],
+        x['rendimiento_futuro']
+    ), axis=1)
+
+    save_path = os.path.join("server/ml/data")
+    nombre_archivo = "emps_riesgos.csv"
+    df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
+
+    print(f"Archivo {nombre_archivo}, columnas de rotacion, despido y renuncia agregadas\n")
+    return df, os.path.join(save_path, nombre_archivo)
