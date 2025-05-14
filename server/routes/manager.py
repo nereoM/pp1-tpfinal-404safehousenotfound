@@ -221,6 +221,7 @@ def crear_oferta_laboral():
         currency = data.get("currency")
         experience_level = data.get("experience_level")
         fecha_cierre = data.get("fecha_cierre")
+        umbral_individual = data.get("umbral_individual")
 
         if employment_type not in EMPLOYMENT_TYPES:
             return jsonify({"error": f"Tipo de empleo no válido. Las opciones permitidas son: {', '.join(EMPLOYMENT_TYPES)}"}), 400
@@ -267,6 +268,7 @@ def crear_oferta_laboral():
         
         salary_max = int(float(salary_max))
         salary_min = int(float(salary_min))
+        umbral_individual = (int(umbral_individual) / 100) if umbral_individual else 0.55
         
         if salary_min == 0 and salary_max == 0:
             return jsonify({"error": "El salario mínimo y máximo no pueden ser 0."}), 400
@@ -301,6 +303,7 @@ def crear_oferta_laboral():
             palabras_clave=palabras_clave_json,
             fecha_publicacion=db.func.now(),
             fecha_cierre=fecha_cierre if fecha_cierre else None,
+            umbral_individual=umbral_individual,
         )
 
         db.session.add(nueva_oferta)

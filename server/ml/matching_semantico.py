@@ -1,5 +1,6 @@
 from sklearn.metrics.pairwise import cosine_similarity
 from .modelo import modelo_sbert
+from models.schemes import Oferta_laboral
 
 import re
 
@@ -16,7 +17,7 @@ def dividir_cv_en_partes(cv_texto):
 
     return list(set(partes))
 
-def evaluar_cv_semantico(cv_texto, palabras_clave, umbral_individual=0.55):
+def evaluar_cv_semantico(cv_texto, palabras_clave, umbral_individual):
     partes_cv = dividir_cv_en_partes(cv_texto)
     vectores_cv = modelo_sbert.encode(partes_cv)
 

@@ -15,9 +15,10 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from itsdangerous import SignatureExpired, URLSafeTimedSerializer
 from models.extensions import db, mail
-from models.schemes import Rol, Usuario, Empresa
+from models.schemes import Rol, Usuario, Empresa, Licencia
 from services.config import Config
 from flasgger import swag_from
+import datetime
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -179,6 +180,12 @@ def login():
         # Verificar si el usuario esta activo
         if not user.activo:
             return jsonify({"error": "Usuario inactivo"}), 401
+        
+        licencias = Licencia.query.filter_by(id_empleado=user.id, estado="aprobada").all()
+
+        for licencia in licencias:
+            if licencia.fecha_fin > datetime.now():
+                return jsonify({"error": f"El usuario tiene una licencia vigente, cuenta bloqueada hasta: {licencia.fecha_fin}"}), 401
 
         # Si la contraseña es correcta y el correo está confirmado, generar el token
         roles = [r.slug for r in user.roles]

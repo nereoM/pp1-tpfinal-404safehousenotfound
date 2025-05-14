@@ -51,6 +51,126 @@ ofertas_generales = [
         "experience_level": "Junior",
         "palabras_clave": ["Soporte", "Hardware", "Software", "Tickets"]
     },
+    {
+        "nombre": "Desarrollador Backend",
+        "descripcion": "Desarrollo de APIs y microservicios con Python y Django.",
+        "location": "Buenos Aires",
+        "employment_type": "Full-Time",
+        "workplace_type": "Remoto",
+        "salary_min": 380000,
+        "salary_max": 500000,
+        "currency": "ARS",
+        "experience_level": "Senior",
+        "palabras_clave": ["Python", "Django", "API", "Microservicios", "Backend"]
+    },
+    {
+        "nombre": "Full Stack Developer",
+        "descripcion": "Aplicaciones web completas con React, Node.js y SQL.",
+        "location": "Córdoba",
+        "employment_type": "Full-Time",
+        "workplace_type": "Híbrido",
+        "salary_min": 350000,
+        "salary_max": 480000,
+        "currency": "ARS",
+        "experience_level": "Semi Senior",
+        "palabras_clave": ["React", "Node.js", "SQL", "JavaScript", "Full Stack"]
+    },
+    {
+        "nombre": "Data Engineer",
+        "descripcion": "Construcción y optimización de pipelines de datos en AWS.",
+        "location": "Mendoza",
+        "employment_type": "Full-Time",
+        "workplace_type": "Remoto",
+        "salary_min": 400000,
+        "salary_max": 600000,
+        "currency": "ARS",
+        "experience_level": "Senior",
+        "palabras_clave": ["AWS", "Big Data", "Python", "SQL", "Data Engineering"]
+    },
+    {
+        "nombre": "Machine Learning Engineer",
+        "descripcion": "Entrenamiento de modelos predictivos con Python y TensorFlow.",
+        "location": "Rosario",
+        "employment_type": "Full-Time",
+        "workplace_type": "Remoto",
+        "salary_min": 420000,
+        "salary_max": 550000,
+        "currency": "ARS",
+        "experience_level": "Senior",
+        "palabras_clave": ["Machine Learning", "Python", "TensorFlow", "Scikit-Learn", "Modelos Predictivos"]
+    },
+    {
+        "nombre": "DevOps Engineer",
+        "descripcion": "Automatización y CI/CD con Docker, Kubernetes y AWS.",
+        "location": "San Juan",
+        "employment_type": "Full-Time",
+        "workplace_type": "Híbrido",
+        "salary_min": 450000,
+        "salary_max": 600000,
+        "currency": "ARS",
+        "experience_level": "Senior",
+        "palabras_clave": ["DevOps", "Docker", "Kubernetes", "CI/CD", "AWS", "Cloud"]
+    },
+    {
+        "nombre": "Cloud Architect",
+        "descripcion": "Diseño y despliegue de arquitecturas en AWS y Azure.",
+        "location": "La Plata",
+        "employment_type": "Full-Time",
+        "workplace_type": "Remoto",
+        "salary_min": 480000,
+        "salary_max": 700000,
+        "currency": "ARS",
+        "experience_level": "Senior",
+        "palabras_clave": ["AWS", "Azure", "Cloud", "Microservicios", "Arquitectura"]
+    },
+    {
+        "nombre": "Administrador de Base de Datos",
+        "descripcion": "Gestión de bases de datos relacionales y no relacionales.",
+        "location": "Santa Fe",
+        "employment_type": "Full-Time",
+        "workplace_type": "Remoto",
+        "salary_min": 300000,
+        "salary_max": 400000,
+        "currency": "ARS",
+        "experience_level": "Semi Senior",
+        "palabras_clave": ["SQL", "NoSQL", "MySQL", "PostgreSQL", "MongoDB"]
+    },
+    {
+        "nombre": "QA Automation Engineer",
+        "descripcion": "Pruebas automatizadas para aplicaciones web y microservicios.",
+        "location": "Buenos Aires",
+        "employment_type": "Full-Time",
+        "workplace_type": "Remoto",
+        "salary_min": 320000,
+        "salary_max": 450000,
+        "currency": "ARS",
+        "experience_level": "Semi Senior",
+        "palabras_clave": ["QA", "Testing", "Automatización", "Selenium", "Microservicios"]
+    },
+    {
+        "nombre": "Administrador de Redes",
+        "descripcion": "Monitoreo y configuración de redes empresariales.",
+        "location": "Córdoba",
+        "employment_type": "Full-Time",
+        "workplace_type": "Presencial",
+        "salary_min": 250000,
+        "salary_max": 300000,
+        "currency": "ARS",
+        "experience_level": "Semi Senior",
+        "palabras_clave": ["Redes", "Administración", "Cisco", "Firewall", "Seguridad"]
+    },
+    {
+        "nombre": "Especialista en Seguridad Informática",
+        "descripcion": "Implementación de políticas de seguridad y prevención de ataques.",
+        "location": "Buenos Aires",
+        "employment_type": "Full-Time",
+        "workplace_type": "Remoto",
+        "salary_min": 450000,
+        "salary_max": 650000,
+        "currency": "ARS",
+        "experience_level": "Senior",
+        "palabras_clave": ["Seguridad", "Firewall", "Ciberseguridad", "Redes", "AWS"]
+    },
     
     # Comercial
     {
@@ -106,18 +226,6 @@ ofertas_generales = [
 
     # Industria y producción
     {
-        "nombre": "Operario de Planta",
-        "descripcion": "Producción en línea.",
-        "location": "Córdoba",
-        "employment_type": "Turnos rotativos",
-        "workplace_type": "Presencial",
-        "salary_min": 180000,
-        "salary_max": 240000,
-        "currency": "ARS",
-        "experience_level": "Sin experiencia",
-        "palabras_clave": ["Producción", "Operario", "Turnos"]
-    },
-    {
         "nombre": "Técnico de Mantenimiento",
         "descripcion": "Mantenimiento preventivo y correctivo en planta.",
         "location": "San Juan",
@@ -168,18 +276,6 @@ ofertas_generales = [
         "currency": "ARS",
         "experience_level": "Senior",
         "palabras_clave": ["Marketing", "SEO", "SEM"]
-    },
-    {
-        "nombre": "Community Manager",
-        "descripcion": "Gestión de redes sociales y campañas digitales.",
-        "location": "Buenos Aires",
-        "employment_type": "Full-Time",
-        "workplace_type": "Remoto",
-        "salary_min": 180000,
-        "salary_max": 220000,
-        "currency": "ARS",
-        "experience_level": "Junior",
-        "palabras_clave": ["Redes Sociales", "Marketing", "Comunicación"]
     }
 ]
 

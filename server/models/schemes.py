@@ -127,6 +127,7 @@ class Oferta_laboral(db.Model):
     palabras_clave = db.Column(db.Text, nullable=False)
     fecha_publicacion = db.Column(db.DateTime, default=db.func.now())
     fecha_cierre = db.Column(db.DateTime, nullable=True)
+    umbral_individual = db.Column(db.Float, nullable=True)
 
     empresa = db.relationship("Empresa", backref="ofertas_laborales")
 
@@ -171,7 +172,7 @@ class Preferencias_empresa(db.Model):
     id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), primary_key=True)
     slogan = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.Text, nullable=True)
-    logo_url = db.Column(db.String(255), nullable=True)
+    logo_url = db.Column(db.String(700), nullable=True)
     color_principal = db.Column(db.String(7), nullable=False) # COLOR HEX
     color_secundario = db.Column(db.String(7), nullable=False)
     color_texto = db.Column(db.String(7), nullable=False)

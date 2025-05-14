@@ -19,7 +19,7 @@ from models.schemes import (
     Usuario,
 )
 from sklearn.metrics.pairwise import cosine_similarity
-from sqlalchemy.sql.expression import func, or_
+from sqlalchemy.sql.expression import func, or_, and_
 from werkzeug.utils import secure_filename
 from flasgger import swag_from
 
@@ -89,7 +89,7 @@ def postularme():
         id_candidato=id_candidato,
         id_oferta=id_oferta,
         id_cv=id_cv,
-        is_apto=predecir_cv(oferta.palabras_clave, cv),
+        is_apto=predecir_cv(oferta.palabras_clave, cv, id_oferta),
         fecha_postulacion=datetime.now(timezone.utc),
     )
 
@@ -424,9 +424,10 @@ def recomendar_ofertas():
             db.session.query(Oferta_laboral)
             .filter(Oferta_laboral.is_active == True)
             .filter(
-                or_(*[Oferta_laboral.palabras_clave.like(f"%{palabra}%") for palabra in palabras_clave_cv])
+                or_(*[Oferta_laboral.palabras_clave.ilike(f"%{palabra}%") for palabra in palabras_clave_cv])
             )
-            .limit(10)
+            .order_by(func.rand())
+            .limit(20)
             .all()
         )
 
@@ -434,26 +435,41 @@ def recomendar_ofertas():
 
         for oferta in ofertas:
             palabras_clave = json.loads(oferta.palabras_clave)
-            vectores_cv = modelo_sbert.encode(partes_cv)
-            vector_keywords = modelo_sbert.encode(" ".join(palabras_clave))
-            max_sim = max(cosine_similarity([vector_keywords], vectores_cv)[0])
-            porcentaje = int(max_sim * 100)
+            print(f"🔎 Palabras clave de la oferta: {palabras_clave}")
 
-            recomendaciones.append(
-                {
-                    "id_oferta": oferta.id,
-                    "nombre_oferta": oferta.nombre,
-                    "empresa": oferta.empresa.nombre,
-                    "coincidencia": porcentaje,
-                    "palabras_clave": palabras_clave,
-                }
-            )
+            coincidencias = len(set(palabras_clave) & palabras_clave_cv)
+            total_palabras = len(palabras_clave)
+            porcentaje_palabras = int((coincidencias / total_palabras) * 100)
+
+            if porcentaje_palabras >= 40:
+                print(f"🔎 Coincidencias encontradas en texto plano: {porcentaje_palabras}%")
+
+                vectores_cv = modelo_sbert.encode(partes_cv)
+                vector_keywords = modelo_sbert.encode(" ".join(palabras_clave))
+                max_sim = max(cosine_similarity([vector_keywords], vectores_cv)[0])
+                porcentaje_sbert = int(max_sim * 100)
+
+                print(f"🔎 Coincidencia semántica calculada: {porcentaje_sbert}%")
+
+                if porcentaje_sbert >= 50:
+                    recomendaciones.append(
+                        {
+                            "id_oferta": oferta.id,
+                            "nombre_oferta": oferta.nombre,
+                            "empresa": oferta.empresa.nombre,
+                            "coincidencia": porcentaje_sbert,
+                            "palabras_clave": palabras_clave,
+                        }
+                    )
 
         recomendaciones.sort(key=lambda r: r["coincidencia"], reverse=True)
         return jsonify(recomendaciones[:3]), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+
 
 @candidato_bp.route("/info-candidato", methods=["GET"])
 @jwt_required()

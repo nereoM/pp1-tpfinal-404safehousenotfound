@@ -7,7 +7,7 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timezone
 from flasgger import swag_from
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 from ml.modelo import modelo_sbert
 from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
 from ml.matching_semantico import dividir_cv_en_partes
@@ -48,6 +48,8 @@ def solicitar_licencia():
     data = request.get_json()
     tipo_licencia = data.get("lic_type")
     descripcion = data.get("description")
+    fecha_inicio = data.get("start_date")
+    fecha_fin = data.get("end_date")
 
     id_empleado = get_jwt_identity()
     empleado = Usuario.query.filter_by(id=id_empleado).first()
@@ -56,6 +58,8 @@ def solicitar_licencia():
         id_empleado=id_empleado,
         tipo=tipo_licencia,
         descripcion=descripcion,
+        fecha_inicio=datetime.strptime(fecha_inicio, "%Y-%m-%d"),
+        fecha_fin=datetime.strptime(fecha_fin, "%Y-%m-%d"),
         estado="pendiente",
         id_empresa=empleado.id_empresa,
     )
@@ -136,9 +140,9 @@ def subir_certificado(id_licencia):
     if licencia.id_empleado != empleado.id:
         return jsonify({"error": "No tienes permiso para modificar esta licencia"}), 403
 
-    if licencia.estado != "aprobada":
+    if licencia.estado == "aprobada":
         return jsonify(
-            {"error": "Solo se pueden subir certificados para licencias aprobadas"}
+            {"error": "La licencia ya fue aprobada."}
         ), 400
 
     # Verificar si se envió un archivo
@@ -239,11 +243,11 @@ def recomendar_ofertas():
         ofertas = (
             db.session.query(Oferta_laboral)
             .filter(Oferta_laboral.is_active == True)
-            .filter(Oferta_laboral.id_empresa == empleado.id_empresa)
             .filter(
-                or_(*[Oferta_laboral.palabras_clave.like(f"%{palabra}%") for palabra in palabras_clave_cv])
+                or_(*[Oferta_laboral.palabras_clave.ilike(f"%{palabra}%") for palabra in palabras_clave_cv])
             )
-            .limit(10)
+            .order_by(func.rand())
+            .limit(20)
             .all()
         )
 
@@ -251,20 +255,32 @@ def recomendar_ofertas():
 
         for oferta in ofertas:
             palabras_clave = json.loads(oferta.palabras_clave)
-            vectores_cv = modelo_sbert.encode(partes_cv)
-            vector_keywords = modelo_sbert.encode(" ".join(palabras_clave))
-            max_sim = max(cosine_similarity([vector_keywords], vectores_cv)[0])
-            porcentaje = int(max_sim * 100)
+            print(f"🔎 Palabras clave de la oferta: {palabras_clave}")
 
-            recomendaciones.append(
-                {
-                    "id_oferta": oferta.id,
-                    "nombre_oferta": oferta.nombre,
-                    "empresa": oferta.empresa.nombre,
-                    "coincidencia": porcentaje,
-                    "palabras_clave": palabras_clave,
-                }
-            )
+            coincidencias = len(set(palabras_clave) & palabras_clave_cv)
+            total_palabras = len(palabras_clave)
+            porcentaje_palabras = int((coincidencias / total_palabras) * 100)
+
+            if porcentaje_palabras >= 40:
+                print(f"Coincidencias encontradas en texto plano: {porcentaje_palabras}%")
+
+                vectores_cv = modelo_sbert.encode(partes_cv)
+                vector_keywords = modelo_sbert.encode(" ".join(palabras_clave))
+                max_sim = max(cosine_similarity([vector_keywords], vectores_cv)[0])
+                porcentaje_sbert = int(max_sim * 100)
+
+                print(f"Coincidencia semántica calculada: {porcentaje_sbert}%")
+
+                if porcentaje_sbert >= 50:
+                    recomendaciones.append(
+                        {
+                            "id_oferta": oferta.id,
+                            "nombre_oferta": oferta.nombre,
+                            "empresa": oferta.empresa.nombre,
+                            "coincidencia": porcentaje_sbert,
+                            "palabras_clave": palabras_clave,
+                        }
+                    )
 
         recomendaciones.sort(key=lambda r: r["coincidencia"], reverse=True)
         return jsonify(recomendaciones[:3]), 200

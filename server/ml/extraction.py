@@ -3,6 +3,7 @@ from docx import Document
 import os
 from .matching_semantico import evaluar_cv_semantico
 import json
+from models.schemes import Oferta_laboral
 
 def extraer_texto_pdf(ruta):
     texto = ""
@@ -25,7 +26,17 @@ def obtener_palabras_clave(palabras_clave_json):
 
 # texto_cv = extraer_texto_pdf(os.path.join("uploads/cvs", "file.pdf"))
 
-def predecir_cv(palabras_clave, cv):
+def predecir_cv(palabras_clave, cv, id_oferta):
+    oferta = Oferta_laboral.query.filter_by(id_oferta).first()
+
+    if not oferta:
+        raise ValueError("Oferta laboral no encontrada")
+    
+    if not oferta.is_active:
+        raise ValueError("La oferta laboral no está activa")
+    
+    umbral_individual = oferta.umbral_individual
+
     lista_palabras = obtener_palabras_clave(palabras_clave)
     if not lista_palabras:
         raise Exception("No se encontraron palabras clave en la oferta laboral.")
@@ -38,7 +49,7 @@ def predecir_cv(palabras_clave, cv):
     else:
         raise Exception("Formato de archivo no soportado.")
 
-    return evaluar_cv_semantico(texto_cv, lista_palabras)
+    return evaluar_cv_semantico(texto_cv, lista_palabras, umbral_individual)
 
 
 corpus = [

@@ -20,8 +20,8 @@ def crear_usuarios_con_roles():
         db.session.commit()
 
         usuarios = [
-            {"nombre": "admin", "correo": "admin@test.com", "password": "admin123", "rol": "admin"},
-            {"nombre": "juana", "correo": "juana@rrhh.com", "password": "rrhh123", "rol": "rrhh"},
+            {"nombre": "admin", "apellido": "admin", "username":"admin", "correo": "admin@test.com", "password": "admin123", "rol": "admin"},
+            {"nombre": "juana", "apellido": "juana", "correo": "juana@rrhh.com", "password": "rrhh123", "rol": "rrhh"},
             {"nombre": "marcos", "correo": "marcos@user.com", "password": "user123", "rol": "usuario"},
         ]
 
@@ -36,6 +36,4 @@ def crear_usuarios_con_roles():
         db.session.commit()
         print("Usuarios y roles creados exitosamente.")
 
-if __name__ == "__main__":
-    crear_usuarios_con_roles()
 
