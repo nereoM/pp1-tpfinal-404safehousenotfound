@@ -51,6 +51,7 @@ def solicitar_licencia():
     descripcion = data.get("description")
     fecha_inicio = data.get("start_date")
     fecha_fin = data.get("end_date")
+    certificado_url = data.get("certificado_url")
 
     id_empleado = get_jwt_identity()
     empleado = Usuario.query.filter_by(id=id_empleado).first()
@@ -63,6 +64,7 @@ def solicitar_licencia():
         fecha_fin=datetime.strptime(fecha_fin, "%Y-%m-%d"),
         estado="pendiente",
         id_empresa=empleado.id_empresa,
+        certificado_url=certificado_url,
     )
 
     db.session.add(nueva_licencia)
