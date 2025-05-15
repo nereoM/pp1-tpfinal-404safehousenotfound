@@ -13,6 +13,7 @@ from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
 from ml.matching_semantico import dividir_cv_en_partes
 from sklearn.metrics.pairwise import cosine_similarity
 import json
+from .notificacion import crear_notificacion
 
 empleado_bp = Blueprint("empleado", __name__)
 
@@ -516,6 +517,8 @@ def postularme(id_oferta):
 
     db.session.add(nueva_postulacion)
     db.session.commit()
+    
+    crear_notificacion(id_empleado, f"Postulación realizada en la oferta: {oferta.nombre}")
 
     return jsonify({"message": "Postulación realizada correctamente."}), 201
 

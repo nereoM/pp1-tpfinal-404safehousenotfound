@@ -362,7 +362,8 @@ def crear_estructura_empresas_y_ofertas():
                 id_creador=random.choice(manager_objs).id,
                 palabras_clave=json.dumps(o["palabras_clave"]),
                 fecha_publicacion=datetime.utcnow(),
-                fecha_cierre=datetime.utcnow() + timedelta(days=30)
+                fecha_cierre=datetime.utcnow() + timedelta(days=30),
+                umbral_individual=random.uniform(0.3, 0.8),
             )
             db.session.add(nueva_oferta)
             db.session.commit()
