@@ -329,25 +329,9 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @swag_from('../docs/reclutador/subir-certificado.yml')
-@reclutador_bp.route("/subir-certificado/<int:id_licencia>", methods=["POST"])
+@reclutador_bp.route("/subir-certificado", methods=["POST"])
 @role_required(["reclutador"])
-def subir_certificado(id_licencia):
-    # Verificar si la licencia existe y pertenece al reclutador
-    id_reclutador = get_jwt_identity()
-    licencia = Licencia.query.get(id_licencia)
-    empleado = Usuario.query.filter_by(id=id_reclutador).first()
-
-    if not licencia:
-        return jsonify({"error": "Licencia no encontrada"}), 404
-
-    if licencia.id_empleado != empleado.id:
-        return jsonify({"error": "No tienes permiso para modificar esta licencia"}), 403
-
-    if licencia.estado != "aprobada":
-        return jsonify(
-            {"error": "Solo se pueden subir certificados para licencias aprobadas"}
-        ), 400
-
+def subir_certificado_generico_reclutador():
     # Verificar si se envió un archivo
     if "file" not in request.files:
         return jsonify({"error": "No se encontró ningún archivo"}), 400
@@ -360,19 +344,23 @@ def subir_certificado(id_licencia):
             {"error": "Formato de archivo no permitido. Solo se aceptan archivos PDF"}
         ), 400
 
+    # Generar nombre único con timestamp para evitar sobrescritura
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    filename = secure_filename(file.filename.rsplit(".", 1)[0])
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    nombre_final = f"{filename}_{timestamp}.{ext}"
+
     # Guardar el archivo en el servidor
-    filename = secure_filename(file.filename)
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    filepath = os.path.join(UPLOAD_FOLDER, nombre_final)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     file.save(filepath)
 
-    # Actualizar la licencia con la URL del certificado
-    licencia.certificado_url = f"/{UPLOAD_FOLDER}/{filename}"
-    db.session.commit()
+    file_url = f"/{UPLOAD_FOLDER}/{nombre_final}"
 
     return jsonify(
         {
             "message": "Certificado subido exitosamente",
-            "certificado_url": licencia.certificado_url,
+            "certificado_url": file_url,
         }
     ), 200
 
