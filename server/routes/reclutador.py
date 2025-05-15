@@ -2,6 +2,7 @@ import json
 import os
 from datetime import datetime, timezone
 from models.extensions import mail
+from .notificacion import crear_notificacion
 from flask_mail import Message
 from .candidato import allowed_image
 from sqlalchemy import and_, or_
@@ -203,9 +204,14 @@ def evaluar_postulacion(id_postulacion):
     
     if not postulacion:
         return jsonify({"error": "Postulación no encontrada"}), 404
+
+    candidato = Usuario.query.get(postulacion.id_candidato)
+    if not candidato:
+        return jsonify({"error": "Candidato no encontrado"}), 404
     
     id_oferta = postulacion.id_oferta
     oferta = Oferta_laboral.query.get(id_oferta)
+    correo_candidato = candidato.correo
     
     if not oferta:
         return jsonify({"error": "Oferta laboral no encontrada"}), 404
@@ -220,7 +226,9 @@ def evaluar_postulacion(id_postulacion):
     nombre_empresa = Empresa.query.get(oferta.id_empresa).nombre
     nombre_oferta = oferta.nombre
     
-    enviar_notificacion_candidato(postulacion.candidato.email, nuevo_estado, nombre_empresa, nombre_oferta)
+    enviar_notificacion_candidato(correo_candidato, nuevo_estado, nombre_empresa, nombre_oferta)
+    
+    crear_notificacion(postulacion.id_candidato, f"Tu postulación a la oferta {nombre_oferta} ha sido {nuevo_estado}.")
     
     return jsonify({"message": f"Postulación {nuevo_estado} y notificación enviada"}), 200
 

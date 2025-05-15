@@ -21,6 +21,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy.sql.expression import func, or_, and_
 from werkzeug.utils import secure_filename
 from flasgger import swag_from
+from .notificacion import crear_notificacion
 
 candidato_bp = Blueprint("candidato", __name__)
 
@@ -64,11 +65,10 @@ def tiene_cv():
 
 
 @swag_from('../docs/candidato/postularme.yml')
-@candidato_bp.route("/postularme", methods=["POST"])
+@candidato_bp.route("/postularme/<int:id_oferta>", methods=["POST"])
 @role_required(["candidato"])
-def postularme():
+def postularme(id_oferta):
     data = request.get_json()
-    id_oferta = data.get("id_oferta")
     id_cv = data.get("id_cv")
 
     if not id_oferta or not id_cv:
@@ -95,6 +95,8 @@ def postularme():
 
     db.session.add(nueva_postulacion)
     db.session.commit()
+    
+    crear_notificacion(id_candidato, f"Postulación realizada en la oferta: {oferta.nombre}")
 
     return jsonify({"message": "Postulación realizada correctamente."}), 201
 

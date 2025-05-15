@@ -202,6 +202,19 @@ class RendimientoEmpleado(db.Model):
         self.horas_extras = data.get('horas_extras', self.horas_extras)
         self.antiguedad = data.get('antiguedad', self.antiguedad)
         self.horas_capacitacion = data.get('horas_capacitacion', self.horas_capacitacion)
+        
+        
+class Notificacion(db.Model):
+    __tablename__ = 'notificaciones'
+
+    id = db.Column(db.Integer, primary_key=True)
+    id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    mensaje = db.Column(db.String(255), nullable=False)
+    leida = db.Column(db.Boolean, default=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+    usuario = db.relationship('Usuario', backref=db.backref('notificaciones', lazy=True))
+    
 
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)

@@ -493,11 +493,10 @@ def listar_cvs():
     ), 200
 
 @swag_from('../docs/empleado/postularme.yml')
-@empleado_bp.route("/postularme-empleado", methods=["POST"])
+@empleado_bp.route("/postularme-empleado/<int:id_oferta>", methods=["POST"])
 @role_required(["empleado"])
-def postularme():
+def postularme(id_oferta):
     data = request.get_json()
-    id_oferta = data.get("id_oferta")
     id_cv = data.get("id_cv")
 
     if not id_oferta or not id_cv:
@@ -524,7 +523,7 @@ def postularme():
         id_candidato=id_empleado,
         id_oferta=id_oferta,
         id_cv=id_cv,
-        is_apto=predecir_cv(oferta.palabras_clave, cv),
+        is_apto=predecir_cv(oferta.palabras_clave, cv, id_oferta),
         fecha_postulacion=datetime.now(timezone.utc),
         estado_postulacion="pendiente",
     )
