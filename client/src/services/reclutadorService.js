@@ -36,7 +36,7 @@ export const reclutadorService = {
     const data = await fetcher({ url, options });
     return data;
   },
-  async solicitarLicencia({ tipoLicencia, descripcion }) {
+  async solicitarLicencia({ tipoLicencia, descripcion, certificadoUrl }) {
     const url = `${API_URL}/api/solicitud-licencia`;
 
     const options = {
@@ -44,7 +44,7 @@ export const reclutadorService = {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ lic_type: tipoLicencia, description: descripcion }),
+      body: JSON.stringify({ lic_type: tipoLicencia, description: descripcion, certificado_url: certificadoUrl }),
     };
 
     const data = await fetcher({ url, options });

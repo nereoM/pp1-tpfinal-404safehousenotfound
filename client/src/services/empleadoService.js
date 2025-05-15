@@ -17,13 +17,14 @@ export const empleadoService = {
     const data = await fetcher({ url, options });
     return data;
   },
-  async solicitarLicencia({ tipoLicencia, descripcion }) {
+  async solicitarLicencia({ tipoLicencia, descripcion, certificadoUrl }) {
     const url = `${API_URL}/api/solicitar-licencia`;
 
     const options = {
       body: JSON.stringify({
         lic_type: tipoLicencia,
         description: descripcion,
+        certificado_url: certificadoUrl
       }),
       method: "POST",
       headers: {
