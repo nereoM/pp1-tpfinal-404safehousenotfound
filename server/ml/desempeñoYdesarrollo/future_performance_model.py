@@ -59,12 +59,14 @@ def train_future_performance_model(ruta_csv):
     df['rendimiento_futuro_predicho'] = y_pred
     
     # Guardar el DataFrame con las predicciones
-    save_path = os.path.join("server/ml/data")
+    #save_path = os.path.join("server/ml/data")
+    save_path = os.path.join(os.getcwd(), "data")
     os.makedirs(save_path, exist_ok=True)
     nombre_archivo_pred = "rendFut_predichos_train&test.csv"
     df.to_csv(os.path.join(save_path, nombre_archivo_pred), index=False)
 
-    save_path_model = os.path.join("server/ml/trained_models")
+    #save_path_model = os.path.join("server/ml/trained_models")
+    save_path_model = os.path.join(os.getcwd(), "trained_models")
     if not os.path.exists(save_path_model):
         os.makedirs(save_path_model)
 

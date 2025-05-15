@@ -6,6 +6,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
 
+import datetime
+
 
 class Usuario(db.Model):
     __tablename__ = "usuarios"
@@ -181,16 +183,24 @@ class RendimientoEmpleado(db.Model):
     __tablename__ = 'rendimiento_empleados'
     
     id = db.Column(db.Integer, primary_key=True)
-    id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
-    desempeno_previo = db.Column(db.Float, nullable=False)
-    cantidad_proyectos = db.Column(db.Integer, nullable=False)
-    tamano_equipo = db.Column(db.Integer, nullable=False)
-    horas_extras = db.Column(db.Integer, nullable=False)
-    antiguedad = db.Column(db.Integer, nullable=False)
-    horas_capacitacion = db.Column(db.Integer, nullable=False)
+    id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False, index=True)
+    desempeno_previo = db.Column(db.Float, nullable=True)
+    cantidad_proyectos = db.Column(db.Integer, nullable=True)
+    tamano_equipo = db.Column(db.Integer, nullable=True)
+    horas_extras = db.Column(db.Integer, nullable=True)
+    antiguedad = db.Column(db.Integer, nullable=True)
+    horas_capacitacion = db.Column(db.Integer, nullable=True)
 
     # Relación con Usuario
     usuario = db.relationship('Usuario', backref='rendimiento')
+    
+    def actualizar_rendimiento(self, data):
+        self.desempeno_previo = data.get('desempeno_previo', self.desempeno_previo)
+        self.cantidad_proyectos = data.get('cantidad_proyectos', self.cantidad_proyectos)
+        self.tamano_equipo = data.get('tamano_equipo', self.tamano_equipo)
+        self.horas_extras = data.get('horas_extras', self.horas_extras)
+        self.antiguedad = data.get('antiguedad', self.antiguedad)
+        self.horas_capacitacion = data.get('horas_capacitacion', self.horas_capacitacion)
 
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)

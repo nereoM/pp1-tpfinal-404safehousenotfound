@@ -28,5 +28,4 @@ migrations/
 /server/uploads/cvs/**
 /server/uploads/fotos/**
 
-/server/ml/data
-/server/ml/trained_models
+/server/ml/desempeñoYdesarrollo/data

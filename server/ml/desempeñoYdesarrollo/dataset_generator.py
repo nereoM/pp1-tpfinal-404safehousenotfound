@@ -50,7 +50,8 @@ def generate_employee_dataset(cantidad_empleados, nombre_archivo="info_empleados
     # Crear DataFrame
     df = pd.DataFrame(data)
 
-    save_path = os.path.join("server/ml/data")
+    #save_path = os.path.join("server/ml/data")
+    save_path = os.path.join(os.getcwd(), "data")
     os.makedirs(save_path, exist_ok=True)
 
     df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
@@ -129,8 +130,9 @@ def add_future_performance(ruta_csv):
     # Asegurarse de que esté dentro del rango 4-10
     df['rendimiento_futuro'] = df['rendimiento_futuro'].clip(4, 10)
     
-    save_path = os.path.join("server/ml/data")
-
+    #save_path = os.path.join("server/ml/data")
+    save_path = os.path.join(os.getcwd(), "data")
+    os.makedirs(save_path, exist_ok=True)
     # Crear otro archivo .csv con las mismas columnas mas las nuevas columnas
     nombre_archivo = "emps_rendFut.csv"
     df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
@@ -254,7 +256,9 @@ def add_risks(ruta_csv):
         x['rendimiento_futuro']
     ), axis=1)
 
-    save_path = os.path.join("server/ml/data")
+    #save_path = os.path.join("server/ml/data")
+    save_path = os.path.join(os.getcwd(), "data")
+    os.makedirs(save_path, exist_ok=True)
     nombre_archivo = "emps_riesgos.csv"
     df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
 

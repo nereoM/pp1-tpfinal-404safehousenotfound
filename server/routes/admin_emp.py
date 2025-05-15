@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, send_file
 from auth.decorators import role_required
-from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa, Licencia
+from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa, Licencia, RendimientoEmpleado
 from models.extensions import db
 import secrets
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -10,7 +10,8 @@ import re
 from flasgger import swag_from
 import csv
 from .candidato import allowed_image
-
+from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro
+import pandas as pd
 
 admin_emp_bp = Blueprint("admin_emp", __name__)
 
@@ -434,7 +435,8 @@ def registrar_empleados():
 def register_employees_from_csv(file_path):
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
-        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena'}
+        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena', 'desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
+                            'horas_extras', 'antiguedad', 'horas_capacitacion'}
         
         resultado = []
 
@@ -448,6 +450,12 @@ def register_employees_from_csv(file_path):
             email = row['email'].strip()
             username = row['username'].strip()
             contrasena = row['contrasena'].strip()
+            desempeno_previo = float(row['desempeno_previo'].strip())
+            cantidad_proyectos = int(row['cantidad_proyectos'].strip())
+            tamano_equipo = int(row['tamano_equipo'].strip())
+            horas_extras = int(row['horas_extras'].strip())
+            antiguedad = int(row['antiguedad'].strip())
+            horas_capacitacion = int(row['horas_capacitacion'].strip())
 
             if not validar_nombre(nombre) or not validar_nombre(apellido):
                 return {"error": "Nombre o apellido no válido"}
@@ -477,6 +485,19 @@ def register_employees_from_csv(file_path):
                 id_empresa=id_empresa,
                 id_superior=admin_emp.id
             )
+            
+            db.session.add(new_user)
+            db.session.flush()
+            
+            new_employee_performance = RendimientoEmpleado (
+                id_usuario=new_user.id,
+                desempeno_previo=desempeno_previo,
+                cantidad_proyectos=cantidad_proyectos,
+                tamano_equipo=tamano_equipo,
+                horas_extras=horas_extras,
+                antiguedad=antiguedad,
+                horas_capacitacion=horas_capacitacion
+            )
 
             empleado_role = Rol.query.filter_by(slug="empleado").first()
             if not empleado_role:
@@ -491,7 +512,7 @@ def register_employees_from_csv(file_path):
                 "password": contrasena
             })
 
-            db.session.add(new_user)
+            db.session.add(new_employee_performance)
 
         db.session.commit()
         
@@ -649,3 +670,107 @@ def evaluar_licencia(id_licencia):
                 },
             }
         ), 200
+        
+
+@admin_emp_bp.route("/empleados-rendimiento", methods=["GET"])
+@role_required(["admin-emp"])
+def obtener_empleados_rendimiento_futuro():
+    try:
+        id_admin_emp = get_jwt_identity()
+
+        admin_emp = Usuario.query.get(id_admin_emp)
+
+        if not admin_emp or not admin_emp.id_empresa:
+            return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+        empleados = (
+            db.session.query(Usuario, RendimientoEmpleado)
+            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .filter(Usuario.id_empresa == admin_emp.id_empresa)
+            .all()
+        )
+
+        if not empleados:
+            return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
+
+        datos_empleados = []
+
+        for empleado, rendimiento in empleados:
+            datos_empleados.append({
+                "id_usuario": empleado.id,
+                "nombre": empleado.nombre,
+                "desempeno_previo": rendimiento.desempeno_previo,
+                "cantidad_proyectos": rendimiento.cantidad_proyectos,
+                "tamano_equipo": rendimiento.tamano_equipo,
+                "horas_extras": rendimiento.horas_extras,
+                "antiguedad": rendimiento.antiguedad,
+                "horas_capacitacion": rendimiento.horas_capacitacion
+            })
+
+        df = pd.DataFrame(datos_empleados)
+
+        if df.empty:
+            print("El DataFrame está vacío. No se encontraron datos para predecir.")
+            return jsonify({"error": "No se encontraron empleados con datos suficientes para predecir"}), 404
+
+        df_predicho = predecir_rend_futuro(df)
+
+        if df_predicho is None:
+            print("El DataFrame predicho es None. Algo falló en la predicción.")
+            return jsonify({"error": "Error al realizar la predicción"}), 500
+
+        return jsonify({
+            "message": "Datos cargados correctamente",
+            "empleados": df_predicho.to_dict(orient='records')
+        }), 200
+
+    except Exception as e:
+        print(f"Error en /empleados-rendimiento: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+    
+@admin_emp_bp.route("/obtener-mail-empresa")
+@role_required(["admin-emp"])
+def obtener_mail_empresa():
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp or not admin_emp.id_empresa:
+        return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+    empresa = Empresa.query.get(admin_emp.id_empresa)
+    if not empresa:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    return jsonify({
+        "email": empresa.email
+    }), 200
+    
+@admin_emp_bp.route("/cambiar-mail-empresa", methods=["PUT"])
+@role_required(["admin-emp"])
+def cambiar_mail_empresa():
+    data = request.get_json()
+    nuevo_email = data.get("nuevo_email")
+
+    if not nuevo_email:
+        return jsonify({"error": "El nuevo email es requerido"}), 400
+
+    email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+    if not re.match(email_regex, nuevo_email):
+        return jsonify({"error": "Formato de email no valido"}), 400
+
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp or not admin_emp.id_empresa:
+        return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+    empresa = Empresa.query.get(admin_emp.id_empresa)
+    if not empresa:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    empresa.email = nuevo_email
+    db.session.commit()
+
+    return jsonify({
+        "message": "Email de la empresa actualizado exitosamente",
+        "nuevo_email": nuevo_email
+    }), 200    
