@@ -1,80 +1,69 @@
-import { useState } from "react";
-import { empleadoService } from "../services/empleadoService";
+import { useSolicitarLicencia } from "../hooks/useSolicitarLicencia";
 
-export function SolicitarLicenciaModal({ onClose }) {
-  const [formState, setFormState] = useState({
-    descripcion: "",
-    tipoLicencia: "",
+export function SolicitarLicenciaModal({ onClose, serviceFn }) {
+  const {
+    solicitarLicencia,
+    topMessage,
+    updateDescription,
+    updateTipoLicencia,
+    formState,
+  } = useSolicitarLicencia({
+    serviceFn,
+    onSuccess() {
+      onClose();
+    }
   });
-  const [topMessage, setTopMessage] = useState("");
-
-  const MIN_LENGTH = 5;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    if (
-      formState.descripcion.trim().length < MIN_LENGTH ||
-      formState.tipoLicencia.trim().length < MIN_LENGTH
-    ) {
-      setTopMessage(`Ambos campos deben tener al menos ${MIN_LENGTH} caracteres.`);
-      return;
-    }
-
-    empleadoService
-      .solicitarLicencia(formState)
-      .then(() => {
-        setTopMessage("Solicitud creada correctamente");
-        setFormState({ descripcion: "", tipoLicencia: "" });
-      })
-      .catch((err) => {
-        setTopMessage(err.message);
-      });
+    solicitarLicencia();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
-        <h2 className="text-lg font-semibold">Solicitud de Licencia</h2>
-        {topMessage && <header className="text-red-600">{topMessage}</header>}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <section className="flex flex-col gap-2">
-            <label htmlFor="descripcion">Descripción</label>
-            <input
-              className="border p-2"
-              id="descripcion"
-              type="text"
-              value={formState.descripcion}
-              onChange={(e) =>
-                setFormState({ ...formState, descripcion: e.target.value })
-              }
-            />
-          </section>
-          <section className="flex flex-col gap-2">
-            <label htmlFor="tipoLicencia">Tipo de licencia</label>
-            <input
-              className="border p-2"
-              id="tipoLicencia"
-              type="text"
-              value={formState.tipoLicencia}
-              onChange={(e) =>
-                setFormState({ ...formState, tipoLicencia: e.target.value })
-              }
-            />
-          </section>
-          <div className="flex justify-end gap-2 mt-5">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4 text-black">
+        <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
+
+        {topMessage && (
+          <div className="text-sm text-gray-100 bg-indigo-600 p-2 rounded">
+            {topMessage}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="space-y-2">
+            <div>
+              <label className="text-sm font-medium">Tipo de licencia</label>
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded"
+                placeholder="vacaciones, enfermedad, etc."
+                value={formState.tipoLicencia}
+                onChange={(e) => updateTipoLicencia(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">
+                Descripción (Opcional)
+              </label>
+              <textarea
+                className="w-full p-2 border border-gray-300 rounded"
+                placeholder="Motivo o detalles adicionales"
+                value={formState.descripcion}
+                onChange={(e) => updateDescription(e.target.value)}
+              ></textarea>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
             <button
-              type="button"
               onClick={onClose}
               className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
             >
               Cancelar
             </button>
-            <button
-              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-              type="submit"
-            >
-              Confirmar
+            <button className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+              Enviar
             </button>
           </div>
         </form>

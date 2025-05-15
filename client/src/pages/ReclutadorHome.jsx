@@ -2,14 +2,14 @@ import { motion } from "framer-motion";
 import { BarChart2, FilePlus, FileText, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ServerError } from "../common/error";
+import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayout";
 import { ProfileCard } from "../components/ProfileCard";
+import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal.jsx";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
-import { reclutadorService } from "../services/reclutadorService";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
-import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+import { reclutadorService } from '../services/reclutadorService.js';
 
 export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
@@ -518,62 +518,12 @@ const openCv = (idCv) => {
         )}
 
         {modalLicenciaOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4 text-black">
-              <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
-
-              {mensajeLicencia && (
-                <div className="text-sm text-gray-100 bg-indigo-600 p-2 rounded">
-                  {mensajeLicencia}
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <div>
-                  <label className="text-sm font-medium">Tipo de licencia</label>
-                  <input
-                    type="text"
-                    className="w-full p-2 border border-gray-300 rounded"
-                    placeholder="vacaciones, enfermedad, etc."
-                    value={formLicencia.tipo}
-                    onChange={(e) =>
-                      setFormLicencia({ ...formLicencia, tipo: e.target.value })
-                    }
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Descripción</label>
-                  <textarea
-                    className="w-full p-2 border border-gray-300 rounded"
-                    placeholder="Motivo o detalles adicionales"
-                    value={formLicencia.descripcion}
-                    onChange={(e) =>
-                      setFormLicencia({ ...formLicencia, descripcion: e.target.value })
-                    }
-                  ></textarea>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4">
-                <button
-                  onClick={() => {
-                    setModalLicenciaOpen(false);
-                    setMensajeLicencia("");
-                  }}
-                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={solicitarLicencia}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                >
-                  Enviar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            <SolicitarLicenciaModal
+              onClose={() => setModalLicenciaOpen(false)}
+              serviceFn={reclutadorService.solicitarLicencia}
+            />
+          )
+        }
 
         {/* modal de gestionar licencias */}
         {modalLicenciasOpen && (

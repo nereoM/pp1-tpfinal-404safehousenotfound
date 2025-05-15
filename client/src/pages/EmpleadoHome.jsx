@@ -359,6 +359,7 @@ export default function EmpleadoHome() {
           {modalSolicitarLicencia && (
             <SolicitarLicenciaModal
               onClose={() => setmodalSolicitarLicencia(false)}
+              serviceFn={empleadoService.solicitarLicencia}
             />
           )}
 
