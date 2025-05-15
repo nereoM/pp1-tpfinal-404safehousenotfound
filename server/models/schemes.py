@@ -6,7 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from .extensions import db
 
-import datetime
+from datetime import datetime, timezone
 
 
 class Usuario(db.Model):
@@ -211,7 +211,7 @@ class Notificacion(db.Model):
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     mensaje = db.Column(db.String(255), nullable=False)
     leida = db.Column(db.Boolean, default=False)
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     usuario = db.relationship('Usuario', backref=db.backref('notificaciones', lazy=True))
     
