@@ -10,7 +10,7 @@ import re
 from flasgger import swag_from
 import csv
 from .candidato import allowed_image
-from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro
+from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro, predecir_rend_futuro_individual
 import pandas as pd
 
 admin_emp_bp = Blueprint("admin_emp", __name__)
@@ -657,6 +657,42 @@ def obtener_detalles_laborales_empleado(id_empleado):
             "antiguedad": detalles_laborales.antiguedad,
             "horas_capacitacion": detalles_laborales.horas_capacitacion,
         },
+    }
+
+    return jsonify(resultado), 200
+
+@admin_emp_bp.route("/empleado-<int:id_empleado>/rendimiento-futuro", methods=["GET"])
+@role_required(["admin-emp"])
+def predecir_rendimiento_futuro_empleado(id_empleado):
+    # Obtener el empleado por su ID
+    empleado = Usuario.query.get(id_empleado)
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    # Verificar si el empleado tiene detalles laborales cargados
+    detalles_laborales = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
+    if not detalles_laborales:
+        return jsonify({"error": "Este empleado no tiene detalles laborales cargados/asociados"}), 404
+
+    # Preparar los datos para la predicción
+    datos_empleado = {
+        "desempeno_previo": detalles_laborales.desempeno_previo,
+        "cantidad_proyectos": detalles_laborales.cantidad_proyectos,
+        "tamano_equipo": detalles_laborales.tamano_equipo,
+        "horas_extras": detalles_laborales.horas_extras,
+        "antiguedad": detalles_laborales.antiguedad,
+        "horas_capacitacion": detalles_laborales.horas_capacitacion,
+    }
+
+    # Realizar la predicción utilizando la función predecir_rend_futuro_individual
+    try:
+        rendimiento_futuro = predecir_rend_futuro_individual(datos_empleado)
+    except Exception as e:
+        return jsonify({"error": f"Error al predecir el rendimiento futuro: {str(e)}"}), 500
+
+    # Formatear la respuesta
+    resultado = {
+        "rendimiento_futuro": rendimiento_futuro,
     }
 
     return jsonify(resultado), 200
