@@ -1,6 +1,8 @@
 import json
 import os
 from datetime import datetime, timezone
+from models.extensions import mail
+from flask_mail import Message
 from .candidato import allowed_image
 from sqlalchemy import and_, or_
 from auth.decorators import role_required
@@ -187,6 +189,51 @@ def ver_postulantes(id_oferta):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@reclutador_bp.route("/evaluar-postulacion/<int:id_postulacion>", methods=["POST"])
+@role_required(["reclutador"])
+def evaluar_postulacion(id_postulacion):
+    id_reclutador = get_jwt_identity()
+    postulacion = Job_Application.query.get(id_postulacion)
+    data = request.get_json()
+    nuevo_estado = data.get("estado")
+    
+    if nuevo_estado not in ["aprobada", "rechazada"]:
+            return jsonify({"error": "Estado inválido"}), 400
+    
+    if not postulacion:
+        return jsonify({"error": "Postulación no encontrada"}), 404
+    
+    id_oferta = postulacion.id_oferta
+    oferta = Oferta_laboral.query.get(id_oferta)
+    
+    if not oferta:
+        return jsonify({"error": "Oferta laboral no encontrada"}), 404
+    
+    if postulacion.estado_postulacion != "pendiente":
+        return jsonify({"error": "La postulación ya ha sido procesada"}), 400
+    
+    postulacion.estado_postulacion = nuevo_estado
+    
+    db.session.commit()
+    
+    nombre_empresa = Empresa.query.get(oferta.id_empresa).nombre
+    nombre_oferta = oferta.nombre
+    
+    enviar_notificacion_candidato(postulacion.candidato.email, nuevo_estado, nombre_empresa, nombre_oferta)
+    
+    return jsonify({"message": f"Postulación {nuevo_estado} y notificación enviada"}), 200
+
+def enviar_notificacion_candidato(email_destino, estado, nombre_empresa, nombre_oferta):
+    try:
+        asunto = "Actualización de tu Postulación al puesto de " + nombre_oferta
+        cuerpo = f"Nos contactamos desde {nombre_empresa}. ¡Felicitaciones! Tu postulación a la oferta {nombre_oferta} ha sido aprobada." if estado == "aprobada" else f"Nos contactamos desde {nombre_empresa}. Lamentablemente, en esta ocasión hemos decidido avanzar con otro perfil para el puesto de {nombre_oferta}."
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
 
 @swag_from('../docs/reclutador/solicitud-licencia.yml')
 @reclutador_bp.route("/solicitud-licencia", methods=["POST"])

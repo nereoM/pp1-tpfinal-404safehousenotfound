@@ -1,7 +1,6 @@
 import json
 import os
 from datetime import datetime, timezone
-
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
