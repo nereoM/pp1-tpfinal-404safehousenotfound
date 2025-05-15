@@ -651,4 +651,28 @@ def obtener_rendimiento_futuro(id_empleado):
     except Exception as e:
         print(f"Error en /rendimiento-futuro: {e}")
         return jsonify({"error": str(e)}), 500
+    
+@manager_bp.route("/cerrar_oferta/<int:id_oferta>", methods=["PUT"])
+@role_required(["manager"])
+def cerrar_oferta(id_oferta):
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+
+    if not manager:
+        return jsonify({"error": "Manager no encontrado"}), 404
+
+    oferta = Oferta_laboral.query.get(id_oferta)
+    if not oferta:
+        return jsonify({"error": "Oferta no encontrada"}), 404
+
+    if oferta.id_empresa != manager.id_empresa:
+        return jsonify({"error": "No tenés permisos para cerrar esta oferta"}), 403
+
+    if not oferta.is_active:
+        return jsonify({"error": "La oferta ya está cerrada"}), 400
+
+    oferta.is_active = False
+    db.session.commit()
+
+    return jsonify({"message": "Oferta cerrada exitosamente"}), 200
 
