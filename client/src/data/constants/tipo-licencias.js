@@ -10,4 +10,5 @@ export const licenciasLaborales = [
   { label: "Matrimonio", value: "matrimonio" },
   { label: "Donación de sangre", value: "donacion_sangre" },
   { label: "Mudanza", value: "mudanza" },
+  { label: "Otro", value: "otro" }
 ];

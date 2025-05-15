@@ -61,7 +61,7 @@ export function SolicitarLicenciaModal({ onClose, serviceFn }) {
                   <ChevronsUpDown className="opacity-50" />
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
+              <PopoverContent className="p-0">
                 <Command>
                   <CommandInput
                     placeholder="Buscar tipo de licencia..."
