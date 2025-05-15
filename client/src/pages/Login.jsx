@@ -51,7 +51,7 @@ export default function Login() {
     setLoginError("");
     setLoginSuccess(false);
   };
-  
+
   const resetRegisterFields = () => {
     setRegisterName("");
     setRegisterSurname("");
@@ -62,12 +62,12 @@ export default function Login() {
     setRegisterError("");
     setRegisterSuccess(false);
   };
-  
+
 
 
   const handleSubmitRegister = async (e) => {
     e.preventDefault();
-    setLoadingRegister(true); 
+    setLoadingRegister(true);
     setRegisterError("");
     setRegisterSuccess(false);
 
@@ -76,20 +76,20 @@ export default function Login() {
       setLoadingRegister(false);
       return;
     }
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(registerEmail)) {
       setRegisterError('El correo electrónico no es válido.');
       setLoadingRegister(false);
       return;
     }
-    
+
     if (registerUsername.length < 4) {
       setRegisterError('El nombre de usuario debe tener al menos 4 caracteres.');
       setLoadingRegister(false);
       return;
     }
-    
+
     // Validación de longitud mínima de la contraseña (8 caracteres)
     if (registerPassword.length < 8) {
       setRegisterError('La contraseña debe tener al menos 8 caracteres.');
@@ -120,12 +120,12 @@ export default function Login() {
       setLoadingRegister(false);
       return;
     }
-    
+
     if (registerPassword !== registerRepeatPassword) {
       setRegisterError("Las contraseñas no coinciden.");
-      setLoadingRegister(false); 
+      setLoadingRegister(false);
       return;
-    }    
+    }
 
     // Si pasa todas las validaciones
     try {
@@ -150,61 +150,61 @@ export default function Login() {
       setRegisterError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
 
-  finally {
-    setLoadingRegister(false);
-  }
+    finally {
+      setLoadingRegister(false);
+    }
   };
 
   const handleSubmitLogin = async (e) => {
     e.preventDefault();
-    setLoadingLogin(true); 
+    setLoadingLogin(true);
     setLoginError("");
     setLoginSuccess(false);
-  
+
     if (!loginUsername || !loginPassword) {
       setLoginError("Usuario/email y contraseña requeridos");
       setLoadingLogin(false);
       return;
     }
-    
+
     if (loginUsername.length < 4) {
       setLoginError('El nombre de usuario debe tener al menos 4 caracteres.');
       setLoadingLogin(false);
       return;
     }
+
+    /*
+    // Validación de longitud mínima de la contraseña (8 caracteres)
+    if (loginPassword.length < 8) {
+      setLoginError('La contraseña debe tener al menos 8 caracteres.');
+      setLoadingLogin(false);
+      return;
+    }
   
-  /*
-  // Validación de longitud mínima de la contraseña (8 caracteres)
-  if (loginPassword.length < 8) {
-    setLoginError('La contraseña debe tener al menos 8 caracteres.');
-    setLoadingLogin(false);
-    return;
-  }
-
-  // Validación de mayúscula
-  const upperCaseRegex = /[A-Z]/;
-  if (!upperCaseRegex.test(loginPassword)) {
-    setLoginError('La contraseña debe incluir al menos una letra mayúscula.');
-    setLoadingLogin(false);
-    return;
-  }
-
-  // Validación de número
-  const numberRegex = /\d/;
-  if (!numberRegex.test(loginPassword)) {
-    setLoginError('La contraseña debe incluir al menos un número.');
-    setLoadingLogin(false);
-    return;
-  }
-
-  // Validación de carácter especial
-  const specialCharRegex = /[^A-Za-z0-9]/;
-  if (!specialCharRegex.test(loginPassword)) {
-    setLoginError('La contraseña debe incluir al menos un carácter especial.');
-    setLoadingLogin(false);
-    return;
-  }
-  */
+    // Validación de mayúscula
+    const upperCaseRegex = /[A-Z]/;
+    if (!upperCaseRegex.test(loginPassword)) {
+      setLoginError('La contraseña debe incluir al menos una letra mayúscula.');
+      setLoadingLogin(false);
+      return;
+    }
+  
+    // Validación de número
+    const numberRegex = /\d/;
+    if (!numberRegex.test(loginPassword)) {
+      setLoginError('La contraseña debe incluir al menos un número.');
+      setLoadingLogin(false);
+      return;
+    }
+  
+    // Validación de carácter especial
+    const specialCharRegex = /[^A-Za-z0-9]/;
+    if (!specialCharRegex.test(loginPassword)) {
+      setLoginError('La contraseña debe incluir al menos un carácter especial.');
+      setLoadingLogin(false);
+      return;
+    }
+    */
 
     setLoginError("");
     setLoginSuccess(false);
@@ -249,11 +249,11 @@ export default function Login() {
         navigate("/admin/home");
       } else if (user.roles.includes("reclutador")) {
         navigate("/reclutador/home");
-      } else if (user.roles.includes("manager")) { 
-        navigate("/manager/home"); 
-      } else if (user.roles.includes("admin-emp")) { 
-        navigate("/adminemp/home"); 
-      } else if (user.roles.includes("empleado")){
+      } else if (user.roles.includes("manager")) {
+        navigate("/manager/home");
+      } else if (user.roles.includes("admin-emp")) {
+        navigate("/adminemp/home");
+      } else if (user.roles.includes("empleado")) {
         navigate("/empleado/home");
       } else {
         navigate("/candidato/home");
@@ -262,9 +262,9 @@ export default function Login() {
     } catch (err) {
       setLoginError(err.message || "Ocurrió un error. Intentá nuevamente.");
     }
-    
+
     finally {
-      setLoadingLogin(false); 
+      setLoadingLogin(false);
     }
   };
 
@@ -274,15 +274,15 @@ export default function Login() {
       e.preventDefault();
       history.pushState(null, '', window.location.href);
     };
-  
+
     window.history.pushState(null, '', window.location.href);
     window.addEventListener('popstate', handlePopState);
-  
+
     return () => {
       window.removeEventListener('popstate', handlePopState);
     };
   }, []);
-  
+
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
       {/* Botón Volver */}
@@ -320,7 +320,7 @@ export default function Login() {
       </div>
 
       {/* Formulario Login/Registro */}
-      <div className="relative w-full max-w-md h-[650px] z-10">
+      <div className="relative w-full max-w-md h-[750px] z-10">
         <div className={`w-full h-full relative transition-transform duration-700 ${flipped ? "rotate-y-180" : ""}`} style={{ transformStyle: "preserve-3d" }}>
           {/* Formulario Login */}
           <div className="absolute w-full h-full backface-hidden z-20">
@@ -341,8 +341,8 @@ export default function Login() {
 
               {loginError && <p id="login-error" className="text-red-500 text-sm text-center">{loginError}</p>}
 
-              <button id="login-button"  type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"disabled={loadingLogin}>
-              {loadingLogin ? "Cargando..." : "Ingresar"}
+              <button id="login-button" type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium" disabled={loadingLogin}>
+                {loadingLogin ? "Cargando..." : "Ingresar"}
               </button>
 
               {/* logeo google */}
@@ -377,7 +377,7 @@ export default function Login() {
                         navigate("/admin/home");
                       } else if (user.roles.includes("rrhh")) {
                         navigate("/reclutador/home");
-                      } else if (user.roles.includes("admin-emp")) { 
+                      } else if (user.roles.includes("admin-emp")) {
                         navigate("/adminemp/home"); //
                       } else {
                         navigate("/candidato/home");
@@ -394,7 +394,7 @@ export default function Login() {
 
               <div className="text-sm text-center text-gray-300">
                 ¿No tenés usuario?{' '}
-                <button id="toggle-to-register" type="button" onClick={() =>  {resetLoginFields();  setFlipped(true)}} className="text-indigo-500 hover:underline">
+                <button id="toggle-to-register" type="button" onClick={() => { resetLoginFields(); setFlipped(true) }} className="text-indigo-500 hover:underline">
                   Registrate acá
                 </button>
               </div>
@@ -405,7 +405,9 @@ export default function Login() {
           <div className="absolute w-full h-full backface-hidden rotate-y-180">
             <form onSubmit={handleSubmitRegister} className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20">
               <h2 className="text-2xl font-semibold text-center text-white">Registrarse</h2>
-
+              <p className="mt-2 text-sm text-center text-white">
+                Complete todos los campos. La contraseña debe tener al menos 8 caracteres, una mayúscula, una minuscula, un número y un carácter especial.
+              </p>
               <input type="text" placeholder="Nombre" value={registerName}
                 onChange={(e) => setRegisterName(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -441,13 +443,13 @@ export default function Login() {
               {registerError && <p id="register-error" className="text-red-500 text-sm text-center">{registerError}</p>}
               {registerSuccess && <p className="text-green-500 text-sm text-center">¡Registro exitoso! Verifique su email</p>}  {/* Mensaje de éxito */}
 
-              <button id="register-button" type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium"disabled={loadingRegister}>
-              {loadingRegister ? "Cargando..." : "Registrarse"}
+              <button id="register-button" type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium" disabled={loadingRegister}>
+                {loadingRegister ? "Cargando..." : "Registrarse"}
               </button>
 
               <div className="text-sm text-center text-gray-300">
                 ¿Ya tienes cuenta?{' '}
-                <button type="button" id="toggle-to-login" onClick={() => {resetRegisterFields();  setFlipped(false);}} className="text-indigo-500 hover:underline">
+                <button type="button" id="toggle-to-login" onClick={() => { resetRegisterFields(); setFlipped(false); }} className="text-indigo-500 hover:underline">
                   Inicia sesión acá
                 </button>
               </div>
