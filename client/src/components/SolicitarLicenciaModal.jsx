@@ -1,4 +1,16 @@
+import { Check, ChevronsUpDown } from "lucide-react";
+import { licenciasLaborales } from "../data/constants/tipo-licencias";
 import { useSolicitarLicencia } from "../hooks/useSolicitarLicencia";
+import { cn } from "../lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./shadcn/Command";
+import { Popover, PopoverContent, PopoverTrigger } from "./shadcn/Popover";
 
 export function SolicitarLicenciaModal({ onClose, serviceFn }) {
   const {
@@ -11,7 +23,7 @@ export function SolicitarLicenciaModal({ onClose, serviceFn }) {
     serviceFn,
     onSuccess() {
       onClose();
-    }
+    },
   });
 
   const handleSubmit = (e) => {
@@ -32,16 +44,56 @@ export function SolicitarLicenciaModal({ onClose, serviceFn }) {
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <div>
-              <label className="text-sm font-medium">Tipo de licencia</label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded"
-                placeholder="vacaciones, enfermedad, etc."
-                value={formState.tipoLicencia}
-                onChange={(e) => updateTipoLicencia(e.target.value)}
-              />
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  role="combobox"
+                  className={cn(
+                    "flex justify-between w-full p-2 border border-gray-300 rounded",
+                    !formState.tipoLicencia && "text-muted-foreground"
+                  )}
+                >
+                  {formState.tipoLicencia
+                    ? licenciasLaborales.find(
+                        (language) => language.value === formState.tipoLicencia
+                      )?.label
+                    : "Selecciona el tipo de licencia"}
+                  <ChevronsUpDown className="opacity-50" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <Command>
+                  <CommandInput
+                    placeholder="Buscar tipo de licencia..."
+                    className="h-9"
+                  />
+                  <CommandList>
+                    <CommandEmpty>Tipo de licencia no encontrada.</CommandEmpty>
+                    <CommandGroup>
+                      {licenciasLaborales.map((language) => (
+                        <CommandItem
+                          value={language.label}
+                          key={language.value}
+                          onSelect={() => {
+                            updateTipoLicencia(language.value);
+                          }}
+                        >
+                          {language.label}
+                          <Check
+                            className={cn(
+                              "ml-auto",
+                              language.value === formState.tipoLicencia
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <div>
               <label className="text-sm font-medium">
                 Descripción (Opcional)
