@@ -517,6 +517,57 @@ def register_employees_from_csv(file_path):
         db.session.commit()
         
         return resultado
+    
+@admin_emp_bp.route("/mis-empleados", methods=["GET"])
+@role_required(["admin-emp"])
+def obtener_empleados_a_cargo():
+    id_admin_emp = get_jwt_identity()
+
+    # Obtener el admin-emp autenticado
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp:
+        return jsonify({"error": "Admin-emp no encontrado"}), 404
+
+    # Obtener los empleados a cargo del admin-emp
+    empleados = Usuario.query.filter_by(id_empresa=admin_emp.id_empresa).all()
+
+    # Formatear los datos de los empleados
+    resultado = [
+        {
+            "id": empleado.id,
+            "nombre": empleado.nombre,
+            "apellido": empleado.apellido,
+        }
+        for empleado in empleados
+    ]
+
+    return jsonify(resultado), 200
+
+@admin_emp_bp.route("/empleado/<int:id_empleado>", methods=["GET"])
+@role_required(["admin-emp"])
+def obtener_informacion_empleado(id_empleado):
+    # Obtener el empleado por su ID
+    empleado = Usuario.query.get(id_empleado)
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    # Obtener el superior del empleado
+    superior = Usuario.query.get(empleado.id_superior)
+
+    # Formatear la respuesta
+    resultado = {
+        "username": empleado.username,
+        "correo": empleado.correo,
+        "activo": "Activo" if empleado.activo else "Inactivo",
+        "superior": {
+            "id": superior.id if superior else None,
+            "nombre": superior.nombre if superior else None,
+            "apellido": superior.apellido if superior else None,
+        },
+        "roles": [rol.slug for rol in empleado.roles]
+    }
+
+    return jsonify(resultado), 200
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'csv'}
