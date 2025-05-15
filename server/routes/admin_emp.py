@@ -861,10 +861,21 @@ def obtener_empleados_rendimiento_futuro():
         if df_predicho is None:
             print("El DataFrame predicho es None. Algo falló en la predicción.")
             return jsonify({"error": "Error al realizar la predicción"}), 500
+        
+        alto_riesgo = df_predicho[(df_predicho['rendimiento_futuro_predicho'] >= 7.5)]
+        medio_riesgo = df_predicho[(df_predicho['rendimiento_futuro_predicho'] >= 5) & (df_predicho['rendimiento_futuro_predicho'] < 7.5)]
+        bajo_riesgo = df_predicho[(df_predicho['rendimiento_futuro_predicho'] < 5)]
+        
+        resumen_riesgo = {
+            "alto_riesgo": len(alto_riesgo),
+            "medio_riesgo": len(medio_riesgo),
+            "bajo_riesgo": len(bajo_riesgo)
+        }
 
         return jsonify({
             "message": "Datos cargados correctamente",
-            "empleados": df_predicho.to_dict(orient='records')
+            "empleados": df_predicho.to_dict(orient='records'),
+            "resumen_riesgo": resumen_riesgo
         }), 200
 
     except Exception as e:
