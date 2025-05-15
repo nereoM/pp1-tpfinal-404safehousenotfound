@@ -10,7 +10,12 @@ import {
   CommandItem,
   CommandList,
 } from "./shadcn/Command";
-import { Popover, PopoverContent, PopoverTrigger } from "./shadcn/Popover";
+import {
+  Popover,
+  PopoverClose,
+  PopoverContent,
+  PopoverTrigger,
+} from "./shadcn/Popover";
 
 export function SolicitarLicenciaModal({ onClose, service }) {
   const {
@@ -79,15 +84,17 @@ export function SolicitarLicenciaModal({ onClose, service }) {
                             updateTipoLicencia(language.value);
                           }}
                         >
-                          {language.label}
-                          <Check
-                            className={cn(
-                              "ml-auto",
-                              language.value === formState.tipoLicencia
-                                ? "opacity-100"
-                                : "opacity-0"
-                            )}
-                          />
+                          <PopoverClose className="flex justify-between w-full">
+                            {language.label}
+                            <Check
+                              className={cn(
+                                "ml-auto",
+                                language.value === formState.tipoLicencia
+                                  ? "opacity-100"
+                                  : "opacity-0"
+                              )}
+                            />
+                          </PopoverClose>
                         </CommandItem>
                       ))}
                     </CommandGroup>
