@@ -22,8 +22,8 @@ export const reclutadorService = {
     const data = await fetcher({ url });
     return data;
   },
-  async subirCertificadoLicencia({ idLicencia, file }) {
-    const url = `${API_URL}/api/subir-certificado/${idLicencia}`;
+  async subirCertificado({ file }) {
+    const url = `${API_URL}/api/subir-certificado`;
 
     const formData = new FormData();
     formData.append("file", file);
@@ -34,7 +34,7 @@ export const reclutadorService = {
     };
 
     const data = await fetcher({ url, options });
-    return data.certificado_url;
+    return data;
   },
   async solicitarLicencia({ tipoLicencia, descripcion }) {
     const url = `${API_URL}/api/solicitud-licencia`;

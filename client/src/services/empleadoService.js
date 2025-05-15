@@ -3,8 +3,8 @@ import { fetcher } from "../common/fetcher";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const empleadoService = {
-  async subirCertificado({ idLicencia, file }) {
-    const url = `${API_URL}/api/subir-certificado-emp/${idLicencia}`;
+  async subirCertificado({ file }) {
+    const url = `${API_URL}/api/subir-certificado-emp`;
 
     const formData = new FormData();
     formData.append("file", file);
