@@ -526,6 +526,7 @@ def postularme():
         id_cv=id_cv,
         is_apto=predecir_cv(oferta.palabras_clave, cv),
         fecha_postulacion=datetime.now(timezone.utc),
+        estado_postulacion="pendiente",
     )
 
     db.session.add(nueva_postulacion)

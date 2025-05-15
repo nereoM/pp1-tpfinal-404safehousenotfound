@@ -152,6 +152,7 @@ class Job_Application(db.Model):
     id_cv = db.Column(db.Integer, db.ForeignKey("cvs.id"), nullable=False)
     is_apto = db.Column(db.Boolean, nullable=False)
     fecha_postulacion = db.Column(db.DateTime, default=db.func.now())
+    estado_postulacion = db.Column(db.String(50), nullable=False)
 
     candidato = db.relationship("Usuario", backref="cv_files")
 

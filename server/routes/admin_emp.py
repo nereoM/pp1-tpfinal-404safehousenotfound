@@ -518,8 +518,7 @@ def registrar_empleados():
 def register_employees_from_csv(file_path):
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
-        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena', 'desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
-                            'horas_extras', 'antiguedad', 'horas_capacitacion'}
+        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena'}
         
         resultado = []
 

@@ -1,9 +1,13 @@
 import json
 import secrets
 import re
+import csv
+import pandas as pd
+from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
+from werkzeug.utils import secure_filename
 from models.extensions import db
 from flasgger import swag_from
 from datetime import datetime
@@ -16,6 +20,7 @@ from models.schemes import (
     Oferta_laboral,
     Rol,
     Usuario,
+    RendimientoEmpleado,
 )
 from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro_individual
 
@@ -37,10 +42,18 @@ def validar_fecha(fecha_str):
 def manager_home():
     return jsonify({"message": "Bienvenido a la Pagina de Inicio de Manager"}), 200
 
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 UPLOAD_FOLDER_IMG = os.path.join(os.getcwd(), "uploads", "fotos")
 ALLOWED_IMG_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
 manager_bp.image_upload_folder = UPLOAD_FOLDER_IMG
 os.makedirs(UPLOAD_FOLDER_IMG, exist_ok=True)
+
+UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads", "info_laboral")
+ALLOWED_EXTENSIONS = {"csv"}
+manager_bp.upload_folder = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @manager_bp.route("/subir-image-manager", methods=["POST"])
 @role_required(["manager"])
@@ -651,6 +664,162 @@ def obtener_rendimiento_futuro(id_empleado):
     except Exception as e:
         print(f"Error en /rendimiento-futuro: {e}")
         return jsonify({"error": str(e)}), 500
+    
+    
+
+@manager_bp.route("/subir-info-laboral-analistas", methods=["POST"])
+@role_required(["manager"])
+def subir_info_laboral_empleados():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+        file.save(file_path)
+        
+        try:
+            resultado = registrar_info_laboral_empleados(file_path)
+            if "error" in resultado:
+                return jsonify(resultado), 400
+            return jsonify({
+                "message": "Información laboral registrada exitosamente",
+                "total_empleados": len(resultado),
+                "empleados": resultado
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
+    return jsonify({'error': 'Invalid file format'}), 400
+            
+            
+def registrar_info_laboral_empleados(file_path):
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        required_fields = {'id_empleado', 'desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
+                            'horas_extras', 'antiguedad', 'horas_capacitacion'}
+        
+        resultado = []
+        for row in reader:
+            if not required_fields.issubset(row.keys()):
+                return {"error": "El archivo CSV no contiene las columnas requeridas: id_empleado, desempeno_previo, cantidad_proyectos, tamano_equipo, horas_extras, antiguedad, horas_capacitacion"}
+    
+            id_empleado = int(row['id_empleado'].strip())
+            desempeno_previo = float(row['desempeno_previo'].strip())
+            cantidad_proyectos = int(row['cantidad_proyectos'].strip())
+            tamano_equipo = int(row['tamano_equipo'].strip())
+            horas_extras = int(row['horas_extras'].strip())
+            antiguedad = int(row['antiguedad'].strip())
+            horas_capacitacion = int(row['horas_capacitacion'].strip())
+            
+            if not Usuario.query.get(id_empleado):
+                return {"error": f"El empleado con ID {id_empleado} no existe"}
+            
+            id_manager = get_jwt_identity()
+            manager = Usuario.query.get(id_manager)
+            if not manager or not manager.id_empresa:
+                return {"error": "El manager no tiene una empresa asociada"}
+            
+            new_employee_performance = RendimientoEmpleado (
+                    id_usuario=id_empleado,
+                    desempeno_previo=desempeno_previo,
+                    cantidad_proyectos=cantidad_proyectos,
+                    tamano_equipo=tamano_equipo,
+                    horas_extras=horas_extras,
+                    antiguedad=antiguedad,
+                    horas_capacitacion=horas_capacitacion
+                )
+            
+            db.session.add(new_employee_performance)
+            resultado.append({
+                "id_empleado": id_empleado,
+                "desempeno_previo": desempeno_previo,
+                "cantidad_proyectos": cantidad_proyectos,
+                "tamano_equipo": tamano_equipo,
+                "horas_extras": horas_extras,
+                "antiguedad": antiguedad,
+                "horas_capacitacion": horas_capacitacion
+            })
+        db.session.commit()
+        return resultado
+
+
+@manager_bp.route("/empleados-rendimiento-analistas", methods=["GET"])
+@role_required(["manager"])
+def obtener_empleados_rendimiento_futuro():
+    try:
+        id_manager = get_jwt_identity()
+
+        manager = Usuario.query.get(id_manager)
+
+        if not manager or not manager.id_empresa:
+            return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+        empleados = (
+            db.session.query(Usuario, RendimientoEmpleado)
+            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .filter(Usuario.id_empresa == manager.id_empresa)
+            .all()
+        )
+
+        if not empleados:
+            return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
+
+        datos_empleados = []
+
+        for empleado, rendimiento in empleados:
+            datos_empleados.append({
+                "id_usuario": empleado.id,
+                "nombre": empleado.nombre,
+                "desempeno_previo": rendimiento.desempeno_previo,
+                "cantidad_proyectos": rendimiento.cantidad_proyectos,
+                "tamano_equipo": rendimiento.tamano_equipo,
+                "horas_extras": rendimiento.horas_extras,
+                "antiguedad": rendimiento.antiguedad,
+                "horas_capacitacion": rendimiento.horas_capacitacion
+            })
+
+        df = pd.DataFrame(datos_empleados)
+
+        if df.empty:
+            print("El DataFrame está vacío. No se encontraron datos para predecir.")
+            return jsonify({"error": "No se encontraron empleados con datos suficientes para predecir"}), 404
+
+        df_predicho = predecir_rend_futuro(df)
+
+        if df_predicho is None:
+            print("El DataFrame predicho es None. Algo falló en la predicción.")
+            return jsonify({"error": "Error al realizar la predicción"}), 500
+        
+        alto_riesgo = df_predicho[(df_predicho['rendimiento_futuro_predicho'] >= 7.5)]
+        medio_riesgo = df_predicho[(df_predicho['rendimiento_futuro_predicho'] >= 5) & (df_predicho['rendimiento_futuro_predicho'] < 7.5)]
+        bajo_riesgo = df_predicho[(df_predicho['rendimiento_futuro_predicho'] < 5)]
+        
+        resumen_riesgo = {
+            "alto_riesgo": len(alto_riesgo),
+            "medio_riesgo": len(medio_riesgo),
+            "bajo_riesgo": len(bajo_riesgo)
+        }
+
+        return jsonify({
+            "message": "Datos cargados correctamente",
+            "empleados": df_predicho.to_dict(orient='records'),
+            "resumen_riesgo": resumen_riesgo
+        }), 200
+
+    except Exception as e:
+        print(f"Error en /empleados-rendimiento: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+    
+    
     
 @manager_bp.route("/cerrar_oferta/<int:id_oferta>", methods=["PUT"])
 @role_required(["manager"])
