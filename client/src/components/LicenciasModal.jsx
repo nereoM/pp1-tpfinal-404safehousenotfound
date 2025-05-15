@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { empleadoService } from "../services/empleadoService";
-import { SubirCertificadoModal } from "./SubirCertificado";
 
 export function LicenciasModal({ onClose }) {
   const [licencias, setLicencias] = useState([]);
@@ -87,13 +86,6 @@ export function LicenciasModal({ onClose }) {
           </div>
         </div>
       </div>
-
-      {licenciaSeleccionada && (
-        <SubirCertificadoModal
-          onClose={() => setLicenciaSeleccionada(null)}
-          idLicencia={licenciaSeleccionada}
-        />
-      )}
     </>
   );
 }

@@ -12,15 +12,16 @@ import {
 } from "./shadcn/Command";
 import { Popover, PopoverContent, PopoverTrigger } from "./shadcn/Popover";
 
-export function SolicitarLicenciaModal({ onClose, serviceFn }) {
+export function SolicitarLicenciaModal({ onClose, service }) {
   const {
     solicitarLicencia,
     topMessage,
     updateDescription,
     updateTipoLicencia,
+    updateCertificado,
     formState,
   } = useSolicitarLicencia({
-    serviceFn,
+    service,
     onSuccess() {
       onClose();
     },
@@ -105,6 +106,22 @@ export function SolicitarLicenciaModal({ onClose, serviceFn }) {
                 onChange={(e) => updateDescription(e.target.value)}
               ></textarea>
             </div>
+
+            {(formState.tipoLicencia && formState.tipoLicencia !== "vacaciones") && (
+              <div>
+                <label className="text-sm font-medium">
+                  Adjuntar certificado en formato PDF
+                </label>
+                <input
+                  className="w-full p-2 border border-gray-300 rounded"
+                  accept=".pdf"
+                  type="file"
+                  onChange={(e) => {
+                    updateCertificado(e.target.files[0]);
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

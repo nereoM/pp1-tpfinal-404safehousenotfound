@@ -1,12 +1,13 @@
 import { useState } from "react";
 
-const MIN_LENGTH = 5;
+const MIN_LENGTH = 4;
 
-export function useSolicitarLicencia({ onSuccess, serviceFn }) {
+export function useSolicitarLicencia({ onSuccess, service }) {
   const [topMessage, setTopMessage] = useState("");
   const [formState, setFormState] = useState({
     descripcion: "",
     tipoLicencia: "",
+    certificado: null,
   });
 
   const solicitarLicencia = () => {
@@ -17,18 +18,29 @@ export function useSolicitarLicencia({ onSuccess, serviceFn }) {
       return;
     }
 
+    // Si el tipo de licencia es distinto a vacaciones, el certificado es obligatorio
+    if (formState.tipoLicencia !== "vacaciones" && !formState.certificado) {
+      setTopMessage(`El certificado es obligatorio`);
+      return;
+    }
+
     // la funcion esta parametrizada, porque si usaria empleadoService.solicitarLicencia,
     // por abajo estaria haciendo una peticion al endpoint exclusivo del empleado,
     // por lo tanto cuando se use este hook en la page del reclutador estaria siempre tirando error
-    serviceFn(formState)
-      .then(() => {
-        setTopMessage("Solicitud creada correctamente");
-        setFormState({ descripcion: "", tipoLicencia: "" });
-        onSuccess();
-      })
-      .catch((err) => {
+    service.subirCertificado({ file: formState.certificado })
+      .then(response => {
+        service.solicitarLicencia({ ...formState, certificadoUrl: response.certificado_url })
+          .then(() => {
+            setTopMessage("Solicitud creada correctamente");
+            setFormState({ descripcion: "", tipoLicencia: "" });
+            onSuccess();
+          })
+          .catch((err) => {
+            setTopMessage(err.message);
+          })
+      }).catch((err) => {
         setTopMessage(err.message);
-      });
+      })
   }
 
   const updateDescription = (newDescription) => {
@@ -39,5 +51,13 @@ export function useSolicitarLicencia({ onSuccess, serviceFn }) {
     setFormState({ ...formState, tipoLicencia: newTipoLicencia })
   }
 
-  return { topMessage, solicitarLicencia, updateDescription, updateTipoLicencia, formState }
+  const updateCertificado = (certificado) => {
+    if (certificado.type !== "application/pdf") {
+      setTopMessage("Solo se permite subir archivos PDF.");
+      return;
+    }
+    setFormState({ ...formState, certificado })
+  }
+
+  return { topMessage, solicitarLicencia, updateDescription, updateTipoLicencia, formState, updateCertificado }
 }

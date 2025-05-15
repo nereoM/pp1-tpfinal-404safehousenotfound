@@ -520,7 +520,7 @@ const openCv = (idCv) => {
         {modalLicenciaOpen && (
             <SolicitarLicenciaModal
               onClose={() => setModalLicenciaOpen(false)}
-              serviceFn={reclutadorService.solicitarLicencia}
+              service={reclutadorService}
             />
           )
         }
