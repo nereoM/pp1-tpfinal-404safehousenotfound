@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, FileCheck, UploadCloud } from "lucide-react";
 import { licenciasLaborales } from "../data/constants/tipo-licencias";
 import { useSolicitarLicencia } from "../hooks/useSolicitarLicencia";
 import { cn } from "../lib/utils";
@@ -107,21 +107,41 @@ export function SolicitarLicenciaModal({ onClose, service }) {
               ></textarea>
             </div>
 
-            {(formState.tipoLicencia && formState.tipoLicencia !== "vacaciones") && (
-              <div>
-                <label className="text-sm font-medium">
-                  Adjuntar certificado en formato PDF
-                </label>
-                <input
-                  className="w-full p-2 border border-gray-300 rounded"
-                  accept=".pdf"
-                  type="file"
-                  onChange={(e) => {
-                    updateCertificado(e.target.files[0]);
-                  }}
-                />
-              </div>
-            )}
+            {formState.tipoLicencia &&
+              formState.tipoLicencia !== "vacaciones" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Adjuntar certificado en formato PDF
+                  </label>
+                  <div className="relative border-2 border-dashed border-gray-300 rounded-lg p-4 flex items-center justify-center hover:border-primary-500 transition-colors cursor-pointer">
+                    <input
+                      id="certificado-upload"
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      accept=".pdf"
+                      type="file"
+                      onChange={(e) => {
+                        if (e.target.files.length > 0) {
+                          updateCertificado(e.target.files[0]);
+                        }
+                      }}
+                    />
+                    <div className="flex flex-col items-center text-gray-500">
+                      <UploadCloud className="h-8 w-8 mb-1" />
+                      <span className="text-sm">
+                        Haz click o arrastra tu certificado PDF aquí
+                      </span>
+                    </div>
+                  </div>
+                  {formState.certificado && (
+                    <div className="mt-2 flex items-center space-x-2 text-green-600">
+                      <FileCheck className="w-5 h-5" />
+                      <span className="text-sm">
+                        {formState.certificado.name}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
