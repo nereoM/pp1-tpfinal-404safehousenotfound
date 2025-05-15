@@ -1,15 +1,12 @@
 tags:
   - Empleado
-summary: Subir certificado de licencia
-description: Permite al empleado subir un certificado para una licencia aprobada.
+summary: Subir certificado
+description: Permite al empleado subir un archivo de certificado en formato PDF. No requiere ID de licencia.
 produces:
   - application/json
+consumes:
+  - multipart/form-data
 parameters:
-  - in: path
-    name: id_licencia
-    required: true
-    type: integer
-    description: ID de la licencia para la cual se va a subir el certificado
   - in: formData
     name: file
     required: true
@@ -26,31 +23,15 @@ responses:
           example: "Certificado subido exitosamente"
         certificado_url:
           type: string
-          example: "/uploads/certificados/licencia_12345.pdf"
+          example: "/uploads/certificados/certificado_20240515123000.pdf"
   400:
-    description: Error en el archivo subido o en el estado de la licencia
+    description: Error en el archivo subido
     schema:
       type: object
       properties:
         error:
           type: string
-          example: "Solo se pueden subir certificados para licencias aprobadas"
-  403:
-    description: El empleado no tiene permiso para modificar la licencia
-    schema:
-      type: object
-      properties:
-        error:
-          type: string
-          example: "No tienes permiso para modificar esta licencia"
-  404:
-    description: Licencia no encontrada
-    schema:
-      type: object
-      properties:
-        error:
-          type: string
-          example: "Licencia no encontrada"
+          example: "Formato de archivo no permitido. Solo se aceptan archivos PDF"
 securityDefinitions:
   cookieAuth:
     type: apiKey
