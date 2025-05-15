@@ -24,7 +24,7 @@ export const empleadoService = {
       body: JSON.stringify({
         lic_type: tipoLicencia,
         description: descripcion,
-        certificado_url: certificadoUrl
+        certificado_url: certificadoUrl,
       }),
       method: "POST",
       headers: {
@@ -55,7 +55,7 @@ export const empleadoService = {
    * @param {string} [params.modalidad] - Modalidad de trabajo (remoto, presencial, híbrido).
    * @param {string} [params.location] - Ubicación de la oferta.
    * @param {string} [params.experience_level] - Nivel de experiencia requerido.
-   * 
+   *
    * @returns {Promise<OfertasEmpresa>} Resolves con un objeto que contiene los datos de la empresa y un array de ofertas.
    */
   async obtenerOfertasEmpresa({
@@ -120,7 +120,7 @@ export const empleadoService = {
   },
   /**
    * Obtiene ofertas labores recomendadas a partir del cv subido por el empleado
-   * 
+   *
    * @returns {Promise<[OfertaRecomendada]>}
    */
   async obtenerRecomendaciones() {
@@ -181,12 +181,11 @@ export const empleadoService = {
     return data;
   },
   async postularse({ idOferta, idCv }) {
-    const url = `${API_URL}/api/postularme-empleado`;
+    const url = `${API_URL}/api/postularme-empleado/${idOferta}`;
 
     const options = {
       method: "POST",
       body: JSON.stringify({
-        id_oferta: idOferta,
         id_cv: idCv,
       }),
       headers: {
@@ -204,9 +203,9 @@ export const empleadoService = {
     formData.append("file", file);
 
     const options = {
-      method: 'POST',
+      method: "POST",
       body: formData,
-    }
+    };
 
     const data = await fetcher({ url, options });
     return data;
@@ -215,9 +214,9 @@ export const empleadoService = {
    * @returns {Promise<EstadoPostulacion[]>}
    */
   async obtenerEstadoPostulaciones() {
-    const url = `${API_URL}/api/estado-postulaciones-empleado`
+    const url = `${API_URL}/api/estado-postulaciones-empleado`;
 
-    const data = await fetcher({ url })
-    return data
-  }
+    const data = await fetcher({ url });
+    return data;
+  },
 };
