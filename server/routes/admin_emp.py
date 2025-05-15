@@ -396,6 +396,89 @@ def ver_certificado(certificado_url):
         return jsonify({"error": str(e)}), 500
     
     
+@admin_emp_bp.route("/subir-info-laboral-empleados", methods=["POST"])
+@role_required(["admin-emp"])
+def subir_info_laboral_empleados():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+
+        file_path = os.path.join(UPLOAD_FOLDER_EMPLEADOS, filename)
+
+        file.save(file_path)
+        
+        try:
+            resultado = registrar_info_laboral_empleados(file_path)
+            if "error" in resultado:
+                return jsonify(resultado), 400
+            return jsonify({
+                "message": "Información laboral registrada exitosamente",
+                "total_empleados": len(resultado),
+                "empleados": resultado
+            })
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+    
+    return jsonify({'error': 'Invalid file format'}), 400
+            
+def registrar_info_laboral_empleados(file_path):
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        required_fields = {'id_empleado', 'desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
+                            'horas_extras', 'antiguedad', 'horas_capacitacion'}
+        
+        resultado = []
+        for row in reader:
+            if not required_fields.issubset(row.keys()):
+                return {"error": "El archivo CSV no contiene las columnas requeridas: id_empleado, desempeno_previo, cantidad_proyectos, tamano_equipo, horas_extras, antiguedad, horas_capacitacion"}
+    
+            id_empleado = int(row['id_empleado'].strip())
+            desempeno_previo = float(row['desempeno_previo'].strip())
+            cantidad_proyectos = int(row['cantidad_proyectos'].strip())
+            tamano_equipo = int(row['tamano_equipo'].strip())
+            horas_extras = int(row['horas_extras'].strip())
+            antiguedad = int(row['antiguedad'].strip())
+            horas_capacitacion = int(row['horas_capacitacion'].strip())
+            
+            if not Usuario.query.get(id_empleado):
+                return {"error": f"El empleado con ID {id_empleado} no existe"}
+            
+            id_admin_emp = get_jwt_identity()
+            admin_emp = Usuario.query.get(id_admin_emp)
+            if not admin_emp or not admin_emp.id_empresa:
+                return {"error": "El admin-emp no tiene una empresa asociada"}
+            
+            new_employee_performance = RendimientoEmpleado (
+                    id_usuario=id_empleado,
+                    desempeno_previo=desempeno_previo,
+                    cantidad_proyectos=cantidad_proyectos,
+                    tamano_equipo=tamano_equipo,
+                    horas_extras=horas_extras,
+                    antiguedad=antiguedad,
+                    horas_capacitacion=horas_capacitacion
+                )
+            
+            db.session.add(new_employee_performance)
+            resultado.append({
+                "id_empleado": id_empleado,
+                "desempeno_previo": desempeno_previo,
+                "cantidad_proyectos": cantidad_proyectos,
+                "tamano_equipo": tamano_equipo,
+                "horas_extras": horas_extras,
+                "antiguedad": antiguedad,
+                "horas_capacitacion": horas_capacitacion
+            })
+        db.session.commit()
+        return resultado
+    
+    
 @swag_from("../docs/admin-emp/registrar-empleados.yml")
 @admin_emp_bp.route("/registrar-empleados", methods=["POST"])
 @role_required(["admin-emp"])
@@ -450,12 +533,7 @@ def register_employees_from_csv(file_path):
             email = row['email'].strip()
             username = row['username'].strip()
             contrasena = row['contrasena'].strip()
-            desempeno_previo = float(row['desempeno_previo'].strip())
-            cantidad_proyectos = int(row['cantidad_proyectos'].strip())
-            tamano_equipo = int(row['tamano_equipo'].strip())
-            horas_extras = int(row['horas_extras'].strip())
-            antiguedad = int(row['antiguedad'].strip())
-            horas_capacitacion = int(row['horas_capacitacion'].strip())
+            
 
             if not validar_nombre(nombre) or not validar_nombre(apellido):
                 return {"error": "Nombre o apellido no válido"}
@@ -487,17 +565,6 @@ def register_employees_from_csv(file_path):
             )
             
             db.session.add(new_user)
-            db.session.flush()
-            
-            new_employee_performance = RendimientoEmpleado (
-                id_usuario=new_user.id,
-                desempeno_previo=desempeno_previo,
-                cantidad_proyectos=cantidad_proyectos,
-                tamano_equipo=tamano_equipo,
-                horas_extras=horas_extras,
-                antiguedad=antiguedad,
-                horas_capacitacion=horas_capacitacion
-            )
 
             empleado_role = Rol.query.filter_by(slug="empleado").first()
             if not empleado_role:
@@ -511,8 +578,6 @@ def register_employees_from_csv(file_path):
                 "username": username,
                 "password": contrasena
             })
-
-            db.session.add(new_employee_performance)
 
         db.session.commit()
         
