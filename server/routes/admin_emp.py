@@ -543,7 +543,7 @@ def obtener_empleados_a_cargo():
 
     return jsonify(resultado), 200
 
-@admin_emp_bp.route("/empleado/<int:id_empleado>", methods=["GET"])
+@admin_emp_bp.route("/empleado-<int:id_empleado>/informacion", methods=["GET"])
 @role_required(["admin-emp"])
 def obtener_informacion_empleado(id_empleado):
     # Obtener el empleado por su ID
@@ -565,6 +565,33 @@ def obtener_informacion_empleado(id_empleado):
             "apellido": superior.apellido if superior else None,
         },
         "roles": [rol.slug for rol in empleado.roles]
+    }
+
+    return jsonify(resultado), 200
+
+@admin_emp_bp.route("/empleado-<int:id_empleado>/detalles-laborales", methods=["GET"])
+@role_required(["admin-emp"])
+def obtener_detalles_laborales_empleado(id_empleado):
+    # Obtener el empleado por su ID
+    empleado = Usuario.query.get(id_empleado)
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    # Verificar si el empleado tiene detalles laborales cargados
+    detalles_laborales = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
+    if not detalles_laborales:
+        return jsonify({"error": "Este empleado no tiene detalles laborales cargados/asociados"}), 404
+
+    # Formatear la respuesta con los detalles laborales
+    resultado = {
+        "detalles_laborales": {
+            "desempeno_previo": detalles_laborales.desempeno_previo,
+            "cantidad_proyectos": detalles_laborales.cantidad_proyectos,
+            "tamano_equipo": detalles_laborales.tamano_equipo,
+            "horas_extras": detalles_laborales.horas_extras,
+            "antiguedad": detalles_laborales.antiguedad,
+            "horas_capacitacion": detalles_laborales.horas_capacitacion,
+        },
     }
 
     return jsonify(resultado), 200
