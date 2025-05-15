@@ -27,7 +27,7 @@ def obtener_palabras_clave(palabras_clave_json):
 # texto_cv = extraer_texto_pdf(os.path.join("uploads/cvs", "file.pdf"))
 
 def predecir_cv(palabras_clave, cv, id_oferta):
-    oferta = Oferta_laboral.query.filter_by(id_oferta).first()
+    oferta = Oferta_laboral.query.filter_by(id=id_oferta).first()
 
     if not oferta:
         raise ValueError("Oferta laboral no encontrada")
