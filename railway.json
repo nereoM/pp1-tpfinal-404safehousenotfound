@@ -5,16 +5,20 @@
         "dockerfilePath": "server/Dockerfile"
       },
       "envVars": {
-        "FLASK_ENV": "production"
-      }
+        "FLASK_ENV": "production",
+        "DATABASE_URL": "mysql://user:password@host:port/database"
+      },
+      "port": 5000
     },
     "frontend": {
       "build": {
         "dockerfilePath": "client/Dockerfile"
       },
       "envVars": {
-        "NODE_ENV": "production"
-      }
+        "NODE_ENV": "production",
+        "REACT_APP_API_URL": "https://backend-url-de-railway.app"
+      },
+      "port": 3000
     }
   }
 }
