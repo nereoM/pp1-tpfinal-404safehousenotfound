@@ -45,7 +45,7 @@ export default function ReclutadorHome() {
   const [username, setUsername] = useState("");
   const [modalImageFile, setModalImageFile] = useState(null);
   const [mensajeError, setMensajeError] = useState('');
-  
+  const [estadoPostulaciones, setEstadoPostulaciones] = useState({});
 
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -277,7 +277,7 @@ export default function ReclutadorHome() {
   };
 
   const toggleFiltros = () => {
-  setMostrarFiltros(!mostrarFiltros);
+    setMostrarFiltros(!mostrarFiltros);
   };
 
   const filtrarPostulantes = (nombre, email, is_apto, fecha_desde, fecha_hasta) => {
@@ -294,36 +294,59 @@ export default function ReclutadorHome() {
   };
 
   // funcion para abir cv
-const openCv = (idCv) => {
-  // Generar la URL completa sin el prefijo del router
-  const url = `${import.meta.env.VITE_API_URL}/uploads/cvs/${idCv}`;
-  window.open(url, "_blank");
-};
+  const openCv = (idCv) => {
+    // Generar la URL completa sin el prefijo del router
+    const url = `${import.meta.env.VITE_API_URL}/uploads/cvs/${idCv}`;
+    window.open(url, "_blank");
+  };
 
-     const handleImageUpload = async (file) => {
+  const evaluarPostulacion = async (id_postulacion, nuevoEstado) => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/evaluar-postulacion/${id_postulacion}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ estado: nuevoEstado }),
+        }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setEstadoPostulaciones((prev) => ({
+          ...prev,
+          [id_postulacion]: nuevoEstado,
+        }));
+      }
+    } catch (err) {
+    }
+  };
+
+
+  const handleImageUpload = async (file) => {
     if (!file) return;
     const formData = new FormData();
     formData.append("file", file);
-  
-      try {
-          const res = await fetch(`${API_URL}/api/subir-image-reclutador`, {
-              method: "POST",
-              credentials: "include",
-              body: formData,
-          });
-  
-          const result = await res.json();
-          if (res.ok) {
-              alert("Imagen subida exitosamente");
-              setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
-              setModalEditarPerfilOpen(false); 
-          } else {
-              alert("Error: " + (result.error || "desconocido"));
-          }
-      } catch (err) {
-          console.error("Error al subir imagen:", err);
-          alert("Error de conexión");
+
+    try {
+      const res = await fetch(`${API_URL}/api/subir-image-reclutador`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Imagen subida exitosamente");
+        setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
+        setModalEditarPerfilOpen(false);
+      } else {
+        alert("Error: " + (result.error || "desconocido"));
       }
+    } catch (err) {
+      console.error("Error al subir imagen:", err);
+      alert("Error de conexión");
+    }
   };
 
   const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
@@ -518,11 +541,11 @@ const openCv = (idCv) => {
         )}
 
         {modalLicenciaOpen && (
-            <SolicitarLicenciaModal
-              onClose={() => setModalLicenciaOpen(false)}
-              service={reclutadorService}
-            />
-          )
+          <SolicitarLicenciaModal
+            onClose={() => setModalLicenciaOpen(false)}
+            service={reclutadorService}
+          />
+        )
         }
 
         {/* modal de gestionar licencias */}
@@ -562,7 +585,7 @@ const openCv = (idCv) => {
                     {licencias.map((item, idx) => {
                       const { id_licencia, tipo, descripcion, estado, motivo_rechazo } =
                         item.licencias.licencia;
-                        
+
 
                       return (
                         <tr
@@ -583,16 +606,16 @@ const openCv = (idCv) => {
                             >
                               {estado}
                             </span>
-                    </td>
-                    <td className="px-4 py-2 border border-gray-300">
-                      {estado === "rechazada" ? (
-                        <span className="text-sm text-red-500 italic">
-                          {motivo_rechazo ?? "Sin motivo especificado"}
-                        </span>
-                      ) : (
-                        "-"
-                      )}
-                    </td>
+                          </td>
+                          <td className="px-4 py-2 border border-gray-300">
+                            {estado === "rechazada" ? (
+                              <span className="text-sm text-red-500 italic">
+                                {motivo_rechazo ?? "Sin motivo especificado"}
+                              </span>
+                            ) : (
+                              "-"
+                            )}
+                          </td>
 
 
                         </tr>
@@ -815,179 +838,213 @@ const openCv = (idCv) => {
           </div>
         )}
 
-{modalPostulantesOpen && (
-  <div
-    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
-    onClick={() => setModalPostulantesOpen(false)}
-  >
-    <div
-      className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <h2 className="text-xl font-semibold mb-4 text-black">Postulantes</h2>
-
-      {/*button mostrar/ocultar filtros */}
-      <div className="mb-4 flex justify-between items-center">
-        <button
-          onClick={toggleFiltros}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
-        >
-          {mostrarFiltros ? "Ocultar Filtros" : "Mostrar Filtros"}
-          {mostrarFiltros ? "▲" : "▼"}
-        </button>
-      </div>
-
-      {/* contenedor con filtros  */}
-      <div
-        className={`overflow-hidden transition-all duration-300 ${
-          mostrarFiltros ? "max-h-[1000px]" : "max-h-0"
-        }`}
-      >
-        <div className="p-4 border rounded-lg mb-4 bg-gray-800">
-          <input
-            type="text"
-            placeholder="Nombre"
-            value={filtros.nombre}
-            onChange={(e) => {
-              setFiltros({ ...filtros, nombre: e.target.value });
-              filtrarPostulantes(
-                e.target.value,
-                filtros.email,
-                filtros.is_apto,
-                filtros.fecha_desde,
-                filtros.fecha_hasta
-              );
-            }}
-            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
-          />
-          <input
-            type="text"
-            placeholder="Email"
-            value={filtros.email}
-            onChange={(e) => {
-              setFiltros({ ...filtros, email: e.target.value });
-              filtrarPostulantes(
-                filtros.nombre,
-                e.target.value,
-                filtros.is_apto,
-                filtros.fecha_desde,
-                filtros.fecha_hasta
-              );
-            }}
-            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
-          />
-          <input
-            type="date"
-            value={filtros.fecha_desde}
-            onChange={(e) => {
-              setFiltros({ ...filtros, fecha_desde: e.target.value });
-              filtrarPostulantes(
-                filtros.nombre,
-                filtros.email,
-                filtros.is_apto,
-                e.target.value,
-                filtros.fecha_hasta
-              );
-            }}
-            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
-          />
-          <input
-            type="date"
-            value={filtros.fecha_hasta}
-            onChange={(e) => {
-              setFiltros({ ...filtros, fecha_hasta: e.target.value });
-              filtrarPostulantes(
-                filtros.nombre,
-                filtros.email,
-                filtros.is_apto,
-                filtros.fecha_desde,
-                e.target.value
-              );
-            }}
-            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
-          />
-          <select
-            value={filtros.is_apto}
-            onChange={(e) => {
-              setFiltros({ ...filtros, is_apto: e.target.value });
-              filtrarPostulantes(
-                filtros.nombre,
-                filtros.email,
-                e.target.value,
-                filtros.fecha_desde,
-                filtros.fecha_hasta
-              );
-            }}
-            className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+        {modalPostulantesOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+            onClick={() => setModalPostulantesOpen(false)}
           >
-            <option value="" className="text-white"> Apto </option>
-            <option value="true" className="text-white">Sí</option>
-            <option value="false" className="text-white">No</option>
-          </select>
-        </div>
-      </div>
+            <div
+              className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2 className="text-xl font-semibold mb-4 text-black">Postulantes</h2>
 
-      {/* postulantes */}
-      {postulantesFiltrados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-10">
-          <p className="text-gray-500 text-lg">No hay postulantes.</p>
-          <p className="text-gray-400 text-sm">
-            Aún no se ha registrado ningún postulante para esta oferta.
-          </p>
-        </div>
-      ) : (
-        <ul className="space-y-4 max-h-[60vh] overflow-y-auto">
-          {postulantesFiltrados.map((c, i) => (
-            <li key={i} className="border-b pb-3 last:border-0 flex flex-col gap-1">
-              <span className="font-medium text-black">{c.nombre}</span>
-              <span className="text-sm text-gray-700">{c.email}</span>
-              <span className="text-xs text-gray-500">
-                {new Date(c.fecha_postulacion).toLocaleDateString()}
-              </span>
-              <span
-                className={`text-xs font-semibold px-2 py-1 rounded w-max ${
-                  c.is_apto ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                }`}
+              {/*button mostrar/ocultar filtros */}
+              <div className="mb-4 flex justify-between items-center">
+                <button
+                  onClick={toggleFiltros}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center gap-2"
+                >
+                  {mostrarFiltros ? "Ocultar Filtros" : "Mostrar Filtros"}
+                  {mostrarFiltros ? "▲" : "▼"}
+                </button>
+              </div>
+
+              {/* contenedor con filtros  */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ${mostrarFiltros ? "max-h-[1000px]" : "max-h-0"
+                  }`}
               >
-                {c.is_apto ? "Apto" : "No Apto"}
-              </span>
+                <div className="p-4 border rounded-lg mb-4 bg-gray-800">
+                  <input
+                    type="text"
+                    placeholder="Nombre"
+                    value={filtros.nombre}
+                    onChange={(e) => {
+                      setFiltros({ ...filtros, nombre: e.target.value });
+                      filtrarPostulantes(
+                        e.target.value,
+                        filtros.email,
+                        filtros.is_apto,
+                        filtros.fecha_desde,
+                        filtros.fecha_hasta
+                      );
+                    }}
+                    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Email"
+                    value={filtros.email}
+                    onChange={(e) => {
+                      setFiltros({ ...filtros, email: e.target.value });
+                      filtrarPostulantes(
+                        filtros.nombre,
+                        e.target.value,
+                        filtros.is_apto,
+                        filtros.fecha_desde,
+                        filtros.fecha_hasta
+                      );
+                    }}
+                    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full placeholder-gray-400"
+                  />
+                  <input
+                    type="date"
+                    value={filtros.fecha_desde}
+                    onChange={(e) => {
+                      setFiltros({ ...filtros, fecha_desde: e.target.value });
+                      filtrarPostulantes(
+                        filtros.nombre,
+                        filtros.email,
+                        filtros.is_apto,
+                        e.target.value,
+                        filtros.fecha_hasta
+                      );
+                    }}
+                    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+                  />
+                  <input
+                    type="date"
+                    value={filtros.fecha_hasta}
+                    onChange={(e) => {
+                      setFiltros({ ...filtros, fecha_hasta: e.target.value });
+                      filtrarPostulantes(
+                        filtros.nombre,
+                        filtros.email,
+                        filtros.is_apto,
+                        filtros.fecha_desde,
+                        e.target.value
+                      );
+                    }}
+                    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+                  />
+                  <select
+                    value={filtros.is_apto}
+                    onChange={(e) => {
+                      setFiltros({ ...filtros, is_apto: e.target.value });
+                      filtrarPostulantes(
+                        filtros.nombre,
+                        filtros.email,
+                        e.target.value,
+                        filtros.fecha_desde,
+                        filtros.fecha_hasta
+                      );
+                    }}
+                    className="border border-gray-600 bg-gray-700 text-white p-2 mb-2 w-full"
+                  >
+                    <option value="" className="text-white"> Apto </option>
+                    <option value="true" className="text-white">Sí</option>
+                    <option value="false" className="text-white">No</option>
+                  </select>
+                </div>
+              </div>
 
-                {c.cv_url && (
-                    <a
-                        href={`${import.meta.env.VITE_API_URL}/${c.cv_url}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-1 text-indigo-600 hover:underline text-sm w-max"
+              {/* postulantes */}
+              {postulantesFiltrados.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <p className="text-gray-500 text-lg">No hay postulantes.</p>
+                  <p className="text-gray-400 text-sm">
+                    Aún no se ha registrado ningún postulante para esta oferta.
+                  </p>
+                </div>
+              ) : (
+                <ul className="space-y-4 max-h-[60vh] overflow-y-auto">
+                  {postulantesFiltrados.map((c, i) => (
+                    <li
+                      key={i}
+                      className="flex flex-row items-center gap-4 border-b pb-3 last:border-0 px-2 py-3 bg-white rounded-lg shadow-sm"
                     >
-                        Ver CV
-                    </a>
-                )}
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="mt-6 text-right">
-        <button
-          onClick={() => setModalPostulantesOpen(false)}
-          className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
-        >
-          Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <div className="flex flex-row items-center gap-4 flex-wrap">
+                          <span className="font-medium text-black truncate">{c.nombre}</span>
+                          <span className="text-sm text-gray-700 truncate">{c.email}</span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(c.fecha_postulacion).toLocaleDateString()}
+                          </span>
+                          <span
+                            className={`text-xs font-semibold px-2 py-1 rounded ${c.is_apto ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                          >
+                            {c.is_apto ? "Apto" : "No Apto"}
+                          </span>
+                          {c.cv_url && (
+                            <a
+                              href={`${import.meta.env.VITE_API_URL}/${c.cv_url}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-2 text-indigo-600 hover:underline text-sm"
+                            >
+                              Ver CV
+                            </a>
+                          )}
+                          {/* Estado de evaluación si no está pendiente */}
+                          {(estadoPostulaciones[c.id_postulacion] ?? c.estado_postulacion) !== "pendiente" && (
+                            <span
+                              className={`text-xs font-bold px-3 py-1 rounded-full ml-2 ${(estadoPostulaciones[c.id_postulacion] ?? c.estado_postulacion) === "aprobada"
+                                  ? "bg-green-200 text-green-800 border border-green-400"
+                                  : "bg-red-200 text-red-800 border border-red-400"
+                                }`}
+                            >
+                              {(estadoPostulaciones[c.id_postulacion] ?? c.estado_postulacion) === "aprobada"
+                                ? "Postulación Aprobada"
+                                : "Postulación Rechazada"}
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-          <ModalParaEditarPerfil
-            isOpen={modalEditarPerfilOpen}
-            onClose={() => setModalEditarPerfilOpen(false)}
-            user={user}
-            onSave={async ({ username, email, password }) => {
-              await handleProfileUpdate({ username, email, password });
-              if (modalImageFile) await handleImageUpload(modalImageFile);
-            }}
-            onFileSelect={setModalImageFile}
-          />
+                      {/* Botones solo si está pendiente */}
+                      {(estadoPostulaciones[c.id_postulacion] ?? c.estado_postulacion) === "pendiente" && (
+                        <div className="flex flex-col gap-2 ml-4">
+                          <button
+                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                            onClick={() => evaluarPostulacion(c.id_postulacion, "aprobada")}
+                          >
+                            Aprobar
+                          </button>
+                          <button
+                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                            onClick={() => evaluarPostulacion(c.id_postulacion, "rechazada")}
+                          >
+                            Rechazar
+                          </button>
+                        </div>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-6 text-right">
+                <button
+                  onClick={() => setModalPostulantesOpen(false)}
+                  className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <ModalParaEditarPerfil
+          isOpen={modalEditarPerfilOpen}
+          onClose={() => setModalEditarPerfilOpen(false)}
+          user={user}
+          onSave={async ({ username, email, password }) => {
+            await handleProfileUpdate({ username, email, password });
+            if (modalImageFile) await handleImageUpload(modalImageFile);
+          }}
+          onFileSelect={setModalImageFile}
+        />
 
 
 

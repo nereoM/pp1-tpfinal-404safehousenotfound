@@ -166,7 +166,8 @@ def ver_postulantes(id_oferta):
                 Usuario.correo,
                 Job_Application.fecha_postulacion,
                 Job_Application.is_apto,
-                CV.url_cv
+                CV.url_cv,
+                Job_Application.estado_postulacion 
             )
             .join(Usuario, Usuario.id == Job_Application.id_candidato)
             .outerjoin(CV, CV.id == Job_Application.id_cv)
@@ -182,8 +183,9 @@ def ver_postulantes(id_oferta):
                 "fecha_postulacion": fecha.isoformat(),
                 "is_apto": is_apto,
                 "cv_url": cv_url,
+                "estado_postulacion": estado_postulacion, 
             }
-            for id_postulacion, nombre, email, fecha, is_apto, cv_url in postulaciones
+            for id_postulacion, nombre, email, fecha, is_apto, cv_url, estado_postulacion in postulaciones
         ]
 
         return jsonify(resultado), 200
