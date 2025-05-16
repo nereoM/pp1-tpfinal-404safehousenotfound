@@ -9,6 +9,7 @@ import { JobCard } from "../components/JobCard";
 import { CheckCircle, XCircle } from "lucide-react";
 import { SearchFiltersCandidato } from "../components/SearchFiltersCandidato.jsx";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+import PostulacionesCandidatoModal from '../components/PostulacionesCandidatoModal';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -33,7 +34,8 @@ export default function CandidatoHome() {
     const [nombre, setNombre] = useState("");
     const [apellido, setApellido] = useState("");
     const [username, setUsername] = useState("");
-    const [modalImageFile, setModalImageFile] = useState(null);         
+    const [modalImageFile, setModalImageFile] = useState(null);   
+    const [isPostulacionesModalOpen, setIsPostulacionesModalOpen] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -296,6 +298,7 @@ const handlePostularse = async () => {
   }
 };
 
+
   
 
     return (
@@ -392,6 +395,13 @@ const handlePostularse = async () => {
                                         <Upload className="w-4 h-4" /> Subir CV
                                     </button>
                                 )}
+                                  <button
+                                className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
+                                onClick={() => setIsPostulacionesModalOpen(true)}
+                            >
+                                Ver mis postulaciones
+                            </button>
+
 
                              <div className="mt-4">
                                     <button
@@ -404,6 +414,7 @@ const handlePostularse = async () => {
                             </div>
                         </div>
                     </div>
+                    
                     <div className="col-span-2">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-semibold">
@@ -517,6 +528,10 @@ const handlePostularse = async () => {
         onFileSelect={setModalImageFile}
         />
 
+      <PostulacionesCandidatoModal
+        isOpen={isPostulacionesModalOpen}
+        onClose={() => setIsPostulacionesModalOpen(false)}
+      />
 
 
             </PageLayout>
