@@ -42,6 +42,55 @@ def allowed_file(filename):
 def empleado_home():
     return jsonify({"message": "Bienvenido al Inicio de Empleado"}), 200
 
+# @swag_from("../docs/empleado/solicitar-licencia.yml")
+# @empleado_bp.route("/solicitar-licencia", methods=["POST"])
+# @role_required(["empleado"])
+# def solicitar_licencia():
+#     data = request.get_json()
+#     tipo_licencia = data.get("lic_type")
+#     descripcion = data.get("description")
+#     fecha_inicio = data.get("start_date")
+#     fecha_fin = data.get("end_date")
+#     certificado_url = data.get("certificado_url")
+
+#     id_empleado = get_jwt_identity()
+#     empleado = Usuario.query.filter_by(id=id_empleado).first()
+
+#     nueva_licencia = Licencia(
+#         id_empleado=id_empleado,
+#         tipo=tipo_licencia,
+#         descripcion=descripcion,
+#         fecha_inicio=datetime.strptime(fecha_inicio, "%Y-%m-%d"),
+#         fecha_fin=datetime.strptime(fecha_fin, "%Y-%m-%d"),
+#         estado="pendiente",
+#         id_empresa=empleado.id_empresa,
+#         certificado_url=certificado_url,
+#     )
+
+#     db.session.add(nueva_licencia)
+#     db.session.commit()
+
+#     return jsonify(
+#         {
+#             "message": "Solicitud de licencia enviada exitosamente",
+#             "licencia": {
+#                 "id": nueva_licencia.id,
+#                 "tipo": nueva_licencia.tipo,
+#                 "descripcion": nueva_licencia.descripcion,
+#                 "estado": nueva_licencia.estado,
+#                 "fecha_inicio": nueva_licencia.fecha_inicio.isoformat()
+#                 if nueva_licencia.fecha_inicio
+#                 else None,
+#                 "empresa": {
+#                     "id": nueva_licencia.id_empresa,
+#                     "nombre": Empresa.query.get(nueva_licencia.id_empresa).nombre,
+#                 },
+#             },
+#         }
+#     ), 201
+
+from datetime import datetime, timezone, timedelta
+
 @swag_from("../docs/empleado/solicitar-licencia.yml")
 @empleado_bp.route("/solicitar-licencia", methods=["POST"])
 @role_required(["empleado"])
@@ -52,19 +101,56 @@ def solicitar_licencia():
     fecha_inicio = data.get("start_date")
     fecha_fin = data.get("end_date")
     certificado_url = data.get("certificado_url")
+    dias_requeridos = data.get("dias_requeridos")  # solo para estudio
 
     id_empleado = get_jwt_identity()
     empleado = Usuario.query.filter_by(id=id_empleado).first()
+
+    if tipo_licencia not in ["medica", "embarazo", "estudio", "vacaciones"]:
+        return jsonify({"error": "Tipo de licencia inválido"}), 400
+
+    # Licencia médica o embarazo: certificado obligatorio, estado activa
+    if tipo_licencia in ["medica", "embarazo"]:
+        if not certificado_url:
+            return jsonify({"error": "Debe adjuntar un certificado para este tipo de licencia"}), 400
+        estado = "activa"
+        fecha_inicio_dt = datetime.now(timezone.utc)
+        if not fecha_fin:
+            return jsonify({"error": "Debe indicar fecha de fin"}), 400
+        fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
+
+    # Licencia por estudio: máximo 10 días, estado pendiente
+    elif tipo_licencia == "estudio":
+        if not dias_requeridos or not fecha_inicio:
+            return jsonify({"error": "Debe indicar cantidad de días y fecha de inicio"}), 400
+        try:
+            dias_requeridos = int(dias_requeridos)
+        except ValueError:
+            return jsonify({"error": "Cantidad de días inválida"}), 400
+        if dias_requeridos < 1 or dias_requeridos > 10:
+            return jsonify({"error": "La cantidad máxima de días para licencia de estudio es 10"}), 400
+        estado = "pendiente"
+        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos-1)
+
+    # Licencia por vacaciones: estado pendiente, requiere inicio y fin
+    elif tipo_licencia == "vacaciones":
+        if not fecha_inicio or not fecha_fin:
+            return jsonify({"error": "Debe indicar fecha de inicio y fin"}), 400
+        estado = "pendiente"
+        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+        fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
 
     nueva_licencia = Licencia(
         id_empleado=id_empleado,
         tipo=tipo_licencia,
         descripcion=descripcion,
-        fecha_inicio=datetime.strptime(fecha_inicio, "%Y-%m-%d"),
-        fecha_fin=datetime.strptime(fecha_fin, "%Y-%m-%d"),
-        estado="pendiente",
+        fecha_inicio=fecha_inicio_dt,
+        fecha_fin=fecha_fin_dt,
+        estado=estado,
         id_empresa=empleado.id_empresa,
         certificado_url=certificado_url,
+        dias_requeridos=dias_requeridos if tipo_licencia == "estudio" else None,
     )
 
     db.session.add(nueva_licencia)
@@ -78,13 +164,14 @@ def solicitar_licencia():
                 "tipo": nueva_licencia.tipo,
                 "descripcion": nueva_licencia.descripcion,
                 "estado": nueva_licencia.estado,
-                "fecha_inicio": nueva_licencia.fecha_inicio.isoformat()
-                if nueva_licencia.fecha_inicio
-                else None,
+                "fecha_inicio": nueva_licencia.fecha_inicio.isoformat() if nueva_licencia.fecha_inicio else None,
+                "fecha_fin": nueva_licencia.fecha_fin.isoformat() if nueva_licencia.fecha_fin else None,
+                "dias_requeridos": nueva_licencia.dias_requeridos,
                 "empresa": {
                     "id": nueva_licencia.id_empresa,
                     "nombre": Empresa.query.get(nueva_licencia.id_empresa).nombre,
                 },
+                "certificado_url": nueva_licencia.certificado_url,
             },
         }
     ), 201
