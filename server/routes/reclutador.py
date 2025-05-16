@@ -248,7 +248,7 @@ def enviar_notificacion_candidato(email_destino, estado, nombre_empresa, nombre_
 @swag_from('../docs/reclutador/solicitud-licencia.yml')
 @reclutador_bp.route("/solicitud-licencia", methods=["POST"])
 @role_required(["reclutador"])
-def solicitar_licencia():
+def solicitar_licencia1():
     data = request.get_json()
     tipo_licencia = data.get("lic_type")
     descripcion = data.get("description")
