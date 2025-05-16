@@ -606,7 +606,7 @@ export default function ManagerHome() {
                             {o.is_active !== false && (
                               <button
                                 onClick={() => cerrarOferta(o.id_oferta)}
-                                className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-700"
+                                className="px-0 py-0 bg-red-500 text-white rounded hover:bg-red-700 transition"
                               >
                                 Cerrar Oferta
                               </button>
