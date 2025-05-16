@@ -26,7 +26,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="flex justify-between items-center px-8 py-4 shadow-sm bg-white/80 backdrop-blur-sm">
+ <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-sm bg-white/80 backdrop-blur-sm">
       {/* Logo */}
       <button
         onClick={() => navigate("/")}
