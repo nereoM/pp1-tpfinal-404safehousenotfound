@@ -501,7 +501,7 @@ def estado_postulaciones():
             Job_Application.id,
             Oferta_laboral.id,
             Oferta_laboral.nombre,
-            Job_Application.is_apto,
+            Job_Application.estado_postulacion,
             Job_Application.fecha_postulacion
         )
         .join(Oferta_laboral, Job_Application.id_oferta == Oferta_laboral.id)
