@@ -8,6 +8,8 @@ import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
 import { Users, PlusCircle, BarChart, FileText, RotateCcw, FileLock } from 'lucide-react';
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+import ModalOferta from '../components/ModalOferta';
+
 
 
 export default function ManagerHome() {
@@ -484,67 +486,14 @@ export default function ManagerHome() {
             </motion.div>
           </div>
 
-          {modalOfertaOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-              <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow space-y-4">
+<ModalOferta
+  modalOfertaOpen={modalOfertaOpen}
+  setModalOfertaOpen={setModalOfertaOpen}
+  crearOfertaLaboral={crearOfertaLaboral}
+  formOferta={formOferta}
+  setFormOferta={setFormOferta}
+/>
 
-                {mensajeOferta && (
-                  <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
-                    {mensajeOferta}
-                  </div>
-                )}
-
-
-                <h2 className="text-lg font-semibold text-black">
-                  Nueva Oferta Laboral
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {Object.entries(etiquetasCampos).map(([campo, etiqueta]) => (
-                    <div key={campo} className="col-span-1">
-                      <label className="text-sm font-medium text-black">
-                        {etiqueta}
-                      </label>
-                      <input
-                        type={
-                          campo === "fecha_cierre"
-                            ? "date"
-                            : campo.includes("salary")
-                              ? "number"
-                              : "text"
-                        }
-                        placeholder={etiqueta}
-                        value={formOferta[campo] || ""}
-                        onChange={(e) =>
-                          setFormOferta({
-                            ...formOferta,
-                            [campo]: e.target.value,
-                          })
-                        }
-                        className="w-full p-2 border border-gray-300 rounded text-black"
-                      />
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-end gap-2 pt-4">
-                  <button
-                    onClick={() => {
-                      setModalOfertaOpen(false);
-                      setMensajeAnalista("");
-                    }}
-                    className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={crearOfertaLaboral}
-                    className="px-4 py-2 text-white rounded bg-indigo-600"
-                  >
-                    Confirmar
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {modalAnalistaOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
