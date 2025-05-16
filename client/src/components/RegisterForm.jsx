@@ -20,7 +20,7 @@ export default function RegisterForm({
       <input type="text" placeholder="Apellido" value={registerSurname} onChange={(e) => setRegisterSurname(e.target.value)}
         className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 
-      <input type="text" placeholder="Nombre de Usuario" value={registerUsername} onChange={(e) => setRegisterUsername(e.target.value)}
+      <input type="text" placeholder="Usuario" value={registerUsername} onChange={(e) => setRegisterUsername(e.target.value)}
         className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
 
       <input type="email" placeholder="Email" value={registerEmail} onChange={(e) => setRegisterEmail(e.target.value)}

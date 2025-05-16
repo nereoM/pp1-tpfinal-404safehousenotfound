@@ -71,7 +71,7 @@ export default function Login() {
     setRegisterError("");
     setRegisterSuccess(false);
 
-    if (!registerName.trim() || !registerSurname.trim() || !registerUsername.trim() || !registerEmail.trim() || !registerPassword.trim() || !registerRepeatPassword.trim()) {
+    if (!registerName.trim() || !registerSurname.trim() || !registerEmail.trim() || !registerPassword.trim() || !registerRepeatPassword.trim()) {
       setRegisterError('Por favor, completá todos los campos.');
       setLoadingRegister(false);
       return;
@@ -80,12 +80,6 @@ export default function Login() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(registerEmail)) {
       setRegisterError('El correo electrónico no es válido.');
-      setLoadingRegister(false);
-      return;
-    }
-
-    if (registerUsername.length < 4) {
-      setRegisterError('El nombre de usuario debe tener al menos 4 caracteres.');
       setLoadingRegister(false);
       return;
     }
@@ -136,7 +130,7 @@ export default function Login() {
 
           name: registerName,
           surname: registerSurname,
-          username: registerUsername,
+          username: registerEmail,
           email: registerEmail,
           password: registerPassword
         })
@@ -327,7 +321,7 @@ export default function Login() {
             <form onSubmit={handleSubmitLogin} className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20">
               <h2 className="text-2xl font-semibold text-center text-white">Iniciar Sesión</h2>
 
-              <input type="text" placeholder="Usuario o Email" value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)}
+              <input type="text" placeholder="Email" value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               <div className="relative">
                 <input type={loginPasswordVisible ? "text" : "password"} placeholder="Contraseña" value={loginPassword}
@@ -413,9 +407,6 @@ export default function Login() {
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               <input type="text" placeholder="Apellido" value={registerSurname}
                 onChange={(e) => setRegisterSurname(e.target.value)}
-                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <input type="text" placeholder="Nombre de Usuario" value={registerUsername}
-                onChange={(e) => setRegisterUsername(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
               <input type="email" placeholder="Email" value={registerEmail}
                 onChange={(e) => setRegisterEmail(e.target.value)}
