@@ -1,4 +1,4 @@
-# Dockerfile para el frontend
+# Dockerfile para el frontend (React)
 FROM node:18
 
 WORKDIR /app

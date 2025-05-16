@@ -1,4 +1,4 @@
-# Dockerfile para el backend
+# Dockerfile para el backend (Flask)
 FROM python:3.11-slim
 
 WORKDIR /app
