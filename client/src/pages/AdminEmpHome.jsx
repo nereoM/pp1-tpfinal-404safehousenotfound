@@ -190,30 +190,30 @@ export default function AdminEmpHome() {
       .catch((err) => console.error("Error al cerrar sesión:", err));
   };
 
-      const handleImageUpload = async (file) => {
+  const handleImageUpload = async (file) => {
     if (!file) return;
     const formData = new FormData();
     formData.append("file", file);
-  
-      try {
-          const res = await fetch(`${API_URL}/api/subir-image-admin`, {
-              method: "POST",
-              credentials: "include",
-              body: formData,
-          });
-  
-          const result = await res.json();
-          if (res.ok) {
-              alert("Imagen subida exitosamente");
-              setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
-              setModalEditarPerfilOpen(false); 
-          } else {
-              alert("Error: " + (result.error || "desconocido"));
-          }
-      } catch (err) {
-          console.error("Error al subir imagen:", err);
-          alert("Error de conexión");
+
+    try {
+      const res = await fetch(`${API_URL}/api/subir-image-admin`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Imagen subida exitosamente");
+        setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
+        setModalEditarPerfilOpen(false);
+      } else {
+        alert("Error: " + (result.error || "desconocido"));
       }
+    } catch (err) {
+      console.error("Error al subir imagen:", err);
+      alert("Error de conexión");
+    }
   };
 
   const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
@@ -470,7 +470,9 @@ export default function AdminEmpHome() {
                         <th className="px-4 py-2 text-left border-b">Tipo</th>
                         <th className="px-4 py-2 text-left border-b">Descripción</th>
                         <th className="px-4 py-2 text-left border-b">Fecha de Inicio</th>
+                        <th className="px-4 py-2 text-left border-b">Fecha de Fin</th>
                         <th className="px-4 py-2 text-left border-b">Estado</th>
+                        <th className="px-4 py-2 text-left border-b">Motivo Rechazo</th>
                         <th className="px-4 py-2 text-left border-b">Certificado</th>
                         <th className="px-4 py-2 text-left border-b">Acciones</th>
                       </tr>
@@ -479,16 +481,24 @@ export default function AdminEmpHome() {
                       {licencias.map((item, index) => {
                         const licencia = item.licencia;
                         const empleado = licencia.empleado;
-
+                        console.log("Licencia:", licencia); // Para depuración
                         return (
-                          <tr key={index} className="border-t">
-                            <td className="px-4 py-2">
-                              {empleado.nombre} {empleado.apellido}
+                          <tr key={index}>
+                            <td>{empleado.nombre} {empleado.apellido}</td>
+                            <td>{licencia.tipo}</td>
+                            <td>{licencia.descripcion}</td>
+                            <td>
+                              {licencia.fecha_inicio
+                                ? new Date(licencia.fecha_inicio).toLocaleDateString()
+                                : "-"}
                             </td>
-                            <td className="px-4 py-2">{licencia.tipo}</td>
-                            <td className="px-4 py-2">{licencia.descripcion}</td>
-                            <td className="px-4 py-2">{licencia.fecha_inicio || "-"}</td>
-                            <td className="px-4 py-2">{licencia.estado}</td>
+                            <td>
+                              {licencia.fecha_fin
+                                ? new Date(licencia.fecha_fin).toLocaleDateString()
+                                : "-"}
+                            </td>
+                            <td className="px-4 py-2 capitalize">{licencia.estado}</td>
+                            <td className="px-4 py-2">{licencia.motivo_rechazo || "-"}</td>
                             <td className="px-4 py-2">
                               {licencia.certificado_url ? (
                                 <a
@@ -550,13 +560,10 @@ export default function AdminEmpHome() {
                         value={motivoRechazo}
                         onChange={(e) => {
                           setMotivoRechazo(e.target.value);
-                          setMensajeError('');  // Limpiar el mensaje de error al escribir
+                          setMensajeError('');
                         }}
                       ></textarea>
-
-                      {/* Mostrar mensaje de error si no se indica motivo */}
                       {mensajeError && <p className="text-red-500 text-sm">{mensajeError}</p>}
-
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => setModalRechazoOpen(false)}
