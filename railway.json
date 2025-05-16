@@ -1,8 +1,20 @@
 {
-  "build": {
-    "dockerfilePath": "./Dockerfile"
-  },
-  "deploy": {
-    "startCommand": "docker-compose up"
+  "services": {
+    "backend": {
+      "build": {
+        "dockerfilePath": "server/Dockerfile"
+      },
+      "envVars": {
+        "FLASK_ENV": "production"
+      }
+    },
+    "frontend": {
+      "build": {
+        "dockerfilePath": "client/Dockerfile"
+      },
+      "envVars": {
+        "NODE_ENV": "production"
+      }
+    }
   }
 }
