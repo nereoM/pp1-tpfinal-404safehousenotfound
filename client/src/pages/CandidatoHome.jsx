@@ -207,19 +207,23 @@ const handleUploadCV = async () => {
     }
 };
 
-    const handlePostularse = async () => {
-        if (!cvSeleccionado) return addToast("Elegí un CV para completar tu postulación");
-        try {
-            const res = await fetch(`${API_URL}/api/postularme`, {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    id_oferta: idOfertaSeleccionada,
-                    id_cv: cvSeleccionado,
-                    salario_pretendido: salarioPretendido || null
-                })
-            });
+const handlePostularse = async () => {
+  if (!cvSeleccionado) {
+    return addToast("Elegí un CV para completar tu postulación");
+  }
+  try {
+    const res = await fetch(
+      `${API_URL}/api/postularme/${idOfertaSeleccionada}`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id_cv: cvSeleccionado,
+          salario_pretendido: salarioPretendido || null
+        })
+      }
+    );
             const data = await res.json();
             if (res.ok) {
                 addToast("Postulación realizada con éxito");
