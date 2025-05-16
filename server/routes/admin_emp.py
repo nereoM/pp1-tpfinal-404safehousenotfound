@@ -12,6 +12,9 @@ import csv
 from .candidato import allowed_image
 from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro, predecir_rend_futuro_individual
 import pandas as pd
+from .notificacion import crear_notificacion
+from flask_mail import Message
+from models.extensions import mail
 
 admin_emp_bp = Blueprint("admin_emp", __name__)
 
@@ -1104,4 +1107,51 @@ def cambiar_mail_empresa():
     return jsonify({
         "message": "Email de la empresa actualizado exitosamente",
         "nuevo_email": nuevo_email
-    }), 200    
+    }), 200
+
+@admin_emp_bp.route("/notificar-bajo-rendimiento/<int:id_empleado>", methods=["POST"])
+@role_required(["admin-emp"])
+def notificar_bajo_rendimiento(id_empleado):
+    data = request.get_json()
+
+    if not id_empleado:
+        return jsonify({"error": "El ID del empleado es requerido"}), 400
+
+    # Obtener el admin-emp autenticado
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp or not admin_emp.id_empresa:
+        return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+    # Obtener el empleado
+    empleado = Usuario.query.get(id_empleado)
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    # Verificar que el empleado pertenece a la misma empresa
+    if empleado.id_empresa != admin_emp.id_empresa:
+        return jsonify({"error": "No tienes permiso para notificar a este empleado"}), 403
+
+    mensaje = "Tu proyección de rendimiento ha sido clasificada como 'Bajo Rendimiento'. Te invitamos a que tomes las medidas necesarias para mejorar tu desempeño. Si tienes alguna duda, no dudes en contactar a tu superior."
+
+    crear_notificacion(id_empleado, mensaje)
+
+    enviar_notificacion_empleado(empleado.correo, admin_emp.id_empresa, mensaje)
+
+    # Enviar la notificación (aquí puedes implementar la lógica para enviar el correo)
+    # send_email(empleado.correo, "Notificación de Bajo Rendimiento", mensaje)
+
+    return jsonify({
+        "message": f"Notificación enviada al empleado {empleado.nombre} {empleado.apellido}"
+    }), 200
+
+def enviar_notificacion_empleado(email_destino, nombre_empresa, cuerpo):
+    try:
+        asunto = "Proyección de Rendimiento"
+        cuerpo = f"Nos comunicamos desde {nombre_empresa}. " + cuerpo
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
