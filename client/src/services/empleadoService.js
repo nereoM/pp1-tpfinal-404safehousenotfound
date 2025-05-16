@@ -17,7 +17,7 @@ export const empleadoService = {
     const data = await fetcher({ url, options });
     return data;
   },
-  async solicitarLicencia({ tipoLicencia, descripcion, certificadoUrl }) {
+  async solicitarLicencia({ tipoLicencia, descripcion, certificadoUrl, fechaInicio, fechaFin }) {
     const url = `${API_URL}/api/solicitar-licencia`;
 
     const options = {
@@ -25,6 +25,8 @@ export const empleadoService = {
         lic_type: tipoLicencia,
         description: descripcion,
         certificado_url: certificadoUrl,
+        start_date: fechaInicio,
+        end_date: fechaFin
       }),
       method: "POST",
       headers: {

@@ -1,4 +1,7 @@
 import { Check, ChevronsUpDown, FileCheck, UploadCloud } from "lucide-react";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
+import { toast } from 'sonner';
 import { licenciasLaborales } from "../data/constants/tipo-licencias";
 import { useSolicitarLicencia } from "../hooks/useSolicitarLicencia";
 import { cn } from "../lib/utils";
@@ -25,11 +28,16 @@ export function SolicitarLicenciaModal({ onClose, service }) {
     updateTipoLicencia,
     updateCertificado,
     formState,
+    updateFecha,
   } = useSolicitarLicencia({
     service,
     onSuccess() {
+      toast.success("Solicitud creada correctamente")
       onClose();
     },
+    onError(){
+      toast.error("Error al crear la solicitud")  
+    }
   });
 
   const handleSubmit = (e) => {
@@ -50,6 +58,7 @@ export function SolicitarLicenciaModal({ onClose, service }) {
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Tipo de licencia</label>
             <Popover>
               <PopoverTrigger asChild>
                 <button
@@ -103,7 +112,7 @@ export function SolicitarLicenciaModal({ onClose, service }) {
               </PopoverContent>
             </Popover>
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm font-medium text-gray-700">
                 Descripción (Opcional)
               </label>
               <textarea
@@ -113,6 +122,18 @@ export function SolicitarLicenciaModal({ onClose, service }) {
                 onChange={(e) => updateDescription(e.target.value)}
               ></textarea>
             </div>
+
+            <section>
+              <label className="text-sm font-medium text-gray-700">Rango de fechas</label>
+              <DayPicker
+                className="flex justify-center"
+                classNames={{}}
+                animate
+                mode="range"
+                selected={formState.fecha}
+                onSelect={updateFecha}
+              />
+            </section>
 
             {formState.tipoLicencia &&
               formState.tipoLicencia !== "vacaciones" && (

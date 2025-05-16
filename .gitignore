@@ -27,5 +27,7 @@ migrations/
 /server/pruebas
 /server/uploads/cvs/**
 /server/uploads/fotos/**
+/server/uploads/certificados/**
+/server/uploads/registro_empleados/**
 
 /server/ml/desempeñoYdesarrollo/data
