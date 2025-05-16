@@ -15,7 +15,7 @@ export function useSolicitarLicencia({ onSuccess, onError, service }) {
     },
   });
 
-  const solicitarLicencia = () => {
+  const solicitarLicencia = async () => {
     if (
       formState.tipoLicencia.trim().length < MIN_LENGTH
     ) {
@@ -40,21 +40,28 @@ export function useSolicitarLicencia({ onSuccess, onError, service }) {
     // la funcion esta parametrizada, porque si usaria empleadoService.solicitarLicencia,
     // por abajo estaria haciendo una peticion al endpoint exclusivo del empleado,
     // por lo tanto cuando se use este hook en la page del reclutador estaria siempre tirando error
-    service.subirCertificado({ file: formState.certificado })
-      .then(response => {
-        service.solicitarLicencia({ ...formState, certificadoUrl: response.certificado_url, fechaFin, fechaInicio })
-          .then(() => {
-            setTopMessage("Solicitud creada correctamente");
-            setFormState({ descripcion: "", tipoLicencia: "" });
-            onSuccess();
-          })
-          .catch((err) => {
-            setTopMessage(err.message);
-          })
-      }).catch((err) => {
-        onError()
-        setTopMessage(err.message);
-      })
+    try {
+      let certificadoUrl = null;
+
+      if (formState.tipoLicencia !== "vacaciones") {
+        const response = await service.subirCertificado({ file: formState.certificado });
+        certificadoUrl = response.certificado_url;
+      }
+
+      await service.solicitarLicencia({
+        ...formState,
+        certificadoUrl,
+        fechaFin,
+        fechaInicio,
+      });
+
+      setTopMessage("Solicitud creada correctamente");
+      setFormState({ descripcion: "", tipoLicencia: "" });
+      onSuccess();
+    } catch (err) {
+      onError?.();
+      setTopMessage(err.message);
+    }
   }
 
   const updateDescription = (newDescription) => {
