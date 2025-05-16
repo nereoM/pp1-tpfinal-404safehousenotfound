@@ -2,7 +2,7 @@
   "services": {
     "backend": {
       "build": {
-        "dockerfilePath": "server/Dockerfile"
+        "dockerfilePath": "./server/Dockerfile"
       },
       "envVars": {
         "FLASK_ENV": "production",
@@ -13,7 +13,7 @@
     },
     "frontend": {
       "build": {
-        "dockerfilePath": "client/Dockerfile"
+        "dockerfilePath": "./client/Dockerfile"
       },
       "envVars": {
         "NODE_ENV": "production",
