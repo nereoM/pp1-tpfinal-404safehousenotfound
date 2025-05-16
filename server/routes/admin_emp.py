@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, send_file
 from auth.decorators import role_required
-from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa, Licencia, RendimientoEmpleado
+from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa, Licencia, RendimientoEmpleado, UsuarioRol, RendimientoEmpleado
 from models.extensions import db
 import secrets
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -864,7 +864,10 @@ def obtener_empleados_rendimiento_futuro():
         empleados = (
             db.session.query(Usuario, RendimientoEmpleado)
             .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+            .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == admin_emp.id_empresa)
+            .filter(Rol.slug == "empleado")
             .all()
         )
 

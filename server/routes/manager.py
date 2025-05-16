@@ -21,6 +21,7 @@ from models.schemes import (
     Rol,
     Usuario,
     RendimientoEmpleado,
+    UsuarioRol,
 )
 from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro_individual
 
@@ -765,7 +766,10 @@ def obtener_empleados_rendimiento_futuro():
         empleados = (
             db.session.query(Usuario, RendimientoEmpleado)
             .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+            .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
+            .filter(Rol.slug == "reclutador")
             .all()
         )
 
@@ -798,20 +802,26 @@ def obtener_empleados_rendimiento_futuro():
             print("El DataFrame predicho es None. Algo falló en la predicción.")
             return jsonify({"error": "Error al realizar la predicción"}), 500
         
-        alto_riesgo = df_predicho[(df_predicho['rendimiento_futuro_predicho'] >= 7.5)]
-        medio_riesgo = df_predicho[(df_predicho['rendimiento_futuro_predicho'] >= 5) & (df_predicho['rendimiento_futuro_predicho'] < 7.5)]
-        bajo_riesgo = df_predicho[(df_predicho['rendimiento_futuro_predicho'] < 5)]
-        
-        resumen_riesgo = {
-            "alto_riesgo": len(alto_riesgo),
-            "medio_riesgo": len(medio_riesgo),
-            "bajo_riesgo": len(bajo_riesgo)
+        def clasificar_rendimiento(valor):
+            if valor >= 7.5:
+                return "Alto Rendimiento"
+            elif valor >= 5:
+                return "Medio Rendimiento"
+            else:
+                return "Bajo Rendimiento"
+
+        df_predicho['clasificacion'] = df_predicho['rendimiento_futuro_predicho'].apply(clasificar_rendimiento)
+
+        resumen_rendimiento = {
+            "alto_rendimiento": len(df_predicho[df_predicho['clasificacion'] == "Alto Rendimiento"]),
+            "medio_rendimiento": len(df_predicho[df_predicho['clasificacion'] == "Medio Rendimiento"]),
+            "bajo_rendimiento": len(df_predicho[df_predicho['clasificacion'] == "Bajo Rendimiento"])
         }
 
         return jsonify({
             "message": "Datos cargados correctamente",
             "empleados": df_predicho.to_dict(orient='records'),
-            "resumen_riesgo": resumen_riesgo
+            "resumen_riesgo": resumen_rendimiento
         }), 200
 
     except Exception as e:
