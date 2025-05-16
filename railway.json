@@ -3,6 +3,6 @@
     "dockerfilePath": "./Dockerfile"
   },
   "deploy": {
-    "startCommand": "docker-compose up --build"
+    "startCommand": "docker-compose up"
   }
 }

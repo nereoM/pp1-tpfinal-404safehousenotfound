@@ -1,6 +1,8 @@
-# Dockerfile para inicializar Railway
+# Usa la imagen oficial de Docker Compose
 FROM docker/compose:latest
 
 WORKDIR /app
 COPY . /app
-CMD ["docker-compose", "up", "--build"]
+
+# Levanta el docker-compose dentro del contenedor
+CMD ["docker-compose", "-f", "docker-compose.yml", "up"]
