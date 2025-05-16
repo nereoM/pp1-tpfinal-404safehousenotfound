@@ -27,10 +27,10 @@ export default function ManagerHome() {
   const [selectedAnalistas, setSelectedAnalistas] = useState({});
   const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
   const [modalRechazoOpen, setModalRechazoOpen] = useState(false);
-  const [motivoRechazo, setMotivoRechazo] = useState("");    
+  const [motivoRechazo, setMotivoRechazo] = useState("");
   const [licencias, setLicencias] = useState([]);
-  const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);  
-  const [mensajeLicencias, setMensajeLicencias] = useState("");  
+  const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);
+  const [mensajeLicencias, setMensajeLicencias] = useState("");
   const [mensajeEvaluacion, setMensajeEvaluacion] = useState("");
   const [modalEditarPerfilOpen, setModalEditarPerfilOpen] = useState(false);
   const [nombre, setNombre] = useState("");
@@ -43,34 +43,34 @@ export default function ManagerHome() {
   const API_URL = import.meta.env.VITE_API_URL;
 
   //trae los datos del manager
-useEffect(() => {
-  const cargarUsuario = async () => {
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
-        credentials: "include"
-      });
-      if (!res.ok) throw new Error("No autenticado");
-      const data = await res.json();
-      // data ahora tiene { id, nombre, apellido, username, correo, roles, id_empresa }
-      setUser({
-        id:        data.id,
-        nombre:    data.nombre,
-        apellido:  data.apellido,
-        username:  data.username,
-        correo:    data.correo,
-        roles:     data.roles,
-        empresaId: data.id_empresa,
-        foto_url: data.foto_url
-      });
-    } catch (err) {
-      console.error("Error al cargar usuario:", err);
-    } finally {
-      setLoadingUser(false);
-    }
-  };
+  useEffect(() => {
+    const cargarUsuario = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
+          credentials: "include"
+        });
+        if (!res.ok) throw new Error("No autenticado");
+        const data = await res.json();
+        // data ahora tiene { id, nombre, apellido, username, correo, roles, id_empresa }
+        setUser({
+          id: data.id,
+          nombre: data.nombre,
+          apellido: data.apellido,
+          username: data.username,
+          correo: data.correo,
+          roles: data.roles,
+          empresaId: data.id_empresa,
+          foto_url: data.foto_url
+        });
+      } catch (err) {
+        console.error("Error al cargar usuario:", err);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
 
-  cargarUsuario();
-}, []);
+    cargarUsuario();
+  }, []);
 
 
 
@@ -112,7 +112,7 @@ useEffect(() => {
       setMensajeAnalista("El nombre de usuario debe tener al menos 4 caracteres.");
       return;
     }
-  
+
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-reclutador`, {
         method: "POST",
@@ -125,7 +125,7 @@ useEffect(() => {
           email: formAnalista.email,
         }),
       });
-      
+
       const data = await res.json();
       if (res.ok) {
         setMensajeAnalista(
@@ -174,8 +174,8 @@ useEffect(() => {
     obtenerLicencias();
     setModalLicenciasOpen(true);
   };
-  
-  
+
+
   const handleSelectAnalista = (ofertaId, analistaId) => {
     setSelectedAnalistas((prev) => ({ ...prev, [ofertaId]: analistaId }));
   };
@@ -210,9 +210,9 @@ useEffect(() => {
           "Content-Type": "application/json",
         },
       });
-  
+
       const data = await res.json();
-  
+
       if (res.ok) {
         setLicencias(data);
       } else {
@@ -224,7 +224,27 @@ useEffect(() => {
     }
   };
 
-const evaluarLicencia = async (id_licencia, nuevoEstado) => {
+  const cerrarOferta = async (id_oferta) => {
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/cerrar_oferta/${id_oferta}`, {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMensajeAsignacion(data.message || "Oferta cerrada exitosamente.");
+        // Refresca las ofertas para actualizar el estado
+        fetchMisOfertas();
+      } else {
+        setMensajeAsignacion(data.error || "Error al cerrar la oferta.");
+      }
+    } catch (err) {
+      setMensajeAsignacion("Error al conectar con el servidor.");
+    }
+  };
+
+  const evaluarLicencia = async (id_licencia, nuevoEstado) => {
     try {
       const payload = { estado: nuevoEstado };
       if (nuevoEstado === "rechazada") {
@@ -257,35 +277,35 @@ const evaluarLicencia = async (id_licencia, nuevoEstado) => {
     }
   };
 
-    const abrirModalRechazo = (licencia) => {
+  const abrirModalRechazo = (licencia) => {
     setLicenciaSeleccionada(licencia);
     setModalRechazoOpen(true);
   };
 
-   const handleImageUpload = async (file) => {
+  const handleImageUpload = async (file) => {
     if (!file) return;
     const formData = new FormData();
     formData.append("file", file);
-  
-      try {
-          const res = await fetch(`${API_URL}/api/subir-image-manager`, {
-              method: "POST",
-              credentials: "include",
-              body: formData,
-          });
-  
-          const result = await res.json();
-          if (res.ok) {
-              alert("Imagen subida exitosamente");
-              setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
-              setModalEditarPerfilOpen(false); 
-          } else {
-              alert("Error: " + (result.error || "desconocido"));
-          }
-      } catch (err) {
-          console.error("Error al subir imagen:", err);
-          alert("Error de conexión");
+
+    try {
+      const res = await fetch(`${API_URL}/api/subir-image-manager`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        alert("Imagen subida exitosamente");
+        setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
+        setModalEditarPerfilOpen(false);
+      } else {
+        alert("Error: " + (result.error || "desconocido"));
       }
+    } catch (err) {
+      console.error("Error al subir imagen:", err);
+      alert("Error de conexión");
+    }
   };
 
   const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
@@ -304,8 +324,8 @@ const evaluarLicencia = async (id_licencia, nuevoEstado) => {
       alert(err.message);
     }
   };
-  
-  
+
+
 
   const acciones = [
     {
@@ -337,7 +357,7 @@ const evaluarLicencia = async (id_licencia, nuevoEstado) => {
       titulo: "Consultar Licencias",
       descripcion: "Accede a las licencias del personal y sus estados.",
       onClick: openModalLicencias
-    },    
+    },
     {
       icon: FileText,
       titulo: "Ver Reportes",
@@ -468,12 +488,12 @@ const evaluarLicencia = async (id_licencia, nuevoEstado) => {
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
               <div className="bg-white rounded-lg p-6 w-full max-w-2xl shadow space-y-4">
 
-          {mensajeOferta && (
-            <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
-              {mensajeOferta}
-            </div>
-          )}
-               
+                {mensajeOferta && (
+                  <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
+                    {mensajeOferta}
+                  </div>
+                )}
+
 
                 <h2 className="text-lg font-semibold text-black">
                   Nueva Oferta Laboral
@@ -489,8 +509,8 @@ const evaluarLicencia = async (id_licencia, nuevoEstado) => {
                           campo === "fecha_cierre"
                             ? "date"
                             : campo.includes("salary")
-                            ? "number"
-                            : "text"
+                              ? "number"
+                              : "text"
                         }
                         placeholder={etiqueta}
                         value={formOferta[campo] || ""}
@@ -508,8 +528,8 @@ const evaluarLicencia = async (id_licencia, nuevoEstado) => {
                 <div className="flex justify-end gap-2 pt-4">
                   <button
                     onClick={() => {
-                    setModalOfertaOpen(false);
-                    setMensajeAnalista("");
+                      setModalOfertaOpen(false);
+                      setMensajeAnalista("");
                     }}
                     className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                   >
@@ -529,11 +549,11 @@ const evaluarLicencia = async (id_licencia, nuevoEstado) => {
           {modalAnalistaOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
-          {mensajeAnalista && (
-            <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
-              {mensajeAnalista}
-            </div>
-          )}
+                {mensajeAnalista && (
+                  <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
+                    {mensajeAnalista}
+                  </div>
+                )}
                 <h2 className="text-lg font-semibold text-black">
                   Nuevo Analista
                 </h2>
@@ -566,11 +586,11 @@ const evaluarLicencia = async (id_licencia, nuevoEstado) => {
                 <div className="flex justify-end gap-2 pt-2">
                   <button
                     onClick={() => {
-                      
-                    setModalAnalistaOpen(false);
-                    setMensajeAnalista("");
-                  
-                  }}
+
+                      setModalAnalistaOpen(false);
+                      setMensajeAnalista("");
+
+                    }}
                     className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                   >
                     Cancelar
@@ -586,72 +606,85 @@ const evaluarLicencia = async (id_licencia, nuevoEstado) => {
             </div>
           )}
 
-{modalVerOfertasOpen && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-    <div className="bg-white p-6 rounded-2xl w-3/4 max-h-[80vh] overflow-auto text-black">
+          {modalVerOfertasOpen && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+              <div className="bg-white p-6 rounded-2xl w-3/4 max-h-[80vh] overflow-auto text-black">
 
-  {mensajeAsignacion && (
-      <div className="mb-4 text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
-        {mensajeAsignacion}
-      </div>
-  )}  
+                {mensajeAsignacion && (
+                  <div className="mb-4 text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
+                    {mensajeAsignacion}
+                  </div>
+                )}
 
-  
 
-      <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
-      {ofertas.length === 0 ? (
-        <p>No hay ofertas disponibles.</p>
-      ) : (
-        <table className="min-w-full table-auto border-collapse text-black">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-2 text-left">Nombre</th>
-              <th className="px-4 py-2 text-left">Descripción</th>
-              <th className="px-4 py-2 text-left">Asignar Analista</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ofertas.map(o => (
-              <tr key={o.id_oferta} className="border-t">
-                <td className="px-4 py-2">{o.nombre}</td>
-                <td className="px-4 py-2">{o.descripcion}</td>
-                <td className="px-4 py-2 flex items-center">
-                  <select
-                    value={selectedAnalistas[o.id_oferta] || ""}
-                    onChange={e => handleSelectAnalista(o.id_oferta, e.target.value)}
-                    className="border px-2 py-1 rounded mr-2 text-black"
-                  >
-                    <option value="">Seleccione analista</option>
-                    {analistas.map(a => (
-                      <option key={a.id} value={a.id}>{a.username}</option>
-                    ))}
-                  </select>
+
+                <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
+                {ofertas.length === 0 ? (
+                  <p>No hay ofertas disponibles.</p>
+                ) : (
+                  <table className="min-w-full table-auto border-collapse text-black">
+                    <thead>
+                      <tr className="bg-gray-100">
+                        <th className="px-4 py-2 text-left">Nombre</th>
+                        <th className="px-4 py-2 text-left">Descripción</th>
+                        <th className="px-4 py-2 text-left">Asignar Analista</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ofertas.map(o => (
+                        <tr key={o.id_oferta} className="border-t">
+                          <td className="px-4 py-2">{o.nombre}</td>
+                          <td className="px-4 py-2">{o.descripcion}</td>
+                          <td className="px-4 py-2 flex items-center gap-2">
+                            <select
+                              value={selectedAnalistas[o.id_oferta] || ""}
+                              onChange={e => handleSelectAnalista(o.id_oferta, e.target.value)}
+                              className="border px-2 py-1 rounded mr-2 text-black"
+                              disabled={o.is_active === false}
+                            >
+                              <option value="">Seleccione analista</option>
+                              {analistas.map(a => (
+                                <option key={a.id} value={a.id}>{a.username}</option>
+                              ))}
+                            </select>
+                            <button
+                              onClick={() => asignarAnalista(o.id_oferta)}
+                              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                              disabled={o.is_active === false}
+                            >
+                              Asignar
+                            </button>
+                            {o.is_active !== false && (
+                              <button
+                                onClick={() => cerrarOferta(o.id_oferta)}
+                                className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-700"
+                              >
+                                Cerrar Oferta
+                              </button>
+                            )}
+                            {o.is_active === false && (
+                              <span className="ml-2 text-xs text-red-600 font-semibold">Oferta cerrada</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+                <div className="mt-6 text-right">
                   <button
-                    onClick={() => asignarAnalista(o.id_oferta)}
-                    className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                    onClick={() => {
+                      setModalVerOfertasOpen(false);
+                      setMensajeAsignacion("");
+                    }}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                   >
-                    Asignar
+                    Cerrar
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      <div className="mt-6 text-right">
-        <button
-          onClick={() => {
-          setModalVerOfertasOpen(false);
-          setMensajeAsignacion("");
-          }}
-          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-        >
-          Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                </div>
+              </div>
+            </div>
+          )}
 
           {modalLicenciasOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
