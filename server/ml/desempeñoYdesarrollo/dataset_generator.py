@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 
-def generate_employee_dataset(lista_ids, nombre_archivo="info_empleados.csv"):
+def generate_employee_dataset(cant_empleados, nombre_archivo="info_empleados.csv"):
     data = {
         'id': [],
         'desempeno_previo': [],
@@ -16,9 +16,9 @@ def generate_employee_dataset(lista_ids, nombre_archivo="info_empleados.csv"):
         'salidas_tempranas': []
     }
     
-    for id_empleado in lista_ids:
-        # data['id'].append(i)
-        data['id'].append(id_empleado)
+    for i in range(1, cant_empleados+1):
+        data['id'].append(i)
+        #data['id'].append(id_empleado)
         # Desempeño previo (1-10, siendo 10 el mejor)
         # Distribución: más empleados en el rango 5-8
         data['desempeno_previo'].append(min(max(1, int(np.random.normal(6.5, 2))), 10))
@@ -56,7 +56,7 @@ def generate_employee_dataset(lista_ids, nombre_archivo="info_empleados.csv"):
 
     df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
 
-    print(f"Archivo {nombre_archivo} generado con {len(lista_ids)} muestras\n")
+    #print(f"Archivo {nombre_archivo} generado con {len(lista_ids)} muestras\n")
 
     # Retornar la ruta del archivo csv generado y el df
     return df, os.path.join(save_path, nombre_archivo)
