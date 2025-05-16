@@ -760,6 +760,9 @@ def visualizar_licencias():
                         "fecha_inicio": licencia.fecha_inicio.isoformat()
                         if licencia.fecha_inicio
                         else None,
+                        "fecha_fin": licencia.fecha_fin.isoformat()
+                        if licencia.fecha_fin
+                        else None,
                         "estado": licencia.estado,
                         "empresa": {
                             "id": licencia.id_empresa,
@@ -773,6 +776,112 @@ def visualizar_licencias():
             )
 
     return jsonify(resultado), 200
+
+@swag_from("../docs/admin-emp/licencia-detalle.yml")
+@admin_emp_bp.route("/licencia-<int:id_licencia>/informacion", methods=["GET"])
+@role_required(["admin-emp"])
+def obtener_detalle_licencia(id_licencia):
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    licencia = Licencia.query.get(id_licencia)
+    if not licencia:
+        return jsonify({"error": "Licencia no encontrada"}), 404
+
+    empleado = Usuario.query.get(licencia.id_empleado)
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    # Solo puede ver si la licencia es de su empresa o de un empleado a su cargo
+    if licencia.id_empresa != admin_emp.id_empresa and empleado.id_superior != admin_emp.id:
+        return jsonify({"error": "No tienes permiso para ver esta licencia"}), 403
+
+    empresa = Empresa.query.get(licencia.id_empresa)
+
+    return jsonify({
+        "id_licencia": licencia.id,
+        "empleado": {
+            "id": empleado.id,
+            "nombre": empleado.nombre,
+            "apellido": empleado.apellido,
+            "username": empleado.username,
+            "email": empleado.correo,
+        },
+        "tipo": licencia.tipo,
+        "descripcion": licencia.descripcion,
+        "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+        "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+        "estado": licencia.estado,
+        "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+        "empresa": {
+            "id": licencia.id_empresa,
+            "nombre": empresa.nombre if empresa else None,
+        },  
+        "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+        "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
+    }), 200
+
+@swag_from("../docs/admin-emp/evaluar-licencia.yml")
+@admin_emp_bp.route("/licencia-<int:id_licencia>/evaluacion", methods=["PUT"])
+@role_required(["admin-emp"])
+def eval_licencia(id_licencia):
+    data = request.get_json()
+    nuevo_estado = data.get("estado")  # "aprobada" o "rechazada"
+    motivo = data.get("motivo")
+
+    if nuevo_estado not in ["aprobada", "rechazada"]:
+        return jsonify({"error": "El estado debe ser 'aprobada' o 'rechazada'"}), 400
+
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    licencia = Licencia.query.get(id_licencia)
+    if not licencia:
+        return jsonify({"error": "Licencia no encontrada"}), 404
+
+    empleado = Usuario.query.get(licencia.id_empleado)
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
+    if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones", "estudio"]:
+        return jsonify({"error": "Solo puedes evaluar licencias de vacaciones o estudio en estado pendiente"}), 403
+
+    # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
+    if licencia.id_empresa != admin_emp.id_empresa and empleado.id_superior != admin_emp.id:
+        return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
+
+    licencia.estado = nuevo_estado
+    if motivo:
+        licencia.motivo_rechazo = motivo
+
+    db.session.commit()
+
+    empresa = Empresa.query.get(licencia.id_empresa)
+
+    return jsonify({
+        "message": f"Licencia {nuevo_estado} exitosamente",
+        "licencia": {
+            "id_licencia": licencia.id,
+            "empleado": {
+                "id": licencia.id_empleado,
+                "nombre": empleado.nombre,
+                "apellido": empleado.apellido,
+                "username": empleado.username,
+                "email": empleado.correo,
+            },
+            "tipo": licencia.tipo,
+            "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+            "descripcion": licencia.descripcion,
+            "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+            "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+            "estado": licencia.estado,
+            "empresa": {
+                "id": licencia.id_empresa,
+                "nombre": empresa.nombre if empresa else None,
+            },
+            "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+            "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
+        }
+    }), 200
 
 @swag_from("../docs/admin-emp/evaluar-licencia.yml")
 @admin_emp_bp.route("/evaluar-licencia-empleado/<int:id_licencia>", methods=["PUT"])

@@ -191,6 +191,7 @@ def ver_mis_licencias():
           "fecha_inicio": licencia.fecha_inicio.isoformat()
           if licencia.fecha_inicio
           else None,
+          "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
           "estado": licencia.estado,
           "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
           "empresa": {
