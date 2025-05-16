@@ -432,7 +432,7 @@ def registrar_info_laboral_empleados(file_path):
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         required_fields = {'id_empleado', 'desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
-                            'horas_extras', 'antiguedad', 'horas_capacitacion'}
+                           'horas_extras', 'antiguedad', 'horas_capacitacion'}
         
         resultado = []
         for row in reader:
@@ -455,7 +455,28 @@ def registrar_info_laboral_empleados(file_path):
             if not admin_emp or not admin_emp.id_empresa:
                 return {"error": "El admin-emp no tiene una empresa asociada"}
             
-            new_employee_performance = RendimientoEmpleado (
+            rendimiento_existente = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
+            
+            if rendimiento_existente:
+                rendimiento_existente.desempeno_previo = desempeno_previo
+                rendimiento_existente.cantidad_proyectos = cantidad_proyectos
+                rendimiento_existente.tamano_equipo = tamano_equipo
+                rendimiento_existente.horas_extras = horas_extras
+                rendimiento_existente.antiguedad = antiguedad
+                rendimiento_existente.horas_capacitacion = horas_capacitacion
+                
+                resultado.append({
+                    "id_empleado": id_empleado,
+                    "accion": "actualizado",
+                    "desempeno_previo": desempeno_previo,
+                    "cantidad_proyectos": cantidad_proyectos,
+                    "tamano_equipo": tamano_equipo,
+                    "horas_extras": horas_extras,
+                    "antiguedad": antiguedad,
+                    "horas_capacitacion": horas_capacitacion
+                })
+            else:
+                new_employee_performance = RendimientoEmpleado (
                     id_usuario=id_empleado,
                     desempeno_previo=desempeno_previo,
                     cantidad_proyectos=cantidad_proyectos,
@@ -464,17 +485,20 @@ def registrar_info_laboral_empleados(file_path):
                     antiguedad=antiguedad,
                     horas_capacitacion=horas_capacitacion
                 )
-            
-            db.session.add(new_employee_performance)
-            resultado.append({
-                "id_empleado": id_empleado,
-                "desempeno_previo": desempeno_previo,
-                "cantidad_proyectos": cantidad_proyectos,
-                "tamano_equipo": tamano_equipo,
-                "horas_extras": horas_extras,
-                "antiguedad": antiguedad,
-                "horas_capacitacion": horas_capacitacion
-            })
+                
+                db.session.add(new_employee_performance)
+                
+                resultado.append({
+                    "id_empleado": id_empleado,
+                    "accion": "creado",
+                    "desempeno_previo": desempeno_previo,
+                    "cantidad_proyectos": cantidad_proyectos,
+                    "tamano_equipo": tamano_equipo,
+                    "horas_extras": horas_extras,
+                    "antiguedad": antiguedad,
+                    "horas_capacitacion": horas_capacitacion
+                })
+
         db.session.commit()
         return resultado
     
