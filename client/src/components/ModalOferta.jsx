@@ -226,10 +226,10 @@ const ModalOfertaFull = ({
 
 
           <div>
-            <label className='text-sm font-medium text-black'>Umbral (%)</label>
+            <label className='text-sm font-medium text-black'>Nivel mínimo de coincidencia (%)</label>
             <input
               type='number'
-              placeholder='Umbral de Busqueda de la Empresa'
+              placeholder='Nivel de Busqueda por Defecto (55%)'
               value={formOferta.umbral_individual || ''}
               onChange={e => setFormOferta({ ...formOferta, umbral_individual: e.target.value })}
               className='w-full p-2 border border-gray-300 rounded text-black'
