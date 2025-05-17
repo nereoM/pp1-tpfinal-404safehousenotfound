@@ -731,7 +731,7 @@ def validar_nombre(nombre: str) -> bool:
     return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
 
 @swag_from("../docs/admin-emp/licencias-solicitadas.yml")
-@admin_emp_bp.route("/licencias-solicitadas", methods=["GET"])
+@admin_emp_bp.route("/licencias-solicitadas-admin-emp", methods=["GET"])
 @role_required(["admin-emp"])
 def visualizar_licencias():
     id_admin_emp = get_jwt_identity()
@@ -782,7 +782,7 @@ def visualizar_licencias():
     return jsonify(resultado), 200
 
 @swag_from("../docs/admin-emp/licencia-detalle.yml")
-@admin_emp_bp.route("/licencia-<int:id_licencia>/informacion", methods=["GET"])
+@admin_emp_bp.route("/licencia-<int:id_licencia>-empleado/informacion", methods=["GET"])
 @role_required(["admin-emp"])
 def obtener_detalle_licencia(id_licencia):
     id_admin_emp = get_jwt_identity()
@@ -825,7 +825,7 @@ def obtener_detalle_licencia(id_licencia):
     }), 200
 
 @swag_from("../docs/admin-emp/evaluar-licencia.yml")
-@admin_emp_bp.route("/licencia-<int:id_licencia>/evaluacion", methods=["PUT"])
+@admin_emp_bp.route("/licencia-<int:id_licencia>-empleado/evaluacion", methods=["PUT"])
 @role_required(["admin-emp"])
 def eval_licencia(id_licencia):
     data = request.get_json()
