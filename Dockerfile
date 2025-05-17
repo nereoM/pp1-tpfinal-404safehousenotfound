@@ -1,7 +1,7 @@
 # ============================
 # Etapa 1 - Construcción
 # ============================
-FROM python:3.12-alpine AS builder
+FROM python:3.11-alpine AS builder
 
 # Instalación de dependencias del sistema en Alpine
 RUN apk update && apk add --no-cache \
@@ -28,7 +28,7 @@ RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r re
 # ============================
 # Etapa 2 - Imagen final
 # ============================
-FROM python:3.12-alpine
+FROM python:3.11-alpine
 
 WORKDIR /app
 
