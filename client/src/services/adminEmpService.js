@@ -88,7 +88,7 @@ export const adminEmpService = {
     return data
   },
   async obtenerLicenciasSolicitadas() {
-    const url = `${API_URL}/api/licencias-solicitadas`
+    const url = `${API_URL}/api/licencias-solicitadas-admin-emp`
 
     const data = await fetcher({ url })
     return data

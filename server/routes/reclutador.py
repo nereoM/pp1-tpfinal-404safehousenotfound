@@ -538,7 +538,7 @@ from datetime import datetime, timezone, timedelta
 #         }
 #     ), 201
 
-reclutador_bp.route("/solicitar-licencia-reclutador", methods=["POST"])
+@reclutador_bp.route("/solicitar-licencia-reclutador", methods=["POST"])
 @role_required(["reclutador"])
 def solicitar_licencia():
     data = request.get_json()
@@ -621,7 +621,7 @@ def solicitar_licencia():
             return jsonify({"error": "Debe adjuntar un certificado para duelo"}), 400
         fecha_inicio_dt = now
         fecha_fin_dt = now + timedelta(days=5-1)
-        estad = "activa"
+        estado = "activa"
 
     # Matrimonio
     elif tipo_licencia == "matrimonio":

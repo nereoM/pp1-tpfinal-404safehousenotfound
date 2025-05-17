@@ -159,7 +159,7 @@ export default function ReclutadorHome() {
   // func para obtener licencias 
   const fetchLicencias = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mis-licencias`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mis-licencias-reclutador`, {
         credentials: "include",
       });
       const data = await res.json();
