@@ -6,13 +6,13 @@ FROM python:3.11-slim AS builder
 # Instalación de dependencias del sistema
 RUN apt-get update && apt-get install -y \
     build-essential \
-    libmariadb-dev \
-    python3-dev \
-    gcc \
+    default-libmysqlclient-dev \
+    libssl-dev \
     libffi-dev \
-    libxml2-dev \
-    libxslt-dev \
-    mariadb-client \
+    python3-dev \
+    libmariadb-dev \
+    gcc \
+    pkg-config \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
