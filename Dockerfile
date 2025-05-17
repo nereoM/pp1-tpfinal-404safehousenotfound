@@ -22,9 +22,9 @@ WORKDIR /app
 # Copiar solo el requirements para evitar reinstalar si el código cambia
 COPY requirements.txt .
 
-# Reemplazar torch y torchvision por las versiones CPU-only
+# Reemplazar torch y torchvision por las versiones optimizadas
 RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir torch==2.0.1 torchvision==0.15.2
+RUN pip install --no-cache-dir torch==2.0.1+cpu torchvision==0.15.2+cpu -f https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt -t /app/deps
 
 # ============================
@@ -38,8 +38,11 @@ WORKDIR /app
 COPY --from=builder /app/deps /app
 COPY . .
 
-# Eliminamos caché de pip
-RUN rm -rf /root/.cache/pip
+# Limpiar compiladores y caché
+RUN apt-get remove -y gcc build-essential \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /root/.cache/pip
 
 # Exponemos el puerto
 EXPOSE 5000
