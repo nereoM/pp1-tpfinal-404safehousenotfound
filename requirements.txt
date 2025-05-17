@@ -1,4 +1,6 @@
 alembic==1.15.2
+allure-pytest==2.14.1
+allure-python-commons==2.14.1
 annotated-types==0.7.0
 attrs==25.3.0
 bcrypt==4.3.0
@@ -9,6 +11,7 @@ certifi==2025.1.31
 cffi==1.17.1
 charset-normalizer==3.4.1
 click==8.1.8
+coverage==7.8.0
 cryptography==44.0.2
 dotenv==0.9.9
 filelock==3.18.0
@@ -24,10 +27,18 @@ Flask-MySQLdb==0.2.0
 flask-openapi3==4.1.0
 Flask-SQLAlchemy==3.1.1
 fsspec==2025.3.2
+google==3.0.0
+google-api-core==2.24.2
 google-api-python-client==2.168.0
 google-auth==2.39.0
+google-auth-httplib2==0.2.0
+googleapis-common-protos==1.70.0
+greenlet==3.2.0
 httplib2==0.22.0
+huggingface-hub==0.30.2
 idna==3.10
+iniconfig==2.1.0
+itsdangerous==2.2.0
 Jinja2==3.1.6
 joblib==1.4.2
 jsonschema==4.23.0
@@ -45,6 +56,8 @@ passlib==1.7.4
 pdfminer.six==20250327
 pdfplumber==0.11.6
 pillow==11.2.1
+pip-autoremove==0.10.0
+pluggy==1.5.0
 proto-plus==1.26.1
 protobuf==6.30.2
 pyasn1==0.6.1
@@ -56,6 +69,10 @@ PyJWT==2.10.1
 PyMySQL==1.1.1
 pyparsing==3.2.3
 pypdfium2==4.30.1
+pytest==8.3.5
+pytest-cov==6.1.1
+pytest-metadata==3.1.1
+pytest-mock==3.14.0
 python-docx==1.1.2
 python-dotenv==1.1.0
 PyYAML==6.0.2
@@ -64,10 +81,10 @@ regex==2024.11.6
 requests==2.32.3
 rpds-py==0.24.0
 rsa==4.9.1
+safetensors==0.5.3
 scikit-learn==1.6.1
 scipy==1.15.2
-torch==1.13.1
-sentence-transformers==2.2.2
+sentence-transformers==4.1.0
 setuptools==79.0.1
 six==1.17.0
 soupsieve==2.7
