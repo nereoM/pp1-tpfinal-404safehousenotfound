@@ -15,6 +15,7 @@ import pandas as pd
 from .notificacion import crear_notificacion
 from flask_mail import Message
 from models.extensions import mail
+from datetime import datetime, timezone
 
 admin_emp_bp = Blueprint("admin_emp", __name__)
 
@@ -1046,6 +1047,15 @@ def obtener_empleados_rendimiento_futuro():
                 return "Bajo Rendimiento"
 
         df_predicho['clasificacion'] = df_predicho['rendimiento_futuro_predicho'].apply(clasificar_rendimiento)
+
+        for index, row in df_predicho.iterrows():
+            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=row['id_usuario']).first()
+            if rendimiento:
+                rendimiento.rendimiento_futuro = row['rendimiento_futuro_predicho']
+                rendimiento.clasificacion_rendimiento = row['clasificacion']
+                rendimiento.fecha_calculo_rendimiento = datetime.now(timezone.utc)
+        
+        db.session.commit()
 
         resumen_rendimiento = {
             "alto_rendimiento": len(df_predicho[df_predicho['clasificacion'] == "Alto Rendimiento"]),

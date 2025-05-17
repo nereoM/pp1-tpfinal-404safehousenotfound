@@ -194,6 +194,9 @@ class RendimientoEmpleado(db.Model):
     horas_extras = db.Column(db.Integer, nullable=True)
     antiguedad = db.Column(db.Integer, nullable=True)
     horas_capacitacion = db.Column(db.Integer, nullable=True)
+    rendimiento_futuro = db.Column(db.Float, nullable=True)
+    clasificacion_rendimiento = db.Column(db.String(50), nullable=True)
+    fecha_calculo_rendimiento = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
 
     # Relación con Usuario
     usuario = db.relationship('Usuario', backref='rendimiento')
