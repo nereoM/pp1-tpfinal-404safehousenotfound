@@ -897,3 +897,50 @@ def eval_licencia(id_licencia):
             "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
         }
     }), 200
+
+@manager_bp.route("/ofertas-libres-reclutadores", methods=["GET"])
+@role_required(["manager"])
+def obtener_ofertas_libres_reclutadores():
+    id_manager = get_jwt_identity()
+    # Obtener los reclutadores que dependen de este manager
+    reclutadores = Usuario.query.filter_by(id_superior=id_manager).all()
+    ids_reclutadores = [r.id for r in reclutadores]
+
+    if not ids_reclutadores:
+        return jsonify({"message": "No hay reclutadores asociados a este manager"}), 404
+
+    # Buscar ofertas_analista en estado libre creadas por estos reclutadores
+    info_ofertas_libres = (
+        Oferta_analista.query
+        .filter_by(estado="libre")
+        .filter(Oferta_analista.id_analista.in_(ids_reclutadores))
+        .all()
+    )
+    ids_ofertas_libres = [oa.id_oferta for oa in info_ofertas_libres]
+
+    if not ids_ofertas_libres:
+        return jsonify({"message": "No hay ofertas libres de reclutadores asociados"}), 404
+
+    ofertas_libres = Oferta_laboral.query.filter(Oferta_laboral.id.in_(ids_ofertas_libres)).all()
+
+    resultado = [
+        {
+            "id_oferta": oferta.id,
+            "nombre": oferta.nombre,
+            "descripcion": oferta.descripcion,
+            "location": oferta.location,
+            "employment_type": oferta.employment_type,
+            "workplace_type": oferta.workplace_type,
+            "salary_min": oferta.salary_min,
+            "salary_max": oferta.salary_max,
+            "currency": oferta.currency,
+            "experience_level": oferta.experience_level,
+            "is_active": oferta.is_active,
+            "palabras_clave": json.loads(oferta.palabras_clave),
+            "fecha_publicacion": oferta.fecha_publicacion.isoformat() if oferta.fecha_publicacion else None,
+            "fecha_cierre": oferta.fecha_cierre.isoformat() if oferta.fecha_cierre else None,
+        }
+        for oferta in ofertas_libres
+    ]
+
+    return jsonify({"ofertas_libres_reclutadores": resultado}), 200
