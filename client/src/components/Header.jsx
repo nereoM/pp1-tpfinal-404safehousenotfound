@@ -76,7 +76,7 @@ export default function Header() {
               <button
                 onClick={() => {
                   setShowLoginMenu(false);
-                  navigate("/login/empresa");
+                  navigate("/empresa");
                 }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
