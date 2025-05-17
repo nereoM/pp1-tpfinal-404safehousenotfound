@@ -694,6 +694,19 @@ def solicitar_licencia():
     db.session.add(nueva_licencia)
     db.session.commit()
 
+    # Si el estado de la licencia es activa, colocar al reclutador como inactivo
+    if nueva_licencia.estado == "activa":
+        empleado.activo = False
+        db.session.commit()
+
+    # Si el reclutador está inactivo, liberar las ofertas laborales que tenia asignadas
+    if not empleado.activo:
+        ofertas_asignadas = Oferta_analista.query.filter_by(id_analista=id_empleado).all()
+        if ofertas_asignadas:
+            for oferta in ofertas_asignadas:
+                oferta.estado = "libre"
+                db.session.commit()
+
     return jsonify(
         {
             "message": "Solicitud de licencia enviada exitosamente",

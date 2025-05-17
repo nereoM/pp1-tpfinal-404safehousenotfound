@@ -140,6 +140,7 @@ class Oferta_analista(db.Model):
         db.Integer, db.ForeignKey("ofertas_laborales.id"), primary_key=True
     )
     id_analista = db.Column(db.Integer, db.ForeignKey("usuarios.id"), primary_key=True)
+    estado = db.Column(db.String(50), default="asignada")
 
 
 class Job_Application(db.Model):
