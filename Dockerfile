@@ -11,7 +11,10 @@ RUN apk update && apk add --no-cache \
     gcc \
     musl-dev \
     libffi-dev \
-    pkg-config \
+    libc-dev \
+    mariadb-connector-c-dev \
+    libxml2-dev \
+    libxslt-dev \
     && rm -rf /var/cache/apk/*
 
 WORKDIR /app
