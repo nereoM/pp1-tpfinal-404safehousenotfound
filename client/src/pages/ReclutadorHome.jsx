@@ -376,6 +376,12 @@ export default function ReclutadorHome() {
       onClick: openModalOfertas
     },
     {
+      icon: FileText,
+      titulo: "Visualizar Reportes",
+      descripcion: "Revisa los KPIs del sistema.",
+      onClick: () => alert("Funcionalidad en desarrollo"),
+    },
+    {
       icon: FilePlus,
       titulo: "Cargar Licencias",
       descripcion: "Carga una nueva licencia.",
@@ -389,22 +395,16 @@ export default function ReclutadorHome() {
     },
     {
       icon: BarChart2,
-      titulo: "Ver Empleados",
+      titulo: "Visualizar Indicadores de Desempeño y predicciones",
       descripcion: "Visualizá y administrá los empleados de tu empresa.",
       onClick: () => alert("Funcionalidad en desarrollo"),
     },
     {
       icon: BarChart2,
-      titulo: "Visualizar Indicadores de Desempeño",
-      descripcion: "Revisa los indicadores clave de desempeño de los empleados.",
+      titulo: "Detección Temprana de Rotación y Riesgos Laborales",
+      descripcion: "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
       onClick: () => alert("Funcionalidad en desarrollo"),
-    },
-    {
-      icon: FileText,
-      titulo: "Visualizar Reportes",
-      descripcion: "Revisa los KPIs del sistema.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
-    },
+    }
   ];
 
 
@@ -839,18 +839,18 @@ export default function ReclutadorHome() {
           </div>
         )}
 
-            <ModalPostulantes
-        isOpen={modalPostulantesOpen}
-        onClose={() => setModalPostulantesOpen(false)}
-        filtros={filtros}
-        setFiltros={setFiltros}
-        toggleFiltros={toggleFiltros}
-        mostrarFiltros={mostrarFiltros}
-        filtrarPostulantes={filtrarPostulantes}
-        postulantesFiltrados={postulantesFiltrados}
-        estadoPostulaciones={estadoPostulaciones}
-        evaluarPostulacion={evaluarPostulacion}
-      />
+        <ModalPostulantes
+          isOpen={modalPostulantesOpen}
+          onClose={() => setModalPostulantesOpen(false)}
+          filtros={filtros}
+          setFiltros={setFiltros}
+          toggleFiltros={toggleFiltros}
+          mostrarFiltros={mostrarFiltros}
+          filtrarPostulantes={filtrarPostulantes}
+          postulantesFiltrados={postulantesFiltrados}
+          estadoPostulaciones={estadoPostulaciones}
+          evaluarPostulacion={evaluarPostulacion}
+        />
 
         <ModalParaEditarPerfil
           isOpen={modalEditarPerfilOpen}
