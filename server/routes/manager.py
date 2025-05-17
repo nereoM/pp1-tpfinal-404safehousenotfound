@@ -11,6 +11,9 @@ from werkzeug.utils import secure_filename
 from models.extensions import db
 from flasgger import swag_from
 from datetime import datetime, timezone
+from .notificacion import crear_notificacion
+from flask_mail import Message
+from models.extensions import mail
 import os
 from .candidato import allowed_image
 from models.schemes import (
@@ -944,3 +947,51 @@ def obtener_ofertas_libres_reclutadores():
     ]
 
     return jsonify({"ofertas_libres_reclutadores": resultado}), 200
+
+
+
+@manager_bp.route("/notificar-bajo-rendimiento-analista/<int:id_analista>", methods=["POST"])
+@role_required(["manager"])
+def notificar_bajo_rendimiento(id_analista):
+
+    if not id_analista:
+        return jsonify({"error": "El ID del analista es requerido"}), 400
+
+    # Obtener el admin-emp autenticado
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    if not manager or not manager.id_empresa:
+        return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+    # Obtener el empleado
+    analista = Usuario.query.get(id_analista)
+    if not analista:
+        return jsonify({"error": "Analista no encontrado"}), 404
+
+    # Verificar que el empleado pertenece a la misma empresa
+    if analista.id_empresa != manager.id_empresa:
+        return jsonify({"error": "No tienes permiso para notificar a este empleado"}), 403
+
+    mensaje = "Tu proyección de rendimiento ha sido clasificada como 'Bajo Rendimiento'. Te invitamos a que tomes las medidas necesarias para mejorar tu desempeño. Si tienes alguna duda, no dudes en contactar a tu superior."
+
+    crear_notificacion(id_analista, mensaje)
+
+    enviar_notificacion_analista(analista.correo, manager.id_empresa, mensaje)
+
+    # Enviar la notificación (aquí puedes implementar la lógica para enviar el correo)
+    # send_email(empleado.correo, "Notificación de Bajo Rendimiento", mensaje)
+
+    return jsonify({
+        "message": f"Notificación enviada al empleado {analista.nombre} {analista.apellido}"
+    }), 200
+
+def enviar_notificacion_analista(email_destino, nombre_empresa, cuerpo):
+    try:
+        asunto = "Proyección de Rendimiento"
+        cuerpo = f"Nos comunicamos desde {nombre_empresa}. " + cuerpo
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
