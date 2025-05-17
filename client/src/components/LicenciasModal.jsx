@@ -33,7 +33,7 @@ export function LicenciasModal({ onClose }) {
                   <th className="px-4 py-2 border border-gray-300 text-left">Descripción</th>
                   <th className="px-4 py-2 border border-gray-300 text-left">Tipo</th>
                   <th className="px-4 py-2 border border-gray-300 text-left">Estado</th>
-                  <th className="px-4 py-2 border border-gray-300 text-left">Motivo (si aplica)</th>
+                  <th className="px-4 py-2 border border-gray-300 text-left">Motivo de Rechazo (si aplica)</th>
                 </tr>
               </thead>
               <tbody>
