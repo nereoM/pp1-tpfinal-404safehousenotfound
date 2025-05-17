@@ -38,11 +38,8 @@ WORKDIR /app
 COPY --from=builder /app/deps /app
 COPY . .
 
-# Limpiar compiladores y caché
-RUN apt-get remove -y gcc build-essential \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -rf /root/.cache/pip
+# Eliminamos caché de pip
+RUN rm -rf /root/.cache/pip
 
 # Exponemos el puerto
 EXPOSE 5000
