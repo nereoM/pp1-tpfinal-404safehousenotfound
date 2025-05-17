@@ -177,7 +177,7 @@ from datetime import datetime, timezone, timedelta
 #     ), 201
 
 @swag_from("../docs/empleado/solicitar-licencia.yml")
-@empleado_bp.route("/solicitar-licencia", methods=["POST"])
+@empleado_bp.route("/solicitar-licencia-empleado", methods=["POST"])
 @role_required(["empleado"])
 def solicitar_licencia():
     data = request.get_json()
@@ -354,7 +354,7 @@ def solicitar_licencia():
     ), 201
 
 @swag_from("../docs/empleado/mis-licencias.yml")
-@empleado_bp.route("/mis-licencias-emp", methods=["GET"])
+@empleado_bp.route("/mis-licencias-empleado", methods=["GET"])
 @role_required(["empleado"])
 def ver_mis_licencias():
     id_empleado = get_jwt_identity()
