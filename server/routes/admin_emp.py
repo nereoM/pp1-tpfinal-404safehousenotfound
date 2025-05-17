@@ -846,8 +846,8 @@ def eval_licencia(id_licencia):
         return jsonify({"error": "Empleado no encontrado"}), 404
 
     # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
-    if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones", "estudio"]:
-        return jsonify({"error": "Solo puedes evaluar licencias de vacaciones o estudio en estado pendiente"}), 403
+    if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
+        return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
 
     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
     if licencia.id_empresa != admin_emp.id_empresa and empleado.id_superior != admin_emp.id:
@@ -887,104 +887,104 @@ def eval_licencia(id_licencia):
         }
     }), 200
 
-@swag_from("../docs/admin-emp/evaluar-licencia.yml")
-@admin_emp_bp.route("/evaluar-licencia-empleado/<int:id_licencia>", methods=["PUT"])
-@role_required(["admin-emp"])
-def evaluar_licencia(id_licencia):
-    # Obtener los datos enviados en la solicitud
-    data = request.get_json()
-    nuevo_estado = data.get("estado")  # "aprobado" o "rechazado"
-    motivo = data.get("motivo")
+# @swag_from("../docs/admin-emp/evaluar-licencia.yml")
+# @admin_emp_bp.route("/evaluar-licencia-empleado/<int:id_licencia>", methods=["PUT"])
+# @role_required(["admin-emp"])
+# def evaluar_licencia(id_licencia):
+#     # Obtener los datos enviados en la solicitud
+#     data = request.get_json()
+#     nuevo_estado = data.get("estado")  # "aprobado" o "rechazado"
+#     motivo = data.get("motivo")
 
-    if nuevo_estado not in ["aprobada", "rechazada", "activa"]:
-        return jsonify(
-            {"error": "El estado debe ser 'aprobada', 'rechazada' o 'activa'"}
-        ), 400
+#     if nuevo_estado not in ["aprobada", "rechazada", "activa"]:
+#         return jsonify(
+#             {"error": "El estado debe ser 'aprobada', 'rechazada' o 'activa'"}
+#         ), 400
 
-    # Obtener el ID del manager autenticado
-    id_admin_emp = get_jwt_identity()
-    admin_emp = Usuario.query.get(id_admin_emp)
+#     # Obtener el ID del manager autenticado
+#     id_admin_emp = get_jwt_identity()
+#     admin_emp = Usuario.query.get(id_admin_emp)
 
-    # Verificar que la licencia pertenece a la empresa del manager
-    licencia = Licencia.query.get(id_licencia)
-    if not licencia:
-        return jsonify({"error": "Licencia no encontrada"}), 404
+#     # Verificar que la licencia pertenece a la empresa del manager
+#     licencia = Licencia.query.get(id_licencia)
+#     if not licencia:
+#         return jsonify({"error": "Licencia no encontrada"}), 404
 
-    empleado = Usuario.query.get(licencia.id_empleado)
+#     empleado = Usuario.query.get(licencia.id_empleado)
 
-    if licencia.id_empresa != admin_emp.id_empresa and empleado.id_superior != admin_emp.id:
-        return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
+#     if licencia.id_empresa != admin_emp.id_empresa and empleado.id_superior != admin_emp.id:
+#         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
 
-    empresa = Empresa.query.get(licencia.id_empresa)
+#     empresa = Empresa.query.get(licencia.id_empresa)
 
-    if licencia.estado == "pendiente":
-        if nuevo_estado in ["aprobada", "rechazada"]:
-            licencia.estado = nuevo_estado
+#     if licencia.estado == "pendiente":
+#         if nuevo_estado in ["aprobada", "rechazada"]:
+#             licencia.estado = nuevo_estado
 
-            if motivo:
-                licencia.motivo_rechazo = motivo
+#             if motivo:
+#                 licencia.motivo_rechazo = motivo
 
-            db.session.commit()
-            return jsonify(
-                {
-                    "message": f"Licencia {nuevo_estado} exitosamente",
-                    "licencia": {
-                        "id_licencia": licencia.id,
-                        "empleado": {
-                            "id": licencia.id_empleado,
-                            "nombre": empleado.nombre,
-                            "apellido": empleado.apellido,
-                            "username": empleado.username,
-                            "email": empleado.correo,
-                        },
-                        "tipo": licencia.tipo,
-                        "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
-                        "descripcion": licencia.descripcion,
-                        "fecha_inicio": licencia.fecha_inicio.isoformat()
-                        if licencia.fecha_inicio
-                        else None,
-                        "estado": licencia.estado,
-                        "empresa": {
-                            "id": licencia.id_empresa,
-                            "nombre": empresa.nombre,
-                        },
-                        "certificado_url": licencia.certificado_url
-                        if licencia.certificado_url
-                        else None,
-                    },
-                }
-            ), 200
-    elif (
-        licencia.estado == "aprobada"
-        and nuevo_estado == "activa"
-        and licencia.certificado_url
-    ):
-        licencia.estado = nuevo_estado
-        empleado.activo = False
-        db.session.commit()
-        return jsonify(
-            {
-                "message": f"Licencia en estado {nuevo_estado} exitosa",
-                "licencia": {
-                    "id_licencia": licencia.id,
-                    "empleado": {
-                        "id": licencia.id_empleado,
-                        "nombre": empleado.nombre,
-                        "apellido": empleado.apellido,
-                        "username": empleado.username,
-                        "email": empleado.correo,
-                        "estado": "Inactivo" if empleado.activo == False else "Activo"
-                    },
-                    "tipo": licencia.tipo,
-                    "descripcion": licencia.descripcion,
-                    "fecha_inicio": licencia.fecha_inicio.isoformat()
-                    if licencia.fecha_inicio
-                    else None,
-                    "estado": licencia.estado,
-                    "empresa": {"id": licencia.id_empresa, "nombre": empresa.nombre},
-                },
-            }
-        ), 200
+#             db.session.commit()
+#             return jsonify(
+#                 {
+#                     "message": f"Licencia {nuevo_estado} exitosamente",
+#                     "licencia": {
+#                         "id_licencia": licencia.id,
+#                         "empleado": {
+#                             "id": licencia.id_empleado,
+#                             "nombre": empleado.nombre,
+#                             "apellido": empleado.apellido,
+#                             "username": empleado.username,
+#                             "email": empleado.correo,
+#                         },
+#                         "tipo": licencia.tipo,
+#                         "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+#                         "descripcion": licencia.descripcion,
+#                         "fecha_inicio": licencia.fecha_inicio.isoformat()
+#                         if licencia.fecha_inicio
+#                         else None,
+#                         "estado": licencia.estado,
+#                         "empresa": {
+#                             "id": licencia.id_empresa,
+#                             "nombre": empresa.nombre,
+#                         },
+#                         "certificado_url": licencia.certificado_url
+#                         if licencia.certificado_url
+#                         else None,
+#                     },
+#                 }
+#             ), 200
+#     elif (
+#         licencia.estado == "aprobada"
+#         and nuevo_estado == "activa"
+#         and licencia.certificado_url
+#     ):
+#         licencia.estado = nuevo_estado
+#         empleado.activo = False
+#         db.session.commit()
+#         return jsonify(
+#             {
+#                 "message": f"Licencia en estado {nuevo_estado} exitosa",
+#                 "licencia": {
+#                     "id_licencia": licencia.id,
+#                     "empleado": {
+#                         "id": licencia.id_empleado,
+#                         "nombre": empleado.nombre,
+#                         "apellido": empleado.apellido,
+#                         "username": empleado.username,
+#                         "email": empleado.correo,
+#                         "estado": "Inactivo" if empleado.activo == False else "Activo"
+#                     },
+#                     "tipo": licencia.tipo,
+#                     "descripcion": licencia.descripcion,
+#                     "fecha_inicio": licencia.fecha_inicio.isoformat()
+#                     if licencia.fecha_inicio
+#                     else None,
+#                     "estado": licencia.estado,
+#                     "empresa": {"id": licencia.id_empresa, "nombre": empresa.nombre},
+#                 },
+#             }
+#         ), 200
         
 
 @admin_emp_bp.route("/empleados-rendimiento", methods=["GET"])
