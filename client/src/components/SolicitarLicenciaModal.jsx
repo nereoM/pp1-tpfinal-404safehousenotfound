@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { Check, ChevronsUpDown, FileCheck, UploadCloud } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import { toast } from 'sonner';
 import { licenciasLaborales } from "../data/constants/tipo-licencias";
-import { useSolicitarLicencia } from "../hooks/useSolicitarLicencia";
 import { cn } from "../lib/utils";
 import {
   Command,
@@ -20,41 +20,131 @@ import {
   PopoverTrigger,
 } from "./shadcn/Popover";
 
-export function SolicitarLicenciaModal({ onClose, service }) {
-  const {
-    solicitarLicencia,
-    topMessage,
-    updateDescription,
-    updateTipoLicencia,
-    updateCertificado,
-    formState,
-    updateFecha,
-  } = useSolicitarLicencia({
-    service,
-    onSuccess() {
-      toast.success("Solicitud creada correctamente")
-      onClose();
-    },
-    onError(){
-      toast.error("Error al crear la solicitud")  
-    }
+export function SolicitarLicenciaModal({ onClose }) {
+  const [formState, setFormState] = useState({
+    tipoLicencia: "",
+    descripcion: "",
+    fecha: undefined,
+    certificado: null,
+    certificado_url: "",
+    dias_requeridos: "",
   });
+  const [subiendo, setSubiendo] = useState(false);
 
-  const handleSubmit = (e) => {
+  const updateTipoLicencia = (tipo) => setFormState(f => ({ ...f, tipoLicencia: tipo }));
+  const updateDescription = (desc) => setFormState(f => ({ ...f, descripcion: desc }));
+  const updateFecha = (range) => setFormState(f => ({ ...f, fecha: range }));
+  const updateCertificado = (file) => setFormState(f => ({ ...f, certificado: file }));
+
+  // Mapea el tipo de licencia del frontend al backend
+  const mapTipoLicencia = (tipo) => {
+    // Ajusta según tus valores reales en licenciasLaborales
+    return tipo;
+  };
+
+  // Calcula días requeridos según el rango de fechas
+  const calcularDias = () => {
+    if (formState.fecha && formState.fecha.from && formState.fecha.to) {
+      const diff = (formState.fecha.to - formState.fecha.from) / (1000 * 60 * 60 * 24) + 1;
+      return diff;
+    }
+    return "";
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    solicitarLicencia();
+
+    let certificado_url = formState.certificado_url;
+    const token = localStorage.getItem("token"); // Ajusta si tu token está en otro lado
+
+    // Si requiere certificado y hay archivo, súbelo primero
+    if (
+      formState.tipoLicencia &&
+      formState.tipoLicencia !== "vacaciones" &&
+      formState.certificado &&
+      !certificado_url
+    ) {
+      setSubiendo(true);
+      const data = new FormData();
+      data.append("file", formState.certificado);
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/subir-certificado`, {
+          method: "POST",
+          credentials: "include", 
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: data,
+        });
+        let json = {};
+        try {
+          json = await res.json();
+        } catch {
+          throw new Error("Respuesta inesperada del servidor al subir certificado");
+        }
+        if (!res.ok) throw new Error(json.error || "Error al subir certificado");
+        certificado_url = json.certificado_url;
+        setFormState(f => ({ ...f, certificado_url }));
+      } catch (err) {
+        toast.error(err.message);
+        setSubiendo(false);
+        return;
+      }
+      setSubiendo(false);
+    }
+
+    // Prepara fechas y días requeridos
+    let start_date = "";
+    let end_date = "";
+    let dias_requeridos = "";
+
+    if (formState.fecha && formState.fecha.from) {
+      start_date = formState.fecha.from.toISOString().slice(0, 10);
+    }
+    if (formState.fecha && formState.fecha.to) {
+      end_date = formState.fecha.to.toISOString().slice(0, 10);
+    }
+    dias_requeridos = calcularDias();
+
+    const body = {
+      lic_type: mapTipoLicencia(formState.tipoLicencia),
+      description: formState.descripcion,
+      start_date,
+      end_date: end_date || undefined,
+      certificado_url: certificado_url || undefined,
+      dias_requeridos: dias_requeridos || undefined,
+    };
+
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/solicitar-licencia-reclutador`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      let json = {};
+      let text = "";
+      try {
+        text = await res.text();
+        json = JSON.parse(text);
+      } catch {
+        throw new Error("Respuesta inesperada del servidor al solicitar licencia: " + text);
+      }
+      if (!res.ok) throw new Error(json.error || "Error al solicitar licencia");
+      toast.success("Solicitud creada correctamente");
+      onClose();
+    } catch (err) {
+      toast.error(err.message);
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4 text-black">
         <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
-
-        {topMessage && (
-          <div className="text-sm text-gray-100 bg-indigo-600 p-2 rounded">
-            {topMessage}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-2">
@@ -127,8 +217,6 @@ export function SolicitarLicenciaModal({ onClose, service }) {
               <label className="text-sm font-medium text-gray-700">Rango de fechas</label>
               <DayPicker
                 className="flex justify-center"
-                classNames={{}}
-                animate
                 mode="range"
                 selected={formState.fecha}
                 onSelect={updateFecha}
@@ -176,11 +264,17 @@ export function SolicitarLicenciaModal({ onClose, service }) {
             <button
               onClick={onClose}
               className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              type="button"
+              disabled={subiendo}
             >
               Cancelar
             </button>
-            <button className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-              Enviar
+            <button
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+              type="submit"
+              disabled={subiendo}
+            >
+              {subiendo ? "Subiendo..." : "Enviar"}
             </button>
           </div>
         </form>
