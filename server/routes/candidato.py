@@ -83,14 +83,17 @@ def postularme(id_oferta):
     oferta = Oferta_laboral.query.get(id_oferta)
     if not oferta:
         return jsonify({"error": "Oferta laboral no encontrada"}), 404
+    
+    aptitud_cv, porcentaje = predecir_cv(oferta.palabras_clave, cv, id_oferta)
 
     nueva_postulacion = Job_Application(
         id_candidato=id_candidato,
         id_oferta=id_oferta,
         id_cv=id_cv,
-        is_apto=predecir_cv(oferta.palabras_clave, cv, id_oferta),
+        is_apto=aptitud_cv,
         fecha_postulacion=datetime.now(timezone.utc),
         estado_postulacion="pendiente",
+        porcentaje_similitud=porcentaje,
     )
 
     db.session.add(nueva_postulacion)

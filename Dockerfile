@@ -1,24 +1,22 @@
 # ============================
 # Etapa 1 - Construcción
 # ============================
-FROM python:3.12-slim AS builder
+FROM python:3.12-alpine AS builder
 
-# Instalación de dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    default-libmysqlclient-dev \
-    libssl-dev \
-    libffi-dev \
+# Instalación de dependencias del sistema en Alpine
+RUN apk update && apk add --no-cache \
+    build-base \
+    mariadb-dev \
     python3-dev \
-    libmariadb-dev \
     gcc \
+    musl-dev \
+    libffi-dev \
     pkg-config \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/cache/apk/*
 
 WORKDIR /app
 
-# Copiar solo el requirements para evitar instalar de nuevo si el código cambia
+# Copiar solo el requirements para evitar reinstalar si el código cambia
 COPY requirements.txt .
 
 # Instalación de dependencias en una carpeta aislada
@@ -27,7 +25,7 @@ RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r re
 # ============================
 # Etapa 2 - Imagen final
 # ============================
-FROM python:3.12-slim
+FROM python:3.12-alpine
 
 WORKDIR /app
 

@@ -772,14 +772,17 @@ def postularme(id_oferta):
     
     if empleado.id_empresa != oferta.id_empresa:
         return jsonify({"error": "No puedes postularte a esta oferta laboral"}), 403
+    
+    aptitud_cv, porcentaje = predecir_cv(oferta.palabras_clave, cv, id_oferta)
 
     nueva_postulacion = Job_Application(
         id_candidato=id_empleado,
         id_oferta=id_oferta,
         id_cv=id_cv,
-        is_apto=predecir_cv(oferta.palabras_clave, cv, id_oferta),
+        is_apto=aptitud_cv,
         fecha_postulacion=datetime.now(timezone.utc),
         estado_postulacion="pendiente",
+        porcentaje_similitud=porcentaje,
     )
 
     db.session.add(nueva_postulacion)

@@ -153,6 +153,7 @@ class Job_Application(db.Model):
     is_apto = db.Column(db.Boolean, nullable=False)
     fecha_postulacion = db.Column(db.DateTime, default=db.func.now())
     estado_postulacion = db.Column(db.String(50), nullable=False)
+    porcentaje_similitud = db.Column(db.Float, nullable=True)
 
     candidato = db.relationship("Usuario", backref="cv_files")
 
