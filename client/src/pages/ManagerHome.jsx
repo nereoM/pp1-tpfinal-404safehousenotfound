@@ -205,7 +205,7 @@ export default function ManagerHome() {
 
   const obtenerLicencias = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/visualizar-licencias-solicitadas`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/licencias-solicitadas-manager`, {
         method: "GET",
         credentials: "include",
         headers: {
