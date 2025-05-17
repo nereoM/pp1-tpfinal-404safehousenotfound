@@ -83,15 +83,18 @@ export default function AdminEmpHome() {
         payload.motivo = motivoRechazo;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/evaluar-licencia-empleado/${id_licencia}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/licencia-${id_licencia}-empleado/evaluacion`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await response.json();
       console.log("Respuesta del servidor:", data);
