@@ -11,17 +11,17 @@ RUN apt-get update && apt-get install -y \
     libmariadb-dev \
     gcc \
     pkg-config \
-    && apt-get clean
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Seteamos el directorio de trabajo
 WORKDIR /app
 
-# Copiamos el código
-COPY . .
+# Copiamos solo lo necesario (evita copiar node_modules, __pycache__, etc.)
+COPY requirements.txt requirements.txt
+RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Instalación de dependencias de Python
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+# Luego copiamos el resto
+COPY . .
 
 # Exponemos el puerto para Railway
 EXPOSE 5000
