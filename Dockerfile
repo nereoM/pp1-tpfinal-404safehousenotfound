@@ -23,7 +23,8 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Instalación de dependencias en una carpeta aislada
-RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt -t /app/deps
+RUN pip install --no-cache-dir --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt -t /app/deps
 
 # ============================
 # Etapa 2 - Imagen final
