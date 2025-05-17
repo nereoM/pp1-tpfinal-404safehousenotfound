@@ -6,7 +6,7 @@ import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
 import { ProfileCard } from "../components/ProfileCard";
-import { Users, PlusCircle, BarChart, FileText, RotateCcw, FileLock } from 'lucide-react';
+import { Users, PlusCircle, BarChart2, BarChart, FileText, RotateCcw, FileLock } from 'lucide-react';
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import ModalOferta from '../components/ModalOferta';
 
@@ -349,16 +349,22 @@ export default function ManagerHome() {
       onClick: () => setModalAnalistaOpen(true),
     },
     {
-      icon: RotateCcw,
-      titulo: "Ver Análisis de Rotación",
-      descripcion: "Consulta los indicadores relacionados con la rotación de personal.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
-    },
-    {
       icon: FileLock,
       titulo: "Consultar Licencias",
       descripcion: "Accede a las licencias del personal y sus estados.",
       onClick: openModalLicencias
+    },
+    {
+      icon: BarChart2,
+      titulo: "Visualizar Indicadores de Desempeño y predicciones",
+      descripcion: "Visualizá y administrá los empleados de tu empresa.",
+      onClick: () => alert("Funcionalidad en desarrollo"),
+    },
+    {
+      icon: BarChart2,
+      titulo: "Detección Temprana de Rotación y Riesgos Laborales",
+      descripcion: "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
+      onClick: () => alert("Funcionalidad en desarrollo"),
     },
     {
       icon: FileText,
@@ -486,13 +492,13 @@ export default function ManagerHome() {
             </motion.div>
           </div>
 
-<ModalOferta
-  modalOfertaOpen={modalOfertaOpen}
-  setModalOfertaOpen={setModalOfertaOpen}
-  crearOfertaLaboral={crearOfertaLaboral}
-  formOferta={formOferta}
-  setFormOferta={setFormOferta}
-/>
+          <ModalOferta
+            modalOfertaOpen={modalOfertaOpen}
+            setModalOfertaOpen={setModalOfertaOpen}
+            crearOfertaLaboral={crearOfertaLaboral}
+            formOferta={formOferta}
+            setFormOferta={setFormOferta}
+          />
 
 
           {modalAnalistaOpen && (
