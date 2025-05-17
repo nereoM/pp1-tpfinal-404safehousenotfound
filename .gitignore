@@ -1,5 +1,6 @@
 # Ignorar el archivo .env
-#.env
+.env
+/server/.env
 
 # Ignorar carpetas __pycache__ y archivos .pyc
 __pycache__/
