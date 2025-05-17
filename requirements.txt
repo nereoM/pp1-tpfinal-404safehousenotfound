@@ -66,6 +66,7 @@ rpds-py==0.24.0
 rsa==4.9.1
 scikit-learn==1.6.1
 scipy==1.15.2
+torch==1.13.1
 sentence-transformers==2.2.2
 setuptools==79.0.1
 six==1.17.0

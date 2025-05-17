@@ -1,21 +1,20 @@
 # ============================
 # Etapa 1 - Construcción
 # ============================
-FROM python:3.11-alpine AS builder
+FROM python:3.11-slim AS builder
 
-# Instalación de dependencias del sistema en Alpine
-RUN apk update && apk add --no-cache \
-    build-base \
-    mariadb-dev \
+# Instalación de dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libmariadb-dev \
     python3-dev \
     gcc \
-    musl-dev \
     libffi-dev \
-    libc-dev \
-    mariadb-connector-c-dev \
     libxml2-dev \
     libxslt-dev \
-    && rm -rf /var/cache/apk/*
+    mariadb-client \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -29,7 +28,7 @@ RUN pip install --no-cache-dir -r requirements.txt -t /app/deps
 # ============================
 # Etapa 2 - Imagen final
 # ============================
-FROM python:3.11-alpine
+FROM python:3.11-slim
 
 WORKDIR /app
 
