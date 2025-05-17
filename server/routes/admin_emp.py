@@ -767,6 +767,7 @@ def visualizar_licencias():
                         if licencia.fecha_fin
                         else None,
                         "estado": licencia.estado,
+                        "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "No Aplica",
                         "empresa": {
                             "id": licencia.id_empresa,
                             "nombre": empresa.nombre,
