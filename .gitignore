@@ -30,5 +30,5 @@ migrations/
 /server/uploads/fotos/**
 /server/uploads/certificados/**
 /server/uploads/registro_empleados/**
-
+/venv/
 /server/ml/desempeñoYdesarrollo/data
