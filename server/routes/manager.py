@@ -877,7 +877,7 @@ def eval_licencia(id_licencia):
         return jsonify({"error": "Empleado no encontrado"}), 404
 
     # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
-    if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
+    if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones", "enfermedad"]:
         return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
 
     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
