@@ -24,7 +24,7 @@ COPY requirements.txt .
 
 # Instalación de dependencias
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir -r requirements.txt -t /app/deps
+RUN pip install --no-cache-dir -r requirements.txt
 
 # ============================
 # Etapa 2 - Imagen final
@@ -34,7 +34,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Copiamos solamente las dependencias necesarias
-COPY --from=builder /app/deps /app
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY . .
 
 # Eliminamos caché de pip
