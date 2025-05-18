@@ -1002,6 +1002,54 @@ def obtener_oferta_libre_reclutador(id_oferta):
         "reclutador_asignado": reclutador_info
     }), 200
 
+# @manager_bp.route("/reasignar-oferta-libre", methods=["PUT"])
+@manager_bp.route("/oferta-libre-<int:id_oferta>/reasignacion", methods=["PUT"])
+@role_required(["manager"])
+def reasignar_oferta_libre(id_oferta):
+    data = request.get_json()
+    # id_oferta = data.get("id_oferta")
+    id_nuevo_reclutador = data.get("id_nuevo_reclutador")
+
+    if not id_oferta or not id_nuevo_reclutador:
+        return jsonify({"error": "Debes enviar 'id_oferta' y 'id_nuevo_reclutador'"}), 400
+
+    id_manager = get_jwt_identity()
+    # Reclutadores activos del manager
+    reclutadores = Usuario.query.filter_by(id_superior=id_manager, activo=True).all()
+    ids_reclutadores = [r.id for r in reclutadores]
+
+    if id_nuevo_reclutador not in ids_reclutadores:
+        return jsonify({"error": "El nuevo reclutador no es válido o está inactivo"}), 400
+
+    # Buscar la oferta-analista en estado libre y que pertenezca a un reclutador del manager
+    oferta_analista = (
+        Oferta_analista.query
+        .filter_by(id_oferta=id_oferta, estado="libre")
+        .filter(Oferta_analista.id_analista.in_(ids_reclutadores))
+        .first()
+    )
+
+    if not oferta_analista:
+        return jsonify({"error": "No existe una oferta libre de tus reclutadores con ese ID"}), 404
+
+    # Reasignar la oferta al nuevo reclutador
+    oferta_analista.id_analista = id_nuevo_reclutador
+    db.session.commit()
+
+    nuevo_reclutador = Usuario.query.get(id_nuevo_reclutador)
+
+    return jsonify({
+        "message": "Oferta reasignada exitosamente",
+        "id_oferta": id_oferta,
+        "nuevo_reclutador": {
+            "id": nuevo_reclutador.id,
+            "nombre": nuevo_reclutador.nombre,
+            "apellido": nuevo_reclutador.apellido,
+            "correo": nuevo_reclutador.correo,
+            "username": nuevo_reclutador.username,
+        }
+    }), 200
+
 @manager_bp.route("/notificar-bajo-rendimiento-analista/<int:id_analista>", methods=["POST"])
 @role_required(["manager"])
 def notificar_bajo_rendimiento(id_analista):
