@@ -358,7 +358,7 @@ export default function ManagerHome() {
       icon: BarChart2,
       titulo: "Visualizar Indicadores de Desempeño y predicciones",
       descripcion: "Visualizá y administrá los empleados de tu empresa.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      onClick: () => navigate('/manager/empleados-rendimiento-analistas'),
     },
     {
       icon: BarChart2,

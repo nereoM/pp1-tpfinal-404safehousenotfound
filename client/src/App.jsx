@@ -11,6 +11,8 @@ import ManagerHome from "./pages/ManagerHome";
 import Pagos from "./pages/Pagos";
 import ReclutadorHome from "./pages/ReclutadorHome";
 import DomainLogin from "./pages/DominioEmpresa";
+import LoginEmpresa from "./pages/LoginEmpresa";
+import RendimientoAnalistas from './pages/EmpleadosRendimientosAnalistas';
 
 import { ReclutadorLayout } from "./components/ReclutadorLayout";
 import Clientes from "./pages/Clientes";
@@ -27,6 +29,8 @@ function App() {
         <Route path="reclutador" element={<ReclutadorLayout />} />
         <Route path="/reclutador/home" element={<ReclutadorHome />} />
         <Route path="/empresa"element={<DomainLogin />} />
+        <Route path="/loginempresa" element={<LoginEmpresa />} />
+        <Route path="/manager/empleados-rendimiento-analistas" element={<RendimientoAnalistas />} />
         
         <Route path="/admin/home" element={<AdminHome />} />
         <Route path="/empleado/home" element={<EmpleadoHome />} />
