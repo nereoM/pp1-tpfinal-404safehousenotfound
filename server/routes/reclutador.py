@@ -597,7 +597,7 @@ def solicitar_licencia():
             return jsonify({"error": "La cantidad de días debe ser mayor a 0"}), 400
         fecha_inicio_dt = now
         fecha_fin_dt = now + timedelta(days=dias_requeridos_val-1)
-        estado = "activa"
+        estado = "pendiente"
 
     # Maternidad
     elif tipo_licencia == "maternidad":
