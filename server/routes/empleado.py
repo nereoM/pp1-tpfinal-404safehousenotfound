@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from models.extensions import db
-from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral, CV, Job_Application
+from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral, CV, Job_Application, Notificacion
 from auth.decorators import role_required
 import os
 from werkzeug.utils import secure_filename
@@ -869,3 +869,76 @@ def estado_postulaciones():
         return jsonify({"message": "No se encontraron postulaciones para este empleado."}), 404
 
     return jsonify(resultado), 200
+
+
+@empleado_bp.route("/notificaciones-empleado/no-leidas", methods=["GET"])
+@role_required("empleado")
+def obtener_notificaciones_no_leidas():
+    try:
+        id_usuario = get_jwt_identity()
+
+        notificaciones = (
+            Notificacion.query
+            .filter_by(id_usuario=id_usuario, leida=False)
+            .order_by(Notificacion.fecha_creacion.desc())
+            .all()
+        )
+
+        if not notificaciones:
+            return jsonify({"message": "No se encontraron notificaciones no leídas"}), 404
+
+        resultado = [n.to_dict() for n in notificaciones]
+
+        return jsonify({
+            "message": "Notificaciones no leídas recuperadas correctamente",
+            "notificaciones": resultado
+        }), 200
+
+    except Exception as e:
+        print(f"Error al obtener notificaciones no leídas: {e}")
+        return jsonify({"error": "Error interno al recuperar las notificaciones"}), 500
+
+
+
+@empleado_bp.route("/leer-notificacion-empleado/<int:id_notificacion>", methods=["PUT"])
+@role_required("empleado")
+def leer_notificacion(id_notificacion):
+    try:
+        id_usuario = get_jwt_identity()
+
+        notificacion = Notificacion.query.filter_by(id=id_notificacion, id_usuario=id_usuario).first()
+
+        if not notificacion:
+            return jsonify({"error": "Notificación no encontrada o no pertenece al usuario"}), 404
+
+        notificacion.leida = True
+        db.session.commit()
+
+        return jsonify({
+            "message": "Notificación marcada como leída",
+            "notificacion_id": notificacion.id,
+            "estado": "leída"
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al marcar notificación como leída: {e}")
+        return jsonify({"error": "Error interno al actualizar la notificación"}), 500
+    
+
+@empleado_bp.route("/notificaciones-empleado/no-leidas/contador", methods=["GET"])
+@role_required("empleado")
+def obtener_contador_notificaciones_no_leidas():
+    try:
+        id_usuario = get_jwt_identity()
+
+        contador = Notificacion.query.filter_by(id_usuario=id_usuario, leida=False).count()
+
+        return jsonify({
+            "message": "Contador de notificaciones no leídas recuperado correctamente",
+            "total_no_leidas": contador
+        }), 200
+
+    except Exception as e:
+        print(f"Error al obtener contador de notificaciones no leídas: {e}")
+        return jsonify({"error": "Error interno al recuperar el contador"}), 500

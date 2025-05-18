@@ -995,3 +995,4 @@ def enviar_notificacion_analista(email_destino, nombre_empresa, cuerpo):
         print(f"Correo enviado correctamente a {email_destino}")
     except Exception as e:
         print(f"Error al enviar correo a {email_destino}: {e}")
+        

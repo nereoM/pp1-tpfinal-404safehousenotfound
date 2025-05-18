@@ -16,6 +16,7 @@ from models.schemes import (
     Rol,
     TarjetaCredito,
     Usuario,
+    Notificacion,
 )
 from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy.sql.expression import func, or_, and_
@@ -570,3 +571,75 @@ def construir_query_con_filtros(filtros, query):
             pass  # opcional: loguear error
 
     return query
+
+@candidato_bp.route("/notificaciones-candidato/no-leidas", methods=["GET"])
+@role_required("candidato")
+def obtener_notificaciones_no_leidas():
+    try:
+        id_usuario = get_jwt_identity()
+
+        notificaciones = (
+            Notificacion.query
+            .filter_by(id_usuario=id_usuario, leida=False)
+            .order_by(Notificacion.fecha_creacion.desc())
+            .all()
+        )
+
+        if not notificaciones:
+            return jsonify({"message": "No se encontraron notificaciones no leídas"}), 404
+
+        resultado = [n.to_dict() for n in notificaciones]
+
+        return jsonify({
+            "message": "Notificaciones no leídas recuperadas correctamente",
+            "notificaciones": resultado
+        }), 200
+
+    except Exception as e:
+        print(f"Error al obtener notificaciones no leídas: {e}")
+        return jsonify({"error": "Error interno al recuperar las notificaciones"}), 500
+
+
+
+@candidato_bp.route("/leer-notificacion-empleado/<int:id_notificacion>", methods=["PUT"])
+@role_required("candidato")
+def leer_notificacion(id_notificacion):
+    try:
+        id_usuario = get_jwt_identity()
+
+        notificacion = Notificacion.query.filter_by(id=id_notificacion, id_usuario=id_usuario).first()
+
+        if not notificacion:
+            return jsonify({"error": "Notificación no encontrada o no pertenece al usuario"}), 404
+
+        notificacion.leida = True
+        db.session.commit()
+
+        return jsonify({
+            "message": "Notificación marcada como leída",
+            "notificacion_id": notificacion.id,
+            "estado": "leída"
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al marcar notificación como leída: {e}")
+        return jsonify({"error": "Error interno al actualizar la notificación"}), 500
+    
+
+@candidato_bp.route("/notificaciones-empleado/no-leidas/contador", methods=["GET"])
+@role_required("candidato")
+def obtener_contador_notificaciones_no_leidas():
+    try:
+        id_usuario = get_jwt_identity()
+
+        contador = Notificacion.query.filter_by(id_usuario=id_usuario, leida=False).count()
+
+        return jsonify({
+            "message": "Contador de notificaciones no leídas recuperado correctamente",
+            "total_no_leidas": contador
+        }), 200
+
+    except Exception as e:
+        print(f"Error al obtener contador de notificaciones no leídas: {e}")
+        return jsonify({"error": "Error interno al recuperar el contador"}), 500
