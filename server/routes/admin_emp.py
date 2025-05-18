@@ -436,7 +436,7 @@ def registrar_info_laboral_empleados(file_path):
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
         required_fields = {'id_empleado', 'desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
-                           'horas_extras', 'antiguedad', 'horas_capacitacion'}
+                           'horas_extras', 'antiguedad', 'horas_capacitacion', 'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas'}
         
         resultado = []
         for row in reader:
@@ -450,6 +450,9 @@ def registrar_info_laboral_empleados(file_path):
             horas_extras = int(row['horas_extras'].strip())
             antiguedad = int(row['antiguedad'].strip())
             horas_capacitacion = int(row['horas_capacitacion'].strip())
+            ausencias_injustificadas = int(row['ausencias_injustificadas'].strip())
+            llegadas_tarde = int(row['llegadas_tarde'].strip())
+            salidas_tempranas = int(row['salidas_tempranas'].strip())
             
             if not Usuario.query.get(id_empleado):
                 return {"error": f"El empleado con ID {id_empleado} no existe"}
@@ -468,6 +471,9 @@ def registrar_info_laboral_empleados(file_path):
                 rendimiento_existente.horas_extras = horas_extras
                 rendimiento_existente.antiguedad = antiguedad
                 rendimiento_existente.horas_capacitacion = horas_capacitacion
+                rendimiento_existente.ausencias_injustificadas = ausencias_injustificadas
+                rendimiento_existente.llegadas_tarde = llegadas_tarde
+                rendimiento_existente.salidas_tempranas = salidas_tempranas
                 
                 resultado.append({
                     "id_empleado": id_empleado,
@@ -477,7 +483,11 @@ def registrar_info_laboral_empleados(file_path):
                     "tamano_equipo": tamano_equipo,
                     "horas_extras": horas_extras,
                     "antiguedad": antiguedad,
-                    "horas_capacitacion": horas_capacitacion
+                    "horas_capacitacion": horas_capacitacion,
+                    "ausencias_injustificadas": ausencias_injustificadas,
+                    "llegadas_tarde": llegadas_tarde,
+                    "salidas_tempranas": salidas_tempranas
+
                 })
             else:
                 new_employee_performance = RendimientoEmpleado (
@@ -487,7 +497,10 @@ def registrar_info_laboral_empleados(file_path):
                     tamano_equipo=tamano_equipo,
                     horas_extras=horas_extras,
                     antiguedad=antiguedad,
-                    horas_capacitacion=horas_capacitacion
+                    horas_capacitacion=horas_capacitacion,
+                    ausencias_injustificadas=ausencias_injustificadas,
+                    llegadas_tarde=llegadas_tarde,
+                    salidas_tempranas=salidas_tempranas,
                 )
                 
                 db.session.add(new_employee_performance)
@@ -500,7 +513,11 @@ def registrar_info_laboral_empleados(file_path):
                     "tamano_equipo": tamano_equipo,
                     "horas_extras": horas_extras,
                     "antiguedad": antiguedad,
-                    "horas_capacitacion": horas_capacitacion
+                    "horas_capacitacion": horas_capacitacion,
+                    "ausencias_injustificadas": ausencias_injustificadas,
+                    "llegadas_tarde": llegadas_tarde,
+                    "salidas_tempranas": salidas_tempranas
+
                 })
 
         db.session.commit()
