@@ -223,7 +223,7 @@ def solicitar_licencia():
         estado = "activa"
 
     # Médica
-    elif tipo_licencia == "medica":
+    elif tipo_licencia == "enfermedad":
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para licencia médica"}), 400
         if not dias_requeridos:
@@ -241,13 +241,17 @@ def solicitar_licencia():
     # Maternidad
     elif tipo_licencia == "maternidad":
         if not certificado_url:
+            return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+        if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para maternidad"}), 400
         fecha_inicio_dt = now
         fecha_fin_dt = now + timedelta(days=90-1)
-        estado = "activa"
+        estado = "pendiente"
 
     # Paternidad
-    elif tipo_licencia == "paternidad":
+    elif tipo_licencia == "nacimiento_hijo":
+        if not certificado_url:
+            return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para paternidad"}), 400
         fecha_inicio_dt = now
@@ -257,10 +261,12 @@ def solicitar_licencia():
     # Duelo
     elif tipo_licencia == "duelo":
         if not certificado_url:
+            return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+        if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para duelo"}), 400
         fecha_inicio_dt = now
         fecha_fin_dt = now + timedelta(days=5-1)
-        estad = "activa"
+        estado = "activa"
 
     # Matrimonio
     elif tipo_licencia == "matrimonio":
@@ -273,7 +279,7 @@ def solicitar_licencia():
         except Exception:
             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
         fecha_fin_dt = fecha_inicio_dt + timedelta(days=10-1)
-        estado = "aprobada"
+        estado = "pendiente"
 
     # Mudanza
     elif tipo_licencia == "mudanza":
@@ -284,10 +290,12 @@ def solicitar_licencia():
         except Exception:
             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
         fecha_fin_dt = fecha_inicio_dt + timedelta(days=2-1)
-        estado = "aprobada"
+        estado = "pendiente"
 
     # Estudios
     elif tipo_licencia == "estudios":
+        if not certificado_url:
+            return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
         if not dias_requeridos:
             return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
         if dias_requeridos < 1 or dias_requeridos > 10:
@@ -316,6 +324,21 @@ def solicitar_licencia():
             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
         fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val-1)
+        estado = "pendiente"
+
+    elif tipo_licencia == "otro":
+        if not certificado_url:
+            return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+        if not dias_requeridos:
+            return jsonify({"error": "Debe indicar la cantidad de días requeridos"}), 400
+        try:
+            dias_requeridos_val = int(dias_requeridos)
+        except ValueError:
+            return jsonify({"error": "Cantidad de días inválida"}), 400
+        if dias_requeridos_val < 1:
+            return jsonify({"error": "La cantidad de días debe ser mayor a 0"}), 400
+        fecha_inicio_dt = now
+        fecha_fin_dt = now + timedelta(days=dias_requeridos_val-1)
         estado = "pendiente"
 
     nueva_licencia = Licencia(
