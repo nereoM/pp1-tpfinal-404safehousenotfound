@@ -948,7 +948,7 @@ def obtener_ofertas_libres_reclutadores():
 
     return jsonify({"ofertas_libres_reclutadores": resultado}), 200
 
-@manager_bp.route("/oferta-libre-reclutador/<int:id_oferta>", methods=["GET"])
+@manager_bp.route("/oferta-libre-<int:id_oferta>/informacion", methods=["GET"])
 @role_required(["manager"])
 def obtener_oferta_libre_reclutador(id_oferta):
     id_manager = get_jwt_identity()
