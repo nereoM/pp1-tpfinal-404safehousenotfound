@@ -195,8 +195,8 @@ def solicitar_licencia():
 
     # Tipos de licencia válidos
     tipos_validos = [
-        "accidente_laboral", "medica", "maternidad", "paternidad",
-        "duelo", "matrimonio", "mudanza", "estudios", "vacaciones"
+        "accidente_laboral", "enfermedad", "maternidad", "nacimiento_hijo",
+        "duelo", "matrimonio", "mudanza", "estudios", "vacaciones", "otro"
     ]
     if tipo_licencia not in tipos_validos:
         return jsonify({"error": "Tipo de licencia inválido"}), 400
