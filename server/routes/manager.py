@@ -948,7 +948,59 @@ def obtener_ofertas_libres_reclutadores():
 
     return jsonify({"ofertas_libres_reclutadores": resultado}), 200
 
+@manager_bp.route("/oferta-libre-reclutador/<int:id_oferta>", methods=["GET"])
+@role_required(["manager"])
+def obtener_oferta_libre_reclutador(id_oferta):
+    id_manager = get_jwt_identity()
+    # Obtener los reclutadores del manager
+    reclutadores = Usuario.query.filter_by(id_superior=id_manager).all()
+    ids_reclutadores = [r.id for r in reclutadores]
 
+    if not ids_reclutadores:
+        return jsonify({"error": "No hay reclutadores asociados a este manager"}), 404
+
+    # Buscar si la oferta está en estado libre y pertenece a un reclutador del manager
+    oferta_analista = (
+        Oferta_analista.query
+        .filter_by(id_oferta=id_oferta, estado="libre")
+        .filter(Oferta_analista.id_analista.in_(ids_reclutadores))
+        .first()
+    )
+
+    if not oferta_analista:
+        return jsonify({"error": "No existe una oferta libre de tus reclutadores con ese ID"}), 404
+
+    oferta = Oferta_laboral.query.get(id_oferta)
+    if not oferta:
+        return jsonify({"error": "Oferta no encontrada"}), 404
+
+    reclutador = Usuario.query.get(oferta_analista.id_analista)
+    reclutador_info = {
+        "id": reclutador.id,
+        "nombre": reclutador.nombre,
+        "apellido": reclutador.apellido,
+        "correo": reclutador.correo,
+        "username": reclutador.username,
+        "estado": "Inactivo por licencia" if reclutador.activo == False else "No deberia llegar aca"
+    } if reclutador else None
+
+    return jsonify({
+        "id_oferta": oferta.id,
+        "nombre": oferta.nombre,
+        "descripcion": oferta.descripcion,
+        "location": oferta.location,
+        "employment_type": oferta.employment_type,
+        "workplace_type": oferta.workplace_type,
+        "salary_min": oferta.salary_min,
+        "salary_max": oferta.salary_max,
+        "currency": oferta.currency,
+        "experience_level": oferta.experience_level,
+        "is_active": oferta.is_active,
+        "palabras_clave": json.loads(oferta.palabras_clave),
+        "fecha_publicacion": oferta.fecha_publicacion.isoformat() if oferta.fecha_publicacion else None,
+        "fecha_cierre": oferta.fecha_cierre.isoformat() if oferta.fecha_cierre else None,
+        "reclutador_asignado": reclutador_info
+    }), 200
 
 @manager_bp.route("/notificar-bajo-rendimiento-analista/<int:id_analista>", methods=["POST"])
 @role_required(["manager"])
