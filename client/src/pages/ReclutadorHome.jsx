@@ -565,7 +565,7 @@ export default function ReclutadorHome() {
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="text-2xl font-semibold mb-4 text-center">
-                Seleccionar Licencia y Subir Certificado
+                Mis Licencias
               </h2>
 
               {licencias.length === 0 ? (
@@ -584,15 +584,11 @@ export default function ReclutadorHome() {
                   </thead>
                   <tbody>
                     {licencias.map((licencia, idx) => {
-                      const { id_licencia, tipo, descripcion, estado, motivo_rechazo } = licencia;
+                      const { tipo, descripcion, estado, motivo_rechazo } = licencia;
                       return (
-                        <tr
-                          key={idx}
-                          className={`cursor-pointer hover:bg-indigo-50 ${licenciaId === id_licencia ? "bg-indigo-100" : ""}`}
-                          onClick={() => setLicenciaId(id_licencia)}
-                        >
+                        <tr key={idx} className="hover:bg-indigo-50">
                           <td className="p-2 border">{tipo}</td>
-                          <td className="p-2 border">{descripcion}</td>
+                          <td className="p-2 border">{descripcion && descripcion.trim() !== "" ? descripcion : "-"}</td>
                           <td className="p-2 border capitalize">
                             <span
                               className={`px-2 py-1 text-xs rounded-full ${estado === "activa"
@@ -621,90 +617,22 @@ export default function ReclutadorHome() {
                 </table>
               )}
 
-              {licenciaId && (
-                <>
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={(e) => setSelectedFile(e.target.files[0])}
-                    className="block w-full text-sm text-gray-500
-            file:mr-4 file:py-2 file:px-4 file:rounded-lg
-            file:border-0 file:text-sm file:font-semibold
-            file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
-                  />
-
-                  {mensajeCertificado && (
-                    <div
-                      className={`mb-4 mt-2 text-center font-semibold p-2 rounded ${mensajeCertificado.includes("Error")
-                        ? "bg-red-100 text-red-700"
-                        : "bg-indigo-100 text-indigo-700"
-                        }`}
-                    >
-                      {mensajeCertificado}
-                    </div>
-                  )}
-
-                  <div className="mt-4 text-right flex gap-2">
-                    <button
-                      onClick={async () => {
-                        if (!selectedFile) {
-                          setMensajeCertificado("Debes seleccionar un PDF.");
-                          return;
-                        }
-                        const formData = new FormData();
-                        formData.append("file", selectedFile);
-
-                        try {
-                          const res = await fetch(
-                            `${import.meta.env.VITE_API_URL}/api/subir-certificado/${licenciaId}`,
-                            {
-                              method: "POST",
-                              credentials: "include",
-                              body: formData,
-                            }
-                          );
-                          const data = await res.json();
-                          if (res.ok) {
-                            setMensajeCertificado(
-                              `Certificado subido: ${data.certificado_url}`
-                            );
-                            setTimeout(() => {
-                              setModalLicenciasOpen(false);
-                              setLicenciaId(null);
-                              setSelectedFile(null);
-                              setMensajeCertificado("");
-                            }, 1500);
-                          } else {
-                            setMensajeCertificado(`Error: ${data.error}`);
-                          }
-                        } catch {
-                          setMensajeCertificado("Error al conectar con el servidor.");
-                        }
-                      }}
-                      className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600"
-                    >
-                      Subir
-                    </button>
-                    <button
-                      onClick={() => {
-                        setModalLicenciasOpen(false);
-                        setLicenciaId(null);
-                        setSelectedFile(null);
-                        setMensajeCertificado("");
-                      }}
-                      className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </>
-              )}
+              <div className="mt-4 text-right">
+                <button
+                  onClick={() => {
+                    setModalLicenciasOpen(false);
+                    setLicenciaId(null);
+                    setSelectedFile(null);
+                    setMensajeCertificado("");
+                  }}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Cerrar
+                </button>
+              </div>
             </div>
           </div>
         )}
-
-
-
 
         {modalEditarEtiquetasOpen && (
           <div
