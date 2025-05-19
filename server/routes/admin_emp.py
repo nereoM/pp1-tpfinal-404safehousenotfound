@@ -452,7 +452,6 @@ def registrar_info_laboral_empleados(file_path):
         if not admin_emp or not admin_emp.id_empresa:
             return {"error": "El admin-emp no tiene una empresa asociada"}
 
-        # Obtener todos los empleados de la empresa (incluye managers, reclutadores, empleados)
         empleados_empresa = Usuario.query.filter_by(id_empresa=admin_emp.id_empresa).all()
         ids_validos = {e.id for e in empleados_empresa}
 
@@ -466,7 +465,6 @@ def registrar_info_laboral_empleados(file_path):
             if id_empleado not in ids_validos:
                 return {"error": f"El empleado con ID {id_empleado} no pertenece a tu empresa"}
 
-            # Convertir y validar campos numéricos
             try:
                 desempeno_previo = float(row['desempeno_previo'].strip())
                 cantidad_proyectos = int(row['cantidad_proyectos'].strip())
@@ -508,16 +506,15 @@ def registrar_info_laboral_empleados(file_path):
                 db.session.add(rendimiento)
                 accion = "creado"
 
-            datos_rend_futuro = {
-                "desempeno_previo": desempeno_previo,
-                "cantidad_proyectos": cantidad_proyectos,
-                "tamano_equipo": tamano_equipo,
-                "horas_extras": horas_extras,
-                "antiguedad": antiguedad,
-                "horas_capacitacion": horas_capacitacion
-            }
-
             try:
+                datos_rend_futuro = {
+                    "desempeno_previo": desempeno_previo,
+                    "cantidad_proyectos": cantidad_proyectos,
+                    "tamano_equipo": tamano_equipo,
+                    "horas_extras": horas_extras,
+                    "antiguedad": antiguedad,
+                    "horas_capacitacion": horas_capacitacion
+                }
                 rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
 
                 datos_rotacion = {
@@ -549,6 +546,8 @@ def registrar_info_laboral_empleados(file_path):
                 }
                 rendimiento.riesgo_renuncia_predicho = predecir_riesgo_renuncia_individual(datos_renuncia)
 
+                db.session.flush()
+
             except Exception as e:
                 print(f"Error al predecir para empleado {id_empleado}: {e}")
 
@@ -564,10 +563,10 @@ def registrar_info_laboral_empleados(file_path):
                 "ausencias_injustificadas": ausencias_injustificadas,
                 "llegadas_tarde": llegadas_tarde,
                 "salidas_tempranas": salidas_tempranas,
-                "rendimiento_futuro_predicho": getattr(rendimiento, "rendimiento_futuro", None),
-                "riesgo_rotacion_predicho": getattr(rendimiento, "riesgo_rotacion", None),
-                "riesgo_despido_predicho": getattr(rendimiento, "riesgo_despido", None),
-                "riesgo_renuncia_predicho": getattr(rendimiento, "riesgo_renuncia", None)
+                "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
+                "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
+                "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
+                "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho
             })
 
         db.session.commit()
@@ -1176,6 +1175,14 @@ def obtener_empleados_rendimiento_futuro():
         if not empleados:
             return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
 
+        def clasificar_rendimiento(valor):
+            if valor >= 7.5:
+                return "Alto Rendimiento"
+            elif valor >= 5:
+                return "Medio Rendimiento"
+            else:
+                return "Bajo Rendimiento"
+
         datos_empleados = []
 
         for empleado, rendimiento in empleados:
@@ -1187,49 +1194,21 @@ def obtener_empleados_rendimiento_futuro():
                 "tamano_equipo": rendimiento.tamano_equipo,
                 "horas_extras": rendimiento.horas_extras,
                 "antiguedad": rendimiento.antiguedad,
-                "horas_capacitacion": rendimiento.horas_capacitacion
+                "horas_capacitacion": rendimiento.horas_capacitacion,
+                "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
+                "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
+                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento
             })
 
-        df = pd.DataFrame(datos_empleados)
-
-        if df.empty:
-            print("El DataFrame está vacío. No se encontraron datos para predecir.")
-            return jsonify({"error": "No se encontraron empleados con datos suficientes para predecir"}), 404
-
-        df_predicho = predecir_rend_futuro(df)
-
-        if df_predicho is None:
-            print("El DataFrame predicho es None. Algo falló en la predicción.")
-            return jsonify({"error": "Error al realizar la predicción"}), 500
-        
-        def clasificar_rendimiento(valor):
-            if valor >= 7.5:
-                return "Alto Rendimiento"
-            elif valor >= 5:
-                return "Medio Rendimiento"
-            else:
-                return "Bajo Rendimiento"
-
-        df_predicho['clasificacion'] = df_predicho['rendimiento_futuro_predicho'].apply(clasificar_rendimiento)
-
-        for index, row in df_predicho.iterrows():
-            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=row['id_usuario']).first()
-            if rendimiento:
-                rendimiento.rendimiento_futuro = row['rendimiento_futuro_predicho']
-                rendimiento.clasificacion_rendimiento = row['clasificacion']
-                rendimiento.fecha_calculo_rendimiento = datetime.now(timezone.utc)
-        
-        db.session.commit()
-
         resumen_rendimiento = {
-            "alto_rendimiento": len(df_predicho[df_predicho['clasificacion'] == "Alto Rendimiento"]),
-            "medio_rendimiento": len(df_predicho[df_predicho['clasificacion'] == "Medio Rendimiento"]),
-            "bajo_rendimiento": len(df_predicho[df_predicho['clasificacion'] == "Bajo Rendimiento"])
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Alto Rendimiento"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Medio Rendimiento"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Bajo Rendimiento")
         }
 
         return jsonify({
             "message": "Datos cargados correctamente",
-            "empleados": df_predicho.to_dict(orient='records'),
+            "empleados": datos_empleados,
             "resumen_riesgo": resumen_rendimiento
         }), 200
 

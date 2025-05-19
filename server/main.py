@@ -90,7 +90,7 @@ def iniciar_db():
             print("Conexión exitosa a la base de datos MySQL")
         except Exception as e:
             print("Error de conexión:", e)
-
+"""
 def activar_licencias():
     print(f"Revisando licencias aprobadas... - {datetime.now()}")
     
@@ -105,7 +105,7 @@ def activar_licencias():
 scheduler = BackgroundScheduler()
 scheduler.add_job(activar_licencias, 'interval', minutes=5)
 scheduler.start()
-            
+"""            
 if __name__ == "__main__":
     iniciar_db()
     port = int(os.environ.get("PORT", 5000))
