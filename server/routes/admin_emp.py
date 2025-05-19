@@ -834,6 +834,33 @@ def obtener_riesgo_rotacion_empleado(id_empleado):
 
     return jsonify(resultado), 200
 
+@admin_emp_bp.route("/empleado-<int:id_empleado>/riesgo_despido", methods=["GET"])
+@role_required(["admin-emp"])
+def obtener_riesgo_despido_empleado(id_empleado):
+    # Obtener el empleado por su ID
+    empleado = Usuario.query.get(id_empleado)
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    # Que pertenezca a la misma empresa
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp or not admin_emp.id_empresa:
+        return jsonify({"error": "El admin-emp no tiene una empresa asociada"}), 403
+    if empleado.id_empresa != admin_emp.id_empresa:
+        return jsonify({"error": "El empleado no pertenece a la misma empresa que el admin-emp"}), 403
+
+    # Verificar si el empleado tiene detalles laborales cargados
+    detalles_laborales = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
+    if not detalles_laborales:
+        return jsonify({"error": "Este empleado no tiene detalles laborales cargados/asociados"}), 404
+
+    resultado = {
+        "riesgo_despido_predicho": detalles_laborales.riesgo_despido_predicho
+    }
+
+    return jsonify(resultado), 200
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'csv'}
 
