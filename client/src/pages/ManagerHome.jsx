@@ -255,15 +255,18 @@ export default function ManagerHome() {
         payload.motivo = motivoRechazo;
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/evaluar-licencia/${id_licencia}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/licencia-${id_licencia}-reclutador/evaluacion`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const data = await response.json();
       console.log("Respuesta del servidor:", data);
@@ -676,7 +679,9 @@ export default function ManagerHome() {
                         <th className="px-4 py-2 text-left border-b">Tipo</th>
                         <th className="px-4 py-2 text-left border-b">Descripción</th>
                         <th className="px-4 py-2 text-left border-b">Fecha de Inicio</th>
+                        <th className="px-4 py-2 text-left border-b">Fecha de Fin</th>
                         <th className="px-4 py-2 text-left border-b">Estado</th>
+                        <th className="px-4 py-2 text-left border-b">Motivo Rechazo</th>
                         <th className="px-4 py-2 text-left border-b">Certificado</th>
                         <th className="px-4 py-2 text-left border-b">Acciones</th>
                       </tr>
@@ -685,16 +690,23 @@ export default function ManagerHome() {
                       {licencias.map((item, index) => {
                         const licencia = item.licencia;
                         const empleado = licencia.empleado;
-
                         return (
-                          <tr key={index} className="border-t">
-                            <td className="px-4 py-2">
-                              {empleado.nombre} {empleado.apellido}
+                          <tr key={index}>
+                            <td>{empleado.nombre} {empleado.apellido}</td>
+                            <td>{licencia.tipo}</td>
+                            <td>{licencia.descripcion}</td>
+                            <td>
+                              {licencia.fecha_inicio
+                                ? new Date(licencia.fecha_inicio).toLocaleDateString()
+                                : "-"}
                             </td>
-                            <td className="px-4 py-2">{licencia.tipo}</td>
-                            <td className="px-4 py-2">{licencia.descripcion}</td>
-                            <td className="px-4 py-2">{licencia.fecha_inicio || "-"}</td>
-                            <td className="px-4 py-2">{licencia.estado}</td>
+                            <td>
+                              {licencia.fecha_fin
+                                ? new Date(licencia.fecha_fin).toLocaleDateString()
+                                : "-"}
+                            </td>
+                            <td className="px-4 py-2 capitalize">{licencia.estado}</td>
+                            <td className="px-4 py-2">{licencia.motivo_rechazo || "-"}</td>
                             <td className="px-4 py-2">
                               {licencia.certificado_url ? (
                                 <a
@@ -756,13 +768,10 @@ export default function ManagerHome() {
                         value={motivoRechazo}
                         onChange={(e) => {
                           setMotivoRechazo(e.target.value);
-                          setMensajeError('');  // Limpiar el mensaje de error al escribir
+                          setMensajeError('');
                         }}
                       ></textarea>
-
-                      {/* Mostrar mensaje de error si no se indica motivo */}
                       {mensajeError && <p className="text-red-500 text-sm">{mensajeError}</p>}
-
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => setModalRechazoOpen(false)}
