@@ -1,15 +1,14 @@
+import { motion } from "framer-motion";
+import { FileUp, Search, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Edit, Upload, Search, FileUp } from "lucide-react";
-import { motion } from "framer-motion";
-import PageLayout from "../components/PageLayoutCand";
-import { TopBar } from "../components/TopBarCand";
-import { ProfileCard } from "../components/ProfileCard";
 import { JobCard } from "../components/JobCard";
-import { CheckCircle, XCircle } from "lucide-react";
-import { SearchFiltersCandidato } from "../components/SearchFiltersCandidato.jsx";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+import PageLayout from "../components/PageLayoutCand";
 import PostulacionesCandidatoModal from '../components/PostulacionesCandidatoModal';
+import { ProfileCard } from "../components/ProfileCard";
+import { SearchFiltersCandidato } from "../components/SearchFiltersCandidato.jsx";
+import { TopBar } from "../components/TopBarCand";
 
 const API_URL = import.meta.env.VITE_API_URL;
 

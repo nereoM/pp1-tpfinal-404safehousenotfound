@@ -34,6 +34,7 @@ export default function EmpleadoHome() {
   const [busquedaConfirmada, setBusquedaConfirmada] = useState("");
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [toasts, setToasts] = useState([]);
 
   // Estados typeados porque son asíncronos
   /** @type {[Usuario]} */
@@ -47,12 +48,21 @@ export default function EmpleadoHome() {
   const [modalLicencias, setModalLicencias] = useState(false);
   const [modalEditarPefil, setModalEditarPerfil] = useState(false);
   const [modalImageFile, setModalImageFile] = useState(null);
-
+  
+  // Custom Hooks
   const { ofertas, ofertasIsLoading, ofertasError, handlerAplicarFiltros } =
-    useOfertasRecomendadas();
-  const { estilos } = useEmpresaEstilos(user?.id_empresa);
+  useOfertasRecomendadas();
   const navigate = useNavigate();
+  const preferencias = useEmpresaEstilos(user?.id_empresa);
 
+  const estilos = {
+    color_principal: preferencias.estilos?.color_principal ?? "#2563eb",
+    color_secundario: preferencias.estilos?.color_secundario ?? "#f3f4f6",
+    color_texto: preferencias.estilos?.color_texto ?? "#000000",
+    slogan: preferencias.estilos?.slogan ?? "Bienvenido al panel de Empleado",
+    logo_url: preferencias.estilos?.logo_url ?? null,
+  };
+  
   const ofertasFiltradas = ofertas
     .filter(
       (o) =>
@@ -81,6 +91,14 @@ export default function EmpleadoHome() {
         console.error(err.message);
       });
   }, []);
+
+  const addToast = (message, type = "success") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 5000);
+  };
 
   if (loading) {
     return (
@@ -123,11 +141,14 @@ export default function EmpleadoHome() {
     empleadoService
       .subirCV({ file: cvFile })
       .then(() => {
+        addToast("¡CV subido exitosamente!");
         setCvPreview(null);
         setCvFile(null);
+        window.location.reload();
       })
       .catch(() => {
         console.log("ERROR AL SUBIR EL CV");
+        addToast("Error de conexión al subir CV", "error");
       });
   };
 
@@ -175,6 +196,16 @@ export default function EmpleadoHome() {
             username={`${user?.nombre} ${user?.apellido}`}
             onLogout={handleLogout}
           />
+          {toasts.map((toast) => (
+            <Toast
+              key={toast.id}
+              message={toast.message}
+              type={toast.type}
+              onClose={() =>
+                setToasts((prev) => prev.filter((t) => t.id !== toast.id))
+              }
+            />
+          ))}
           <div className="px-4 py-6">
             <div
               className="mx-auto w-fit text-sm font-medium px-4 py-2 rounded-full border shadow-sm"
@@ -325,7 +356,7 @@ export default function EmpleadoHome() {
                 <h2 className="text-lg font-semibold">
                   {busquedaConfirmada.trim().length >= 3
                     ? "Resultados de búsqueda"
-                    : "Ofertas rofertasFiltradas"}
+                    : "Ofertas Filtradas"}
                 </h2>
                 <div className="relative group">
                   <input
@@ -366,6 +397,7 @@ export default function EmpleadoHome() {
           {idOfertaSeleccionada && (
             <PostularseModal
               onClose={() => setIdOfertaSeleccionada(null)}
+              addToast={addToast}
               idOferta={idOfertaSeleccionada}
               cvs={cvs}
             />
@@ -390,3 +422,20 @@ export default function EmpleadoHome() {
     </EstiloEmpresaContext.Provider>
   );
 }
+
+const Toast = ({ message, type, onClose }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -10 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -10 }}
+    className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${
+      type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+    }`}
+  >
+    {type === "success"}
+    <span>{message}</span>
+    <button className="ml-2 text-lg" onClick={onClose}>
+      ×
+    </button>
+  </motion.div>
+);

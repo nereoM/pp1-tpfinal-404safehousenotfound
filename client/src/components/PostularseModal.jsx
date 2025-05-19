@@ -1,25 +1,36 @@
 import { useState } from "react";
 import { empleadoService } from "../services/empleadoService";
 
-export function PostularseModal({cvs, onClose, idOferta}) {
-  const [cvSeleccionado, setCvSeleccionado] = useState(cvs[0]);
+export function PostularseModal({ cvs, onClose, idOferta, addToast }) {
+  const [cvSeleccionado, setCvSeleccionado] = useState(null);
   const [salarioPretendido, setSalarioPretendido] = useState(0);
   const [mensajeError, setMensajeError] = useState("");
 
   const handlePostularse = () => {
-    empleadoService.postularse({idCv: cvSeleccionado , idOferta})
-    .then(() => {
-      onClose()
-    })
-    .catch(e => setMensajeError(e.message))
-  }
+    if (!cvSeleccionado) {
+      addToast("Elegí un CV para completar tu postulación", "error");
+      return;
+    }
+
+    empleadoService
+      .postularse({ idCv: cvSeleccionado, idOferta })
+      .then(() => {
+        addToast("Postulación realizada con éxito");
+        onClose();
+      })
+      .catch((err) => {
+        addToast("Error: " + (err.message || "desconocido"));
+      });
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
         <h2 className="text-lg font-semibold">Postularse a la oferta</h2>
 
-        {mensajeError && <header className="text-red-500">{mensajeError}</header>} 
+        {mensajeError && (
+          <header className="text-red-500">{mensajeError}</header>
+        )}
 
         <label className="block text-sm text-gray-600 mb-1">
           Seleccioná un CV
