@@ -248,7 +248,7 @@ def solicitar_licencia():
             return jsonify({"error": "Debe adjuntar un certificado para maternidad"}), 400
         fecha_inicio_dt = now
         fecha_fin_dt = now + timedelta(days=90-1)
-        estado = "pendiente"
+        estado = "activa"
 
     # Paternidad
     elif tipo_licencia == "nacimiento_hijo":
@@ -281,7 +281,7 @@ def solicitar_licencia():
         except Exception:
             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
         fecha_fin_dt = fecha_inicio_dt + timedelta(days=10-1)
-        estado = "pendiente"
+        estado = "aprobada"
 
     # Mudanza
     elif tipo_licencia == "mudanza":
@@ -292,7 +292,7 @@ def solicitar_licencia():
         except Exception:
             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
         fecha_fin_dt = fecha_inicio_dt + timedelta(days=2-1)
-        estado = "pendiente"
+        estado = "aprobada"
 
     # Estudios
     elif tipo_licencia == "estudios":
