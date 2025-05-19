@@ -10,7 +10,7 @@ import re
 from flasgger import swag_from
 import csv
 from .candidato import allowed_image
-from ml.desempeño_desarrollo.predictions import predecir_rend_futuro, predecir_rend_futuro_individual
+from ml.desempeno_desarrollo.predictions import predecir_rend_futuro, predecir_rend_futuro_individual
 import pandas as pd
 from .notificacion import crear_notificacion
 from flask_mail import Message
