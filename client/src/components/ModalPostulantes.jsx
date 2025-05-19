@@ -25,7 +25,7 @@ export default function ModalPostulantes({
       >
         <h2 className="text-xl font-semibold mb-4 text-black">Postulantes</h2>
 
-        {/* botón mostrar/ocultar filtros */}
+        {/* mostrar/ocultar filtros */}
         <div className="mb-4 flex justify-between items-center">
           <button
             onClick={toggleFiltros}
@@ -36,7 +36,7 @@ export default function ModalPostulantes({
           </button>
         </div>
 
-        {/* contenedor de filtros */}
+        {/* filtros */}
         <div className={`overflow-hidden transition-all duration-300 ${mostrarFiltros ? 'max-h-[1000px]' : 'max-h-0'}`}>
           <div className="p-4 border rounded-lg mb-4 bg-gray-800">
             <input
@@ -92,7 +92,7 @@ export default function ModalPostulantes({
           </div>
         </div>
 
-        {/* grid de postulantes */}
+        {/* postulantes */}
         {postulantesFiltrados.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10">
             <p className="text-gray-500 text-lg">No hay postulantes.</p>
@@ -108,7 +108,9 @@ export default function ModalPostulantes({
                 <div className="flex flex-col flex-1 min-w-0">
                   <span className="font-medium text-black truncate mb-1">{c.nombre}</span>
                   <span className="text-sm text-gray-700 truncate mb-1">{c.email}</span>
-                  <span className="text-xs text-gray-500 mb-2">{new Date(c.fecha_postulacion).toLocaleDateString()}</span>
+                  <span className="text-xs text-gray-500 mb-2">
+                    {new Date(c.fecha_postulacion).toLocaleDateString()}
+                  </span>
                   <span className={`text-xs font-semibold px-2 py-1 rounded ${c.is_apto ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}> 
                     {c.is_apto ? 'apto' : 'no apto'}
                   </span>
@@ -120,6 +122,10 @@ export default function ModalPostulantes({
                       className="mt-2 text-indigo-600 hover:underline text-sm"
                     >ver cv</a>
                   )}
+                
+                  <span className="text-sm text-gray-600 mb-2">
+                    Similitud: {c.porcentaje_similitud}%
+                  </span>
                   {(estadoPostulaciones[c.id_postulacion] ?? c.estado_postulacion) !== 'pendiente' && (
                     <span className={`mt-2 text-xs font-bold px-3 py-1 rounded-full ${
                       (estadoPostulaciones[c.id_postulacion] ?? c.estado_postulacion) === 'aprobada'
