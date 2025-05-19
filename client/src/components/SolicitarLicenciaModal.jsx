@@ -55,7 +55,16 @@ export function SolicitarLicenciaModal({ onClose }) {
     e.preventDefault();
 
     let certificado_url = formState.certificado_url;
-    const token = localStorage.getItem("token"); // Ajusta si tu token está en otro lado
+    const token = localStorage.getItem("token");
+    const rol = localStorage.getItem("rol"); // Asegúrate de guardar el rol al hacer login
+
+    // Selecciona el endpoint según el rol
+    let endpointSolicitarLicencia = "/api/solicitar-licencia-empleado";
+    let endpointSubirCertificado = "/api/subir-certificado-emp";
+    if (rol === "reclutador") {
+      endpointSolicitarLicencia = "/api/solicitar-licencia-reclutador";
+      endpointSubirCertificado = "/api/subir-certificado";
+    }
 
     // Si requiere certificado y hay archivo, súbelo primero
     if (
@@ -68,9 +77,9 @@ export function SolicitarLicenciaModal({ onClose }) {
       const data = new FormData();
       data.append("file", formState.certificado);
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/subir-certificado`, {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}${endpointSubirCertificado}`, {
           method: "POST",
-          credentials: "include", 
+          credentials: "include",
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -116,7 +125,7 @@ export function SolicitarLicenciaModal({ onClose }) {
     };
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/solicitar-licencia-reclutador`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}${endpointSolicitarLicencia}`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -160,8 +169,8 @@ export function SolicitarLicenciaModal({ onClose }) {
                 >
                   {formState.tipoLicencia
                     ? licenciasLaborales.find(
-                        (language) => language.value === formState.tipoLicencia
-                      )?.label
+                      (language) => language.value === formState.tipoLicencia
+                    )?.label
                     : "Selecciona el tipo de licencia"}
                   <ChevronsUpDown className="opacity-50" />
                 </button>

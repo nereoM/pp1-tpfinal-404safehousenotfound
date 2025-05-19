@@ -43,7 +43,7 @@ export const empleadoService = {
    * @returns {Promise<[Licencia]>} Lista de licencias del empleado
    */
   async misLicencias() {
-    const url = `${API_URL}/api/mis-licencias-emp`;
+    const url = `${API_URL}/api/mis-licencias-empleado`;
 
     const data = await fetcher({ url });
     return data;

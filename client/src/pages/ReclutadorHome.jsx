@@ -583,11 +583,8 @@ export default function ReclutadorHome() {
                     </tr>
                   </thead>
                   <tbody>
-                    {licencias.map((item, idx) => {
-                      const { id_licencia, tipo, descripcion, estado, motivo_rechazo } =
-                        item.licencias.licencia;
-
-
+                    {licencias.map((licencia, idx) => {
+                      const { id_licencia, tipo, descripcion, estado, motivo_rechazo } = licencia;
                       return (
                         <tr
                           key={idx}
@@ -617,8 +614,6 @@ export default function ReclutadorHome() {
                               "-"
                             )}
                           </td>
-
-
                         </tr>
                       );
                     })}

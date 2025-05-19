@@ -238,6 +238,11 @@ export default function Login() {
         throw new Error(user?.error || "No se pudo obtener el usuario");
       }
 
+      // Guarda el rol principal
+      if (user.roles && user.roles.length > 0) {
+        localStorage.setItem("rol", user.roles[0]);
+      }
+
       // Redirigir según los roles del usuario
       if (user.roles.includes("admin-404")) {
         navigate("/admin/home");
@@ -358,6 +363,10 @@ export default function Login() {
                       });
 
                       const user = await userRes.json();
+
+                      if (user.roles && user.roles.length > 0) {
+                        localStorage.setItem("rol", user.roles[0]);
+                      }
 
                       if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
 
