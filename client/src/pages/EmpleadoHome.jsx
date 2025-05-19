@@ -48,10 +48,10 @@ export default function EmpleadoHome() {
   const [modalLicencias, setModalLicencias] = useState(false);
   const [modalEditarPefil, setModalEditarPerfil] = useState(false);
   const [modalImageFile, setModalImageFile] = useState(null);
-  
+
   // Custom Hooks
   const { ofertas, ofertasIsLoading, ofertasError, handlerAplicarFiltros } =
-  useOfertasRecomendadas();
+    useOfertasRecomendadas();
   const navigate = useNavigate();
   const preferencias = useEmpresaEstilos(user?.id_empresa);
 
@@ -62,7 +62,7 @@ export default function EmpleadoHome() {
     slogan: preferencias.estilos?.slogan ?? "Bienvenido al panel de Empleado",
     logo_url: preferencias.estilos?.logo_url ?? null,
   };
-  
+
   const ofertasFiltradas = ofertas
     .filter(
       (o) =>
@@ -118,16 +118,16 @@ export default function EmpleadoHome() {
 
   const acciones = [
     {
-      icon: FileSearchIcon,
-      titulo: "Ver Mis Licencias",
-      descripcion: "Accede al listado tus licencias.",
-      onClick: () => setModalLicencias(true),
-    },
-    {
       icon: FileUp,
       titulo: "Solicitar Licencia",
       descripcion: "Solicituar una nueva licencia.",
       onClick: () => setmodalSolicitarLicencia(true),
+    },
+    {
+      icon: FileSearchIcon,
+      titulo: "Ver Mis Licencias",
+      descripcion: "Accede al listado tus licencias.",
+      onClick: () => setModalLicencias(true),
     },
     {
       icon: SquareChartGanttIcon,
@@ -312,7 +312,7 @@ export default function EmpleadoHome() {
                   transition={{ duration: 0.4 }}
                   className=""
                 >
-                  <h2 className="text-lg font-semibold text-black">
+                  <h2 className="text-lg font-semibold text-black my-4">
                     Acciones disponibles: Empleado
                   </h2>
                   <div className="flex flex-col gap-4">
@@ -428,9 +428,8 @@ const Toast = ({ message, type, onClose }) => (
     initial={{ opacity: 0, y: -10 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -10 }}
-    className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${
-      type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
-    }`}
+    className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+      }`}
   >
     {type === "success"}
     <span>{message}</span>
