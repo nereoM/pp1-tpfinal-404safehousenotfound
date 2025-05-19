@@ -1,7 +1,7 @@
 import re
 import string
-from datetime import timedelta
-from datetime import datetime
+from datetime import datetime as dt
+
 
 from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import (
@@ -185,7 +185,7 @@ def login():
         licencias = Licencia.query.filter_by(id_empleado=user.id, estado="aprobada").all()
 
         for licencia in licencias:
-            if licencia.fecha_fin > datetime.now():
+            if licencia.fecha_fin > dt.now():
                 return jsonify({"error": f"El usuario tiene una licencia vigente, cuenta bloqueada hasta: {licencia.fecha_fin}"}), 401
 
         # Si la contraseña es correcta y el correo está confirmado, generar el token

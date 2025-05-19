@@ -338,7 +338,7 @@ def crear_estructura_empresas_y_ofertas():
                 contrasena="Recluta123!",
                 confirmado=True,
                 id_empresa=empresa.id,
-                id_superior=admin_emp.id,
+                id_superior=manager.id,
             )
             db.session.add(reclutador)
             db.session.commit()

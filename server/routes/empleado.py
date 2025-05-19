@@ -14,6 +14,8 @@ from ml.matching_semantico import dividir_cv_en_partes
 from sklearn.metrics.pairwise import cosine_similarity
 import json
 from .notificacion import crear_notificacion
+from flask_mail import Message
+from models.extensions import mail
 
 empleado_bp = Blueprint("empleado", __name__)
 
