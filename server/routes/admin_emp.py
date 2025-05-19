@@ -431,66 +431,69 @@ def subir_info_laboral_empleados():
             return jsonify({'error': str(e)}), 500
     
     return jsonify({'error': 'Invalid file format'}), 400
-            
+
 def registrar_info_laboral_empleados(file_path):
+    import csv
+    from flask_jwt_extended import get_jwt_identity
+
+    required_fields = {
+        'id_empleado', 'desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
+        'horas_extras', 'antiguedad', 'horas_capacitacion',
+        'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas'
+    }
+
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
-        required_fields = {'id_empleado', 'desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
-                           'horas_extras', 'antiguedad', 'horas_capacitacion', 'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas'}
-        
+        if not required_fields.issubset(reader.fieldnames):
+            return {"error": f"El archivo CSV debe tener las columnas: {', '.join(required_fields)}"}
+
+        id_admin_emp = get_jwt_identity()
+        admin_emp = Usuario.query.get(id_admin_emp)
+        if not admin_emp or not admin_emp.id_empresa:
+            return {"error": "El admin-emp no tiene una empresa asociada"}
+
+        # Obtener todos los empleados de la empresa (incluye managers, reclutadores, empleados)
+        empleados_empresa = Usuario.query.filter_by(id_empresa=admin_emp.id_empresa).all()
+        ids_validos = {e.id for e in empleados_empresa}
+
         resultado = []
         for row in reader:
-            if not required_fields.issubset(row.keys()):
-                return {"error": "El archivo CSV no contiene las columnas requeridas: id_empleado, desempeno_previo, cantidad_proyectos, tamano_equipo, horas_extras, antiguedad, horas_capacitacion"}
-    
-            id_empleado = int(row['id_empleado'].strip())
-            desempeno_previo = float(row['desempeno_previo'].strip())
-            cantidad_proyectos = int(row['cantidad_proyectos'].strip())
-            tamano_equipo = int(row['tamano_equipo'].strip())
-            horas_extras = int(row['horas_extras'].strip())
-            antiguedad = int(row['antiguedad'].strip())
-            horas_capacitacion = int(row['horas_capacitacion'].strip())
-            ausencias_injustificadas = int(row['ausencias_injustificadas'].strip())
-            llegadas_tarde = int(row['llegadas_tarde'].strip())
-            salidas_tempranas = int(row['salidas_tempranas'].strip())
-            
-            if not Usuario.query.get(id_empleado):
-                return {"error": f"El empleado con ID {id_empleado} no existe"}
-            
-            id_admin_emp = get_jwt_identity()
-            admin_emp = Usuario.query.get(id_admin_emp)
-            if not admin_emp or not admin_emp.id_empresa:
-                return {"error": "El admin-emp no tiene una empresa asociada"}
-            
-            rendimiento_existente = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
-            
-            if rendimiento_existente:
-                rendimiento_existente.desempeno_previo = desempeno_previo
-                rendimiento_existente.cantidad_proyectos = cantidad_proyectos
-                rendimiento_existente.tamano_equipo = tamano_equipo
-                rendimiento_existente.horas_extras = horas_extras
-                rendimiento_existente.antiguedad = antiguedad
-                rendimiento_existente.horas_capacitacion = horas_capacitacion
-                rendimiento_existente.ausencias_injustificadas = ausencias_injustificadas
-                rendimiento_existente.llegadas_tarde = llegadas_tarde
-                rendimiento_existente.salidas_tempranas = salidas_tempranas
-                
-                resultado.append({
-                    "id_empleado": id_empleado,
-                    "accion": "actualizado",
-                    "desempeno_previo": desempeno_previo,
-                    "cantidad_proyectos": cantidad_proyectos,
-                    "tamano_equipo": tamano_equipo,
-                    "horas_extras": horas_extras,
-                    "antiguedad": antiguedad,
-                    "horas_capacitacion": horas_capacitacion,
-                    "ausencias_injustificadas": ausencias_injustificadas,
-                    "llegadas_tarde": llegadas_tarde,
-                    "salidas_tempranas": salidas_tempranas
+            try:
+                id_empleado = int(row['id_empleado'].strip())
+            except Exception:
+                return {"error": f"ID de empleado inválido: {row.get('id_empleado')}"}
 
-                })
+            if id_empleado not in ids_validos:
+                return {"error": f"El empleado con ID {id_empleado} no pertenece a tu empresa"}
+
+            # Convertir y validar campos numéricos
+            try:
+                desempeno_previo = float(row['desempeno_previo'].strip())
+                cantidad_proyectos = int(row['cantidad_proyectos'].strip())
+                tamano_equipo = int(row['tamano_equipo'].strip())
+                horas_extras = int(row['horas_extras'].strip())
+                antiguedad = int(row['antiguedad'].strip())
+                horas_capacitacion = int(row['horas_capacitacion'].strip())
+                ausencias_injustificadas = int(row['ausencias_injustificadas'].strip())
+                llegadas_tarde = int(row['llegadas_tarde'].strip())
+                salidas_tempranas = int(row['salidas_tempranas'].strip())
+            except Exception:
+                return {"error": f"Datos numéricos inválidos para el empleado {id_empleado}"}
+
+            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
+            if rendimiento:
+                rendimiento.desempeno_previo = desempeno_previo
+                rendimiento.cantidad_proyectos = cantidad_proyectos
+                rendimiento.tamano_equipo = tamano_equipo
+                rendimiento.horas_extras = horas_extras
+                rendimiento.antiguedad = antiguedad
+                rendimiento.horas_capacitacion = horas_capacitacion
+                rendimiento.ausencias_injustificadas = ausencias_injustificadas
+                rendimiento.llegadas_tarde = llegadas_tarde
+                rendimiento.salidas_tempranas = salidas_tempranas
+                accion = "actualizado"
             else:
-                new_employee_performance = RendimientoEmpleado (
+                rendimiento = RendimientoEmpleado(
                     id_usuario=id_empleado,
                     desempeno_previo=desempeno_previo,
                     cantidad_proyectos=cantidad_proyectos,
@@ -500,30 +503,28 @@ def registrar_info_laboral_empleados(file_path):
                     horas_capacitacion=horas_capacitacion,
                     ausencias_injustificadas=ausencias_injustificadas,
                     llegadas_tarde=llegadas_tarde,
-                    salidas_tempranas=salidas_tempranas,
+                    salidas_tempranas=salidas_tempranas
                 )
-                
-                db.session.add(new_employee_performance)
-                
-                resultado.append({
-                    "id_empleado": id_empleado,
-                    "accion": "creado",
-                    "desempeno_previo": desempeno_previo,
-                    "cantidad_proyectos": cantidad_proyectos,
-                    "tamano_equipo": tamano_equipo,
-                    "horas_extras": horas_extras,
-                    "antiguedad": antiguedad,
-                    "horas_capacitacion": horas_capacitacion,
-                    "ausencias_injustificadas": ausencias_injustificadas,
-                    "llegadas_tarde": llegadas_tarde,
-                    "salidas_tempranas": salidas_tempranas
+                db.session.add(rendimiento)
+                accion = "creado"
 
-                })
+            resultado.append({
+                "id_empleado": id_empleado,
+                "accion": accion,
+                "desempeno_previo": desempeno_previo,
+                "cantidad_proyectos": cantidad_proyectos,
+                "tamano_equipo": tamano_equipo,
+                "horas_extras": horas_extras,
+                "antiguedad": antiguedad,
+                "horas_capacitacion": horas_capacitacion,
+                "ausencias_injustificadas": ausencias_injustificadas,
+                "llegadas_tarde": llegadas_tarde,
+                "salidas_tempranas": salidas_tempranas
+            })
 
         db.session.commit()
         return resultado
-    
-    
+
 @swag_from("../docs/admin-emp/registrar-empleados.yml")
 @admin_emp_bp.route("/registrar-empleados", methods=["POST"])
 @role_required(["admin-emp"])
@@ -864,7 +865,7 @@ def eval_licencia(id_licencia):
         return jsonify({"error": "Empleado no encontrado"}), 404
 
     # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
-    if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones", "enfermedad"]:
+    if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
         return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
 
     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
