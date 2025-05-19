@@ -219,43 +219,147 @@ def predecir_riesgo_despido_individual(empleado_data, ruta_modelo='server/ml/des
 
     return riesgo_despido
 
+def predict_resignation_risk(df, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/resignation_risk_model.pkl'):
+    try:
+        # Cargar los datos de empleados
+        # df = pd.read_csv(ruta_csv)
+        
+        # Verificar columnas requeridas
+        columnas_requeridas = ['ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas',
+                        'Riesgo de rotacion predicho', 'Riesgo de despido predicho', 
+                        'rendimiento_futuro_predicho']
+        
+        missing_cols = [col for col in columnas_requeridas if col not in df.columns]
+        if missing_cols:
+            print(f"Error: Faltan columnas requeridas: {missing_cols}")
+            return None
+        
+        # Cargar el modelo entrenado
+        modelo = joblib.load(ruta_modelo)
+        
+        # Preprocesamiento igual que en el entrenamiento
+        # Necesitamos el mismo LabelEncoder usado durante el entrenamiento
+        # deberiamos guardar y cargar este encoder al entrenar
+        le_rotacion = LabelEncoder()
+        le_rotacion.fit(['bajo', 'medio', 'alto'])  # Asumiendo estos son los valores posibles
+        df['Riesgo de rotacion_num'] = le_rotacion.transform(df['Riesgo de rotacion predicho'])
+        le_despido = LabelEncoder()
+        le_despido.fit(['bajo', 'medio', 'alto'])  # Asumiendo estos son los valores posibles
+        df['Riesgo de despido_num'] = le_despido.transform(df['Riesgo de despido predicho'])
+        
+        # Renombrar rendimiento_futuro_predicho
+        df.rename(columns={'rendimiento_futuro_predicho': 'rendimiento_futuro'}, inplace=True)
+
+        # Preparar datos para predicción (usar MISMAS features que en entrenamiento)
+        features_modelo = ['ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas', 'Riesgo de rotacion_num', 'Riesgo de despido_num', 'rendimiento_futuro']
+        X = df[features_modelo]
+        
+        # Realizar predicciones
+        df['Riesgo de renuncia predicho'] = modelo.predict(X)
+
+        # Eliminar columna Riesgo de rotacion num
+        df.drop(columns=['Riesgo de rotacion_num'], inplace=True)
+        df.drop(columns=['Riesgo de despido_num'], inplace=True)
+
+        df.rename(columns={'rendimiento_futuro': 'rendimiento_futuro_predicho'}, inplace=True)
+
+        # Guardar resultados
+        df.to_csv("server/ml/desempeno_desarrollo/data/renuncia_predichos.csv", index=False)
+
+        return df
+    
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"Error inesperado: {str(e)}")
+        return None
+
+def predecir_riesgo_renuncia_individual(
+    empleado_data,
+    ruta_modelo='server/ml/desempeno_desarrollo/trained_models/resignation_risk_model.pkl'
+):
+    modelo = joblib.load(ruta_modelo)
+    le_rotacion = LabelEncoder()
+    le_rotacion.fit(['bajo', 'medio', 'alto'])  # Ajusta si tienes otros valores posibles
+    le_despido = LabelEncoder()
+    le_despido.fit(['bajo', 'medio', 'alto'])   # Ajusta si tienes otros valores posibles
+
+    df = pd.DataFrame([empleado_data])
+
+    # Transformar las columnas de riesgo a numéricas
+    df['Riesgo de rotacion_num'] = le_rotacion.transform(df['Riesgo de rotacion predicho'])
+    df['Riesgo de despido_num'] = le_despido.transform(df['Riesgo de despido predicho'])
+
+    # Renombrar columna de rendimiento
+    df.rename(columns={'rendimiento_futuro_predicho': 'rendimiento_futuro'}, inplace=True)
+
+    features_modelo = [
+        'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas',
+        'Riesgo de rotacion_num', 'Riesgo de despido_num', 'rendimiento_futuro'
+    ]
+    X = df[features_modelo]
+
+    # Predecir
+    riesgo_renuncia = modelo.predict(X)[0]
+    return riesgo_renuncia
+
 if __name__ == "__main__":
     info_empleados = pd.read_csv("server/ml/desempeno_desarrollo/data/info_empleados.csv")
     rendFut_predichos_useANDpredict = predecir_rend_futuro(info_empleados)
 
+    # Tomar solamente el primer empleado del archivo emps_riesgos.csv
+    df_emps_riesgos = pd.read_csv("server/ml/desempeno_desarrollo/data/emps_riesgos.csv")
+    primer_empleado = df_emps_riesgos.iloc[0:1]
+
     datos_empleado = {
-    "desempeno_previo": 6,
-    "cantidad_proyectos": 4,
-    "tamano_equipo": 7,
-    "horas_extras": 2,
-    "antiguedad": 4,
-    "horas_capacitacion": 10
+    "desempeno_previo": primer_empleado['desempeno_previo'].values[0],
+    "cantidad_proyectos": primer_empleado['cantidad_proyectos'].values[0],
+    "tamano_equipo": primer_empleado['tamano_equipo'].values[0],
+    "horas_extras": primer_empleado['horas_extras'].values[0],
+    "antiguedad": primer_empleado['antiguedad'].values[0],
+    "horas_capacitacion": primer_empleado['horas_capacitacion'].values[0]
     }
 
     resultado = predecir_rend_futuro_individual(datos_empleado)
-    print(f"Rendimiento futuro predicho: {resultado}")
+    print(f"Rendimiento futuro individual predicho: {resultado}")
     
     rotacion_predichos = predecir_riesgo_rotacion(rendFut_predichos_useANDpredict)
 
     empleado = {
-    "ausencias_injustificadas": 4,
-    "llegadas_tarde": 25,
-    "salidas_tempranas": 5,
-    "desempeno_previo": 5
+    "ausencias_injustificadas": primer_empleado['ausencias_injustificadas'].values[0],
+    "llegadas_tarde": primer_empleado['llegadas_tarde'].values[0],
+    "salidas_tempranas": primer_empleado['salidas_tempranas'].values[0],
+    "desempeno_previo": primer_empleado['desempeno_previo'].values[0]
     }
     riesgo = predecir_riesgo_rotacion_individual(empleado)
-    print(riesgo)
+    print(f"Riesgo de rotacion individual predicho: {riesgo}")
 
     despido_predichos = predecir_riesgo_despido(rotacion_predichos)
 
     empleado_data = {
-    'ausencias_injustificadas': 1,
-    'llegadas_tarde': 14,
-    'salidas_tempranas': 19,
-    'desempeno_previo': 7,
-    'Riesgo de rotacion predicho': 'medio',  # Debe ser 'bajo', 'medio' o 'alto'
-    'rendimiento_futuro_predicho': 9.8
+    "ausencias_injustificadas": primer_empleado['ausencias_injustificadas'].values[0],
+    "llegadas_tarde": primer_empleado['llegadas_tarde'].values[0],
+    "salidas_tempranas": primer_empleado['salidas_tempranas'].values[0],
+    "desempeno_previo": primer_empleado['desempeno_previo'].values[0],
+    'Riesgo de rotacion predicho': primer_empleado['Riesgo de rotacion'].values[0],
+    'rendimiento_futuro_predicho': primer_empleado['rendimiento_futuro'].values[0]
     }
 
     riesgo = predecir_riesgo_despido_individual(empleado_data)
-    print(f"Riesgo de despido predicho: {riesgo}")
+    print(f"Riesgo de despido individual predicho: {riesgo}")
+
+    renuncia_predichos = predict_resignation_risk(despido_predichos)
+
+    empleado_data = {
+    "ausencias_injustificadas": primer_empleado['ausencias_injustificadas'].values[0],
+    "llegadas_tarde": primer_empleado['llegadas_tarde'].values[0],
+    "salidas_tempranas": primer_empleado['salidas_tempranas'].values[0],
+    "desempeno_previo": primer_empleado['desempeno_previo'].values[0],
+    'Riesgo de rotacion predicho': primer_empleado['Riesgo de rotacion'].values[0],
+    'Riesgo de despido predicho': primer_empleado['Riesgo de despido'].values[0],
+    'rendimiento_futuro_predicho': primer_empleado['rendimiento_futuro'].values[0]
+    }
+
+    riesgo = predecir_riesgo_renuncia_individual(empleado_data)
+    print(f"Riesgo de renuncia individual predicho: {riesgo}")
