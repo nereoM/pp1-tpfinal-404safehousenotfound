@@ -799,25 +799,10 @@ def predecir_rendimiento_futuro_empleado(id_empleado):
     if not detalles_laborales:
         return jsonify({"error": "Este empleado no tiene detalles laborales cargados/asociados"}), 404
 
-    # Preparar los datos para la predicción
-    datos_empleado = {
-        "desempeno_previo": detalles_laborales.desempeno_previo,
-        "cantidad_proyectos": detalles_laborales.cantidad_proyectos,
-        "tamano_equipo": detalles_laborales.tamano_equipo,
-        "horas_extras": detalles_laborales.horas_extras,
-        "antiguedad": detalles_laborales.antiguedad,
-        "horas_capacitacion": detalles_laborales.horas_capacitacion,
-    }
-
-    # Realizar la predicción utilizando la función predecir_rend_futuro_individual
-    try:
-        rendimiento_futuro = predecir_rend_futuro_individual(datos_empleado)
-    except Exception as e:
-        return jsonify({"error": f"Error al predecir el rendimiento futuro: {str(e)}"}), 500
-
-    # Formatear la respuesta
+    # Leer el valor ya calculado y guardado
     resultado = {
-        "rendimiento_futuro": rendimiento_futuro,
+        "rendimiento_futuro": detalles_laborales.rendimiento_futuro_predicho,
+        "clasificacion_rendimiento": getattr(detalles_laborales, "clasificacion_rendimiento", None)
     }
 
     return jsonify(resultado), 200
