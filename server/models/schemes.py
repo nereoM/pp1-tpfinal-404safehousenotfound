@@ -197,7 +197,10 @@ class RendimientoEmpleado(db.Model):
     ausencias_injustificadas = db.Column(db.Integer, nullable=True)
     llegadas_tarde = db.Column(db.Integer, nullable=True)
     salidas_tempranas = db.Column(db.Integer, nullable=True)
-    rendimiento_futuro = db.Column(db.Float, nullable=True)
+    rendimiento_futuro_predicho = db.Column(db.Float, nullable=True)
+    riesgo_rotacion_predicho = db.Column(db.String(50), nullable=True)
+    riesgo_despido_predicho = db.Column(db.String(50), nullable=True)
+    riesgo_renuncia_predicho = db.Column(db.String(50), nullable=True)
     clasificacion_rendimiento = db.Column(db.String(50), nullable=True)
     fecha_calculo_rendimiento = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
 

@@ -10,7 +10,7 @@ import re
 from flasgger import swag_from
 import csv
 from .candidato import allowed_image
-from ml.desempeno_desarrollo.predictions import predecir_rend_futuro, predecir_rend_futuro_individual
+from ml.desempeno_desarrollo.predictions import predecir_rend_futuro, predecir_rend_futuro_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_despido_individual, predecir_riesgo_renuncia_individual
 import pandas as pd
 from .notificacion import crear_notificacion
 from flask_mail import Message
@@ -508,6 +508,50 @@ def registrar_info_laboral_empleados(file_path):
                 db.session.add(rendimiento)
                 accion = "creado"
 
+            datos_rend_futuro = {
+                "desempeno_previo": desempeno_previo,
+                "cantidad_proyectos": cantidad_proyectos,
+                "tamano_equipo": tamano_equipo,
+                "horas_extras": horas_extras,
+                "antiguedad": antiguedad,
+                "horas_capacitacion": horas_capacitacion
+            }
+
+            try:
+                rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
+
+                datos_rotacion = {
+                    "ausencias_injustificadas": ausencias_injustificadas,
+                    "llegadas_tarde": llegadas_tarde,
+                    "salidas_tempranas": salidas_tempranas,
+                    "desempeno_previo" : desempeno_previo
+                }
+                rendimiento.riesgo_rotacion_predicho = predecir_riesgo_rotacion_individual(datos_rotacion)
+
+                datos_despido = {
+                    "ausencias_injustificadas": ausencias_injustificadas,
+                    "llegadas_tarde": llegadas_tarde,
+                    "salidas_tempranas": salidas_tempranas,
+                    "desempeno_previo": desempeno_previo,
+                    'Riesgo de rotacion predicho': rendimiento.riesgo_rotacion_predicho,
+                    'rendimiento_futuro_predicho': rendimiento.rendimiento_futuro_predicho
+                }
+                rendimiento.riesgo_despido_predicho = predecir_riesgo_despido_individual(datos_despido)
+
+                datos_renuncia = {
+                    "ausencias_injustificadas": ausencias_injustificadas,
+                    "llegadas_tarde": llegadas_tarde,
+                    "salidas_tempranas": salidas_tempranas,
+                    "desempeno_previo": desempeno_previo,
+                    'Riesgo de rotacion predicho': rendimiento.riesgo_rotacion_predicho,
+                    'Riesgo de despido predicho': rendimiento.riesgo_despido_predicho,
+                    'rendimiento_futuro_predicho': rendimiento.rendimiento_futuro_predicho
+                }
+                rendimiento.riesgo_renuncia_predicho = predecir_riesgo_renuncia_individual(datos_renuncia)
+
+            except Exception as e:
+                print(f"Error al predecir para empleado {id_empleado}: {e}")
+
             resultado.append({
                 "id_empleado": id_empleado,
                 "accion": accion,
@@ -519,7 +563,11 @@ def registrar_info_laboral_empleados(file_path):
                 "horas_capacitacion": horas_capacitacion,
                 "ausencias_injustificadas": ausencias_injustificadas,
                 "llegadas_tarde": llegadas_tarde,
-                "salidas_tempranas": salidas_tempranas
+                "salidas_tempranas": salidas_tempranas,
+                "rendimiento_futuro_predicho": getattr(rendimiento, "rendimiento_futuro", None),
+                "riesgo_rotacion_predicho": getattr(rendimiento, "riesgo_rotacion", None),
+                "riesgo_despido_predicho": getattr(rendimiento, "riesgo_despido", None),
+                "riesgo_renuncia_predicho": getattr(rendimiento, "riesgo_renuncia", None)
             })
 
         db.session.commit()
@@ -641,6 +689,9 @@ def obtener_empleados_a_cargo():
     # Obtener los empleados a cargo del admin-emp
     empleados = Usuario.query.filter_by(id_empresa=admin_emp.id_empresa).all()
 
+    # Excepto él mismo
+    empleados = [empleado for empleado in empleados if empleado.id != id_admin_emp]
+
     # Formatear los datos de los empleados
     resultado = [
         {
@@ -660,9 +711,19 @@ def obtener_informacion_empleado(id_empleado):
     empleado = Usuario.query.get(id_empleado)
     if not empleado:
         return jsonify({"error": "Empleado no encontrado"}), 404
-
+    
+    # Que pertenezca a la misma empresa
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp or not admin_emp.id_empresa:
+        return jsonify({"error": "El admin-emp no tiene una empresa asociada"}), 403
+    if empleado.id_empresa != admin_emp.id_empresa:
+        return jsonify({"error": "El empleado no pertenece a la misma empresa que el admin-emp"}), 403
+    
     # Obtener el superior del empleado
     superior = Usuario.query.get(empleado.id_superior)
+    if not superior:
+        return jsonify({"error": "Superior no encontrado"}), 404
 
     # Formatear la respuesta
     resultado = {
@@ -686,6 +747,14 @@ def obtener_detalles_laborales_empleado(id_empleado):
     empleado = Usuario.query.get(id_empleado)
     if not empleado:
         return jsonify({"error": "Empleado no encontrado"}), 404
+    
+    # Que pertenezca a la misma empresa
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp or not admin_emp.id_empresa:
+        return jsonify({"error": "El admin-emp no tiene una empresa asociada"}), 403
+    if empleado.id_empresa != admin_emp.id_empresa:
+        return jsonify({"error": "El empleado no pertenece a la misma empresa que el admin-emp"}), 403
 
     # Verificar si el empleado tiene detalles laborales cargados
     detalles_laborales = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
@@ -701,6 +770,9 @@ def obtener_detalles_laborales_empleado(id_empleado):
             "horas_extras": detalles_laborales.horas_extras,
             "antiguedad": detalles_laborales.antiguedad,
             "horas_capacitacion": detalles_laborales.horas_capacitacion,
+            "ausencias_injustificadas": detalles_laborales.ausencias_injustificadas,
+            "llegadas_tarde": detalles_laborales.llegadas_tarde,
+            "salidas_tempranas": detalles_laborales.salidas_tempranas,
         },
     }
 
@@ -713,6 +785,14 @@ def predecir_rendimiento_futuro_empleado(id_empleado):
     empleado = Usuario.query.get(id_empleado)
     if not empleado:
         return jsonify({"error": "Empleado no encontrado"}), 404
+    
+    # Que pertenezca a la misma empresa
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp or not admin_emp.id_empresa:
+        return jsonify({"error": "El admin-emp no tiene una empresa asociada"}), 403
+    if empleado.id_empresa != admin_emp.id_empresa:
+        return jsonify({"error": "El empleado no pertenece a la misma empresa que el admin-emp"}), 403
 
     # Verificar si el empleado tiene detalles laborales cargados
     detalles_laborales = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
