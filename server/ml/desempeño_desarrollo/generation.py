@@ -1,5 +1,6 @@
 from dataset_generator import generate_employee_dataset, add_future_performance, add_risks
 from future_performance_model import train_future_performance_model
+from rotation_model import train_rotation_risk_model
 
 if __name__ == "__main__":
     df_emps, emps_ruta = generate_employee_dataset(400)
@@ -9,3 +10,5 @@ if __name__ == "__main__":
     df_emps_riesgos, ruta_emps_riesgos = add_risks(ruta_emps_rendFut)
 
     modelo_rendFut, metricas, df = train_future_performance_model(ruta_emps_rendFut)
+
+    modelo_rotacion, metricas, le_rotacion = train_rotation_risk_model(ruta_emps_riesgos)

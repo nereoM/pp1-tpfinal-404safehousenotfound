@@ -3,7 +3,7 @@ import secrets
 import re
 import csv
 import pandas as pd
-from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro
+from ml.desempeño_desarrollo.predictions import predecir_rend_futuro
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -26,7 +26,7 @@ from models.schemes import (
     RendimientoEmpleado,
     UsuarioRol,
 )
-from ml.desempeñoYdesarrollo.predictions import predecir_rend_futuro_individual
+from ml.desempeño_desarrollo.predictions import predecir_rend_futuro_individual
 
 manager_bp = Blueprint("manager", __name__)
 

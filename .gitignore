@@ -31,4 +31,5 @@ migrations/
 /server/uploads/certificados/**
 /server/uploads/registro_empleados/**
 /venv/
-/server/ml/desempeñoYdesarrollo/data
+/server/ml/desempeño_desarrollo/data
+/server/ml/desempeño_desarrollo/trained_models

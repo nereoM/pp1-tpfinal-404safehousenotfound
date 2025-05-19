@@ -50,8 +50,8 @@ def generate_employee_dataset(cant_empleados, nombre_archivo="info_empleados.csv
     # Crear DataFrame
     df = pd.DataFrame(data)
 
-    #save_path = os.path.join("server/ml/data")
-    save_path = os.path.join(os.getcwd(), "data")
+    save_path = os.path.join("server/ml/desempeño_desarrollo/data")
+    # save_path = os.path.join(os.getcwd(), "data")
     os.makedirs(save_path, exist_ok=True)
 
     df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
@@ -61,7 +61,7 @@ def generate_employee_dataset(cant_empleados, nombre_archivo="info_empleados.csv
     # Retornar la ruta del archivo csv generado y el df
     return df, os.path.join(save_path, nombre_archivo)
 
-def add_future_performance(ruta_csv):
+def add_future_performance(ruta_csv, nombre_archivo = "emps_rendFut.csv"):
     # Cargar el dataset
     try:
         df = pd.read_csv(ruta_csv)
@@ -130,11 +130,10 @@ def add_future_performance(ruta_csv):
     # Asegurarse de que esté dentro del rango 4-10
     df['rendimiento_futuro'] = df['rendimiento_futuro'].clip(4, 10)
     
-    #save_path = os.path.join("server/ml/data")
-    save_path = os.path.join(os.getcwd(), "data")
+    save_path = os.path.join("server/ml/desempeño_desarrollo/data")
+    # save_path = os.path.join(os.getcwd(), "data")
     os.makedirs(save_path, exist_ok=True)
     # Crear otro archivo .csv con las mismas columnas mas las nuevas columnas
-    nombre_archivo = "emps_rendFut.csv"
     df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
 
     print(f"Archivo {nombre_archivo}, rendimiento futuro agregado\n")
@@ -142,7 +141,7 @@ def add_future_performance(ruta_csv):
 
     return df, os.path.join(save_path, nombre_archivo)
 
-def add_risks(ruta_csv):
+def add_risks(ruta_csv, nombre_archivo = "emps_riesgos.csv"):
     try:
         df = pd.read_csv(ruta_csv)
     except FileNotFoundError:
@@ -256,10 +255,9 @@ def add_risks(ruta_csv):
         x['rendimiento_futuro']
     ), axis=1)
 
-    #save_path = os.path.join("server/ml/data")
-    save_path = os.path.join(os.getcwd(), "data")
+    save_path = os.path.join("server/ml/desempeño_desarrollo/data")
+    # save_path = os.path.join(os.getcwd(), "data")
     os.makedirs(save_path, exist_ok=True)
-    nombre_archivo = "emps_riesgos.csv"
     df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
 
     print(f"Archivo {nombre_archivo}, columnas de rotacion, despido y renuncia agregadas\n")
