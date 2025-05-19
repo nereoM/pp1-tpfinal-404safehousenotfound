@@ -1,15 +1,16 @@
-import React, { useState, useEffect, useContext } from "react";
 import { motion } from "framer-motion";
+import { BarChart, BarChart2, FileLock, FileText, PlusCircle, Users } from 'lucide-react';
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import GestionUsuarios from "../components/GestionUsuarios.jsx";
+import ModalOferta from '../components/ModalOferta';
+import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+import PageLayout from "../components/PageLayout";
+import { ProfileCard } from "../components/ProfileCard";
+import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
-import PageLayout from "../components/PageLayout";
-import { TopBar } from "../components/TopBar";
-import { ProfileCard } from "../components/ProfileCard";
-import { Users, PlusCircle, BarChart2, BarChart, FileText, RotateCcw, FileLock } from 'lucide-react';
-import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
-import ModalOferta from '../components/ModalOferta';
-
+import { managerService } from "../services/managerService.js";
 
 
 export default function ManagerHome() {
@@ -40,6 +41,7 @@ export default function ManagerHome() {
   const [username, setUsername] = useState("");
   const [modalImageFile, setModalImageFile] = useState(null);
   const [mensajeError, setMensajeError] = useState('');
+  const [modalGestionEquipo, setModalGestionEquipo] = useState(false);
   const navigate = useNavigate();
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -372,6 +374,12 @@ export default function ManagerHome() {
       descripcion: "Revisa los informes y reportes detallados del sistema.",
       onClick: () => alert("Funcionalidad en desarrollo"),
     },
+    {
+      icon: Users,
+      titulo: "Gestionar equipo",
+      descripcion: "Visualizá y administrá los analistas a tu cargo",
+      onClick: () => setModalGestionEquipo(true),
+    }
   ];
 
   const handleLogout = () => {
@@ -807,7 +815,11 @@ export default function ManagerHome() {
             onFileSelect={setModalImageFile}
           />
 
-
+          {modalGestionEquipo &&
+            <GestionUsuarios
+              service={managerService}
+              onClose={() => setModalGestionEquipo(false)}
+              textColor={estilosSafe.color_texto} />}
 
 
         </PageLayout>

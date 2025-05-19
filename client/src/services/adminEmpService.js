@@ -35,7 +35,7 @@ export const adminEmpService = {
     const data = await fetcher({ url, options })
     return data
   },
-  async obtenerEmpleadosACargo() {
+  async obtenerEmpleados() {
     const url = `${API_URL}/api/empleados-admin`
 
     const data = await fetcher({ url })

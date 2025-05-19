@@ -1,17 +1,17 @@
 import { motion } from "framer-motion";
-import { Edit, FileLock, Settings, UserPlus, Users, Upload } from "lucide-react";
+import { FileLock, Settings, Upload, UserPlus, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GestionUsuarios from "../components/GestionUsuarios";
+import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
 import { ProfileCard } from "../components/ProfileCard";
+import SubirEmpleados from "../components/RegistrarEmpleados";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { adminEmpService } from "../services/adminEmpService";
-import SubirEmpleados from "../components/RegistrarEmpleados";
-import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -353,7 +353,7 @@ export default function AdminEmpHome() {
             </motion.div>
           </div>
 
-          {modalUsuarios && <GestionUsuarios onClose={() => setModalUsuarios(false)} textColor={estilosSafe.color_texto} />}
+          {modalUsuarios && <GestionUsuarios service={adminEmpService} onClose={() => setModalUsuarios(false)} textColor={estilosSafe.color_texto} />}
 
           {modalPreferencias && (
             <PreferenciasEmpresa

@@ -1,28 +1,7 @@
-import { useEffect, useState } from "react";
+import { useGestionUsuarios } from "../hooks/useGestionUsuarios";
 
-export default function GestionUsuarios({ onClose, textColor }) {
-  const [empleados, setEmpleados] = useState([]);
-  const [confirmModal, setConfirmModal] = useState({ open: false, id: null });
-
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/empleados-admin`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => setEmpleados(data))
-      .catch((err) => console.error("❌ Error al obtener empleados:", err));
-  }, []);
-
-  const desvincular = async (id) => {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/desvincular-manager/${id}`, {
-      method: "PUT",
-      credentials: "include",
-    });
-    if (res.ok) {
-      setEmpleados(empleados.filter((e) => e.id !== id));
-      setConfirmModal({ open: false, id: null });
-    } else {
-      console.error("❌ Error al desvincular empleado");
-    }
-  };
+export default function GestionUsuarios({ onClose, textColor , service}) {
+  const { confirmModal, desvincular, empleados, setConfirmModal } = useGestionUsuarios({service})
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
