@@ -76,7 +76,7 @@ def train_dismissal_risk_model(ruta_csv, guardar_modelo=True, nombre_modelo='dis
     for feature, imp in sorted(importancia.items(), key=lambda x: x[1], reverse=True):
         print(f"{feature}: {imp:.3f}")
 
-    save_path = os.path.join("server/pruebas2/trained_models")
+    save_path = os.path.join("server/ml/desempeno_desarrollo/trained_models")
     os.makedirs(save_path, exist_ok=True)
     joblib.dump(modelo, os.path.join(save_path, nombre_modelo))
     print(f"Modelo guardado en {os.path.join(save_path, nombre_modelo)}")

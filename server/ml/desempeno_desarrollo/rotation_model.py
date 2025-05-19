@@ -67,7 +67,7 @@ def train_rotation_risk_model(ruta_csv, nombre_modelo='rotation_risk_model.pkl')
         print(f"{feature}: {importance:.3f}")
 
     # save_path_model = os.path.join(os.getcwd(), "trained_models")
-    save_path_model = os.path.join("server/ml/desempeño_desarrollo/trained_models")
+    save_path_model = os.path.join("server/ml/desempeno_desarrollo/trained_models")
     if not os.path.exists(save_path_model):
         os.makedirs(save_path_model)
 

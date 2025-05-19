@@ -1,6 +1,7 @@
 import pandas as pd
 import joblib
 import os
+from sklearn.preprocessing import LabelEncoder
 
 """
 def predecir_rend_futuro(ruta_csv, ruta_modelo='server/ml/trained_models/performance_model.pkl'):
@@ -39,7 +40,7 @@ def predecir_rend_futuro(ruta_csv, ruta_modelo='server/ml/trained_models/perform
         return None
 """
 
-def predecir_rend_futuro(df, ruta_modelo='server/ml/desempeño_desarrollo/trained_models/performance_model.pkl'):
+def predecir_rend_futuro(df, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/performance_model.pkl'):
     try:
         # current_directory = os.path.dirname(__file__)
         # ruta_modelo = os.path.join(current_directory, 'trained_models/performance_model.pkl')
@@ -57,7 +58,7 @@ def predecir_rend_futuro(df, ruta_modelo='server/ml/desempeño_desarrollo/traine
 
         df['rendimiento_futuro_predicho'] = modelo.predict(X)
 
-        df.to_csv("server/ml/desempeño_desarrollo/data/rendFut_predichos_use&predict.csv", index=False)
+        df.to_csv("server/ml/desempeno_desarrollo/data/rendFut_predichos_use&predict.csv", index=False)
 
         return df
     
@@ -68,7 +69,7 @@ def predecir_rend_futuro(df, ruta_modelo='server/ml/desempeño_desarrollo/traine
         print(f"Error inesperado: {str(e)}")
         return None
     
-def predecir_rend_futuro_individual(empleado_data, ruta_modelo='server/ml/desempeño_desarrollo/trained_models/performance_model.pkl'):
+def predecir_rend_futuro_individual(empleado_data, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/performance_model.pkl'):
 
     modelo = joblib.load(ruta_modelo)
 
@@ -89,7 +90,7 @@ def predecir_rend_futuro_individual(empleado_data, ruta_modelo='server/ml/desemp
 
     return df.loc[0, 'rendimiento_futuro_predicho']
 
-def predecir_riesgo_rotacion(df, ruta_modelo='server/ml/desempeño_desarrollo/trained_models/rotation_risk_model.pkl'):
+def predecir_riesgo_rotacion(df, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/rotation_risk_model.pkl'):
     try:
         # # Cargar los datos de empleados
         # df = pd.read_csv(ruta_csv)
@@ -114,7 +115,7 @@ def predecir_riesgo_rotacion(df, ruta_modelo='server/ml/desempeño_desarrollo/tr
         df['Riesgo de rotacion predicho'] = le.inverse_transform(predicciones_numericas)
         
         # Guardar resultados
-        df.to_csv("server/ml/desempeño_desarrollo/data/rotacion_predichos.csv", index=False)
+        df.to_csv("server/ml/desempeno_desarrollo/data/rotacion_predichos.csv", index=False)
 
         return df
     
@@ -125,7 +126,7 @@ def predecir_riesgo_rotacion(df, ruta_modelo='server/ml/desempeño_desarrollo/tr
         print(f"Error inesperado: {str(e)}")
         return None
     
-def predecir_riesgo_rotacion_individual(empleado_data, ruta_modelo='server/ml/desempeño_desarrollo/trained_models/rotation_risk_model.pkl'):
+def predecir_riesgo_rotacion_individual(empleado_data, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/rotation_risk_model.pkl'):
     modelo, le = joblib.load(ruta_modelo)
     
     columnas = ['ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas', 'desempeno_previo']
@@ -137,9 +138,62 @@ def predecir_riesgo_rotacion_individual(empleado_data, ruta_modelo='server/ml/de
     # df.to_csv("data/rotacionInd_predichos.csv", index=False)
 
     return riesgo
+
+def predecir_riesgo_despido(ruta_csv, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/dismissal_risk_model.pkl'):
+    try:
+        # Cargar los datos de empleados
+        df = pd.read_csv(ruta_csv)
+        
+        # Verificar columnas requeridas
+        columnas_requeridas = ['ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas',
+                              'desempeno_previo', 'Riesgo de rotacion predicho', 'rendimiento_futuro_predicho']
+        
+        missing_cols = [col for col in columnas_requeridas if col not in df.columns]
+        if missing_cols:
+            print(f"Error: Faltan columnas requeridas: {missing_cols}")
+            return None
+        
+        # Cargar el modelo entrenado
+        modelo = joblib.load(ruta_modelo)
+        
+        # Preprocesamiento igual que en el entrenamiento
+        # Necesitamos el mismo LabelEncoder usado durante el entrenamiento
+        # deberiamos guardar y cargar este encoder al entrenar
+        le_rotacion = LabelEncoder()
+        le_rotacion.fit(['bajo', 'medio', 'alto'])  # Asumiendo estos son los valores posibles
+        df['Riesgo de rotacion_num'] = le_rotacion.transform(df['Riesgo de rotacion predicho'])
+        
+        # Renombrar rendimiento_futuro_predicho
+        df.rename(columns={'rendimiento_futuro_predicho': 'rendimiento_futuro'}, inplace=True)
+
+        # Preparar datos para predicción (usar MISMAS features que en entrenamiento)
+        features_modelo = ['ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas',
+                        'desempeno_previo', 'Riesgo de rotacion_num', 'rendimiento_futuro']
+        X = df[features_modelo]
+        
+        # Realizar predicciones
+        df['Riesgo de despido predicho'] = modelo.predict(X)
+
+        # Eliminar columna Riesgo de rotacion num
+        df.drop(columns=['Riesgo de rotacion_num'], inplace=True)
+
+        # Renombrar otra vez
+        df.rename(columns={'rendimiento_futuro': 'rendimiento_futuro_predicho'}, inplace=True)
+        
+        # Guardar resultados
+        df.to_csv("server/ml/desempeno_desarrollo/data/despido_predichos.csv", index=False)
+
+        return df
+    
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+        return None
+    except Exception as e:
+        print(f"Error inesperado: {str(e)}")
+        return None
     
 if __name__ == "__main__":
-    info_empleados = pd.read_csv("server/ml/desempeño_desarrollo/data/info_empleados.csv")
+    info_empleados = pd.read_csv("server/ml/desempeno_desarrollo/data/info_empleados.csv")
     rendFut_predichos_useANDpredict = predecir_rend_futuro(info_empleados)
 
     datos_empleado = {
