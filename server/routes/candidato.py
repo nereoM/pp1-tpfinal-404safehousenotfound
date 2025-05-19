@@ -601,7 +601,7 @@ def obtener_notificaciones_no_leidas():
 
 
 
-@candidato_bp.route("/leer-notificacion-empleado/<int:id_notificacion>", methods=["PUT"])
+@candidato_bp.route("/leer-notificacion-candidato/<int:id_notificacion>", methods=["PUT"])
 @role_required("candidato")
 def leer_notificacion(id_notificacion):
     try:
@@ -627,7 +627,7 @@ def leer_notificacion(id_notificacion):
         return jsonify({"error": "Error interno al actualizar la notificación"}), 500
     
 
-@candidato_bp.route("/notificaciones-empleado/no-leidas/contador", methods=["GET"])
+@candidato_bp.route("/notificaciones-candidato/no-leidas/contador", methods=["GET"])
 @role_required("candidato")
 def obtener_contador_notificaciones_no_leidas():
     try:
