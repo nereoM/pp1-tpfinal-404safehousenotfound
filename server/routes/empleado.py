@@ -896,8 +896,8 @@ def estado_postulaciones():
     return jsonify(resultado), 200
 
 
-@empleado_bp.route("/notificaciones-empleado/no-leidas", methods=["GET"])
-@role_required("empleado")
+@empleado_bp.route("/notificaciones-empleado-no-leidas", methods=["GET"])
+@role_required(["empleado"])
 def obtener_notificaciones_no_leidas():
     try:
         id_usuario = get_jwt_identity()
@@ -926,7 +926,7 @@ def obtener_notificaciones_no_leidas():
 
 
 @empleado_bp.route("/leer-notificacion-empleado/<int:id_notificacion>", methods=["PUT"])
-@role_required("empleado")
+@role_required(["empleado"])
 def leer_notificacion(id_notificacion):
     try:
         id_usuario = get_jwt_identity()
@@ -951,8 +951,8 @@ def leer_notificacion(id_notificacion):
         return jsonify({"error": "Error interno al actualizar la notificación"}), 500
     
 
-@empleado_bp.route("/notificaciones-empleado/no-leidas/contador", methods=["GET"])
-@role_required("empleado")
+@empleado_bp.route("/notificaciones-empleado-no-leidas-contador", methods=["GET"])
+@role_required(["empleado"])
 def obtener_contador_notificaciones_no_leidas():
     try:
         id_usuario = get_jwt_identity()

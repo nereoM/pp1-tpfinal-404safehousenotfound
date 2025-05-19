@@ -223,6 +223,15 @@ class Notificacion(db.Model):
     fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     usuario = db.relationship('Usuario', backref=db.backref('notificaciones', lazy=True))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'id_usuario': self.id_usuario,
+            'mensaje': self.mensaje,
+            'leida': self.leida,
+            'fecha_creacion': self.fecha_creacion
+        }
     
 
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):

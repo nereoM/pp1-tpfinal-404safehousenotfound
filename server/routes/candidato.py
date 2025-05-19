@@ -572,8 +572,8 @@ def construir_query_con_filtros(filtros, query):
 
     return query
 
-@candidato_bp.route("/notificaciones-candidato/no-leidas", methods=["GET"])
-@role_required("candidato")
+@candidato_bp.route("/notificaciones-candidato-no-leidas", methods=["GET"])
+@role_required(["candidato"])
 def obtener_notificaciones_no_leidas():
     try:
         id_usuario = get_jwt_identity()
@@ -602,7 +602,7 @@ def obtener_notificaciones_no_leidas():
 
 
 @candidato_bp.route("/leer-notificacion-candidato/<int:id_notificacion>", methods=["PUT"])
-@role_required("candidato")
+@role_required(["candidato"])
 def leer_notificacion(id_notificacion):
     try:
         id_usuario = get_jwt_identity()
@@ -627,8 +627,8 @@ def leer_notificacion(id_notificacion):
         return jsonify({"error": "Error interno al actualizar la notificación"}), 500
     
 
-@candidato_bp.route("/notificaciones-candidato/no-leidas/contador", methods=["GET"])
-@role_required("candidato")
+@candidato_bp.route("/notificaciones-candidato-no-leidas-contador", methods=["GET"])
+@role_required(["candidato"])
 def obtener_contador_notificaciones_no_leidas():
     try:
         id_usuario = get_jwt_identity()
