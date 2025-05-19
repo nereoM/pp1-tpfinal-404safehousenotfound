@@ -11,6 +11,10 @@ from routes.manager import manager_bp
 from routes.admin_emp import admin_emp_bp
 from routes.empleado import empleado_bp
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from models.schemes import Licencia
+from datetime import datetime
+
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from initialize_admins import create_admins
@@ -86,6 +90,21 @@ def iniciar_db():
             print("Conexión exitosa a la base de datos MySQL")
         except Exception as e:
             print("Error de conexión:", e)
+
+def activar_licencias():
+    print(f"Revisando licencias aprobadas... - {datetime.now()}")
+    
+    # Buscar todas las licencias en estado "aprobada" y con fecha de inicio menor o igual a ahora
+    licencias = Licencia.query.filter(Licencia.estado == "aprobada", Licencia.fecha_inicio <= datetime.now()).all()
+    
+    for licencia in licencias:
+        print(f"Activando licencia: {licencia.id}")
+        licencia.estado = "activa"
+        db.session.commit()
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(activar_licencias, 'interval', minutes=5)
+scheduler.start()
             
 if __name__ == "__main__":
     iniciar_db()
