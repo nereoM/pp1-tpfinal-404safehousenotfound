@@ -221,7 +221,7 @@ class Notificacion(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
-    mensaje = db.Column(db.String(255), nullable=False)
+    mensaje = db.Column(db.String(1000), nullable=False)
     leida = db.Column(db.Boolean, default=False)
     fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
