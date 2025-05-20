@@ -43,6 +43,9 @@ export default function ManagerHome() {
   const [mensajeError, setMensajeError] = useState('');
   const [modalGestionEquipo, setModalGestionEquipo] = useState(false);
   const navigate = useNavigate();
+  const [modalSubirMetricas, setModalSubirMetricas] = useState(false);
+  const [mensajeMetricas, setMensajeMetricas] = useState("");
+  const [archivoMetricas, setArchivoMetricas] = useState(null);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -76,7 +79,31 @@ export default function ManagerHome() {
     cargarUsuario();
   }, []);
 
+  const subirMetricasDesdeCSV = async () => {
+    if (!archivoMetricas) {
+      setMensajeMetricas("Selecciona un archivo CSV.");
+      return;
+    }
+    setMensajeMetricas("Subiendo archivo...");
+    const formData = new FormData();
+    formData.append("file", archivoMetricas);
 
+    try {
+      const res = await fetch(`${API_URL}/api/subir-info-laboral-analistas`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMensajeMetricas(data.message || "Archivo subido correctamente.");
+      } else {
+        setMensajeMetricas(data.error || "Error al subir el archivo.");
+      }
+    } catch (err) {
+      setMensajeMetricas("Error de conexión.");
+    }
+  };
 
   const empresaId = user?.empresaId;
   const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
@@ -354,6 +381,18 @@ export default function ManagerHome() {
       onClick: () => setModalAnalistaOpen(true),
     },
     {
+      icon: BarChart2,
+      titulo: "Subir Métricas de Analistas",
+      descripcion: "Carga un archivo CSV con métricas de desempeño y rotación de analistas.",
+      onClick: () => setModalSubirMetricas(true),
+    },
+    {
+      icon: Users,
+      titulo: "Gestionar equipo",
+      descripcion: "Visualizá y administrá los analistas a tu cargo",
+      onClick: () => setModalGestionEquipo(true),
+    },
+    {
       icon: FileLock,
       titulo: "Consultar Licencias",
       descripcion: "Accede a las licencias del personal y sus estados.",
@@ -377,12 +416,6 @@ export default function ManagerHome() {
       descripcion: "Revisa los informes y reportes detallados del sistema.",
       onClick: () => alert("Funcionalidad en desarrollo"),
     },
-    {
-      icon: Users,
-      titulo: "Gestionar equipo",
-      descripcion: "Visualizá y administrá los analistas a tu cargo",
-      onClick: () => setModalGestionEquipo(true),
-    }
   ];
 
   const handleLogout = () => {
@@ -623,7 +656,7 @@ export default function ManagerHome() {
                             {o.is_active !== false && (
                               <button
                                 onClick={() => cerrarOferta(o.id_oferta)}
-                                className="px-0 py-0 bg-red-500 text-white rounded hover:bg-red-700 transition"
+                                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
                               >
                                 Cerrar Oferta
                               </button>
@@ -808,6 +841,45 @@ export default function ManagerHome() {
                   >
                     Cerrar
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {modalSubirMetricas && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
+                <h2 className="text-lg font-semibold mb-4">Subir Métricas de Analistas</h2>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={e => setArchivoMetricas(e.target.files[0])}
+                  className="mb-4"
+                />
+                {mensajeMetricas && (
+                  <div className="mb-2 text-sm text-center text-indigo-700">{mensajeMetricas}</div>
+                )}
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setModalSubirMetricas(false);
+                      setMensajeMetricas("");
+                      setArchivoMetricas(null);
+                    }}
+                    className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={subirMetricasDesdeCSV}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                  >
+                    Subir
+                  </button>
+                </div>
+                <div className="mt-4 text-xs text-gray-500">
+                  El archivo debe tener las columnas: <br />
+                  <b>id_empleado, desempeno_previo, cantidad_proyectos, tamano_equipo, horas_extras, antiguedad, horas_capacitacion, ausencias_injustificadas, llegadas_tarde, salidas_tempranas</b>
                 </div>
               </div>
             </div>
