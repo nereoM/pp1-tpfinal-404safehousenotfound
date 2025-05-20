@@ -22,6 +22,7 @@ from models.extensions import mail
 from flask_migrate import Migrate
 
 from ml.modelo import modelo_sbert
+from ml.desempeno_desarrollo.generation import main as ejecutar_generation
 
 from flasgger import Swagger
 
@@ -108,5 +109,6 @@ scheduler.start()
 """            
 if __name__ == "__main__":
     iniciar_db()
+    ejecutar_generation()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
