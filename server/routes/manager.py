@@ -718,7 +718,7 @@ def obtener_empleados_rendimiento_futuro():
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
-            .filter(Rol.slug == "empleado")
+            .filter(Rol.slug == "recluta")
             .all()
         )
 
