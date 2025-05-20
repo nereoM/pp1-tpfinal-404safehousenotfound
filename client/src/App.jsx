@@ -13,6 +13,7 @@ import ReclutadorHome from "./pages/ReclutadorHome";
 import DomainLogin from "./pages/DominioEmpresa";
 import LoginEmpresa from "./pages/LoginEmpresa";
 import RendimientoAnalistas from './pages/EmpleadosRendimientosAnalistas';
+import EmpleadosRendimiento from "./pages/EmpleadosRendimientoEmpleados";
 
 import { ReclutadorLayout } from "./components/ReclutadorLayout";
 import Clientes from "./pages/Clientes";
@@ -41,6 +42,7 @@ function App() {
         <Route path="/pagos" element={<Pagos />} />
         <Route path="/adminemp/home" element={<AdminEmpHome />} />
         <Route path="/manager/home" element={<ManagerHome />} />
+        <Route path="/admin-emp/empleados-rendimiento" element={<EmpleadosRendimiento />} />
       </Routes>
     </BrowserRouter>
   );

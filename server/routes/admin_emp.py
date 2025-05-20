@@ -1221,6 +1221,8 @@ def obtener_empleados_rendimiento_futuro():
             return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
 
         def clasificar_rendimiento(valor):
+            if valor is None:
+                return "Sin datos"
             if valor >= 7.5:
                 return "Alto Rendimiento"
             elif valor >= 5:
@@ -1287,6 +1289,8 @@ def obtener_empleados_riesgo_futuro():
             return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
 
         def clasificar_rendimiento(valor):
+            if valor is None:
+                return "Sin datos"
             if valor >= 7.5:
                 return "Alto Rendimiento"
             elif valor >= 5:
