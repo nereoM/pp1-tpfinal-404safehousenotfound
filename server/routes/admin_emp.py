@@ -1216,6 +1216,96 @@ def obtener_empleados_rendimiento_futuro():
         print(f"Error en /empleados-rendimiento: {e}")
         return jsonify({"error": str(e)}), 500
     
+
+@admin_emp_bp.route("/empleados-riesgo", methods=["GET"])
+@role_required(["admin-emp"])
+def obtener_empleados_riesgo_futuro():
+    try:
+        id_admin = get_jwt_identity()
+
+        admin = Usuario.query.get(id_admin)
+
+        if not admin or not admin.id_empresa:
+            return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+        empleados = (
+            db.session.query(Usuario, RendimientoEmpleado)
+            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+            .join(Rol, UsuarioRol.id_rol == Rol.id)
+            .filter(Usuario.id_empresa == admin.id_empresa)
+            .filter(Rol.slug == "empleado")
+            .all()
+        )
+
+        if not empleados:
+            return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
+
+        def clasificar_rendimiento(valor):
+            if valor >= 7.5:
+                return "Alto Rendimiento"
+            elif valor >= 5:
+                return "Medio Rendimiento"
+            else:
+                return "Bajo Rendimiento"
+
+        datos_empleados = []
+
+        for empleado, rendimiento in empleados:
+            datos_empleados.append({
+                "id_usuario": empleado.id,
+                "nombre": empleado.nombre,
+                "desempeno_previo": rendimiento.desempeno_previo,
+                "antiguedad": rendimiento.antiguedad,
+                "horas_capacitacion": rendimiento.horas_capacitacion,
+                "ausencias_injustificadas": rendimiento.ausencias_injustificadas,
+                "llegadas_tarde": rendimiento.llegadas_tarde,
+                "salidas_tempranas": rendimiento.salidas_tempranas,
+                "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
+                "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
+                "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho,
+                "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
+                "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
+                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento
+            })
+
+        resumen_rendimiento = {
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Alto Rendimiento"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Medio Rendimiento"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Bajo Rendimiento")
+        }
+
+        resumen_rotacion = {
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_rotacion_predicho"] == "alto"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_rotacion_predicho"] == "medio"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_rotacion_predicho"] == "bajo")
+        }
+
+        resumen_despido = {
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_despido_predicho"] == "alto"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_despido_predicho"] == "medio"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_despido_predicho"] == "bajo")
+        }
+
+        resumen_renuncia = {
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_renuncia_predicho"] == "alto"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_renuncia_predicho"] == "medio"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_renuncia_predicho"] == "bajo")
+        }
+
+        return jsonify({
+            "message": "Datos cargados correctamente",
+            "empleados": datos_empleados,
+            "resumen_riesgo": resumen_rendimiento,
+            "resumen_rotacion": resumen_rotacion,
+            "resumen_despido": resumen_despido,
+            "resumen_renuncia": resumen_renuncia
+        }), 200
+
+    except Exception as e:
+        print(f"Error en /empleados-riesgo: {e}")
+        return jsonify({"error": str(e)}), 500
+    
     
 @admin_emp_bp.route("/obtener-mail-empresa")
 @role_required(["admin-emp"])

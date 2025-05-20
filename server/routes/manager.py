@@ -718,7 +718,7 @@ def obtener_empleados_rendimiento_futuro():
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
-            .filter(Rol.slug == "recluta")
+            .filter(Rol.slug == "reclutador")
             .all()
         )
 
@@ -769,7 +769,7 @@ def obtener_empleados_rendimiento_futuro():
 
 @manager_bp.route("/empleados-riesgo-analistas", methods=["GET"])
 @role_required(["manager"])
-def obtener_empleados_rendimiento_futuro():
+def obtener_empleados_riesgo_futuro():
     try:
         id_manager = get_jwt_identity()
 
@@ -853,7 +853,7 @@ def obtener_empleados_rendimiento_futuro():
         }), 200
 
     except Exception as e:
-        print(f"Error en /empleados-rendimiento: {e}")
+        print(f"Error en /empleados-riesgo-analistas: {e}")
         return jsonify({"error": str(e)}), 500
     
     
