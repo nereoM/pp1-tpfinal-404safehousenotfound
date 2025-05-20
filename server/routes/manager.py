@@ -718,7 +718,7 @@ def obtener_empleados_rendimiento_futuro():
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
-            .filter(Rol.slug == "empleado")
+            .filter(Rol.slug == "recluta")
             .all()
         )
 
@@ -909,7 +909,7 @@ def visualizar_licencias():
                             "email": empleado.correo,
                         },
                         "tipo": licencia.tipo,
-                        "descripcion": licencia.descripcion,
+                        "descripcion": licencia.descripcion if licencia.descripcion else "Sin descripción",
                         "fecha_inicio": licencia.fecha_inicio.isoformat()
                         if licencia.fecha_inicio
                         else None,
