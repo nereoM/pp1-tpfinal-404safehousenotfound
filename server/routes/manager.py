@@ -25,6 +25,7 @@ from models.schemes import (
     Usuario,
     RendimientoEmpleado,
     UsuarioRol,
+    Notificacion
 )
 from ml.desempeno_desarrollo.predictions import predecir_rend_futuro_individual, predecir_riesgo_despido_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_renuncia_individual
 
@@ -674,6 +675,33 @@ def registrar_info_laboral_empleados(file_path):
                 }
                 rendimiento.riesgo_renuncia_predicho = predecir_riesgo_renuncia_individual(datos_renuncia)
 
+                nombre_empleado = Usuario.query.get(id_empleado).nombre
+                nombre_empresa = Empresa.query.get(manager.id_empresa).nombre
+                nombre_manager = manager.nombre
+                mail_empleado = Usuario.query.get(id_empleado).correo
+
+                if rendimiento.riesgo_rotacion_predicho == 'alto':
+                    mensaje = f""""Estimado/a {nombre_empleado}, hemos identificado ciertos indicadores relacionados a tu desempeño. Nos gustaría conversar contigo para explorar oportunidades de mejora y alineación en tu desarrollo profesional. Quedamos a disposición para coordinar una reunión.
+                                Atentamente,
+                                {nombre_manager},
+                                {nombre_empresa}"""
+                    
+                    crear_notificacion_uso_especifico(id_empleado, mensaje)
+                    enviar_notificacion_analista_riesgos(mail_empleado, mensaje)
+
+                if rendimiento.rendimiento_futuro_predicho >= 7.5:
+                    mensaje = f"""Estimado/a {nombre_empleado},
+
+                                ¡Felicidades! Tu desempeño proyectado indica un alto rendimiento. 
+                                Seguimos apostando a tu crecimiento y éxito en la empresa.
+                                ¡Continúa así!
+
+                                Atentamente,
+                                {nombre_manager},
+                                {nombre_empresa}"""
+                    crear_notificacion_uso_especifico(id_empleado, mensaje)
+                    enviar_notificacion_analista_riesgos(mail_empleado, mensaje)
+
                 db.session.flush()
 
             except Exception as e:
@@ -699,6 +727,13 @@ def registrar_info_laboral_empleados(file_path):
 
         db.session.commit()
         return resultado
+    
+def crear_notificacion_uso_especifico(id_usuario, mensaje):
+    notificacion = Notificacion(
+        id_usuario=id_usuario,
+        mensaje=mensaje,
+    )
+    db.session.add(notificacion)
 
 
 @manager_bp.route("/empleados-rendimiento-analistas", methods=["GET"])
@@ -1210,7 +1245,7 @@ def notificar_bajo_rendimiento(id_analista):
 
     crear_notificacion(id_analista, mensaje)
 
-    enviar_notificacion_analista(analista.correo, manager.id_empresa, mensaje)
+    enviar_notificacion_analista_rendimiento(analista.correo, manager.id_empresa, mensaje)
 
     # Enviar la notificación (aquí puedes implementar la lógica para enviar el correo)
     # send_email(empleado.correo, "Notificación de Bajo Rendimiento", mensaje)
@@ -1219,10 +1254,21 @@ def notificar_bajo_rendimiento(id_analista):
         "message": f"Notificación enviada al empleado {analista.nombre} {analista.apellido}"
     }), 200
 
-def enviar_notificacion_analista(email_destino, nombre_empresa, cuerpo):
+def enviar_notificacion_analista_rendimiento(email_destino, nombre_empresa, cuerpo):
     try:
         asunto = "Proyección de Rendimiento"
         cuerpo = f"Nos comunicamos desde {nombre_empresa}. " + cuerpo
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
+        
+
+def enviar_notificacion_analista_riesgos(email_destino, cuerpo):
+    try:
+        asunto = "Proyección de Rendimiento"
         msg = Message(asunto, recipients=[email_destino])
         msg.body = cuerpo
         mail.send(msg)

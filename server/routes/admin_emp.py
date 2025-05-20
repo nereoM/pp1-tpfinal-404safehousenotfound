@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, send_file
 from auth.decorators import role_required
-from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa, Licencia, RendimientoEmpleado, UsuarioRol, RendimientoEmpleado
+from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa, Licencia, RendimientoEmpleado, UsuarioRol, RendimientoEmpleado, Notificacion
 from models.extensions import db
 import secrets
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -546,6 +546,33 @@ def registrar_info_laboral_empleados(file_path):
                 }
                 rendimiento.riesgo_renuncia_predicho = predecir_riesgo_renuncia_individual(datos_renuncia)
 
+                nombre_empleado = Usuario.query.get(id_empleado).nombre
+                nombre_empresa = Empresa.query.get(admin_emp.id_empresa).nombre
+                nombre_admin = admin_emp.nombre
+                mail_empleado = Usuario.query.get(id_empleado).correo
+
+                if rendimiento.riesgo_rotacion_predicho == 'alto':
+                    mensaje = f""""Estimado/a {nombre_empleado}, hemos identificado ciertos indicadores relacionados a tu desempeño. Nos gustaría conversar contigo para explorar oportunidades de mejora y alineación en tu desarrollo profesional. Quedamos a disposición para coordinar una reunión.
+                                Atentamente,
+                                {nombre_admin},
+                                {nombre_empresa}"""
+                    
+                    crear_notificacion_uso_especifico(id_empleado, mensaje)
+                    enviar_notificacion_empleado_riesgos(mail_empleado, mensaje)
+
+                if rendimiento.rendimiento_futuro_predicho >= 7.5:
+                    mensaje = f"""Estimado/a {nombre_empleado},
+
+                                ¡Felicidades! Tu desempeño proyectado indica un alto rendimiento. 
+                                Seguimos apostando a tu crecimiento y éxito en la empresa.
+                                ¡Continúa así!
+
+                                Atentamente,
+                                {nombre_admin},
+                                {nombre_empresa}"""
+                    crear_notificacion_uso_especifico(id_empleado, mensaje)
+                    enviar_notificacion_empleado_riesgos(mail_empleado, mensaje)
+
                 db.session.flush()
 
             except Exception as e:
@@ -571,6 +598,24 @@ def registrar_info_laboral_empleados(file_path):
 
         db.session.commit()
         return resultado
+    
+def crear_notificacion_uso_especifico(id_usuario, mensaje):
+    notificacion = Notificacion(
+        id_usuario=id_usuario,
+        mensaje=mensaje,
+    )
+    db.session.add(notificacion)
+
+def enviar_notificacion_empleado_riesgos(email_destino, cuerpo):
+    try:
+        asunto = "Proyección de Rendimiento"
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
+
 
 @swag_from("../docs/admin-emp/registrar-empleados.yml")
 @admin_emp_bp.route("/registrar-empleados", methods=["POST"])
