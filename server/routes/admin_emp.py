@@ -923,7 +923,7 @@ def visualizar_licencias():
                             "email": empleado.correo,
                         },
                         "tipo": licencia.tipo,
-                        "descripcion": licencia.descripcion,
+                        "descripcion": licencia.descripcion if licencia.descripcion else "Sin descripción",
                         "fecha_inicio": licencia.fecha_inicio.isoformat()
                         if licencia.fecha_inicio
                         else None,
