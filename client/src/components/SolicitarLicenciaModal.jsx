@@ -38,7 +38,6 @@ export function SolicitarLicenciaModal({ onClose }) {
 
   // Mapea el tipo de licencia del frontend al backend
   const mapTipoLicencia = (tipo) => {
-    // Ajusta según tus valores reales en licenciasLaborales
     return tipo;
   };
 
@@ -51,12 +50,32 @@ export function SolicitarLicenciaModal({ onClose }) {
     return "";
   };
 
+  // Función para validar que las fechas no sean anteriores a hoy
+  const esFechaValida = () => {
+    if (!formState.fecha || !formState.fecha.from) return false;
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const from = new Date(formState.fecha.from);
+    if (from < hoy) return false;
+    if (formState.fecha.to) {
+      const to = new Date(formState.fecha.to);
+      if (to < hoy) return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validar fechas
+    if (!esFechaValida()) {
+      toast.error("Selecciona fechas validas.");
+      return;
+    }
+
     let certificado_url = formState.certificado_url;
     const token = localStorage.getItem("token");
-    const rol = localStorage.getItem("rol"); // Asegúrate de guardar el rol al hacer login
+    const rol = localStorage.getItem("rol");
 
     // Selecciona el endpoint según el rol
     let endpointSolicitarLicencia = "/api/solicitar-licencia-empleado";
@@ -150,6 +169,10 @@ export function SolicitarLicenciaModal({ onClose }) {
     }
   };
 
+  // Calcular fecha mínima para el selector (hoy)
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4 text-black">
@@ -229,6 +252,7 @@ export function SolicitarLicenciaModal({ onClose }) {
                 mode="range"
                 selected={formState.fecha}
                 onSelect={updateFecha}
+                disabled={{ before: hoy }}
               />
             </section>
 
