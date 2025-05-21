@@ -805,7 +805,7 @@ def registrar_info_laboral_empleados_tabla(file_path):
                 .first()
             )
             ultimo_rendimiento = ultimo_rend.rendimiento if ultimo_rend else 0
-            antiguedad = Usuario.query.get(id_usuario=id_empleado).antiguedad
+            antiguedad = Usuario.query.get(id_empleado).fecha_ingreso
 
             datos_cambiaron = False
 
@@ -833,6 +833,7 @@ def registrar_info_laboral_empleados_tabla(file_path):
                     id_usuario=id_empleado,
                     desempeno_previo=ultimo_rendimiento,
                     horas_extras=horas_extras,
+                    antiguedad=calcular_antiguedad(antiguedad),
                     horas_capacitacion=horas_capacitacion,
                     ausencias_injustificadas=ausencias_injustificadas,
                     llegadas_tarde=llegadas_tarde,
@@ -987,7 +988,13 @@ def cargar_rendimientos_empleados_y_generar_csv():
         path_csv = os.path.join(csv_dir, "rendimientos_empleados.csv")
         df.to_csv(path_csv, index=False)
 
-        return send_file(path_csv, as_attachment=True)
+        # 👉 Llamada a función que valida, predice y notifica
+        resultado = registrar_info_laboral_empleados_tabla(path_csv)
+        if "error" in resultado:
+            return jsonify(resultado), 400
+
+        # Podés devolver el CSV de predicciones o el resumen como JSON
+        return jsonify(resultado), 200
 
     except Exception as e:
         db.session.rollback()
@@ -1074,7 +1081,9 @@ def obtener_empleados_rendimiento_futuro():
             return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
 
         def clasificar_rendimiento(valor):
-            if valor >= 7.5:
+            if valor is None:
+                return "Sin Datos"
+            elif valor >= 7.5:
                 return "Alto Rendimiento"
             elif valor >= 5:
                 return "Medio Rendimiento"
@@ -1138,7 +1147,9 @@ def obtener_empleados_riesgo_futuro():
             return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
 
         def clasificar_rendimiento(valor):
-            if valor >= 7.5:
+            if valor is None:
+                return "Sin Datos"
+            elif valor >= 7.5:
                 return "Alto Rendimiento"
             elif valor >= 5:
                 return "Medio Rendimiento"
