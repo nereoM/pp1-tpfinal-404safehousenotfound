@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 
-export default function RendimientoAnalistasConTabla() {
+export default function RendimientoAnalistas() {
   const [empleados, setEmpleados] = useState([]);
   const [resumen, setResumen] = useState({ alto: 0, medio: 0, bajo: 0 });
   const [loading, setLoading] = useState(true);
