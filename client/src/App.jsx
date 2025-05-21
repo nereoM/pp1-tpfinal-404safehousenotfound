@@ -15,6 +15,7 @@ import LoginEmpresa from "./pages/LoginEmpresa";
 import RendimientoAnalistas from './pages/EmpleadosRendimientosAnalistas';
 import EmpleadosRendimiento from "./pages/EmpleadosRendimientoEmpleados";
 import EmpleadosRiesgo from "./pages/EmpleadosRiesgoEmpleados";
+import RiesgosAnalistasConTabla from "./pages/EmpleadosRiesgoAnalistas";
 
 import { ReclutadorLayout } from "./components/ReclutadorLayout";
 import Clientes from "./pages/Clientes";
@@ -33,7 +34,8 @@ function App() {
         <Route path="/empresa"element={<DomainLogin />} />
         <Route path="/loginempresa" element={<LoginEmpresa />} />
         <Route path="/manager/empleados-rendimiento-analistas" element={<RendimientoAnalistas />} />
-        
+        <Route path="/manager/analistas-riesgo" element={<RiesgosAnalistasConTabla />} />
+
         <Route path="/admin/home" element={<AdminHome />} />
         <Route path="/empleado/home" element={<EmpleadoHome />} />
         <Route path="/candidato/home" element={<CandidatoHome />} />
