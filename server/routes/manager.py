@@ -810,13 +810,13 @@ def registrar_info_laboral_empleados_tabla(file_path):
             datos_cambiaron = False
 
             if rendimiento:
-                datos_cambiaron = (
-                    rendimiento.horas_extras != horas_extras or
-                    rendimiento.horas_capacitacion != horas_capacitacion or
-                    rendimiento.ausencias_injustificadas != ausencias_injustificadas or
-                    rendimiento.llegadas_tarde != llegadas_tarde or
-                    rendimiento.salidas_tempranas != salidas_tempranas
-                )
+                datos_cambiaron = any([
+                    int(rendimiento.horas_extras or 0) != horas_extras,
+                    int(rendimiento.horas_capacitacion or 0) != horas_capacitacion,
+                    int(rendimiento.ausencias_injustificadas or 0) != ausencias_injustificadas,
+                    int(rendimiento.llegadas_tarde or 0) != llegadas_tarde,
+                    int(rendimiento.salidas_tempranas or 0) != salidas_tempranas
+                ])
 
                 if datos_cambiaron:
                     rendimiento.desempeno_previo = ultimo_rendimiento
@@ -956,13 +956,6 @@ def cargar_rendimientos_empleados_y_generar_csv():
         for row in empleados:
             rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=row["id_empleado"]).first()
             if rendimiento:
-                # Actualiza los valores existentes
-                rendimiento.horas_extras = row.get("horas_extras")
-                rendimiento.horas_capacitacion = row.get("horas_capacitacion")
-                rendimiento.ausencias_injustificadas = row.get("ausencias_injustificadas")
-                rendimiento.llegadas_tarde = row.get("llegadas_tarde")
-                rendimiento.salidas_tempranas = row.get("salidas_tempranas")
-            else:
                 # Crea un nuevo registro si no existe
                 nuevo = RendimientoEmpleado(
                     id_usuario=row["id_empleado"],
@@ -990,6 +983,7 @@ def cargar_rendimientos_empleados_y_generar_csv():
 
         # 👉 Llamada a función que valida, predice y notifica
         resultado = registrar_info_laboral_empleados_tabla(path_csv)
+        print("Resultado función registrar info laboral:", resultado)
         if "error" in resultado:
             return jsonify(resultado), 400
 
