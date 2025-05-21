@@ -11,7 +11,7 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
-
+import RendimientoAnalistasTable from "../components/RendimientoAnalistasTable";
 
 export default function ManagerHome() {
   const [user, setUser] = useState(null);
@@ -46,6 +46,7 @@ export default function ManagerHome() {
   const [modalSubirMetricas, setModalSubirMetricas] = useState(false);
   const [mensajeMetricas, setMensajeMetricas] = useState("");
   const [archivoMetricas, setArchivoMetricas] = useState(null);
+  const [modalRendimientoAnalistas, setModalRendimientoAnalistas] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -416,6 +417,12 @@ export default function ManagerHome() {
       descripcion: "Revisa los informes y reportes detallados del sistema.",
       onClick: () => alert("Funcionalidad en desarrollo"),
     },
+    {
+      icon: BarChart2,
+      titulo: "Editar Métricas de Analistas",
+      descripcion: "Visualizá y editá las métricas de tus analistas en una tabla interactiva.",
+      onClick: () => setModalRendimientoAnalistas(true),
+    },
   ];
 
   const handleLogout = () => {
@@ -605,6 +612,22 @@ export default function ManagerHome() {
             </div>
           )}
 
+          {modalRendimientoAnalistas && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-2/3 lg:w-1/2 max-h-[80vh] overflow-auto text-black">
+                <RendimientoAnalistasTable onSuccess={() => setModalRendimientoAnalistas(false)} />
+                <div className="mt-6 text-right">
+                  <button
+                    onClick={() => setModalRendimientoAnalistas(false)}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {modalVerOfertasOpen && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
               <div className="bg-white p-6 rounded-2xl w-3/4 max-h-[80vh] overflow-auto text-black">
@@ -658,7 +681,7 @@ export default function ManagerHome() {
                                 onClick={() => cerrarOferta(o.id_oferta)}
                                 className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
                               >
-                                Cerrar Oferta
+                                Cerrar
                               </button>
                             )}
                             {o.is_active === false && (

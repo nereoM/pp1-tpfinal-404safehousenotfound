@@ -949,9 +949,10 @@ from flask import send_file
 def cargar_rendimientos_empleados_y_generar_csv():
     try:
         datos = request.get_json()
+        empleados = datos.get("empleados", [])
         registros = []
 
-        for row in datos:
+        for row in empleados:
             nuevo = RendimientoEmpleado(
                 id_usuario=row["id_empleado"],
                 horas_extras=row.get("horas_extras"),
@@ -968,8 +969,12 @@ def cargar_rendimientos_empleados_y_generar_csv():
 
         db.session.commit()
 
+        import os
+
         df = pd.DataFrame(registros)
-        path_csv = "rendimientos_empleados.csv"
+        csv_dir = os.path.join(os.getcwd(), "uploads", "info_laboral")
+        os.makedirs(csv_dir, exist_ok=True)
+        path_csv = os.path.join(csv_dir, "rendimientos_empleados.csv")
         df.to_csv(path_csv, index=False)
 
         return send_file(path_csv, as_attachment=True)
