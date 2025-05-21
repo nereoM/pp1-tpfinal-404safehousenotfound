@@ -21,8 +21,17 @@ def generate_employee_dataset(cant_empleados, nombre_archivo="info_empleados.csv
         #data['id'].append(id_empleado)
         # Desempeño previo (1-10, siendo 10 el mejor)
         # Distribución: más empleados en el rango 5-8
-        data['desempeno_previo'].append(min(max(1, int(np.random.normal(6.5, 2))), 10))
-        
+        # data['desempeno_previo'].append(min(max(1, int(np.random.normal(6.5, 2))), 10))
+
+        if np.random.rand() < 0.2:
+            data['desempeno_previo'].append(0.0)
+            antiguedad = 0
+        else:
+            valor_desempeno = min(max(0, np.random.normal(6.5, 2)), 10)
+            data['desempeno_previo'].append(round(valor_desempeno, 2))
+            antiguedad = min(max(0, int(np.random.normal(5, 4))), 30)
+
+
         # Cantidad de proyectos (1-10, mayoría entre 2-6)
         data['cantidad_proyectos'].append(min(max(1, int(np.random.normal(4, 2))), 10))
         
@@ -33,7 +42,7 @@ def generate_employee_dataset(cant_empleados, nombre_archivo="info_empleados.csv
         data['horas_extras'].append(min(max(0, int(np.random.normal(8, 5))), 30))
         
         # Antigüedad en años (0-30, mayoría entre 1-10)
-        data['antiguedad'].append(min(max(0, int(np.random.normal(5, 4))), 30))
+        data['antiguedad'].append(antiguedad)
         
         # Horas de capacitación (0-40, mayoría entre 0-20)
         data['horas_capacitacion'].append(min(max(0, int(np.random.normal(10, 8))), 40))
@@ -69,23 +78,73 @@ def add_future_performance(ruta_csv, nombre_archivo = "emps_rendFut.csv"):
         print(f"Error: No se encontró el archivo {ruta_csv}")
         return None
     
+    # # Verificar que existan las columnas necesarias
+    # columnas_requeridas = ['desempeno_previo', 'cantidad_proyectos', 'tamano_equipo', 
+    #                       'horas_extras', 'antiguedad', 'horas_capacitacion']
+    
+    # for col in columnas_requeridas:
+    #     if col not in df.columns:
+    #         print(f"Error: Falta la columna requerida '{col}' en el dataset")
+    #         return None
+    
+    # # Pesos ajustados para obtener valores más altos
+    # pesos = {
+    #     'desempeno_previo': 0.35,  # Mayor peso al desempeño previo
+    #     'cantidad_proyectos': 0.25,  # Más importancia a proyectos
+    #     'tamano_equipo': 0.05,  # Muy poco impacto negativo
+    #     'horas_extras': 0.15,  
+    #     'antiguedad': 0.10,
+    #     'horas_capacitacion': 0.20  # Más peso a capacitación
+    # }
+    
+    # # Normalización mejorada con mínimos y máximos
+    # def normalizar(columna, min_val=None, max_val=None):
+    #     if min_val is None:
+    #         min_val = columna.min()
+    #     if max_val is None:
+    #         max_val = columna.max()
+    #     return (columna - min_val) / (max_val - min_val)
+    
+    # # Normalizar los datos (escalar a 0-1) con rangos esperados
+    # df_normalizado = df.copy()
+    # # df_normalizado['desempeno_previo'] = normalizar(df['desempeno_previo'], 1, 10)
+    # df_normalizado['desempeno_previo'] = normalizar(df['desempeno_previo'], 0, 10)
+    # df_normalizado['cantidad_proyectos'] = normalizar(df['cantidad_proyectos'], 0, 10)
+    # df_normalizado['tamano_equipo'] = 1 - normalizar(df['tamano_equipo'], 1, 15)  # Invertir para que equipo más pequeño sea mejor
+    # df_normalizado['horas_extras'] = normalizar(df['horas_extras'].clip(0, 20), 0, 20)  # Limitar impacto de horas extras muy altas
+    # df_normalizado['antiguedad'] = normalizar(df['antiguedad'], 0, 30)
+    # df_normalizado['horas_capacitacion'] = normalizar(df['horas_capacitacion'], 0, 40)
+    
+    # # Fórmula mejorada para rendimiento más alto
+    # df['rendimiento_futuro'] = (
+    #     pesos['desempeno_previo'] * df_normalizado['desempeno_previo'] * 1.2 +  # Boost desempeño
+    #     pesos['cantidad_proyectos'] * df_normalizado['cantidad_proyectos'] * 1.1 +
+    #     pesos['tamano_equipo'] * df_normalizado['tamano_equipo'] +  # Ya no es negativo
+    #     pesos['horas_extras'] * np.sqrt(df_normalizado['horas_extras']) * 1.3 +  # Usar raíz cuadrada para reducir impacto negativo
+    #     pesos['antiguedad'] * df_normalizado['antiguedad'] * 1.1 +
+    #     pesos['horas_capacitacion'] * df_normalizado['horas_capacitacion'] * 1.2
+    # )
+
     # Verificar que existan las columnas necesarias
-    columnas_requeridas = ['desempeno_previo', 'cantidad_proyectos', 'tamano_equipo', 
-                          'horas_extras', 'antiguedad', 'horas_capacitacion']
+    columnas_requeridas = [
+        'desempeno_previo', 'horas_extras', 'antiguedad', 'horas_capacitacion',
+        'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas'
+    ]
     
     for col in columnas_requeridas:
         if col not in df.columns:
             print(f"Error: Falta la columna requerida '{col}' en el dataset")
             return None
     
-    # Pesos ajustados para obtener valores más altos
+    # Pesos ajustados para las nuevas variables
     pesos = {
-        'desempeno_previo': 0.35,  # Mayor peso al desempeño previo
-        'cantidad_proyectos': 0.25,  # Más importancia a proyectos
-        'tamano_equipo': 0.05,  # Muy poco impacto negativo
-        'horas_extras': 0.15,  
+        'desempeno_previo': 0.35,
+        'horas_extras': 0.15,
         'antiguedad': 0.10,
-        'horas_capacitacion': 0.20  # Más peso a capacitación
+        'horas_capacitacion': 0.20,
+        'ausencias_injustificadas': -0.08,  # Negativo porque restan al rendimiento
+        'llegadas_tarde': -0.06,
+        'salidas_tempranas': -0.06
     }
     
     # Normalización mejorada con mínimos y máximos
@@ -98,21 +157,30 @@ def add_future_performance(ruta_csv, nombre_archivo = "emps_rendFut.csv"):
     
     # Normalizar los datos (escalar a 0-1) con rangos esperados
     df_normalizado = df.copy()
-    df_normalizado['desempeno_previo'] = normalizar(df['desempeno_previo'], 1, 10)
-    df_normalizado['cantidad_proyectos'] = normalizar(df['cantidad_proyectos'], 0, 10)
-    df_normalizado['tamano_equipo'] = 1 - normalizar(df['tamano_equipo'], 1, 15)  # Invertir para que equipo más pequeño sea mejor
-    df_normalizado['horas_extras'] = normalizar(df['horas_extras'].clip(0, 20), 0, 20)  # Limitar impacto de horas extras muy altas
+    df_normalizado['desempeno_previo'] = normalizar(df['desempeno_previo'], 0, 10)
+    df_normalizado['horas_extras'] = normalizar(df['horas_extras'].clip(0, 20), 0, 20)
     df_normalizado['antiguedad'] = normalizar(df['antiguedad'], 0, 30)
     df_normalizado['horas_capacitacion'] = normalizar(df['horas_capacitacion'], 0, 40)
+    df_normalizado['ausencias_injustificadas'] = normalizar(df['ausencias_injustificadas'], 0, 15)
+    df_normalizado['llegadas_tarde'] = normalizar(df['llegadas_tarde'], 0, 30)
+    df_normalizado['salidas_tempranas'] = normalizar(df['salidas_tempranas'], 0, 20)
     
-    # Fórmula mejorada para rendimiento más alto
+    # Si desempeno_previo es 0, no se tiene en cuenta en el cálculo
+    desempeno_previo_ajustado = np.where(df['desempeno_previo'] == 0, 0, df_normalizado['desempeno_previo'])
+    # Si horas_capacitacion es 0, no se tiene en cuenta en el cálculo
+    horas_capacitacion_ajustada = np.where(df['horas_capacitacion'] == 0, 0, df_normalizado['horas_capacitacion'])
+    antiguedad_ajustada = np.where(df['antiguedad'] == 0, 0, df_normalizado['antiguedad'])
+
+
+    # Nueva fórmula para rendimiento futuro
     df['rendimiento_futuro'] = (
-        pesos['desempeno_previo'] * df_normalizado['desempeno_previo'] * 1.2 +  # Boost desempeño
-        pesos['cantidad_proyectos'] * df_normalizado['cantidad_proyectos'] * 1.1 +
-        pesos['tamano_equipo'] * df_normalizado['tamano_equipo'] +  # Ya no es negativo
-        pesos['horas_extras'] * np.sqrt(df_normalizado['horas_extras']) * 1.3 +  # Usar raíz cuadrada para reducir impacto negativo
-        pesos['antiguedad'] * df_normalizado['antiguedad'] * 1.1 +
-        pesos['horas_capacitacion'] * df_normalizado['horas_capacitacion'] * 1.2
+        pesos['desempeno_previo'] * desempeno_previo_ajustado * 1.2 +
+        pesos['horas_extras'] * np.sqrt(df_normalizado['horas_extras']) * 1.3 +
+        pesos['antiguedad'] * antiguedad_ajustada * 1.1 +
+        pesos['horas_capacitacion'] * horas_capacitacion_ajustada * 1.2 +
+        pesos['ausencias_injustificadas'] * df_normalizado['ausencias_injustificadas'] +
+        pesos['llegadas_tarde'] * df_normalizado['llegadas_tarde'] +
+        pesos['salidas_tempranas'] * df_normalizado['salidas_tempranas']
     )
     
     # Ajustar la escala para que la mayoría esté entre 6-9 con algunos extremos
@@ -161,7 +229,9 @@ def add_risks(ruta_csv, nombre_archivo = "emps_riesgos.csv"):
         score += ausencias * 0.4       # Ausencias tienen mayor peso
         score += tardes * 0.3          # Llegadas tarde
         score += tempranas * 0.3       # Salidas tempranas
-        score -= desempeno * 0.5      # Buen desempeño reduce el riesgo
+        # score -= desempeno * 0.5      # Buen desempeño reduce el riesgo
+        if desempeno > 0:
+            score -= desempeno * 0.5 
         
         # Determinamos el nivel de riesgo
         if score < 5:
@@ -180,7 +250,9 @@ def add_risks(ruta_csv, nombre_archivo = "emps_riesgos.csv"):
         score += ausencias * 0.5       # Ausencias son muy importantes para despido
         score += tardes * 0.2
         score += tempranas * 0.3
-        score -= desempeno * 0.4       # Buen desempeño reduce riesgo de despido
+        # score -= desempeno * 0.4       # Buen desempeño reduce riesgo de despido
+        if desempeno > 0:
+            score -= desempeno * 0.4
         score += riesgo_rotacion_val * 2  # Riesgo de rotación influye
         
         # Ajuste basado en rendimiento futuro (4-10)
