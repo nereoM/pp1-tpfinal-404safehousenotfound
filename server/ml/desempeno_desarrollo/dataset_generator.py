@@ -193,7 +193,7 @@ def add_future_performance(ruta_csv, nombre_archivo = "emps_rendFut.csv"):
     df['rendimiento_futuro'] = 1 / (1 + np.exp(-(df['rendimiento_futuro']*10 - 5)))
     
     # Finalmente escalamos a 4-10 (eliminando los peores valores)
-    df['rendimiento_futuro'] = np.round(df['rendimiento_futuro'] * 6 + 4, 1)
+    df['rendimiento_futuro'] = np.round(df['rendimiento_futuro'] * 6 + 4, 2)
     
     # Asegurarse de que esté dentro del rango 4-10
     df['rendimiento_futuro'] = df['rendimiento_futuro'].clip(4, 10)

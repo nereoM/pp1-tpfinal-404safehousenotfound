@@ -14,7 +14,7 @@ def train_future_performance_model(ruta_csv):
         return None
     
     # Verificar que existan las columnas necesarias
-    columnas_requeridas = ['desempeno_previo', 'cantidad_proyectos', 'tamano_equipo', 
+    columnas_requeridas = ['desempeno_previo', 'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas', 
                           'horas_extras', 'antiguedad', 'horas_capacitacion', 'rendimiento_futuro']
     
     for col in columnas_requeridas:
@@ -23,7 +23,7 @@ def train_future_performance_model(ruta_csv):
             return None
     
     # Preparar datos para el modelo
-    X = df[['desempeno_previo', 'cantidad_proyectos', 'tamano_equipo', 
+    X = df[['desempeno_previo', 'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas', 
             'horas_extras', 'antiguedad', 'horas_capacitacion']]
     y = df['rendimiento_futuro']
     
