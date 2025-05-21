@@ -408,9 +408,7 @@ export default function Login() {
           <div className="absolute w-full h-full backface-hidden rotate-y-180">
             <form onSubmit={handleSubmitRegister} className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20">
               <h2 className="text-2xl font-semibold text-center text-white">Registrarse</h2>
-              <p className="mt-2 text-sm text-center text-white">
-                Complete todos los campos. La contraseña debe tener al menos 8 caracteres, una mayúscula, una minuscula, un número y un carácter especial.
-              </p>
+
               <input type="text" placeholder="Nombre" value={registerName}
                 onChange={(e) => setRegisterName(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -420,23 +418,64 @@ export default function Login() {
               <input type="email" placeholder="Email" value={registerEmail}
                 onChange={(e) => setRegisterEmail(e.target.value)}
                 className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <div className="relative">
-                <input type={registerPasswordVisible ? "text" : "password"} placeholder="Contraseña" value={registerPassword}
+              
+               {/* ==================== INPUT CONTRASEÑA ==================== */}
+              <div className="relative group w-full">
+                <input
+                  type={registerPasswordVisible ? "text" : "password"}
+                  placeholder="Contraseña"
+                  value={registerPassword}
                   onChange={(e) => setRegisterPassword(e.target.value)}
-                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                <span onClick={() => setRegisterPasswordVisible(!registerPasswordVisible)}
-                  className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100">
+                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <span
+                  onClick={() => setRegisterPasswordVisible(!registerPasswordVisible)}
+                  className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100"
+                >
                   {registerPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                 </span>
+
+                {/* Tooltip estructurado */}
+                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-4 w-72 bg-white text-black text-sm rounded p-4 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                  <p className="font-semibold mb-1">La contraseña debe tener:</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>Al menos 8 caracteres</li>
+                    <li>Una letra mayúscula</li>
+                    <li>Una letra minúscula</li>
+                    <li>Un número</li>
+                    <li>Un carácter especial</li>
+                  </ul>
+                </div>
               </div>
-              <div className="relative">
-                <input type={registerRepeatPasswordVisible ? "text" : "password"} placeholder="Repetir Contraseña" value={registerRepeatPassword}
+
+              {/* ==================== INPUT REPETIR CONTRASEÑA ==================== */}
+
+              <div className="relative group w-full">
+                <input
+                  type={registerRepeatPasswordVisible ? "text" : "password"}
+                  placeholder="Repetir Contraseña"
+                  value={registerRepeatPassword}
                   onChange={(e) => setRegisterRepeatPassword(e.target.value)}
-                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                <span onClick={() => setRegisterRepeatPasswordVisible(!registerRepeatPasswordVisible)}
-                  className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100">
+                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <span
+                  onClick={() => setRegisterRepeatPasswordVisible(!registerRepeatPasswordVisible)}
+                  className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100"
+                >
                   {registerRepeatPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                 </span>
+
+                {/* Tooltip estructurado */}
+                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-4 w-72 bg-white text-black text-sm rounded p-4 shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10">
+                  <p className="font-semibold mb-1">La contraseña debe tener:</p>
+                  <ul className="list-disc list-inside space-y-1 text-xs">
+                    <li>Al menos 8 caracteres</li>
+                    <li>Una letra mayúscula</li>
+                    <li>Una letra minúscula</li>
+                    <li>Un número</li>
+                    <li>Un carácter especial</li>
+                  </ul>
+                </div>
               </div>
 
               {/* Mensaje de error o éxito */}
