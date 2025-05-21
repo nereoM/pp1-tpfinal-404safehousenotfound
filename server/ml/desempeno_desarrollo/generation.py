@@ -32,10 +32,10 @@ def main():
 
 #     df_emps_riesgos, ruta_emps_riesgos = add_risks(ruta_emps_rendFut)
 
-    # modelo_rendFut, metricas, df = train_future_performance_model(ruta_emps_rendFut)
+#     modelo_rendFut, metricas, df = train_future_performance_model(ruta_emps_rendFut)
 
-    # modelo_rotacion, metricas, le_rotacion = train_rotation_risk_model(ruta_emps_riesgos)
+#     modelo_rotacion, metricas, le_rotacion = train_rotation_risk_model(ruta_emps_riesgos)
 
-    # modelo_despido, metricas = train_dismissal_risk_model(ruta_emps_riesgos)
+#     modelo_despido, metricas = train_dismissal_risk_model(ruta_emps_riesgos)
 
-    # modelo_renuncia, metricas = train_resignation_risk_model(ruta_emps_riesgos)
+#     modelo_renuncia, metricas = train_resignation_risk_model(ruta_emps_riesgos)

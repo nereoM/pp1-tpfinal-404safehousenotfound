@@ -445,7 +445,7 @@ export default function ManagerHome() {
       icon: BarChart2,
       titulo: "Detección Temprana de Rotación y Riesgos Laborales",
       descripcion: "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      onClick: () => navigate("/manager/analistas-riesgo"),
     },
     {
       icon: FileText,

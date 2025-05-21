@@ -456,12 +456,13 @@ def obtener_ofertas():
     empresa = Empresa.query.get(manager.id_empresa)
 
     ofertas = Oferta_laboral.query.filter_by(
-        id_creador=manager.id, id_empresa=empresa.id
+        id_empresa=empresa.id
     ).all()
 
     resultado = [
         {
             "id_oferta": oferta.id,
+            "id_creador": oferta.id_creador,
             "nombre": oferta.nombre,
             "descripcion": oferta.descripcion,
             "location": oferta.location,

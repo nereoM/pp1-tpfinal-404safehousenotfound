@@ -2,12 +2,13 @@ import pandas as pd
 import joblib
 import os
 from sklearn.preprocessing import LabelEncoder
+import numpy as np
 
 def predecir_rend_futuro(df, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/performance_model.pkl'):
     try:
         # current_directory = os.path.dirname(__file__)
         # ruta_modelo = os.path.join(current_directory, 'trained_models/performance_model.pkl')
-        columnas_requeridas = ['desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
+        columnas_requeridas = ['desempeno_previo', 'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas',
                             'horas_extras', 'antiguedad', 'horas_capacitacion']
         
         missing_cols = [col for col in columnas_requeridas if col not in df.columns]
@@ -19,7 +20,7 @@ def predecir_rend_futuro(df, ruta_modelo='server/ml/desempeno_desarrollo/trained
         
         X = df[columnas_requeridas]
 
-        df['rendimiento_futuro_predicho'] = modelo.predict(X)
+        df['rendimiento_futuro_predicho'] = np.round(modelo.predict(X), 2)  # <-- Solo dos decimales
 
         df.to_csv("server/ml/desempeno_desarrollo/data/rendFut_predichos_use&predict.csv", index=False)
 
@@ -38,8 +39,9 @@ def predecir_rend_futuro_individual(empleado_data, ruta_modelo='server/ml/desemp
 
     columnas = [
         'desempeno_previo', 
-        'cantidad_proyectos', 
-        'tamano_equipo', 
+        'ausencias_injustificadas', 
+        'llegadas_tarde',
+        'salidas_tempranas',
         'horas_extras', 
         'antiguedad', 
         'horas_capacitacion'
@@ -47,7 +49,7 @@ def predecir_rend_futuro_individual(empleado_data, ruta_modelo='server/ml/desemp
 
     df = pd.DataFrame([empleado_data], columns=columnas)
     
-    df['rendimiento_futuro_predicho'] = modelo.predict(df)
+    df['rendimiento_futuro_predicho'] = np.round(modelo.predict(df), 2)
 
     # df.to_csv("data/rendFutInd_predichos_use&predict.csv", index=False)
 
@@ -277,8 +279,9 @@ if __name__ == "__main__":
 
     datos_empleado = {
     "desempeno_previo": primer_empleado['desempeno_previo'].values[0],
-    "cantidad_proyectos": primer_empleado['cantidad_proyectos'].values[0],
-    "tamano_equipo": primer_empleado['tamano_equipo'].values[0],
+    "ausencias_injustificadas": primer_empleado['ausencias_injustificadas'].values[0],
+    "llegadas_tarde": primer_empleado['llegadas_tarde'].values[0],
+    "salidas_tempranas": primer_empleado['salidas_tempranas'].values[0],
     "horas_extras": primer_empleado['horas_extras'].values[0],
     "antiguedad": primer_empleado['antiguedad'].values[0],
     "horas_capacitacion": primer_empleado['horas_capacitacion'].values[0]

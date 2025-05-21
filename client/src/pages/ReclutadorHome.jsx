@@ -399,24 +399,12 @@ export default function ReclutadorHome() {
       icon: BarChart2,
       titulo: "Visualizar Indicadores de Desempeño y predicciones",
       descripcion: "Visualizá y administrá los empleados de tu empresa.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
+      onClick: () => navigate("/reclutador/empleados-rendimiento"),
     },
     {
       icon: BarChart2,
       titulo: "Detección Temprana de Rotación y Riesgos Laborales",
       descripcion: "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
-    },
-    {
-      icon: BarChart2,
-      titulo: "Ver Rendimiento de Empleados",
-      descripcion: "Visualiza el rendimiento futuro de los empleados.",
-      onClick: () => navigate("/reclutador/empleados-rendimiento"),
-    },
-    {
-      icon: BarChart2,
-      titulo: "Ver Riesgos de Empleados",
-      descripcion: "Visualiza riesgos de rotación, despido y renuncia.",
       onClick: () => navigate("/reclutador/empleados-riesgo"),
     }
   ];
