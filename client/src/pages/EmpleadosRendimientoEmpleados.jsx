@@ -15,7 +15,7 @@ export default function EmpleadosRendimiento() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/empleados-rendimiento`, {
+                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/empleados-rendimiento-reclutador`, {
                     method: 'GET',
                     credentials: 'include',
                     headers: {

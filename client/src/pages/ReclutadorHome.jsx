@@ -11,6 +11,7 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { reclutadorService } from '../services/reclutadorService.js';
 import ModalPostulantes from '../components/ModalPostulantes';
+import EmpleadosRendimiento from "./EmpleadosRendimientoEmpleados";
 
 export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
@@ -47,6 +48,7 @@ export default function ReclutadorHome() {
   const [modalImageFile, setModalImageFile] = useState(null);
   const [mensajeError, setMensajeError] = useState('');
   const [estadoPostulaciones, setEstadoPostulaciones] = useState({});
+  const [modalRendimientoOpen, setModalRendimientoOpen] = useState(false);
 
 
   const API_URL = import.meta.env.VITE_API_URL;
@@ -404,6 +406,12 @@ export default function ReclutadorHome() {
       titulo: "Detección Temprana de Rotación y Riesgos Laborales",
       descripcion: "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
       onClick: () => alert("Funcionalidad en desarrollo"),
+    },
+    {
+      icon: BarChart2,
+      titulo: "Ver Rendimiento de Empleados",
+      descripcion: "Visualiza el rendimiento futuro de los empleados.",
+      onClick: () => navigate("/reclutador/empleados-rendimiento"),
     }
   ];
 
@@ -592,10 +600,10 @@ export default function ReclutadorHome() {
                           <td className="p-2 border capitalize">
                             <span
                               className={`px-2 py-1 text-xs rounded-full ${estado === "activa"
-                                  ? "bg-green-100 text-green-800"
-                                  : estado === "aprobada" || estado === "pendiente"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : "bg-red-100 text-red-800"
+                                ? "bg-green-100 text-green-800"
+                                : estado === "aprobada" || estado === "pendiente"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
                                 }`}
                             >
                               {estado}
@@ -774,6 +782,22 @@ export default function ReclutadorHome() {
           estadoPostulaciones={estadoPostulaciones}
           evaluarPostulacion={evaluarPostulacion}
         />
+
+        {modalRendimientoOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+            <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-3/4 lg:w-2/3 max-h-[90vh] overflow-auto text-black">
+              <EmpleadosRendimiento />
+              <div className="mt-6 text-right">
+                <button
+                  onClick={() => setModalRendimientoOpen(false)}
+                  className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <ModalParaEditarPerfil
           isOpen={modalEditarPerfilOpen}

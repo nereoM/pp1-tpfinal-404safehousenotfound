@@ -42,7 +42,7 @@ function App() {
         <Route path="/pagos" element={<Pagos />} />
         <Route path="/adminemp/home" element={<AdminEmpHome />} />
         <Route path="/manager/home" element={<ManagerHome />} />
-        <Route path="/admin-emp/empleados-rendimiento" element={<EmpleadosRendimiento />} />
+        <Route path="/reclutador/empleados-rendimiento" element={<EmpleadosRendimiento />} />
       </Routes>
     </BrowserRouter>
   );
