@@ -953,15 +953,25 @@ def cargar_rendimientos_empleados_y_generar_csv():
         registros = []
 
         for row in empleados:
-            nuevo = RendimientoEmpleado(
-                id_usuario=row["id_empleado"],
-                horas_extras=row.get("horas_extras"),
-                horas_capacitacion=row.get("horas_capacitacion"),
-                ausencias_injustificadas=row.get("ausencias_injustificadas"),
-                llegadas_tarde=row.get("llegadas_tarde"),
-                salidas_tempranas=row.get("salidas_tempranas"),
-            )
-            db.session.add(nuevo)
+            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=row["id_empleado"]).first()
+            if rendimiento:
+                # Actualiza los valores existentes
+                rendimiento.horas_extras = row.get("horas_extras")
+                rendimiento.horas_capacitacion = row.get("horas_capacitacion")
+                rendimiento.ausencias_injustificadas = row.get("ausencias_injustificadas")
+                rendimiento.llegadas_tarde = row.get("llegadas_tarde")
+                rendimiento.salidas_tempranas = row.get("salidas_tempranas")
+            else:
+                # Crea un nuevo registro si no existe
+                nuevo = RendimientoEmpleado(
+                    id_usuario=row["id_empleado"],
+                    horas_extras=row.get("horas_extras"),
+                    horas_capacitacion=row.get("horas_capacitacion"),
+                    ausencias_injustificadas=row.get("ausencias_injustificadas"),
+                    llegadas_tarde=row.get("llegadas_tarde"),
+                    salidas_tempranas=row.get("salidas_tempranas"),
+                )
+                db.session.add(nuevo)
 
             registros.append({
                 **row

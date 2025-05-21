@@ -14,10 +14,14 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
         })
             .then(res => res.json())
             .then(data => {
+                console.log("Datos recibidos al cargar:", data); // <-- LOG para depuración
                 if (data.datos_empleados) setRows(data.datos_empleados);
                 else setMensaje("No se encontraron datos.");
             })
-            .catch(() => setMensaje("Error al cargar datos."))
+            .catch((e) => {
+                setMensaje("Error al cargar datos.");
+                console.log("Error al cargar datos:", e); // <-- LOG para depuración
+            })
             .finally(() => setLoading(false));
     }, []);
 
@@ -44,6 +48,8 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                 salidas_tempranas: Number(row.salidas_tempranas) || 0,
             }));
 
+            console.log("Payload enviado al backend:", payload); // <-- LOG para depuración
+
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/cargar-rendimientos-empleados`, {
                 method: "POST",
                 credentials: "include",
@@ -51,32 +57,37 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                 body: JSON.stringify({ empleados: payload }),
             });
 
+
             const contentType = res.headers.get("content-type") || "";
-            if (
-                res.ok &&
-                (
-                    (contentType && (contentType.includes("text/csv") || contentType.includes("application/vnd.ms-excel")))
-                    || (!contentType && res.status === 200)
-                )
-            ) {
-                const blob = await res.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "rendimientos_empleados.csv";
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                setMensaje("Datos guardados y archivo descargado correctamente.");
-                if (onSuccess) onSuccess();
-            } else if (contentType.includes("application/json")) {
-                const data = await res.json();
-                setMensaje(data.error || "Error al guardar.");
+            console.log("Status:", res.status, "Content-Type:", contentType); // <-- LOG para depuración
+
+            if (res.ok) {
+                let data = null;
+                try {
+                    // Intenta parsear JSON, si es posible
+                    if (contentType.includes("application/json")) {
+                        data = await res.json();
+                        console.log("Respuesta del backend (JSON):", data);
+                        setMensaje(data.message || "Datos guardados correctamente.");
+                    } else {
+                        const text = await res.text();
+                        console.log("Respuesta del backend (texto):", text);
+                        setMensaje("Datos guardados correctamente.");
+                    }
+                } catch (e) {
+                    // Si falla el parseo, igual muestra éxito
+                    setMensaje("Datos guardados correctamente.");
+                    console.log("No se pudo parsear JSON, pero status 200:", e);
+                }
+                // NO LLAMES a onSuccess(); así el modal no se cierra automáticamente
             } else {
-                setMensaje("Respuesta inesperada del servidor.");
+                setMensaje("Error al guardar.");
+                const text = await res.text();
+                console.log("Respuesta inesperada del backend:", text); // <-- LOG para depuración
             }
-        } catch {
+        } catch (e) {
             setMensaje("Error de red.");
+            console.log("Error en handleGuardar:", e); // <-- LOG para depuración
         }
         setSaving(false);
     };
