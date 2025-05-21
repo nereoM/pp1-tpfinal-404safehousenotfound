@@ -10,7 +10,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from werkzeug.utils import secure_filename
 from models.extensions import db
 from flasgger import swag_from
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from .notificacion import crear_notificacion
 from flask_mail import Message
 from models.extensions import mail
@@ -25,7 +25,8 @@ from models.schemes import (
     Usuario,
     RendimientoEmpleado,
     UsuarioRol,
-    Notificacion
+    Notificacion,
+    HistorialRendimientoEmpleado
 )
 from ml.desempeno_desarrollo.predictions import predecir_rend_futuro_individual, predecir_riesgo_despido_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_renuncia_individual
 
@@ -566,8 +567,7 @@ def registrar_info_laboral_empleados(file_path):
     from flask_jwt_extended import get_jwt_identity
 
     required_fields = {
-        'id_empleado', 'desempeno_previo', 'cantidad_proyectos', 'tamano_equipo',
-        'horas_extras', 'antiguedad', 'horas_capacitacion',
+        'id_empleado', 'horas_extras', 'horas_capacitacion',
         'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas'
     }
 
@@ -579,7 +579,7 @@ def registrar_info_laboral_empleados(file_path):
         id_manager = get_jwt_identity()
         manager = Usuario.query.get(id_manager)
         if not manager or not manager.id_empresa:
-            return {"error": "El admin-emp no tiene una empresa asociada"}
+            return {"error": "El manager no tiene una empresa asociada"}
 
         empleados_empresa = Usuario.query.filter_by(id_empresa=manager.id_empresa).all()
         ids_validos = {e.id for e in empleados_empresa}
@@ -595,11 +595,7 @@ def registrar_info_laboral_empleados(file_path):
                 return {"error": f"El empleado con ID {id_empleado} no pertenece a tu empresa"}
 
             try:
-                desempeno_previo = float(row['desempeno_previo'].strip())
-                cantidad_proyectos = int(row['cantidad_proyectos'].strip())
-                tamano_equipo = int(row['tamano_equipo'].strip())
                 horas_extras = int(row['horas_extras'].strip())
-                antiguedad = int(row['antiguedad'].strip())
                 horas_capacitacion = int(row['horas_capacitacion'].strip())
                 ausencias_injustificadas = int(row['ausencias_injustificadas'].strip())
                 llegadas_tarde = int(row['llegadas_tarde'].strip())
@@ -608,125 +604,427 @@ def registrar_info_laboral_empleados(file_path):
                 return {"error": f"Datos numéricos inválidos para el empleado {id_empleado}"}
 
             rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
+            ultimo_rend = (
+                HistorialRendimientoEmpleado.query
+                .filter_by(id_empleado=id_empleado)
+                .order_by(HistorialRendimientoEmpleado.fecha_calculo.desc())
+                .first()
+            )
+            ultimo_rendimiento = ultimo_rend.rendimiento if ultimo_rend else 0
+            antiguedad = Usuario.query.get(id_empleado).fecha_ingreso
+
+            datos_cambiaron = False
+
             if rendimiento:
-                rendimiento.desempeno_previo = desempeno_previo
-                rendimiento.cantidad_proyectos = cantidad_proyectos
-                rendimiento.tamano_equipo = tamano_equipo
-                rendimiento.horas_extras = horas_extras
-                rendimiento.antiguedad = antiguedad
-                rendimiento.horas_capacitacion = horas_capacitacion
-                rendimiento.ausencias_injustificadas = ausencias_injustificadas
-                rendimiento.llegadas_tarde = llegadas_tarde
-                rendimiento.salidas_tempranas = salidas_tempranas
-                accion = "actualizado"
+                datos_cambiaron = (
+                    rendimiento.horas_extras != horas_extras or
+                    rendimiento.horas_capacitacion != horas_capacitacion or
+                    rendimiento.ausencias_injustificadas != ausencias_injustificadas or
+                    rendimiento.llegadas_tarde != llegadas_tarde or
+                    rendimiento.salidas_tempranas != salidas_tempranas
+                )
+
+                if datos_cambiaron:
+                    rendimiento.desempeno_previo = ultimo_rendimiento
+                    rendimiento.horas_extras = horas_extras
+                    rendimiento.horas_capacitacion = horas_capacitacion
+                    rendimiento.ausencias_injustificadas = ausencias_injustificadas
+                    rendimiento.llegadas_tarde = llegadas_tarde
+                    rendimiento.salidas_tempranas = salidas_tempranas
+                    accion = "actualizado"
+                else:
+                    accion = "sin cambios"
             else:
                 rendimiento = RendimientoEmpleado(
                     id_usuario=id_empleado,
-                    desempeno_previo=desempeno_previo,
-                    cantidad_proyectos=cantidad_proyectos,
-                    tamano_equipo=tamano_equipo,
+                    desempeno_previo=ultimo_rendimiento,
                     horas_extras=horas_extras,
-                    antiguedad=antiguedad,
+                    horas_capacitacion=horas_capacitacion,
+                    antiguedad=calcular_antiguedad(antiguedad),
+                    ausencias_injustificadas=ausencias_injustificadas,
+                    llegadas_tarde=llegadas_tarde,
+                    salidas_tempranas=salidas_tempranas
+                )
+                db.session.add(rendimiento)
+                datos_cambiaron = True
+                accion = "creado"
+
+            if datos_cambiaron:
+                try:
+                    datos_rend_futuro = {
+                        "desempeno_previo": ultimo_rendimiento,
+                        "ausencias_injustificadas": ausencias_injustificadas,
+                        "llegadas_tarde": llegadas_tarde,
+                        "salidas_tempranas": salidas_tempranas,
+                        "horas_extras": horas_extras,
+                        "antiguedad": calcular_antiguedad(antiguedad),
+                        "horas_capacitacion": horas_capacitacion
+                    }
+                    fecha_actual = datetime.utcnow()
+                    rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
+                    existe_historial = HistorialRendimientoEmpleado.query.filter_by(
+                        id_empleado=id_empleado,
+                        fecha_calculo=fecha_actual
+                    ).first()
+
+                    if not existe_historial:
+                        nuevo_historial = HistorialRendimientoEmpleado(
+                            id_empleado=id_empleado,
+                            fecha_calculo=fecha_actual,
+                            rendimiento=rendimiento.rendimiento_futuro_predicho
+                        )
+                        db.session.add(nuevo_historial)
+                                        
+                    datos_rotacion = {
+                        "ausencias_injustificadas": ausencias_injustificadas,
+                        "llegadas_tarde": llegadas_tarde,
+                        "salidas_tempranas": salidas_tempranas,
+                        "desempeno_previo": ultimo_rendimiento
+                    }
+                    rendimiento.riesgo_rotacion_predicho = predecir_riesgo_rotacion_individual(datos_rotacion)
+
+                    datos_despido = {
+                        "ausencias_injustificadas": ausencias_injustificadas,
+                        "llegadas_tarde": llegadas_tarde,
+                        "salidas_tempranas": salidas_tempranas,
+                        "desempeno_previo": ultimo_rendimiento,
+                        "Riesgo de rotacion predicho": rendimiento.riesgo_rotacion_predicho,
+                        "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho
+                    }
+                    rendimiento.riesgo_despido_predicho = predecir_riesgo_despido_individual(datos_despido)
+
+                    datos_renuncia = {
+                        "ausencias_injustificadas": ausencias_injustificadas,
+                        "llegadas_tarde": llegadas_tarde,
+                        "salidas_tempranas": salidas_tempranas,
+                        "desempeno_previo": ultimo_rendimiento,
+                        "Riesgo de rotacion predicho": rendimiento.riesgo_rotacion_predicho,
+                        "Riesgo de despido predicho": rendimiento.riesgo_despido_predicho,
+                        "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho
+                    }
+                    rendimiento.riesgo_renuncia_predicho = predecir_riesgo_renuncia_individual(datos_renuncia)
+
+                    nombre_empleado = Usuario.query.get(id_empleado).nombre
+                    nombre_empresa = Empresa.query.get(manager.id_empresa).nombre
+                    nombre_manager = manager.nombre
+                    mail_empleado = Usuario.query.get(id_empleado).correo
+
+                    if rendimiento.riesgo_rotacion_predicho == 'alto':
+                        mensaje = f"""Estimado/a {nombre_empleado}, hemos identificado ciertos indicadores relacionados a tu desempeño. Nos gustaría conversar contigo para explorar oportunidades de mejora y alineación en tu desarrollo profesional. Quedamos a disposición para coordinar una reunión.
+
+                                        Atentamente,
+                                        {nombre_manager},
+                                        {nombre_empresa}"""
+                        crear_notificacion_uso_especifico(id_empleado, mensaje)
+                        enviar_notificacion_analista_riesgos(mail_empleado, mensaje)
+
+                    if rendimiento.rendimiento_futuro_predicho >= 7.5:
+                        mensaje = f"""Estimado/a {nombre_empleado},
+
+                                    ¡Felicidades! Tu desempeño proyectado indica un alto rendimiento. 
+                                    Seguimos apostando a tu crecimiento y éxito en la empresa.
+                                    ¡Continúa así!
+
+                                    Atentamente,
+                                    {nombre_manager},
+                                    {nombre_empresa}"""
+                        crear_notificacion_uso_especifico(id_empleado, mensaje)
+                        enviar_notificacion_analista_riesgos(mail_empleado, mensaje)
+
+                    db.session.flush()
+
+                except Exception as e:
+                    print(f"Error al predecir para empleado {id_empleado}: {e}")
+
+            resultado.append({
+                "id_empleado": id_empleado,
+                "accion": accion,
+                "desempeno_previo": ultimo_rendimiento,
+                "horas_extras": horas_extras,
+                "antiguedad": calcular_antiguedad(antiguedad),
+                "horas_capacitacion": horas_capacitacion,
+                "ausencias_injustificadas": ausencias_injustificadas,
+                "llegadas_tarde": llegadas_tarde,
+                "salidas_tempranas": salidas_tempranas,
+                "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho if datos_cambiaron else None,
+                "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho if datos_cambiaron else None,
+                "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho if datos_cambiaron else None,
+                "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho if datos_cambiaron else None
+            })
+
+        db.session.commit()
+        return resultado
+    
+
+def registrar_info_laboral_empleados_tabla(file_path):
+    import csv
+    from flask_jwt_extended import get_jwt_identity
+
+    required_fields = {
+        'id_empleado', 'horas_extras', 'horas_capacitacion',
+        'ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas'
+    }
+
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        if not required_fields.issubset(reader.fieldnames):
+            return {"error": f"El archivo CSV debe tener las columnas: {', '.join(required_fields)}"}
+
+        id_manager = get_jwt_identity()
+        manager = Usuario.query.get(id_manager)
+        if not manager or not manager.id_empresa:
+            return {"error": "El manager no tiene una empresa asociada"}
+
+        empleados_empresa = Usuario.query.filter_by(id_empresa=manager.id_empresa).all()
+        ids_validos = {e.id for e in empleados_empresa}
+
+        resultado = []
+        for row in reader:
+            try:
+                id_empleado = int(row['id_empleado'].strip())
+            except Exception:
+                return {"error": f"ID de empleado inválido: {row.get('id_empleado')}"}
+
+            if id_empleado not in ids_validos:
+                return {"error": f"El empleado con ID {id_empleado} no pertenece a tu empresa"}
+
+            try:
+                horas_extras = int(row['horas_extras'].strip())
+                horas_capacitacion = int(row['horas_capacitacion'].strip())
+                ausencias_injustificadas = int(row['ausencias_injustificadas'].strip())
+                llegadas_tarde = int(row['llegadas_tarde'].strip())
+                salidas_tempranas = int(row['salidas_tempranas'].strip())
+            except Exception:
+                return {"error": f"Datos numéricos inválidos para el empleado {id_empleado}"}
+
+            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
+            ultimo_rend = (
+                HistorialRendimientoEmpleado.query
+                .filter_by(id_empleado=id_empleado)
+                .order_by(HistorialRendimientoEmpleado.fecha_calculo.desc())
+                .first()
+            )
+            ultimo_rendimiento = ultimo_rend.rendimiento if ultimo_rend else 0
+            antiguedad = Usuario.query.get(id_usuario=id_empleado).antiguedad
+
+            datos_cambiaron = False
+
+            if rendimiento:
+                datos_cambiaron = (
+                    rendimiento.horas_extras != horas_extras or
+                    rendimiento.horas_capacitacion != horas_capacitacion or
+                    rendimiento.ausencias_injustificadas != ausencias_injustificadas or
+                    rendimiento.llegadas_tarde != llegadas_tarde or
+                    rendimiento.salidas_tempranas != salidas_tempranas
+                )
+
+                if datos_cambiaron:
+                    rendimiento.desempeno_previo = ultimo_rendimiento
+                    rendimiento.horas_extras = horas_extras
+                    rendimiento.horas_capacitacion = horas_capacitacion
+                    rendimiento.ausencias_injustificadas = ausencias_injustificadas
+                    rendimiento.llegadas_tarde = llegadas_tarde
+                    rendimiento.salidas_tempranas = salidas_tempranas
+                    accion = "actualizado"
+                else:
+                    accion = "sin cambios"
+            else:
+                rendimiento = RendimientoEmpleado(
+                    id_usuario=id_empleado,
+                    desempeno_previo=ultimo_rendimiento,
+                    horas_extras=horas_extras,
                     horas_capacitacion=horas_capacitacion,
                     ausencias_injustificadas=ausencias_injustificadas,
                     llegadas_tarde=llegadas_tarde,
                     salidas_tempranas=salidas_tempranas
                 )
                 db.session.add(rendimiento)
+                datos_cambiaron = True
                 accion = "creado"
 
-            try:
-                datos_rend_futuro = {
-                    "desempeno_previo": desempeno_previo,
-                    "cantidad_proyectos": cantidad_proyectos,
-                    "tamano_equipo": tamano_equipo,
-                    "horas_extras": horas_extras,
-                    "antiguedad": antiguedad,
-                    "horas_capacitacion": horas_capacitacion
-                }
-                rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
+            if datos_cambiaron:
+                try:
+                    datos_rend_futuro = {
+                        "desempeno_previo": ultimo_rendimiento,
+                        "ausencias_injustificadas": ausencias_injustificadas,
+                        "llegadas_tarde": llegadas_tarde,
+                        "salidas_tempranas": salidas_tempranas,
+                        "horas_extras": horas_extras,
+                        "antiguedad": calcular_antiguedad(antiguedad),
+                        "horas_capacitacion": horas_capacitacion
+                    }
+                    rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
 
-                datos_rotacion = {
-                    "ausencias_injustificadas": ausencias_injustificadas,
-                    "llegadas_tarde": llegadas_tarde,
-                    "salidas_tempranas": salidas_tempranas,
-                    "desempeno_previo" : desempeno_previo
-                }
-                rendimiento.riesgo_rotacion_predicho = predecir_riesgo_rotacion_individual(datos_rotacion)
+                    datos_rotacion = {
+                        "ausencias_injustificadas": ausencias_injustificadas,
+                        "llegadas_tarde": llegadas_tarde,
+                        "salidas_tempranas": salidas_tempranas,
+                        "desempeno_previo": ultimo_rendimiento
+                    }
+                    rendimiento.riesgo_rotacion_predicho = predecir_riesgo_rotacion_individual(datos_rotacion)
 
-                datos_despido = {
-                    "ausencias_injustificadas": ausencias_injustificadas,
-                    "llegadas_tarde": llegadas_tarde,
-                    "salidas_tempranas": salidas_tempranas,
-                    "desempeno_previo": desempeno_previo,
-                    'Riesgo de rotacion predicho': rendimiento.riesgo_rotacion_predicho,
-                    'rendimiento_futuro_predicho': rendimiento.rendimiento_futuro_predicho
-                }
-                rendimiento.riesgo_despido_predicho = predecir_riesgo_despido_individual(datos_despido)
+                    datos_despido = {
+                        "ausencias_injustificadas": ausencias_injustificadas,
+                        "llegadas_tarde": llegadas_tarde,
+                        "salidas_tempranas": salidas_tempranas,
+                        "desempeno_previo": ultimo_rendimiento,
+                        "Riesgo de rotacion predicho": rendimiento.riesgo_rotacion_predicho,
+                        "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho
+                    }
+                    rendimiento.riesgo_despido_predicho = predecir_riesgo_despido_individual(datos_despido)
 
-                datos_renuncia = {
-                    "ausencias_injustificadas": ausencias_injustificadas,
-                    "llegadas_tarde": llegadas_tarde,
-                    "salidas_tempranas": salidas_tempranas,
-                    "desempeno_previo": desempeno_previo,
-                    'Riesgo de rotacion predicho': rendimiento.riesgo_rotacion_predicho,
-                    'Riesgo de despido predicho': rendimiento.riesgo_despido_predicho,
-                    'rendimiento_futuro_predicho': rendimiento.rendimiento_futuro_predicho
-                }
-                rendimiento.riesgo_renuncia_predicho = predecir_riesgo_renuncia_individual(datos_renuncia)
+                    datos_renuncia = {
+                        "ausencias_injustificadas": ausencias_injustificadas,
+                        "llegadas_tarde": llegadas_tarde,
+                        "salidas_tempranas": salidas_tempranas,
+                        "desempeno_previo": ultimo_rendimiento,
+                        "Riesgo de rotacion predicho": rendimiento.riesgo_rotacion_predicho,
+                        "Riesgo de despido predicho": rendimiento.riesgo_despido_predicho,
+                        "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho
+                    }
+                    rendimiento.riesgo_renuncia_predicho = predecir_riesgo_renuncia_individual(datos_renuncia)
 
-                nombre_empleado = Usuario.query.get(id_empleado).nombre
-                nombre_empresa = Empresa.query.get(manager.id_empresa).nombre
-                nombre_manager = manager.nombre
-                mail_empleado = Usuario.query.get(id_empleado).correo
+                    nombre_empleado = Usuario.query.get(id_empleado).nombre
+                    nombre_empresa = Empresa.query.get(manager.id_empresa).nombre
+                    nombre_manager = manager.nombre
+                    mail_empleado = Usuario.query.get(id_empleado).correo
 
-                if rendimiento.riesgo_rotacion_predicho == 'alto':
-                    mensaje = f""""Estimado/a {nombre_empleado}, hemos identificado ciertos indicadores relacionados a tu desempeño. Nos gustaría conversar contigo para explorar oportunidades de mejora y alineación en tu desarrollo profesional. Quedamos a disposición para coordinar una reunión.
-                                Atentamente,
-                                {nombre_manager},
-                                {nombre_empresa}"""
-                    
-                    crear_notificacion_uso_especifico(id_empleado, mensaje)
-                    enviar_notificacion_analista_riesgos(mail_empleado, mensaje)
+                    if rendimiento.riesgo_rotacion_predicho == 'alto':
+                        mensaje = f"""Estimado/a {nombre_empleado}, hemos identificado ciertos indicadores relacionados a tu desempeño. Nos gustaría conversar contigo para explorar oportunidades de mejora y alineación en tu desarrollo profesional. Quedamos a disposición para coordinar una reunión.
 
-                if rendimiento.rendimiento_futuro_predicho >= 7.5:
-                    mensaje = f"""Estimado/a {nombre_empleado},
+                                        Atentamente,
+                                        {nombre_manager},
+                                        {nombre_empresa}"""
+                        crear_notificacion_uso_especifico(id_empleado, mensaje)
+                        enviar_notificacion_analista_riesgos(mail_empleado, mensaje)
 
-                                ¡Felicidades! Tu desempeño proyectado indica un alto rendimiento. 
-                                Seguimos apostando a tu crecimiento y éxito en la empresa.
-                                ¡Continúa así!
+                    if rendimiento.rendimiento_futuro_predicho >= 7.5:
+                        mensaje = f"""Estimado/a {nombre_empleado},
 
-                                Atentamente,
-                                {nombre_manager},
-                                {nombre_empresa}"""
-                    crear_notificacion_uso_especifico(id_empleado, mensaje)
-                    enviar_notificacion_analista_riesgos(mail_empleado, mensaje)
+                                    ¡Felicidades! Tu desempeño proyectado indica un alto rendimiento. 
+                                    Seguimos apostando a tu crecimiento y éxito en la empresa.
+                                    ¡Continúa así!
 
-                db.session.flush()
+                                    Atentamente,
+                                    {nombre_manager},
+                                    {nombre_empresa}"""
+                        crear_notificacion_uso_especifico(id_empleado, mensaje)
+                        enviar_notificacion_analista_riesgos(mail_empleado, mensaje)
 
-            except Exception as e:
-                print(f"Error al predecir para empleado {id_empleado}: {e}")
+                    db.session.flush()
+
+                except Exception as e:
+                    print(f"Error al predecir para empleado {id_empleado}: {e}")
 
             resultado.append({
                 "id_empleado": id_empleado,
                 "accion": accion,
-                "desempeno_previo": desempeno_previo,
-                "cantidad_proyectos": cantidad_proyectos,
-                "tamano_equipo": tamano_equipo,
+                "desempeno_previo": ultimo_rendimiento,
                 "horas_extras": horas_extras,
-                "antiguedad": antiguedad,
+                "antiguedad": calcular_antiguedad(antiguedad),
                 "horas_capacitacion": horas_capacitacion,
                 "ausencias_injustificadas": ausencias_injustificadas,
                 "llegadas_tarde": llegadas_tarde,
                 "salidas_tempranas": salidas_tempranas,
-                "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
-                "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
-                "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
-                "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho
+                "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho if datos_cambiaron else None,
+                "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho if datos_cambiaron else None,
+                "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho if datos_cambiaron else None,
+                "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho if datos_cambiaron else None
             })
 
         db.session.commit()
         return resultado
+    
+
+def calcular_antiguedad(fecha_ingreso):
+    hoy = date.today()
+    return hoy.year - fecha_ingreso.year - ((hoy.month, hoy.day) < (fecha_ingreso.month, fecha_ingreso.day))
+
+
+import pandas as pd
+from flask import send_file
+
+@manager_bp.route("/cargar-rendimientos-empleados", methods=["POST"])
+@role_required(["manager"])
+def cargar_rendimientos_empleados_y_generar_csv():
+    try:
+        datos = request.get_json()
+        registros = []
+
+        for row in datos:
+            nuevo = RendimientoEmpleado(
+                id_usuario=row["id_empleado"],
+                horas_extras=row.get("horas_extras"),
+                horas_capacitacion=row.get("horas_capacitacion"),
+                ausencias_injustificadas=row.get("ausencias_injustificadas"),
+                llegadas_tarde=row.get("llegadas_tarde"),
+                salidas_tempranas=row.get("salidas_tempranas"),
+            )
+            db.session.add(nuevo)
+
+            registros.append({
+                **row
+            })
+
+        db.session.commit()
+
+        df = pd.DataFrame(registros)
+        path_csv = "rendimientos_empleados.csv"
+        df.to_csv(path_csv, index=False)
+
+        return send_file(path_csv, as_attachment=True)
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al guardar rendimientos: {e}")
+        return jsonify({"error": "No se pudo guardar los rendimientos"}), 500
+
+
+@manager_bp.route("/empleados-datos-rendimiento-manager", methods=["GET"])
+@role_required(["manager"])
+def obtener_datos_rendimiento():
+    try:
+        id_manager = get_jwt_identity()
+
+        manager = Usuario.query.get(id_manager)
+
+        if not manager or not manager.id_empresa:
+            return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+        usuarios = (
+            db.session.query(Usuario)
+            .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+            .join(Rol, UsuarioRol.id_rol == Rol.id)
+            .filter(Usuario.id_empresa == manager.id_empresa)
+            .filter(Rol.slug.in_(["reclutador", "empleado"]))
+            .all()
+        )
+
+        if not usuarios:
+            return jsonify({"message": "No tienes empleados para mostrar"}), 404
+
+        datos_empleados = []
+
+        for usuario in usuarios:
+            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=usuario.id).first()
+
+            datos_empleados.append({
+                "id_usuario": usuario.id,
+                "nombre": usuario.nombre,
+                "horas_capacitacion": rendimiento.horas_capacitacion if rendimiento else None,
+                "horas_extra_finde": rendimiento.horas_extras if rendimiento else None,
+                "ausencias_injustificadas": rendimiento.ausencias_injustificadas if rendimiento else None,
+                "llegadas_tarde": rendimiento.llegadas_tarde if rendimiento else None,
+                "salidas_tempranas": rendimiento.salidas_tempranas if rendimiento else None
+            })
+
+        return jsonify({"datos_empleados": datos_empleados})
+    
+    except Exception as e:
+        print(f"Error en /empleados-datos-rendimiento-manager: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
     
 def crear_notificacion_uso_especifico(id_usuario, mensaje):
     notificacion = Notificacion(
@@ -753,7 +1051,7 @@ def obtener_empleados_rendimiento_futuro():
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
-            .filter(Rol.slug == "reclutador")
+            .filter(Rol.slug.in_(["reclutador", "empleado"]))
             .all()
         )
 
@@ -775,10 +1073,8 @@ def obtener_empleados_rendimiento_futuro():
                 "id_usuario": empleado.id,
                 "nombre": empleado.nombre,
                 "desempeno_previo": rendimiento.desempeno_previo,
-                "cantidad_proyectos": rendimiento.cantidad_proyectos,
-                "tamano_equipo": rendimiento.tamano_equipo,
                 "horas_extras": rendimiento.horas_extras,
-                "antiguedad": rendimiento.antiguedad,
+                "antiguedad": calcular_antiguedad(empleado.fecha_ingreso),
                 "horas_capacitacion": rendimiento.horas_capacitacion,
                 "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
                 "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
@@ -819,7 +1115,7 @@ def obtener_empleados_riesgo_futuro():
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
-            .filter(Rol.slug == "reclutador")
+            .filter(Rol.slug.in_(["reclutador", "empleado"]))
             .all()
         )
 
@@ -841,7 +1137,7 @@ def obtener_empleados_riesgo_futuro():
                 "id_usuario": empleado.id,
                 "nombre": empleado.nombre,
                 "desempeno_previo": rendimiento.desempeno_previo,
-                "antiguedad": rendimiento.antiguedad,
+                "antiguedad": calcular_antiguedad(empleado.fecha_ingreso),
                 "horas_capacitacion": rendimiento.horas_capacitacion,
                 "ausencias_injustificadas": rendimiento.ausencias_injustificadas,
                 "llegadas_tarde": rendimiento.llegadas_tarde,
@@ -1276,3 +1572,139 @@ def enviar_notificacion_analista_riesgos(email_destino, cuerpo):
     except Exception as e:
         print(f"Error al enviar correo a {email_destino}: {e}")
         
+
+
+
+
+
+@manager_bp.route("/registrar-empleados-manager", methods=["POST"])
+@role_required(["manager"])
+def registrar_empleados():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+        file.save(file_path)
+
+        try:
+            resultado = register_employees_from_csv(file_path)
+            if "error" in resultado:
+                return jsonify(resultado), 400
+
+            return jsonify({
+                "message": "Empleados registrados exitosamente",
+                "total_empleados": len(resultado),
+                "empleados": resultado
+            })
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
+
+    return jsonify({'error': 'Invalid file format'}), 400
+
+
+def register_employees_from_csv(file_path):
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.DictReader(csvfile)
+        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena', 'puesto'}
+        puestos_validos = {
+            # Tecnología y Desarrollo
+            "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer",
+            "DevOps Engineer", "Data Engineer", "Ingeniero de Machine Learning",
+            "Analista de Datos", "QA Automation Engineer", "Soporte Técnico",
+            "Administrador de Base de Datos", "Administrador de Redes", "Especialista en Seguridad Informática",
+
+            # Administración y Finanzas
+            "Analista Contable", "Contador Público", "Analista de Finanzas",
+            "Administrativo/a", "Asistente Contable",
+
+            # Comercial y Ventas
+            "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial",
+            "Supervisor de Ventas", "Asesor Comercial",
+
+            # Marketing y Comunicación
+            "Especialista en Marketing Digital", "Analista de Marketing",
+            "Community Manager", "Diseñador Gráfico", "Responsable de Comunicación",
+
+            # Industria y Producción
+            "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta",
+            "Ingeniero de Procesos", "Encargado de Logística",
+
+            # Servicios Generales y Gastronomía
+            "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza"
+        }
+
+        resultado = []
+
+        for row in reader:
+            if not required_fields.issubset(row.keys()):
+                # Devuelve un diccionario con el error
+                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena"}
+
+            nombre = row['nombre'].strip()
+            apellido = row['apellido'].strip()
+            email = row['email'].strip()
+            username = row['username'].strip()
+            contrasena = row['contrasena'].strip()
+            puesto = row['puesto'].strip()
+            
+
+            if not validar_nombre(nombre) or not validar_nombre(apellido):
+                return {"error": "Nombre o apellido no válido"}
+            
+            if puesto not in puestos_validos:
+                return {"error": "El puesto del empleado no es valido"}
+            
+            email_regex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
+            if not re.match(email_regex, email):
+                return {"error": "Formato de email no válido"}
+
+            existing_user = Usuario.query.filter_by(username=username).first()
+            if existing_user:
+                return {"error": f"El usuario '{username}' ya existe"}
+            
+            id_admin_emp = get_jwt_identity()
+
+            admin_emp = Usuario.query.get(id_admin_emp)
+            if not admin_emp or not admin_emp.id_empresa:
+                return {"error": "El admin-emp no tiene una empresa asociada"}
+
+            id_empresa = admin_emp.id_empresa
+
+            new_user = Usuario(
+                nombre=nombre,
+                apellido=apellido,
+                correo=email,
+                username=username,
+                contrasena=contrasena,
+                id_empresa=id_empresa,
+                id_superior=admin_emp.id
+            )
+            
+            db.session.add(new_user)
+
+            empleado_role = Rol.query.filter_by(slug="empleado").first()
+            if not empleado_role:
+                empleado_role = Rol(nombre="Empleado", slug="empleado", permisos="permisos_empleado")
+                db.session.add(empleado_role)
+                db.session.commit()
+
+            new_user.roles.append(empleado_role)
+
+            resultado.append({
+                "username": username,
+                "password": contrasena
+            })
+
+        db.session.commit()
+        
+        return resultado

@@ -24,6 +24,8 @@ class Usuario(db.Model):
     activo = db.Column(db.Boolean, default=True)
     id_superior = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=True)
     foto_url = db.Column(db.String(255), nullable=True)
+    fecha_ingreso = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    puesto_trabajo = db.Column(db.String(50), nullable=True)
 
     @hybrid_property
     def contrasena(self):
@@ -236,6 +238,15 @@ class Notificacion(db.Model):
             'fecha_creacion': self.fecha_creacion
         }
     
+class HistorialRendimientoEmpleado(db.Model):
+    __tablename__ = 'historial_rendimiento_empleados'
+
+    id_empleado = db.Column(db.Integer, db.ForeignKey('usuarios.id'), primary_key=True, index=True)
+    fecha_calculo = db.Column(db.DateTime, primary_key=True, default=datetime.utcnow)
+    rendimiento = db.Column(db.Float, nullable=False)
+
+    empleado = db.relationship('Usuario', backref='historial_rendimiento')
+
 
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)

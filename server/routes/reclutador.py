@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from models.extensions import mail
 from .notificacion import crear_notificacion
 from flask_mail import Message
@@ -18,7 +18,10 @@ from models.schemes import (
     Oferta_analista,
     Oferta_laboral,
     Usuario,
-    Notificacion
+    Notificacion,
+    RendimientoEmpleado,
+    Rol,
+    UsuarioRol,
 )
 from werkzeug.utils import secure_filename
 from flasgger import swag_from
@@ -823,3 +826,162 @@ def obtener_contador_notificaciones_no_leidas():
     except Exception as e:
         print(f"Error al obtener contador de notificaciones no leídas: {e}")
         return jsonify({"error": "Error interno al recuperar el contador"}), 500
+    
+
+def calcular_antiguedad(fecha_ingreso):
+    hoy = date.today()
+    return hoy.year - fecha_ingreso.year - ((hoy.month, hoy.day) < (fecha_ingreso.month, fecha_ingreso.day))
+
+
+@reclutador_bp.route("/empleados-rendimiento-reclutador", methods=["GET"])
+@role_required(["reclutador"])
+def obtener_empleados_rendimiento_futuro():
+    try:
+        id_manager = get_jwt_identity()
+
+        manager = Usuario.query.get(id_manager)
+
+        if not manager or not manager.id_empresa:
+            return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+        empleados = (
+            db.session.query(Usuario, RendimientoEmpleado)
+            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+            .join(Rol, UsuarioRol.id_rol == Rol.id)
+            .filter(Usuario.id_empresa == manager.id_empresa)
+            .filter(Rol.slug == "empleado")
+            .all()
+        )
+
+        if not empleados:
+            return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
+
+        def clasificar_rendimiento(valor):
+            if valor >= 7.5:
+                return "Alto Rendimiento"
+            elif valor >= 5:
+                return "Medio Rendimiento"
+            else:
+                return "Bajo Rendimiento"
+
+        datos_empleados = []
+
+        for empleado, rendimiento in empleados:
+            datos_empleados.append({
+                "id_usuario": empleado.id,
+                "nombre": empleado.nombre,
+                "desempeno_previo": rendimiento.desempeno_previo,
+                "horas_extras": rendimiento.horas_extras,
+                "antiguedad": calcular_antiguedad(empleado.fecha_ingreso),
+                "horas_capacitacion": rendimiento.horas_capacitacion,
+                "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
+                "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
+                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento
+            })
+
+        resumen_rendimiento = {
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Alto Rendimiento"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Medio Rendimiento"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Bajo Rendimiento")
+        }
+
+        return jsonify({
+            "message": "Datos cargados correctamente",
+            "empleados": datos_empleados,
+            "resumen_riesgo": resumen_rendimiento
+        }), 200
+
+    except Exception as e:
+        print(f"Error en /empleados-rendimiento: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+
+@reclutador_bp.route("/empleados-riesgo-reclutador", methods=["GET"])
+@role_required(["reclutador"])
+def obtener_empleados_riesgo_futuro():
+    try:
+        id_manager = get_jwt_identity()
+
+        manager = Usuario.query.get(id_manager)
+
+        if not manager or not manager.id_empresa:
+            return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+        empleados = (
+            db.session.query(Usuario, RendimientoEmpleado)
+            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+            .join(Rol, UsuarioRol.id_rol == Rol.id)
+            .filter(Usuario.id_empresa == manager.id_empresa)
+            .filter(Rol.slug == "empleado")
+            .all()
+        )
+
+        if not empleados:
+            return jsonify({"message": "No tienes empleados asociados con rendimiento registrado"}), 404
+
+        def clasificar_rendimiento(valor):
+            if valor >= 7.5:
+                return "Alto Rendimiento"
+            elif valor >= 5:
+                return "Medio Rendimiento"
+            else:
+                return "Bajo Rendimiento"
+
+        datos_empleados = []
+
+        for empleado, rendimiento in empleados:
+            datos_empleados.append({
+                "id_usuario": empleado.id,
+                "nombre": empleado.nombre,
+                "desempeno_previo": rendimiento.desempeno_previo,
+                "antiguedad": calcular_antiguedad(empleado.fecha_ingreso),
+                "horas_capacitacion": rendimiento.horas_capacitacion,
+                "ausencias_injustificadas": rendimiento.ausencias_injustificadas,
+                "llegadas_tarde": rendimiento.llegadas_tarde,
+                "salidas_tempranas": rendimiento.salidas_tempranas,
+                "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
+                "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
+                "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho,
+                "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
+                "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
+                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento
+            })
+
+        resumen_rendimiento = {
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Alto Rendimiento"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Medio Rendimiento"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["clasificacion_rendimiento"] == "Bajo Rendimiento")
+        }
+
+        resumen_rotacion = {
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_rotacion_predicho"] == "alto"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_rotacion_predicho"] == "medio"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_rotacion_predicho"] == "bajo")
+        }
+
+        resumen_despido = {
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_despido_predicho"] == "alto"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_despido_predicho"] == "medio"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_despido_predicho"] == "bajo")
+        }
+
+        resumen_renuncia = {
+            "Alto Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_renuncia_predicho"] == "alto"),
+            "Medio Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_renuncia_predicho"] == "medio"),
+            "Bajo Rendimiento": sum(1 for emp in datos_empleados if emp["riesgo_renuncia_predicho"] == "bajo")
+        }
+
+        return jsonify({
+            "message": "Datos cargados correctamente",
+            "empleados": datos_empleados,
+            "resumen_riesgo": resumen_rendimiento,
+            "resumen_rotacion": resumen_rotacion,
+            "resumen_despido": resumen_despido,
+            "resumen_renuncia": resumen_renuncia
+        }), 200
+
+    except Exception as e:
+        print(f"Error en /empleados-riesgo-analistas: {e}")
+        return jsonify({"error": str(e)}), 500
