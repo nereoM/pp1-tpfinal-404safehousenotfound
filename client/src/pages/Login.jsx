@@ -313,96 +313,96 @@ export default function Login() {
       )}
 
 
-      <div className="text-center mb-6 z-10">
-        <h1 className="text-4xl font-bold tracking-widest text-indigo-600">SIGRH+</h1>
-        <p className="text-sm italic text-gray-300 mt-2">{frase}</p>
-      </div>
+        <div className="text-center mb-6 z-10">
+          <h1 className="text-4xl font-bold tracking-widest text-indigo-600">SIGRH+</h1>
+          <p className="text-sm italic text-gray-300 mt-2">{frase}</p>
+        </div>
 
-      {/* Formulario Login/Registro */}
-      <div className="relative w-full max-w-md h-[750px] z-10">
-        <div className={`w-full h-full relative transition-transform duration-700 ${flipped ? "rotate-y-180" : ""}`} style={{ transformStyle: "preserve-3d" }}>
-          {/* Formulario Login */}
-          <div className="absolute w-full h-full backface-hidden z-20">
-            <form onSubmit={handleSubmitLogin} className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20">
-              <h2 className="text-2xl font-semibold text-center text-white">Iniciar Sesión</h2>
+        {/* Formulario Login/Registro */}
+        <div className="relative w-full max-w-md h-screen max-h-[80vh] z-10">
+          <div className={`w-full h-full relative transition-transform duration-700 ${flipped ? "rotate-y-180" : ""}`} style={{ transformStyle: "preserve-3d" }}>
+            {/* Formulario Login */}
+            <div className="absolute w-full h-full backface-hidden z-20">
+              <form onSubmit={handleSubmitLogin} className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl w-full h-full shadow-xl space-y-5 border border-white/20">
+                <h2 className="text-2xl font-semibold text-center text-white">Iniciar Sesión</h2>
 
-              <input type="text" placeholder="Email" value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)}
-                className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <div className="relative">
-                <input type={loginPasswordVisible ? "text" : "password"} placeholder="Contraseña" value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                <span onClick={() => setLoginPasswordVisible(!loginPasswordVisible)}
-                  className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100">
-                  {loginPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-                </span>
-              </div>
+                <input type="text" placeholder="Email" value={loginUsername} onChange={(e) => setLoginUsername(e.target.value)}
+                  className="w-full p-3 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                <div className="relative">
+                  <input type={loginPasswordVisible ? "text" : "password"} placeholder="Contraseña" value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    className="w-full p-3 pr-10 rounded bg-white/10 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  <span onClick={() => setLoginPasswordVisible(!loginPasswordVisible)}
+                    className="absolute right-3 top-3 cursor-pointer text-gray-300 hover:text-gray-100">
+                    {loginPasswordVisible ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                  </span>
+                </div>
 
-              {loginError && <p id="login-error" className="text-red-500 text-sm text-center">{loginError}</p>}
+                {loginError && <p id="login-error" className="text-red-500 text-sm text-center">{loginError}</p>}
 
-              <button id="login-button" type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium" disabled={loadingLogin}>
-                {loadingLogin ? "Cargando..." : "Ingresar"}
-              </button>
-
-              {/* logeo google */}
-              <div className="text-center">
-                <GoogleLogin
-                  onSuccess={async (credentialResponse) => {
-                    const tokenGoogle = credentialResponse.credential;
-                    try {
-                      await fetch(`${API_URL}/auth/google`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        credentials: "include",
-                        body: JSON.stringify({ credential: tokenGoogle })
-                      });
-
-                      const userRes = await fetch(`${API_URL}/auth/me`, {
-                        method: "GET",
-                        credentials: "include",
-                      });
-
-                      const user = await userRes.json();
-
-                      if (user.roles && user.roles.length > 0) {
-                        localStorage.setItem("rol", user.roles[0]);
-                      }
-
-                      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
-
-                      //  chequeamos redirect 
-                      if (redirect === "pagos") {
-                        navigate("/pagos");
-                        return;
-                      }
-
-                      if (user.roles.includes("admin-404")) {
-                        navigate("/admin/home");
-                      } else if (user.roles.includes("rrhh")) {
-                        navigate("/reclutador/home");
-                      } else if (user.roles.includes("admin-emp")) {
-                        navigate("/adminemp/home"); //
-                      } else {
-                        navigate("/candidato/home");
-                      }
-
-                    } catch (err) {
-                      console.error("Error Google login:", err);
-                    }
-                  }}
-                  onError={() => console.error("Falló el login con Google")}
-                />
-
-              </div>
-
-              <div className="text-sm text-center text-gray-300">
-                ¿No tenés usuario?{' '}
-                <button id="toggle-to-register" type="button" onClick={() => { resetLoginFields(); setFlipped(true) }} className="text-indigo-500 hover:underline">
-                  Registrate acá
+                <button id="login-button" type="submit" className="w-full bg-white/10 hover:bg-white/20 transition p-3 rounded text-white font-medium" disabled={loadingLogin}>
+                  {loadingLogin ? "Cargando..." : "Ingresar"}
                 </button>
-              </div>
-            </form>
-          </div>
+
+                {/* logeo google */}
+                <div className="text-center">
+                  <GoogleLogin
+                    onSuccess={async (credentialResponse) => {
+                      const tokenGoogle = credentialResponse.credential;
+                      try {
+                        await fetch(`${API_URL}/auth/google`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          credentials: "include",
+                          body: JSON.stringify({ credential: tokenGoogle })
+                        });
+
+                        const userRes = await fetch(`${API_URL}/auth/me`, {
+                          method: "GET",
+                          credentials: "include",
+                        });
+
+                        const user = await userRes.json();
+
+                        if (user.roles && user.roles.length > 0) {
+                          localStorage.setItem("rol", user.roles[0]);
+                        }
+
+                        if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
+
+                        //  chequeamos redirect 
+                        if (redirect === "pagos") {
+                          navigate("/pagos");
+                          return;
+                        }
+
+                        if (user.roles.includes("admin-404")) {
+                          navigate("/admin/home");
+                        } else if (user.roles.includes("rrhh")) {
+                          navigate("/reclutador/home");
+                        } else if (user.roles.includes("admin-emp")) {
+                          navigate("/adminemp/home"); //
+                        } else {
+                          navigate("/candidato/home");
+                        }
+
+                      } catch (err) {
+                        console.error("Error Google login:", err);
+                      }
+                    }}
+                    onError={() => console.error("Falló el login con Google")}
+                  />
+
+                </div>
+
+                <div className="text-sm text-center text-gray-300">
+                  ¿No tenés usuario?{' '}
+                  <button id="toggle-to-register" type="button" onClick={() => { resetLoginFields(); setFlipped(true) }} className="text-indigo-500 hover:underline">
+                    Registrate acá
+                  </button>
+                </div>
+              </form>
+            </div>
 
           {/* Formulario Registro */}
           <div className="absolute w-full h-full backface-hidden rotate-y-180">
