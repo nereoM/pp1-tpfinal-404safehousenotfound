@@ -135,7 +135,7 @@ export default function RendimientoAnalistasConTabla() {
                     <td className="p-2 border border-gray-300">{emp.horas_extras}</td>
                     <td className="p-2 border border-gray-300">{emp.antiguedad}</td>
                     <td className="p-2 border border-gray-300">{emp.horas_capacitacion}</td>
-                    <td className="p-2 border border-gray-300">{emp.rendimiento_futuro_predicho.toFixed(2)}</td>
+                    <td className="p-2 border border-gray-300">{emp.rendimiento_futuro_predicho !== undefined && emp.rendimiento_futuro_predicho !== null ? emp.rendimiento_futuro_predicho.toFixed(2) : '-'}</td>
                     <td className="p-2 border border-gray-300">{emp.clasificacion_rendimiento}</td>
                   </tr>
                 ))}
