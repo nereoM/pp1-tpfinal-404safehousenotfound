@@ -412,6 +412,12 @@ export default function ReclutadorHome() {
       titulo: "Ver Rendimiento de Empleados",
       descripcion: "Visualiza el rendimiento futuro de los empleados.",
       onClick: () => navigate("/reclutador/empleados-rendimiento"),
+    },
+    {
+      icon: BarChart2,
+      titulo: "Ver Riesgos de Empleados",
+      descripcion: "Visualiza riesgos de rotación, despido y renuncia.",
+      onClick: () => navigate("/reclutador/empleados-riesgo"),
     }
   ];
 
