@@ -12,6 +12,7 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
 import RendimientoAnalistasTable from "../components/RendimientoAnalistasTable";
+import { useRef } from "react";
 
 export default function ManagerHome() {
   const [user, setUser] = useState(null);
@@ -47,6 +48,10 @@ export default function ManagerHome() {
   const [mensajeMetricas, setMensajeMetricas] = useState("");
   const [archivoMetricas, setArchivoMetricas] = useState(null);
   const [modalRendimientoAnalistas, setModalRendimientoAnalistas] = useState(false);
+  const [modalSubirEmpleados, setModalSubirEmpleados] = useState(false);
+  const [mensajeEmpleados, setMensajeEmpleados] = useState("");
+  const [archivoEmpleados, setArchivoEmpleados] = useState(null);
+  const inputEmpleadosRef = useRef();
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -117,6 +122,31 @@ export default function ManagerHome() {
     logo_url: estilos?.logo_url ?? null,
   };
 
+  const subirEmpleadosDesdeCSV = async () => {
+    if (!archivoEmpleados) {
+      setMensajeEmpleados("Selecciona un archivo CSV.");
+      return;
+    }
+    setMensajeEmpleados("Subiendo archivo...");
+    const formData = new FormData();
+    formData.append("file", archivoEmpleados);
+
+    try {
+      const res = await fetch(`${API_URL}/api/registrar-empleados-manager`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMensajeEmpleados(data.message || "Archivo subido correctamente.");
+      } else {
+        setMensajeEmpleados(data.error || "Error al subir el archivo.");
+      }
+    } catch (err) {
+      setMensajeEmpleados("Error de conexión.");
+    }
+  };
 
   //funcion para crear una oferta laboral
   const crearOfertaLaboral = async () => {
@@ -368,6 +398,12 @@ export default function ManagerHome() {
       titulo: "Ver Listado de Ofertas",
       descripcion: "Accede al listado de ofertas disponibles en el sistema.",
       onClick: openModalVerOfertas,
+    },
+    {
+      icon: FileText,
+      titulo: "Subir Empleados por CSV",
+      descripcion: "Carga empleados en lote desde un archivo CSV.",
+      onClick: () => setModalSubirEmpleados(true),
     },
     {
       icon: PlusCircle,
@@ -864,6 +900,47 @@ export default function ManagerHome() {
                   >
                     Cerrar
                   </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {modalSubirEmpleados && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
+                <h2 className="text-lg font-semibold mb-4">Subir Empleados por CSV</h2>
+                <input
+                  type="file"
+                  accept=".csv"
+                  ref={inputEmpleadosRef}
+                  onChange={e => setArchivoEmpleados(e.target.files[0])}
+                  className="mb-4"
+                />
+                {mensajeEmpleados && (
+                  <div className="mb-2 text-sm text-center text-indigo-700">{mensajeEmpleados}</div>
+                )}
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => {
+                      setModalSubirEmpleados(false);
+                      setMensajeEmpleados("");
+                      setArchivoEmpleados(null);
+                      if (inputEmpleadosRef.current) inputEmpleadosRef.current.value = "";
+                    }}
+                    className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={subirEmpleadosDesdeCSV}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                  >
+                    Subir
+                  </button>
+                </div>
+                <div className="mt-4 text-xs text-gray-500">
+                  El archivo debe tener las columnas: <br />
+                  <b>nombre, apellido, email, username, contrasena, puesto</b>
                 </div>
               </div>
             </div>
