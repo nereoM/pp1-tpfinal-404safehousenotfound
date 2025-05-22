@@ -1286,8 +1286,8 @@ def visualizar_licencias():
 @manager_bp.route("/licencia-<int:id_licencia>-reclutador/informacion", methods=["GET"])
 @role_required(["manager"])
 def obtener_detalle_licencia(id_licencia):
-    id_admin_emp = get_jwt_identity()
-    admin_emp = Usuario.query.get(id_admin_emp)
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
     licencia = Licencia.query.get(id_licencia)
     if not licencia:
         return jsonify({"error": "Licencia no encontrada"}), 404
@@ -1297,7 +1297,7 @@ def obtener_detalle_licencia(id_licencia):
         return jsonify({"error": "Empleado no encontrado"}), 404
 
     # Solo puede ver si la licencia es de su empresa o de un empleado a su cargo
-    if licencia.id_empresa != admin_emp.id_empresa and empleado.id_superior != admin_emp.id:
+    if licencia.id_empresa != manager.id_empresa and empleado.id_superior != manager.id:
         return jsonify({"error": "No tienes permiso para ver esta licencia"}), 403
 
     empresa = Empresa.query.get(licencia.id_empresa)
@@ -1335,8 +1335,8 @@ def eval_licencia(id_licencia):
     if nuevo_estado not in ["aprobada", "rechazada"]:
         return jsonify({"error": "El estado debe ser 'aprobada' o 'rechazada'"}), 400
 
-    id_admin_emp = get_jwt_identity()
-    admin_emp = Usuario.query.get(id_admin_emp)
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
     licencia = Licencia.query.get(id_licencia)
     if not licencia:
         return jsonify({"error": "Licencia no encontrada"}), 404
@@ -1350,7 +1350,7 @@ def eval_licencia(id_licencia):
         return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
 
     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
-    if licencia.id_empresa != admin_emp.id_empresa and empleado.id_superior != admin_emp.id:
+    if licencia.id_empresa != manager.id_empresa and empleado.id_superior != manager.id:
         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
 
     licencia.estado = nuevo_estado
