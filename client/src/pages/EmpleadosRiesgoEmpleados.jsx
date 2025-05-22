@@ -14,7 +14,7 @@ export default function EmpleadosRiesgo() {
 
     // Estados para filtros
     const [searchTerm, setSearchTerm] = useState("");
-    const [filtroRendimiento, setFiltroRendimiento] = useState(""); // "Alto", "Medio", "Bajo" o ""
+    const [filtroRendimiento, setFiltroRendimiento] = useState("");
     const [filtroRotacion, setFiltroRotacion] = useState("");
     const [filtroDespido, setFiltroDespido] = useState("");
     const [filtroRenuncia, setFiltroRenuncia] = useState("");
@@ -22,9 +22,9 @@ export default function EmpleadosRiesgo() {
     const opcionesFiltro = ["", "Alto", "Medio", "Bajo"];
 
     const colors = {
-        alto: "#EF4444", // Rojo
-        medio: "#FBBF24", // Amarillo
-        bajo: "#10B981", // Verde
+        alto: "#EF4444",
+        medio: "#FBBF24",
+        bajo: "#10B981",
     };
 
     useEffect(() => {
@@ -238,7 +238,22 @@ export default function EmpleadosRiesgo() {
                             <table className="w-full text-sm text-left border border-gray-200">
                                 <thead className="bg-blue-100 text-gray-900 font-bold text-base">
                                     <tr>
-                                        {["Nombre", "Rol", "Antigüedad", "Capacitación", "Ausencias", "Tarde", "Tempranas", "Rendimiento", "Rotación", "Despido", "Renuncia"].map((col, i) => (
+                                        {[
+                                            "Nombre",
+                                            "Rol",
+                                            "Antigüedad",
+                                            "Capacitación",
+                                            "Ausencias",
+                                            "Tarde",
+                                            "Tempranas",
+                                            "Desempeño Previo",
+                                            "Predicción",
+                                            "Fecha cálculo",
+                                            "Rendimiento",
+                                            "Rotación",
+                                            "Despido",
+                                            "Renuncia"
+                                        ].map((col, i) => (
                                             <th key={i} className="p-3 border border-gray-300">{col}</th>
                                         ))}
                                     </tr>
@@ -253,6 +268,9 @@ export default function EmpleadosRiesgo() {
                                             <td className="p-2 border">{emp.ausencias_injustificadas}</td>
                                             <td className="p-2 border">{emp.llegadas_tarde}</td>
                                             <td className="p-2 border">{emp.salidas_tempranas}</td>
+                                            <td className="p-2 border">{emp.desempeno_previo !== undefined && emp.desempeno_previo !== null ? emp.desempeno_previo : "-"}</td>
+                                            <td className="p-2 border">{emp.rendimiento_futuro_predicho !== undefined && emp.rendimiento_futuro_predicho !== null ? emp.rendimiento_futuro_predicho.toFixed(2) : "-"}</td>
+                                            <td className="p-2 border">{emp.fecha_calculo_rendimiento ? new Date(emp.fecha_calculo_rendimiento).toLocaleDateString() : "-"}</td>
                                             <td className="p-2 border font-semibold">{emp.clasificacion_rendimiento}</td>
                                             <td className="p-2 border">{emp.riesgo_rotacion_predicho}</td>
                                             <td className="p-2 border">{emp.riesgo_despido_predicho}</td>
@@ -260,7 +278,7 @@ export default function EmpleadosRiesgo() {
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={11} className="text-center p-4 text-gray-500">
+                                            <td colSpan={14} className="text-center p-4 text-gray-500">
                                                 No se encontraron empleados con esos criterios.
                                             </td>
                                         </tr>
