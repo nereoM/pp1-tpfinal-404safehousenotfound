@@ -806,18 +806,18 @@ def registrar_info_laboral_empleados_tabla(file_path):
                 .first()
             )
             ultimo_rendimiento = ultimo_rend.rendimiento if ultimo_rend else 0
-            antiguedad = Usuario.query.get(id_usuario=id_empleado).antiguedad
+            antiguedad = Usuario.query.get(id_empleado).fecha_ingreso
 
             datos_cambiaron = False
 
             if rendimiento:
-                datos_cambiaron = (
-                    rendimiento.horas_extras != horas_extras or
-                    rendimiento.horas_capacitacion != horas_capacitacion or
-                    rendimiento.ausencias_injustificadas != ausencias_injustificadas or
-                    rendimiento.llegadas_tarde != llegadas_tarde or
-                    rendimiento.salidas_tempranas != salidas_tempranas
-                )
+                datos_cambiaron = any([
+                    int(rendimiento.horas_extras or 0) != horas_extras,
+                    int(rendimiento.horas_capacitacion or 0) != horas_capacitacion,
+                    int(rendimiento.ausencias_injustificadas or 0) != ausencias_injustificadas,
+                    int(rendimiento.llegadas_tarde or 0) != llegadas_tarde,
+                    int(rendimiento.salidas_tempranas or 0) != salidas_tempranas
+                ])
 
                 if datos_cambiaron:
                     rendimiento.desempeno_previo = ultimo_rendimiento
@@ -834,6 +834,7 @@ def registrar_info_laboral_empleados_tabla(file_path):
                     id_usuario=id_empleado,
                     desempeno_previo=ultimo_rendimiento,
                     horas_extras=horas_extras,
+                    antiguedad=calcular_antiguedad(antiguedad),
                     horas_capacitacion=horas_capacitacion,
                     ausencias_injustificadas=ausencias_injustificadas,
                     llegadas_tarde=llegadas_tarde,
@@ -956,13 +957,6 @@ def cargar_rendimientos_empleados_y_generar_csv():
         for row in empleados:
             rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=row["id_empleado"]).first()
             if rendimiento:
-                # Actualiza los valores existentes
-                rendimiento.horas_extras = row.get("horas_extras")
-                rendimiento.horas_capacitacion = row.get("horas_capacitacion")
-                rendimiento.ausencias_injustificadas = row.get("ausencias_injustificadas")
-                rendimiento.llegadas_tarde = row.get("llegadas_tarde")
-                rendimiento.salidas_tempranas = row.get("salidas_tempranas")
-            else:
                 # Crea un nuevo registro si no existe
                 nuevo = RendimientoEmpleado(
                     id_usuario=row["id_empleado"],
@@ -988,7 +982,14 @@ def cargar_rendimientos_empleados_y_generar_csv():
         path_csv = os.path.join(csv_dir, "rendimientos_empleados.csv")
         df.to_csv(path_csv, index=False)
 
-        return send_file(path_csv, as_attachment=True)
+        # 👉 Llamada a función que valida, predice y notifica
+        resultado = registrar_info_laboral_empleados_tabla(path_csv)
+        print("Resultado función registrar info laboral:", resultado)
+        if "error" in resultado:
+            return jsonify(resultado), 400
+
+        # Podés devolver el CSV de predicciones o el resumen como JSON
+        return jsonify(resultado), 200
 
     except Exception as e:
         db.session.rollback()
@@ -1076,8 +1077,8 @@ def obtener_empleados_rendimiento_futuro():
 
         def clasificar_rendimiento(valor):
             if valor is None:
-                return "Sin datos"
-            if valor >= 7.5:
+                return "Sin Datos"
+            elif valor >= 7.5:
                 return "Alto Rendimiento"
             elif valor >= 5:
                 return "Medio Rendimiento"
@@ -1142,8 +1143,8 @@ def obtener_empleados_riesgo_futuro():
 
         def clasificar_rendimiento(valor):
             if valor is None:
-                return "Sin datos"            
-            if valor >= 7.5:
+                return "Sin Datos"
+            elif valor >= 7.5:
                 return "Alto Rendimiento"
             elif valor >= 5:
                 return "Medio Rendimiento"

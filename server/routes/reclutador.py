@@ -859,8 +859,8 @@ def obtener_empleados_rendimiento_futuro():
 
         def clasificar_rendimiento(valor):
             if valor is None:
-                return "Sin datos"
-            if valor >= 7.5:
+                return "Sin Datos"
+            elif valor >= 7.5:
                 return "Alto Rendimiento"
             elif valor >= 5:
                 return "Medio Rendimiento"
@@ -925,8 +925,8 @@ def obtener_empleados_riesgo_futuro():
 
         def clasificar_rendimiento(valor):
             if valor is None:
-                return "Sin datos"
-            if valor >= 7.5:
+                return "Sin Datos"
+            elif valor >= 7.5:
                 return "Alto Rendimiento"
             elif valor >= 5:
                 return "Medio Rendimiento"
