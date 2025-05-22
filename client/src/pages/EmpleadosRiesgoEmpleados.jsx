@@ -91,7 +91,7 @@ export default function EmpleadosRiesgo() {
                 <p className="text-center text-gray-500">Cargando datos...</p>
             ) : (
                 <>
- 
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-4 rounded-lg shadow-md mb-6">
                         <div className="bg-white p-4 rounded-lg shadow-md">
                             <h3 className="text-lg font-bold mb-2 text-center">Distribución de Rendimiento Predicho</h3>
@@ -169,6 +169,7 @@ export default function EmpleadosRiesgo() {
                             <thead>
                                 <tr className="bg-blue-200 text-black border border-gray-300">
                                     <th className="p-2 border border-gray-300">Nombre</th>
+                                    <th className="p-2 border border-gray-300">Rol</th>
                                     <th className="p-2 border border-gray-300">Antigüedad</th>
                                     <th className="p-2 border border-gray-300">Capacitación</th>
                                     <th className="p-2 border border-gray-300">Ausencias</th>
@@ -184,6 +185,7 @@ export default function EmpleadosRiesgo() {
                                 {empleados.map((emp, idx) => (
                                     <tr key={emp.id_usuario} className={`hover:bg-blue-50 ${idx % 2 === 0 ? 'bg-blue-50' : 'bg-blue-100'} text-black`}>
                                         <td className="p-2 border border-gray-300">{emp.nombre}</td>
+                                        <td className="p-2 border border-gray-300">{emp.puesto || "Empleado"}</td>
                                         <td className="p-2 border border-gray-300">{emp.antiguedad}</td>
                                         <td className="p-2 border border-gray-300">{emp.horas_capacitacion}</td>
                                         <td className="p-2 border border-gray-300">{emp.ausencias_injustificadas}</td>
