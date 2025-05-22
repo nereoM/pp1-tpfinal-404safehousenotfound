@@ -957,9 +957,6 @@ def calcular_antiguedad(fecha_ingreso):
     return hoy.year - fecha_ingreso.year - ((hoy.month, hoy.day) < (fecha_ingreso.month, fecha_ingreso.day))
 
 
-import pandas as pd
-from flask import send_file
-
 @manager_bp.route("/cargar-rendimientos-empleados", methods=["POST"])
 @role_required(["manager"])
 def cargar_rendimientos_empleados_y_generar_csv():
