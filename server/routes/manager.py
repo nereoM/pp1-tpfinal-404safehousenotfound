@@ -954,7 +954,14 @@ def registrar_info_laboral_empleados_tabla(file_path):
 
 def calcular_antiguedad(fecha_ingreso):
     hoy = date.today()
-    return hoy.year - fecha_ingreso.year - ((hoy.month, hoy.day) < (fecha_ingreso.month, fecha_ingreso.day))
+
+    if fecha_ingreso > hoy:
+        return 0
+    
+    antiguedad = hoy.year - fecha_ingreso.year - (
+        (hoy.month, hoy.day) < (fecha_ingreso.month, fecha_ingreso.day)
+    )
+    return max(antiguedad, 0)
 
 
 @manager_bp.route("/cargar-rendimientos-empleados", methods=["POST"])
@@ -1095,7 +1102,8 @@ def obtener_empleados_rendimiento_futuro():
                 "horas_capacitacion": rendimiento.horas_capacitacion,
                 "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
                 "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
-                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento
+                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento,
+                "puesto": empleado.puesto if empleado.puesto else "Analista"
             })
 
         resumen_rendimiento = {
@@ -1161,6 +1169,7 @@ def obtener_empleados_riesgo_futuro():
                 "ausencias_injustificadas": rendimiento.ausencias_injustificadas,
                 "llegadas_tarde": rendimiento.llegadas_tarde,
                 "salidas_tempranas": rendimiento.salidas_tempranas,
+                "puesto": empleado.puesto if empleado.puesto else "Analista",
                 "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
                 "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
                 "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho,
