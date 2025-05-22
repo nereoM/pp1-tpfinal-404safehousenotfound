@@ -1105,7 +1105,7 @@ def obtener_empleados_rendimiento_futuro():
                 "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
                 "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
                 "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento,
-                "puesto": getattr(empleado, "puesto", "Analista")
+                "puesto": empleado.puesto_trabajo if empleado.puesto_trabajo else "Analista"
             })
 
         resumen_rendimiento = {
@@ -1171,7 +1171,7 @@ def obtener_empleados_riesgo_futuro():
                 "ausencias_injustificadas": rendimiento.ausencias_injustificadas,
                 "llegadas_tarde": rendimiento.llegadas_tarde,
                 "salidas_tempranas": rendimiento.salidas_tempranas,
-                "puesto": getattr(empleado, "puesto", "Analista"),                
+                "puesto": empleado.puesto_trabajo if empleado.puesto_trabajo else "Analista",                
                 "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
                 "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
                 "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho,
@@ -1678,7 +1678,7 @@ def register_employees_from_csv(file_path):
         for row in reader:
             if not required_fields.issubset(row.keys()):
                 # Devuelve un diccionario con el error
-                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena"}
+                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena, puesto"}
 
             nombre = row['nombre'].strip()
             apellido = row['apellido'].strip()
@@ -1717,7 +1717,8 @@ def register_employees_from_csv(file_path):
                 username=username,
                 contrasena=contrasena,
                 id_empresa=id_empresa,
-                id_superior=admin_emp.id
+                id_superior=admin_emp.id,
+                puesto_trabajo=puesto,
             )
             
             db.session.add(new_user)

@@ -656,20 +656,21 @@ def registrar_empleados():
 def register_employees_from_csv(file_path):
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
-        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena'}
+        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena', 'puesto'}
         
         resultado = []
 
         for row in reader:
             if not required_fields.issubset(row.keys()):
                 # Devuelve un diccionario con el error
-                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena"}
+                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena, puesto"}
 
             nombre = row['nombre'].strip()
             apellido = row['apellido'].strip()
             email = row['email'].strip()
             username = row['username'].strip()
             contrasena = row['contrasena'].strip()
+            puesto = row['puesto'].strip()
             
 
             if not validar_nombre(nombre) or not validar_nombre(apellido):
@@ -698,7 +699,8 @@ def register_employees_from_csv(file_path):
                 username=username,
                 contrasena=contrasena,
                 id_empresa=id_empresa,
-                id_superior=admin_emp.id
+                id_superior=admin_emp.id,
+                puesto_trabajo=puesto,
             )
             
             db.session.add(new_user)

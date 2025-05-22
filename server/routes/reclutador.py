@@ -886,7 +886,7 @@ def obtener_empleados_rendimiento_futuro():
                 "horas_capacitacion": rendimiento.horas_capacitacion,
                 "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
                 "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
-                "puesto": empleado.puesto,
+                "puesto": empleado.puesto_trabajo,
                 "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento
             })
 
@@ -953,7 +953,7 @@ def obtener_empleados_riesgo_futuro():
                 "ausencias_injustificadas": rendimiento.ausencias_injustificadas,
                 "llegadas_tarde": rendimiento.llegadas_tarde,
                 "salidas_tempranas": rendimiento.salidas_tempranas,
-                "puesto": empleado.puesto,
+                "puesto": empleado.puesto_trabajo,
                 "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
                 "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
                 "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho,
