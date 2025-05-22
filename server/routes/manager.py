@@ -855,8 +855,22 @@ def registrar_info_laboral_empleados_tabla(file_path):
                         "antiguedad": calcular_antiguedad(antiguedad),
                         "horas_capacitacion": horas_capacitacion
                     }
+                    
+                    fecha_actual = datetime.utcnow()
                     rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
+                    existe_historial = HistorialRendimientoEmpleado.query.filter_by(
+                        id_empleado=id_empleado,
+                        fecha_calculo=fecha_actual
+                    ).first()
 
+                    if not existe_historial:
+                        nuevo_historial = HistorialRendimientoEmpleado(
+                            id_empleado=id_empleado,
+                            fecha_calculo=fecha_actual,
+                            rendimiento=rendimiento.rendimiento_futuro_predicho
+                        )
+                        db.session.add(nuevo_historial)
+                        
                     datos_rotacion = {
                         "ausencias_injustificadas": ausencias_injustificadas,
                         "llegadas_tarde": llegadas_tarde,
@@ -940,11 +954,17 @@ def registrar_info_laboral_empleados_tabla(file_path):
 
 def calcular_antiguedad(fecha_ingreso):
     hoy = date.today()
-    return hoy.year - fecha_ingreso.year - ((hoy.month, hoy.day) < (fecha_ingreso.month, fecha_ingreso.day))
+    if isinstance(fecha_ingreso, datetime):
+        fecha_ingreso = fecha_ingreso.date()
 
+    if fecha_ingreso > hoy:
+        return 0
+    
+    antiguedad = hoy.year - fecha_ingreso.year - (
+        (hoy.month, hoy.day) < (fecha_ingreso.month, fecha_ingreso.day)
+    )
+    return max(antiguedad, 0)
 
-import pandas as pd
-from flask import send_file
 
 @manager_bp.route("/cargar-rendimientos-empleados", methods=["POST"])
 @role_required(["manager"])
@@ -955,26 +975,15 @@ def cargar_rendimientos_empleados_y_generar_csv():
         registros = []
 
         for row in empleados:
-            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=row["id_empleado"]).first()
-            if rendimiento:
-                # Crea un nuevo registro si no existe
-                nuevo = RendimientoEmpleado(
-                    id_usuario=row["id_empleado"],
-                    horas_extras=row.get("horas_extras"),
-                    horas_capacitacion=row.get("horas_capacitacion"),
-                    ausencias_injustificadas=row.get("ausencias_injustificadas"),
-                    llegadas_tarde=row.get("llegadas_tarde"),
-                    salidas_tempranas=row.get("salidas_tempranas"),
-                )
-                db.session.add(nuevo)
-
-            registros.append({
-                **row
-            })
-
-        db.session.commit()
-
-        import os
+            nuevo = {
+                "id_empleado": row["id_empleado"],
+                "horas_extras": row.get("horas_extras"),
+                "horas_capacitacion": row.get("horas_capacitacion"),
+                "ausencias_injustificadas": row.get("ausencias_injustificadas"),
+                "llegadas_tarde": row.get("llegadas_tarde"),
+                "salidas_tempranas": row.get("salidas_tempranas")
+            }
+            registros.append(nuevo)
 
         df = pd.DataFrame(registros)
         csv_dir = os.path.join(os.getcwd(), "uploads", "info_laboral")
@@ -982,13 +991,11 @@ def cargar_rendimientos_empleados_y_generar_csv():
         path_csv = os.path.join(csv_dir, "rendimientos_empleados.csv")
         df.to_csv(path_csv, index=False)
 
-        # 👉 Llamada a función que valida, predice y notifica
         resultado = registrar_info_laboral_empleados_tabla(path_csv)
         print("Resultado función registrar info laboral:", resultado)
         if "error" in resultado:
             return jsonify(resultado), 400
 
-        # Podés devolver el CSV de predicciones o el resumen como JSON
         return jsonify(resultado), 200
 
     except Exception as e:
@@ -1097,7 +1104,8 @@ def obtener_empleados_rendimiento_futuro():
                 "horas_capacitacion": rendimiento.horas_capacitacion,
                 "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
                 "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
-                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento
+                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento,
+                "puesto": empleado.puesto_trabajo if empleado.puesto_trabajo else "Analista"
             })
 
         resumen_rendimiento = {
@@ -1163,6 +1171,7 @@ def obtener_empleados_riesgo_futuro():
                 "ausencias_injustificadas": rendimiento.ausencias_injustificadas,
                 "llegadas_tarde": rendimiento.llegadas_tarde,
                 "salidas_tempranas": rendimiento.salidas_tempranas,
+                "puesto": empleado.puesto_trabajo if empleado.puesto_trabajo else "Analista",                
                 "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
                 "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
                 "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho,
@@ -1233,12 +1242,12 @@ def cerrar_oferta(id_oferta):
 
     return jsonify({"message": "Oferta cerrada exitosamente"}), 200
 
-@manager_bp.route("/licencias-solicitadas-manager", methods=["GET"])
+@manager_bp.route("/licencias-mis-reclutadores", methods=["GET"])
 @role_required(["manager"])
 def visualizar_licencias():
-    id_admin_emp = get_jwt_identity()
-    admin_emp = Usuario.query.filter_by(id=id_admin_emp).first()
-    empresa = Empresa.query.filter_by(id=admin_emp.id_empresa).first()
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.filter_by(id=id_manager).first()
+    empresa = Empresa.query.filter_by(id=manager.id_empresa).first()
 
     licencias = Licencia.query.filter_by(id_empresa=empresa.id).all()
 
@@ -1246,8 +1255,7 @@ def visualizar_licencias():
     for licencia in licencias:
         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
         if (
-            empleado.id_superior == admin_emp.id
-            and empleado.id_empresa == admin_emp.id_empresa
+            empleado.id_empresa == manager.id_empresa
         ):
             resultado.append(
                 {
@@ -1286,8 +1294,8 @@ def visualizar_licencias():
 @manager_bp.route("/licencia-<int:id_licencia>-reclutador/informacion", methods=["GET"])
 @role_required(["manager"])
 def obtener_detalle_licencia(id_licencia):
-    id_admin_emp = get_jwt_identity()
-    admin_emp = Usuario.query.get(id_admin_emp)
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
     licencia = Licencia.query.get(id_licencia)
     if not licencia:
         return jsonify({"error": "Licencia no encontrada"}), 404
@@ -1297,7 +1305,7 @@ def obtener_detalle_licencia(id_licencia):
         return jsonify({"error": "Empleado no encontrado"}), 404
 
     # Solo puede ver si la licencia es de su empresa o de un empleado a su cargo
-    if licencia.id_empresa != admin_emp.id_empresa and empleado.id_superior != admin_emp.id:
+    if licencia.id_empresa != manager.id_empresa and empleado.id_superior != manager.id:
         return jsonify({"error": "No tienes permiso para ver esta licencia"}), 403
 
     empresa = Empresa.query.get(licencia.id_empresa)
@@ -1335,8 +1343,8 @@ def eval_licencia(id_licencia):
     if nuevo_estado not in ["aprobada", "rechazada"]:
         return jsonify({"error": "El estado debe ser 'aprobada' o 'rechazada'"}), 400
 
-    id_admin_emp = get_jwt_identity()
-    admin_emp = Usuario.query.get(id_admin_emp)
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
     licencia = Licencia.query.get(id_licencia)
     if not licencia:
         return jsonify({"error": "Licencia no encontrada"}), 404
@@ -1350,7 +1358,7 @@ def eval_licencia(id_licencia):
         return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
 
     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
-    if licencia.id_empresa != admin_emp.id_empresa and empleado.id_superior != admin_emp.id:
+    if licencia.id_empresa != manager.id_empresa and empleado.id_superior != manager.id:
         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
 
     licencia.estado = nuevo_estado
@@ -1674,7 +1682,7 @@ def register_employees_from_csv(file_path):
         for row in reader:
             if not required_fields.issubset(row.keys()):
                 # Devuelve un diccionario con el error
-                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena"}
+                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena, puesto"}
 
             nombre = row['nombre'].strip()
             apellido = row['apellido'].strip()
@@ -1713,7 +1721,8 @@ def register_employees_from_csv(file_path):
                 username=username,
                 contrasena=contrasena,
                 id_empresa=id_empresa,
-                id_superior=admin_emp.id
+                id_superior=admin_emp.id,
+                puesto_trabajo=puesto,
             )
             
             db.session.add(new_user)

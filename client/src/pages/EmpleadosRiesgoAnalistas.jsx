@@ -167,6 +167,7 @@ export default function RiesgosAnalistasConTabla() {
                             <thead>
                                 <tr className="bg-blue-200 text-black border border-gray-300">
                                     <th className="p-2 border border-gray-300">Nombre</th>
+                                    <th className="p-2 border border-gray-300">Rol</th>
                                     <th className="p-2 border border-gray-300">Antigüedad</th>
                                     <th className="p-2 border border-gray-300">Capacitación</th>
                                     <th className="p-2 border border-gray-300">Ausencias</th>
@@ -182,6 +183,7 @@ export default function RiesgosAnalistasConTabla() {
                                 {empleados.map((emp, idx) => (
                                     <tr key={emp.id_usuario} className={`hover:bg-blue-50 ${idx % 2 === 0 ? 'bg-blue-50' : 'bg-blue-100'} text-black`}>
                                         <td className="p-2 border border-gray-300">{emp.nombre}</td>
+                                        <td className="p-2 border border-gray-300">{emp.puesto || "Analista"}</td>
                                         <td className="p-2 border border-gray-300">{emp.antiguedad}</td>
                                         <td className="p-2 border border-gray-300">{emp.horas_capacitacion}</td>
                                         <td className="p-2 border border-gray-300">{emp.ausencias_injustificadas}</td>

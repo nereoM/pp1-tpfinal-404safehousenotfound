@@ -656,20 +656,21 @@ def registrar_empleados():
 def register_employees_from_csv(file_path):
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.DictReader(csvfile)
-        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena'}
+        required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena', 'puesto'}
         
         resultado = []
 
         for row in reader:
             if not required_fields.issubset(row.keys()):
                 # Devuelve un diccionario con el error
-                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena"}
+                return {"error": "El archivo CSV no contiene las columnas requeridas: nombre, apellido, email, username, contrasena, puesto"}
 
             nombre = row['nombre'].strip()
             apellido = row['apellido'].strip()
             email = row['email'].strip()
             username = row['username'].strip()
             contrasena = row['contrasena'].strip()
+            puesto = row['puesto'].strip()
             
 
             if not validar_nombre(nombre) or not validar_nombre(apellido):
@@ -698,7 +699,8 @@ def register_employees_from_csv(file_path):
                 username=username,
                 contrasena=contrasena,
                 id_empresa=id_empresa,
-                id_superior=admin_emp.id
+                id_superior=admin_emp.id,
+                puesto_trabajo=puesto,
             )
             
             db.session.add(new_user)
@@ -939,23 +941,86 @@ def validar_nombre(nombre: str) -> bool:
     # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
     return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
 
+# @swag_from("../docs/admin-emp/licencias-solicitadas.yml")
+# @admin_emp_bp.route("/licencias-solicitadas-admin-emp", methods=["GET"])
+# @role_required(["admin-emp"])
+# def visualizar_licencias():
+#     id_admin_emp = get_jwt_identity()
+#     admin_emp = Usuario.query.filter_by(id=id_admin_emp).first()
+#     empresa = Empresa.query.filter_by(id=admin_emp.id_empresa).first()
+
+#     licencias = Licencia.query.filter_by(id_empresa=empresa.id).all()
+
+#     resultado = []
+#     for licencia in licencias:
+#         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
+#         if (
+#             empleado.id_superior == admin_emp.id
+#             and empleado.id_empresa == admin_emp.id_empresa
+#         ):
+#             resultado.append(
+#                 {
+#                     "licencia": {
+#                         "id_licencia": licencia.id,
+#                         "empleado": {
+#                             "id": licencia.id_empleado,
+#                             "nombre": empleado.nombre,
+#                             "apellido": empleado.apellido,
+#                             "username": empleado.username,
+#                             "email": empleado.correo,
+#                         },
+#                         "tipo": licencia.tipo,
+#                         "descripcion": licencia.descripcion if licencia.descripcion else "Sin descripción",
+#                         "fecha_inicio": licencia.fecha_inicio.isoformat()
+#                         if licencia.fecha_inicio
+#                         else None,
+#                         "fecha_fin": licencia.fecha_fin.isoformat()
+#                         if licencia.fecha_fin
+#                         else None,
+#                         "estado": licencia.estado,
+#                         "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "No Aplica",
+#                         "empresa": {
+#                             "id": licencia.id_empresa,
+#                             "nombre": empresa.nombre,
+#                         },
+#                         "certificado_url": licencia.certificado_url
+#                         if licencia.certificado_url
+#                         else None,
+#                     }
+#                 }
+#             )
+
+#     return jsonify(resultado), 200
+
 @swag_from("../docs/admin-emp/licencias-solicitadas.yml")
-@admin_emp_bp.route("/licencias-solicitadas-admin-emp", methods=["GET"])
+@admin_emp_bp.route("/licencias-mis-managers", methods=["GET"])
 @role_required(["admin-emp"])
 def visualizar_licencias():
     id_admin_emp = get_jwt_identity()
     admin_emp = Usuario.query.filter_by(id=id_admin_emp).first()
     empresa = Empresa.query.filter_by(id=admin_emp.id_empresa).first()
 
-    licencias = Licencia.query.filter_by(id_empresa=empresa.id).all()
+    # Obtener solo los managers de la empresa
+    managers = (
+        db.session.query(Usuario)
+        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+        .join(Rol, UsuarioRol.id_rol == Rol.id)
+        .filter(Usuario.id_empresa == empresa.id)
+        .filter(Rol.slug == "manager")
+        .all()
+    )
+    ids_managers = {m.id for m in managers}
+
+    # Filtrar licencias solo de managers
+    licencias = Licencia.query.filter(
+        Licencia.id_empresa == empresa.id,
+        Licencia.id_empleado.in_(ids_managers)
+    ).all()
 
     resultado = []
     for licencia in licencias:
         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
-        if (
-            empleado.id_superior == admin_emp.id
-            and empleado.id_empresa == admin_emp.id_empresa
-        ):
+        if empleado:
             resultado.append(
                 {
                     "licencia": {
@@ -991,7 +1056,7 @@ def visualizar_licencias():
     return jsonify(resultado), 200
 
 @swag_from("../docs/admin-emp/licencia-detalle.yml")
-@admin_emp_bp.route("/licencia-<int:id_licencia>-empleado/informacion", methods=["GET"])
+@admin_emp_bp.route("/licencia-<int:id_licencia>-manager/informacion", methods=["GET"])
 @role_required(["admin-emp"])
 def obtener_detalle_licencia(id_licencia):
     id_admin_emp = get_jwt_identity()
@@ -1034,7 +1099,7 @@ def obtener_detalle_licencia(id_licencia):
     }), 200
 
 @swag_from("../docs/admin-emp/evaluar-licencia.yml")
-@admin_emp_bp.route("/licencia-<int:id_licencia>-empleado/evaluacion", methods=["PUT"])
+@admin_emp_bp.route("/licencia-<int:id_licencia>-manager/evaluacion", methods=["PUT"])
 @role_required(["admin-emp"])
 def eval_licencia(id_licencia):
     data = request.get_json()
