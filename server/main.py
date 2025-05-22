@@ -25,6 +25,9 @@ from ml.modelo import modelo_sbert
 from ml.desempeno_desarrollo.generation import main as ejecutar_generation
 
 from flasgger import Swagger
+import webbrowser
+import threading
+import time
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -34,6 +37,7 @@ jwt.init_app(app)
 #CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 db.init_app(app)
+webbrowser.open("http://localhost:5000")
 
 app.register_blueprint(auth_bp,       url_prefix="/auth")
 app.register_blueprint(candidato_bp,  url_prefix="/api")
@@ -47,6 +51,10 @@ app.register_blueprint(empleado_bp,   url_prefix="/api")
 from flask import send_from_directory
 from werkzeug.utils import secure_filename
 import os
+
+def open_frontend():
+    time.sleep(1)
+    webbrowser.open("http://localhost:5173")
 
 @app.route('/uploads/certificados/<path:filename>')
 def descargar_certificado(filename):
@@ -110,5 +118,6 @@ scheduler.start()
 if __name__ == "__main__":
     iniciar_db()
     ejecutar_generation()
+    threading.Thread(target=open_frontend).start()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

@@ -807,7 +807,7 @@ def postularme(id_oferta):
         is_apto=aptitud_cv,
         fecha_postulacion=datetime.now(timezone.utc),
         estado_postulacion="pendiente",
-        porcentaje_similitud=porcentaje,
+        porcentaje_similitud=porcentaje*100,
     )
 
     db.session.add(nueva_postulacion)
