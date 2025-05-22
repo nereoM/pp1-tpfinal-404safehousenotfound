@@ -989,3 +989,62 @@ def obtener_empleados_riesgo_futuro():
     except Exception as e:
         print(f"Error en /empleados-riesgo-analistas: {e}")
         return jsonify({"error": str(e)}), 500
+    
+@reclutador_bp.route("/licencias-mis-empleados", methods=["GET"])
+@role_required(["manager"])
+def visualizar_licencias_empleados():
+    id_reclutador = get_jwt_identity()
+    reclutador = Usuario.query.filter_by(id=id_reclutador).first()
+    empresa = Empresa.query.filter_by(id=reclutador.id_empresa).first()
+
+    # Obtener los empleados de la empresa que dependen de este reclutador y tienen rol "empleado"
+    empleados = (
+        db.session.query(Usuario)
+        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+        .join(Rol, UsuarioRol.id_rol == Rol.id)
+        .filter(
+            Usuario.id_empresa == empresa.id,
+            Usuario.id_superior == reclutador.id,
+            Rol.slug == "empleado"
+        )
+        .all()
+    )
+    ids_empleados = {e.id for e in empleados}
+
+    # Filtrar licencias solo de estos empleados
+    licencias = Licencia.query.filter(
+        Licencia.id_empresa == empresa.id,
+        Licencia.id_empleado.in_(ids_empleados)
+    ).all()
+
+    resultado = []
+    for licencia in licencias:
+        empleado = next((e for e in empleados if e.id == licencia.id_empleado), None)
+        if empleado:
+            resultado.append(
+                {
+                    "licencia": {
+                        "id_licencia": licencia.id,
+                        "empleado": {
+                            "id": licencia.id_empleado,
+                            "nombre": empleado.nombre,
+                            "apellido": empleado.apellido,
+                            "username": empleado.username,
+                            "email": empleado.correo,
+                        },
+                        "tipo": licencia.tipo,
+                        "descripcion": licencia.descripcion if licencia.descripcion else "Sin descripción",
+                        "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+                        "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+                        "estado": licencia.estado,
+                        "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "No Aplica",
+                        "empresa": {
+                            "id": licencia.id_empresa,
+                            "nombre": empresa.nombre,
+                        },
+                        "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+                    }
+                }
+            )
+
+    return jsonify(resultado), 200

@@ -939,23 +939,86 @@ def validar_nombre(nombre: str) -> bool:
     # Solo letras (mayúsculas/minúsculas), espacios y letras acentuadas comunes
     return re.match(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s\-']+$", nombre) is not None
 
+# @swag_from("../docs/admin-emp/licencias-solicitadas.yml")
+# @admin_emp_bp.route("/licencias-solicitadas-admin-emp", methods=["GET"])
+# @role_required(["admin-emp"])
+# def visualizar_licencias():
+#     id_admin_emp = get_jwt_identity()
+#     admin_emp = Usuario.query.filter_by(id=id_admin_emp).first()
+#     empresa = Empresa.query.filter_by(id=admin_emp.id_empresa).first()
+
+#     licencias = Licencia.query.filter_by(id_empresa=empresa.id).all()
+
+#     resultado = []
+#     for licencia in licencias:
+#         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
+#         if (
+#             empleado.id_superior == admin_emp.id
+#             and empleado.id_empresa == admin_emp.id_empresa
+#         ):
+#             resultado.append(
+#                 {
+#                     "licencia": {
+#                         "id_licencia": licencia.id,
+#                         "empleado": {
+#                             "id": licencia.id_empleado,
+#                             "nombre": empleado.nombre,
+#                             "apellido": empleado.apellido,
+#                             "username": empleado.username,
+#                             "email": empleado.correo,
+#                         },
+#                         "tipo": licencia.tipo,
+#                         "descripcion": licencia.descripcion if licencia.descripcion else "Sin descripción",
+#                         "fecha_inicio": licencia.fecha_inicio.isoformat()
+#                         if licencia.fecha_inicio
+#                         else None,
+#                         "fecha_fin": licencia.fecha_fin.isoformat()
+#                         if licencia.fecha_fin
+#                         else None,
+#                         "estado": licencia.estado,
+#                         "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "No Aplica",
+#                         "empresa": {
+#                             "id": licencia.id_empresa,
+#                             "nombre": empresa.nombre,
+#                         },
+#                         "certificado_url": licencia.certificado_url
+#                         if licencia.certificado_url
+#                         else None,
+#                     }
+#                 }
+#             )
+
+#     return jsonify(resultado), 200
+
 @swag_from("../docs/admin-emp/licencias-solicitadas.yml")
-@admin_emp_bp.route("/licencias-solicitadas-admin-emp", methods=["GET"])
+@admin_emp_bp.route("/licencias-mis-managers", methods=["GET"])
 @role_required(["admin-emp"])
 def visualizar_licencias():
     id_admin_emp = get_jwt_identity()
     admin_emp = Usuario.query.filter_by(id=id_admin_emp).first()
     empresa = Empresa.query.filter_by(id=admin_emp.id_empresa).first()
 
-    licencias = Licencia.query.filter_by(id_empresa=empresa.id).all()
+    # Obtener solo los managers de la empresa
+    managers = (
+        db.session.query(Usuario)
+        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+        .join(Rol, UsuarioRol.id_rol == Rol.id)
+        .filter(Usuario.id_empresa == empresa.id)
+        .filter(Rol.slug == "manager")
+        .all()
+    )
+    ids_managers = {m.id for m in managers}
+
+    # Filtrar licencias solo de managers
+    licencias = Licencia.query.filter(
+        Licencia.id_empresa == empresa.id,
+        Licencia.id_empleado.in_(ids_managers)
+    ).all()
 
     resultado = []
     for licencia in licencias:
         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
-        if (
-            empleado.id_superior == admin_emp.id
-            and empleado.id_empresa == admin_emp.id_empresa
-        ):
+        if empleado:
             resultado.append(
                 {
                     "licencia": {

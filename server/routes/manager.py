@@ -1234,12 +1234,12 @@ def cerrar_oferta(id_oferta):
 
     return jsonify({"message": "Oferta cerrada exitosamente"}), 200
 
-@manager_bp.route("/licencias-solicitadas-manager", methods=["GET"])
+@manager_bp.route("/licencias-mis-reclutadores", methods=["GET"])
 @role_required(["manager"])
 def visualizar_licencias():
-    id_admin_emp = get_jwt_identity()
-    admin_emp = Usuario.query.filter_by(id=id_admin_emp).first()
-    empresa = Empresa.query.filter_by(id=admin_emp.id_empresa).first()
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.filter_by(id=id_manager).first()
+    empresa = Empresa.query.filter_by(id=manager.id_empresa).first()
 
     licencias = Licencia.query.filter_by(id_empresa=empresa.id).all()
 
@@ -1247,8 +1247,8 @@ def visualizar_licencias():
     for licencia in licencias:
         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
         if (
-            empleado.id_superior == admin_emp.id
-            and empleado.id_empresa == admin_emp.id_empresa
+            empleado.id_superior == manager.id
+            and empleado.id_empresa == manager.id_empresa
         ):
             resultado.append(
                 {
