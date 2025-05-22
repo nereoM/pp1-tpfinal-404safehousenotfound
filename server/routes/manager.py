@@ -954,6 +954,8 @@ def registrar_info_laboral_empleados_tabla(file_path):
 
 def calcular_antiguedad(fecha_ingreso):
     hoy = date.today()
+    if isinstance(fecha_ingreso, datetime):
+        fecha_ingreso = fecha_ingreso.date()
 
     if fecha_ingreso > hoy:
         return 0
@@ -1103,7 +1105,7 @@ def obtener_empleados_rendimiento_futuro():
                 "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
                 "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
                 "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento,
-                "puesto": empleado.puesto if empleado.puesto else "Analista"
+                "puesto": getattr(empleado, "puesto", "Analista")
             })
 
         resumen_rendimiento = {
@@ -1169,7 +1171,7 @@ def obtener_empleados_riesgo_futuro():
                 "ausencias_injustificadas": rendimiento.ausencias_injustificadas,
                 "llegadas_tarde": rendimiento.llegadas_tarde,
                 "salidas_tempranas": rendimiento.salidas_tempranas,
-                "puesto": empleado.puesto if empleado.puesto else "Analista",
+                "puesto": getattr(empleado, "puesto", "Analista"),                
                 "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
                 "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
                 "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho,

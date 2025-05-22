@@ -115,9 +115,8 @@ export default function RendimientoAnalistas() {
               <thead>
                 <tr className="bg-blue-200 text-black border border-gray-300">
                   <th className="p-2 border border-gray-300">Nombre</th>
+                  <th className="p-2 border border-gray-300">Rol</th>
                   <th className="p-2 border border-gray-300">Previo</th>
-                  <th className="p-2 border border-gray-300">Proyectos</th>
-                  <th className="p-2 border border-gray-300">Equipo</th>
                   <th className="p-2 border border-gray-300">Extras</th>
                   <th className="p-2 border border-gray-300">Antigüedad</th>
                   <th className="p-2 border border-gray-300">Capacitación</th>
@@ -129,9 +128,8 @@ export default function RendimientoAnalistas() {
                 {empleados.map((emp, index) => (
                   <tr key={emp.id_usuario} className={`hover:bg-blue-50 ${index % 2 === 0 ? 'bg-blue-50' : 'bg-blue-100'} text-black`}>
                     <td className="p-2 border border-gray-300">{emp.nombre}</td>
+                    <td className="p-2 border border-gray-300">{emp.puesto || "Analista"}</td>
                     <td className="p-2 border border-gray-300">{emp.desempeno_previo}</td>
-                    <td className="p-2 border border-gray-300">{emp.cantidad_proyectos}</td>
-                    <td className="p-2 border border-gray-300">{emp.tamano_equipo}</td>
                     <td className="p-2 border border-gray-300">{emp.horas_extras}</td>
                     <td className="p-2 border border-gray-300">{emp.antiguedad}</td>
                     <td className="p-2 border border-gray-300">{emp.horas_capacitacion}</td>
