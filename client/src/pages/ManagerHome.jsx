@@ -13,8 +13,6 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
-import RendimientoAnalistasTable from "../components/RendimientoAnalistasTable";
-import { useRef } from "react";
 
 import MensajeAlerta from "../components/MensajeAlerta"; // alertas
 
@@ -248,7 +246,15 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
 
 
   const handleSelectAnalista = (ofertaId, analistaId) => {
-    setSelectedAnalistas((prev) => ({ ...prev, [ofertaId]: analistaId }));
+    setSelectedAnalistas((prev) => {
+      const actualizado = { ...prev };
+      if (analistaId === "") {
+        delete actualizado[ofertaId]; //  Elimina el campo si está vacío
+      } else {
+        actualizado[ofertaId] = analistaId;
+      }
+      return actualizado;
+    });
   };
 
   const asignarAnalista = async (ofertaId) => {
@@ -690,7 +696,8 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
                             claseColor = "bg-green-100 text-green-800";
                             icono = "✅";
                             tooltip = "Analista asignado";
-                          } else if (analistaSeleccionado) {
+                          } else if (analistaSeleccionado && analistaSeleccionado !== "") {
+
                             claseColor = "bg-orange-200 text-orange-800";
                             icono = "⏳";
                             tooltip = "Analista seleccionado pero no asignado";
@@ -751,6 +758,15 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
                     onClick={() => {
                       setModalVerOfertasOpen(false);
                       setMensajeAsignacion("");
+                      setSelectedAnalistas(prev => {
+                        const nuevo = { ...prev };
+                        for (const ofertaId in nuevo) {
+                          if (!ofertasAsignadas.has(Number(ofertaId))) {
+                            delete nuevo[ofertaId]; // ✅ solo si estaba en naranja
+                          }
+                        }
+                        return nuevo;
+                      });
                     }}
                     className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                   >
