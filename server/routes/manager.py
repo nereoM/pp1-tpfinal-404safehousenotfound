@@ -855,8 +855,22 @@ def registrar_info_laboral_empleados_tabla(file_path):
                         "antiguedad": calcular_antiguedad(antiguedad),
                         "horas_capacitacion": horas_capacitacion
                     }
+                    
+                    fecha_actual = datetime.utcnow()
                     rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
+                    existe_historial = HistorialRendimientoEmpleado.query.filter_by(
+                        id_empleado=id_empleado,
+                        fecha_calculo=fecha_actual
+                    ).first()
 
+                    if not existe_historial:
+                        nuevo_historial = HistorialRendimientoEmpleado(
+                            id_empleado=id_empleado,
+                            fecha_calculo=fecha_actual,
+                            rendimiento=rendimiento.rendimiento_futuro_predicho
+                        )
+                        db.session.add(nuevo_historial)
+                        
                     datos_rotacion = {
                         "ausencias_injustificadas": ausencias_injustificadas,
                         "llegadas_tarde": llegadas_tarde,
@@ -955,26 +969,15 @@ def cargar_rendimientos_empleados_y_generar_csv():
         registros = []
 
         for row in empleados:
-            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=row["id_empleado"]).first()
-            if rendimiento:
-                # Crea un nuevo registro si no existe
-                nuevo = RendimientoEmpleado(
-                    id_usuario=row["id_empleado"],
-                    horas_extras=row.get("horas_extras"),
-                    horas_capacitacion=row.get("horas_capacitacion"),
-                    ausencias_injustificadas=row.get("ausencias_injustificadas"),
-                    llegadas_tarde=row.get("llegadas_tarde"),
-                    salidas_tempranas=row.get("salidas_tempranas"),
-                )
-                db.session.add(nuevo)
-
-            registros.append({
-                **row
-            })
-
-        db.session.commit()
-
-        import os
+            nuevo = {
+                "id_empleado": row["id_empleado"],
+                "horas_extras": row.get("horas_extras"),
+                "horas_capacitacion": row.get("horas_capacitacion"),
+                "ausencias_injustificadas": row.get("ausencias_injustificadas"),
+                "llegadas_tarde": row.get("llegadas_tarde"),
+                "salidas_tempranas": row.get("salidas_tempranas")
+            }
+            registros.append(nuevo)
 
         df = pd.DataFrame(registros)
         csv_dir = os.path.join(os.getcwd(), "uploads", "info_laboral")
@@ -982,13 +985,11 @@ def cargar_rendimientos_empleados_y_generar_csv():
         path_csv = os.path.join(csv_dir, "rendimientos_empleados.csv")
         df.to_csv(path_csv, index=False)
 
-        # 👉 Llamada a función que valida, predice y notifica
         resultado = registrar_info_laboral_empleados_tabla(path_csv)
         print("Resultado función registrar info laboral:", resultado)
         if "error" in resultado:
             return jsonify(resultado), 400
 
-        # Podés devolver el CSV de predicciones o el resumen como JSON
         return jsonify(resultado), 200
 
     except Exception as e:
