@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { FileUp, Search, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +6,6 @@ import { JobCard } from "../components/JobCard";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayoutCand";
 import PostulacionesCandidatoModal from '../components/PostulacionesCandidatoModal';
-import { ProfileCard } from "../components/ProfileCard";
 import { SearchFiltersCandidato } from "../components/SearchFiltersCandidato.jsx";
 import { TopBar } from "../components/TopBarCand";
 
@@ -78,6 +77,8 @@ export default function CandidatoHome() {
 
         };
 
+        
+
 
 
         const fetchRecomendaciones = async () => {
@@ -117,20 +118,21 @@ export default function CandidatoHome() {
     }, []);
 
 
-      const Toast = ({ message, type, onClose }) => (
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        exit={{ opacity: 0, y: -10 }} 
-        className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${
-          type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
-        }`}
-      >
-        {type === "success"}
-        <span>{message}</span>
-        <button className="ml-2 text-lg" onClick={onClose}>×</button>
-      </motion.div>
-    );
+        const Toast = ({ message, type, onClose }) => (
+        <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className={`fixed top-5 right-5 z-[9999] p-4 rounded-lg shadow-md flex items-center gap-2 max-w-sm w-fit ${
+            type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+            }`}
+        >
+            <span>{message}</span>
+            <button className="ml-2 text-lg" onClick={onClose}>×</button>
+        </motion.div>
+        );
+
     
     const addToast = (message, type = "success") => {
         const id = Date.now();
@@ -178,6 +180,14 @@ export default function CandidatoHome() {
     }, [busquedaConfirmada]);
 
 
+useEffect(() => {
+  const handleToastEvent = (e) => {
+    addToast(e.detail); // muestra el mensaje recibido
+  };
+
+  window.addEventListener("cvSubidoOk", handleToastEvent);
+  return () => window.removeEventListener("cvSubidoOk", handleToastEvent);
+}, []);
 
 
 const handleUploadCV = async () => {
@@ -303,7 +313,13 @@ const handlePostularse = async () => {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
             <PageLayout>
-                <TopBar username={`${user?.nombre} ${user?.apellido}`} onLogout={() => navigate("/login")} />
+                <TopBar
+  username={`${user?.nombre} ${user?.apellido}`}
+  user={user}
+  onLogout={() => navigate("/login")}
+  onEditPerfil={() => setModalEditarPerfilOpen(true)}
+  onPostulacion={() => setIsPostulacionesModalOpen(true)}
+/>
                 <div className="mt-6 px-4 max-w-6xl mx-auto flex justify-end">
                     <button
                         onClick={() => setMostrarFiltros((prev) => !prev)}
@@ -313,14 +329,16 @@ const handlePostularse = async () => {
                     </button>
                 </div>
 
-            {toasts.map((toast) => (
-                <Toast 
-                    key={toast.id} 
-                    message={toast.message} 
-                    type={toast.type} 
-                    onClose={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))} 
-                />
-            ))}
+                <AnimatePresence>
+                {toasts.map((toast) => (
+                    <Toast
+                    key={toast.id}
+                    message={toast.message}
+                    type={toast.type}
+                    onClose={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+                    />
+                ))}
+                </AnimatePresence>
 
                 {mostrarFiltros && (
                     <div className="mt-4 px-4 max-w-6xl mx-auto">
@@ -359,61 +377,7 @@ const handlePostularse = async () => {
 
 
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
-                    <div>
-                    <ProfileCard
-                     nombre={`${user?.nombre} ${user?.apellido}`}
-                    correo={user?.correo}
-                    fotoUrl={user?.fotoUrl || "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"}
-                    cvUrl={`/${cvs[0]?.url}` || null}
-                    onEdit={() => setModalEditarPerfilOpen(true)}
-                    />
-                        <div className="mt-3">
-                            <div className="flex flex-col gap-2 mt-4">
-                                <label htmlFor="cv-upload" className="flex items-center justify-center gap-2 p-2 border border-dashed border-blue-500 rounded cursor-pointer bg-blue-50 hover:bg-blue-100 transition">
-                                    <FileUp className="w-4 h-4 text-blue-600" /> Subir CV
-                                </label>
-                                <input
-                                    id="cv-upload"
-                                    type="file"
-                                    accept=".pdf,.doc,.docx"
-                                    className="hidden"
-                                    onChange={(e) => {
-                                        setCvFile(e.target.files[0]);
-                                        setCvPreview(e.target.files[0]?.name || null);
-                                    }}
-                                />
-                                {cvPreview && (
-                                    <p className="text-sm text-gray-600">Archivo seleccionado: <span className="font-medium">{cvPreview}</span></p>
-                                )}
-                                {cvFile && (
-                                    <button
-                                        onClick={handleUploadCV}
-                                        className="flex items-center justify-center gap-2 px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition"
-                                    >
-                                        <Upload className="w-4 h-4" /> Subir CV
-                                    </button>
-                                )}
-                                  <button
-                                className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
-                                onClick={() => setIsPostulacionesModalOpen(true)}
-                            >
-                                Ver mis postulaciones
-                            </button>
-
-
-                             <div className="mt-4">
-                                    <button
-                                onClick={() => navigate("/pagos")}
-                                    className="block w-full text-base px-4 py-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
-                                >
-                                 ¿Sos parte de una empresa? Suscribite y obtené beneficios exclusivos.
-                                </button>
-                            </div>
-                            </div>
-                        </div>
-                    </div>
-                    
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6 px-4">
                     <div className="col-span-2">
                         <div className="flex justify-between items-center mb-4">
                             <h2 className="text-lg font-semibold">
