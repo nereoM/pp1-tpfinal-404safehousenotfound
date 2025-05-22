@@ -830,10 +830,10 @@ def obtener_contador_notificaciones_no_leidas():
 
 def calcular_antiguedad(fecha_ingreso):
     hoy = date.today()
-
+    if isinstance(fecha_ingreso, datetime):
+        fecha_ingreso = fecha_ingreso.date()
     if fecha_ingreso > hoy:
         return 0
-    
     antiguedad = hoy.year - fecha_ingreso.year - (
         (hoy.month, hoy.day) < (fecha_ingreso.month, fecha_ingreso.day)
     )
