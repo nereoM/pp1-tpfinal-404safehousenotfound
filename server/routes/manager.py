@@ -1387,6 +1387,9 @@ def eval_licencia(id_licencia):
         }
     }), 200
 
+        # ---------------#
+
+
 @manager_bp.route("/ofertas-libres-reclutadores", methods=["GET"])
 @role_required(["manager"])
 def obtener_ofertas_libres_reclutadores():
@@ -1535,6 +1538,8 @@ def reasignar_oferta_libre(id_oferta):
             "username": nuevo_reclutador.username,
         }
     }), 200
+# -------------------------------
+
 
 @manager_bp.route("/notificar-bajo-rendimiento-analista/<int:id_analista>", methods=["POST"])
 @role_required(["manager"])
