@@ -43,20 +43,20 @@ export const managerService = {
     const data = await fetcher({ url });
     return data.ofertas;
   },
-  async evaluarLicencia({ idLicencia, estado }) {
-    const url = `${API_URL}/api/evaluar-licencia/${idLicencia}`;
+  // async evaluarLicencia({ idLicencia, estado }) {
+  //   const url = `${API_URL}/api/evaluar-licencia/${idLicencia}`;
 
-    const options = {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ estado }),
-    };
+  //   const options = {
+  //     method: "PUT",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     body: JSON.stringify({ estado }),
+  //   };
 
-    const data = await fetcher({ url, options });
-    return data;
-  },
+  //   const data = await fetcher({ url, options });
+  //   return data;
+  // },
   async obtenerEmpleados() {
     const url = `${API_URL}/api/empleados-manager`;
 
@@ -102,6 +102,23 @@ export const managerService = {
     const data = await fetcher({ url, options });
     return data;
   },
+  async obtenerLicenciasEmpleadosReclutadores() {
+    const url = `${API_URL}/api/licencias-mis-reclutadores`
+    const data = await fetcher({ url });
+    return data;
+  },
+  async evaluarLicencia({ idLicencia, estado, motivo, fecha_inicio, fecha_fin }) {
+    const url = `${API_URL}/api/licencia-${idLicencia}-reclutador/evaluacion`
 
+    const options = {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ estado, motivo }),
+    };
+    const data = await fetcher({ url, options });
+    return data;
+  }
 }
 
