@@ -1035,6 +1035,7 @@ def obtener_datos_rendimiento():
             datos_empleados.append({
                 "id_usuario": usuario.id,
                 "nombre": usuario.nombre,
+                "apellido": usuario.apellido,
                 "horas_capacitacion": rendimiento.horas_capacitacion if rendimiento else None,
                 "horas_extra_finde": rendimiento.horas_extras if rendimiento else None,
                 "ausencias_injustificadas": rendimiento.ausencias_injustificadas if rendimiento else None,

@@ -632,7 +632,7 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
 
           {modalRendimientoAnalistas && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-2/3 lg:w-1/2 max-h-[80vh] overflow-auto text-black">
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-11/12 md:w-5/6 lg:w-3/4 max-h-[80vh] overflow-auto text-black">
                 <RendimientoAnalistasTable onSuccess={() => setModalRendimientoAnalistas(false)} />
                 <div className="mt-6 text-right">
                   <button
