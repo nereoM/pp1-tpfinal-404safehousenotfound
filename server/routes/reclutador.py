@@ -1163,3 +1163,50 @@ def eval_licencia(id_licencia):
             "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
         }
     }), 200
+    
+    
+@reclutador_bp.route("/notificar-bajo-rendimiento-empleados/<int:id_empleado>", methods=["POST"])
+@role_required(["reclutador"])
+def notificar_bajo_rendimiento(id_empleado):
+
+    if not id_empleado:
+        return jsonify({"error": "El ID del empleado es requerido"}), 400
+
+    # Obtener el admin-emp autenticado
+    id_analista = get_jwt_identity()
+    analista = Usuario.query.get(id_analista)
+    if not analista or not analista.id_empresa:
+        return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+    # Obtener el empleado
+    empleado = Usuario.query.get(id_empleado)
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    # Verificar que el empleado pertenece a la misma empresa
+    if empleado.id_empresa != analista.id_empresa:
+        return jsonify({"error": "No tienes permiso para notificar a este empleado"}), 403
+
+    mensaje = "Tu proyección de rendimiento ha sido clasificada como 'Bajo Rendimiento'. Te invitamos a que tomes las medidas necesarias para mejorar tu desempeño. Si tienes alguna duda, no dudes en contactar a tu superior."
+
+    crear_notificacion(id_analista, mensaje)
+
+    enviar_notificacion_empleado_rendimiento(empleado.correo, analista.id_empresa, mensaje)
+
+    # Enviar la notificación (aquí puedes implementar la lógica para enviar el correo)
+    # send_email(empleado.correo, "Notificación de Bajo Rendimiento", mensaje)
+
+    return jsonify({
+        "message": f"Notificación enviada al empleado {analista.nombre} {analista.apellido}"
+    }), 200
+    
+def enviar_notificacion_empleado_rendimiento(email_destino, nombre_empresa, cuerpo):
+    try:
+        asunto = "Proyección de Rendimiento"
+        cuerpo = f"Nos comunicamos desde {nombre_empresa}. " + cuerpo
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
