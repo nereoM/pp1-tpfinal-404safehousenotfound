@@ -93,6 +93,15 @@ export default function EmpleadosRendimiento() {
         }
     ];
 
+    const colorRendimiento = {
+        "Alto Rendimiento": "bg-green-200 text-green-900 font-bold",
+        "Alto": "bg-green-200 text-green-900 font-bold",
+        "Medio Rendimiento": "bg-yellow-100 text-yellow-900 font-bold",
+        "Medio": "bg-yellow-100 text-yellow-900 font-bold",
+        "Bajo Rendimiento": "bg-red-200 text-red-900 font-bold",
+        "Bajo": "bg-red-200 text-red-900 font-bold",
+    };
+
     // Animación y visual de Riesgos + Filtros
     const empleadosFiltrados = useMemo(() => {
         return empleados.filter(emp => {
@@ -278,7 +287,7 @@ export default function EmpleadosRendimiento() {
                                             <td className="p-2 border border-gray-300">{emp.antiguedad}</td>
                                             <td className="p-2 border border-gray-300">{emp.horas_capacitacion}</td>
                                             <td className="p-2 border border-gray-300">{emp.rendimiento_futuro_predicho !== undefined && emp.rendimiento_futuro_predicho !== null ? emp.rendimiento_futuro_predicho.toFixed(2) : '-'}</td>
-                                            <td className="p-2 border border-gray-300">{emp.clasificacion_rendimiento}</td>
+                                            <td className={`p-2 border font-semibold ${colorRendimiento[emp.clasificacion_rendimiento] || ""}`}>{emp.clasificacion_rendimiento}</td>
                                             <td className="p-2 border border-gray-300">{emp.fecha_calculo_rendimiento ? new Date(emp.fecha_calculo_rendimiento).toLocaleDateString() : '-'}</td>
                                         </tr>
                                     )) : (
