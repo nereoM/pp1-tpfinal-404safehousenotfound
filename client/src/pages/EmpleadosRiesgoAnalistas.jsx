@@ -146,7 +146,7 @@ export default function RiesgosAnalistasConTabla() {
             animate={{ opacity: 1 }}
         >
             <h2 className="text-3xl font-extrabold text-center text-blue-900 mb-8">
-                📊 Riesgos y Rendimiento de Empleados
+                Riesgos y Rendimiento de Analistas y Empleados
             </h2>
 
             {loading ? (
@@ -255,7 +255,7 @@ export default function RiesgosAnalistasConTabla() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">📋 Detalle de Empleados</h3>
+                        <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">Detalle de Analistas y Empleados</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left border border-gray-200">
                                 <thead className="bg-blue-100 text-gray-900 font-bold text-base">

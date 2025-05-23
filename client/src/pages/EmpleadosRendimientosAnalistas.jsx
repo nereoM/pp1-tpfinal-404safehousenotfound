@@ -152,7 +152,7 @@ export default function RendimientoAnalistas() {
       animate={{ opacity: 1 }}
     >
       <h2 className="text-3xl font-extrabold text-center text-blue-900 mb-8">
-        📊 Rendimiento Futuro de Analistas
+        Rendimiento Futuro de Analistas y Empleados
       </h2>
 
       {loading ? (
@@ -289,7 +289,7 @@ export default function RendimientoAnalistas() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">📋 Detalle de Empleados</h3>
+            <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">Detalle de Analistas y Empleados</h3>
             {mensaje && (
               <div
                 className={`mx-auto my-4 w-fit px-6 py-3 rounded-lg shadow-md text-center text-lg font-semibold transition-all ${tipoMensaje === "success"

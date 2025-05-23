@@ -152,7 +152,7 @@ export default function EmpleadosRendimiento() {
             animate={{ opacity: 1 }}
         >
             <h2 className="text-3xl font-extrabold text-center text-blue-900 mb-8">
-                📊 Rendimiento Futuro de Analistas
+                Rendimiento Futuro de Empleados
             </h2>
 
             {loading ? (
@@ -299,7 +299,7 @@ export default function EmpleadosRendimiento() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">📋 Detalle de Empleados</h3>
+                        <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">Detalle de Empleados</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse border border-gray-300">
                                 <thead>
