@@ -96,10 +96,10 @@ export default function RendimientoAnalistas() {
   // Animación y visual de Riesgos + Filtros
   const empleadosFiltrados = useMemo(() => {
     return empleados.filter(emp => {
-      const nombreLower = emp.nombre.toLowerCase();
+      const apellidoLower = emp.apellido.toLowerCase();
       const searchLower = searchTerm.toLowerCase();
 
-      if (!nombreLower.includes(searchLower)) return false;
+      if (!apellidoLower.includes(searchLower)) return false;
       if (filtroClasificacion && emp.clasificacion_rendimiento !== filtroClasificacion) return false;
       if (filtroRol && (emp.puesto || "Analista") !== filtroRol) return false;
       return true;
@@ -210,7 +210,7 @@ export default function RendimientoAnalistas() {
             <div className="flex flex-wrap gap-4 justify-center items-center">
               <input
                 type="text"
-                placeholder="Buscar por nombre..."
+                placeholder="Buscar por apellido..."
                 className="border border-gray-300 rounded-md p-2 w-64"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
