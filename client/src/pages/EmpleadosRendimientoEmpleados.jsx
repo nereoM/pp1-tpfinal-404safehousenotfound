@@ -256,6 +256,7 @@ export default function EmpleadosRendimiento() {
                                 <thead>
                                     <tr className="bg-blue-200 text-black border border-gray-300">
                                         <th className="p-2 border border-gray-300">Nombre</th>
+                                        <th className="p-2 border border-gray-300">Apellido</th>
                                         <th className="p-2 border border-gray-300">Rol</th>
                                         <th className="p-2 border border-gray-300">Previo</th>
                                         <th className="p-2 border border-gray-300">Extras</th>
@@ -270,6 +271,7 @@ export default function EmpleadosRendimiento() {
                                     {empleadosFiltrados.length > 0 ? empleadosFiltrados.map((emp, index) => (
                                         <tr key={emp.id_usuario} className={`hover:bg-blue-50 ${index % 2 === 0 ? 'bg-blue-50' : 'bg-blue-100'} text-black`}>
                                             <td className="p-2 border border-gray-300">{emp.nombre}</td>
+                                            <td className="p-2 border border-gray-300">{emp.apellido}</td>
                                             <td className="p-2 border border-gray-300">{emp.puesto || "Analista"}</td>
                                             <td className="p-2 border border-gray-300">{emp.desempeno_previo}</td>
                                             <td className="p-2 border border-gray-300">{emp.horas_extras}</td>
@@ -281,7 +283,7 @@ export default function EmpleadosRendimiento() {
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={9} className="text-center p-4 text-gray-500">
+                                            <td colSpan={10} className="text-center p-4 text-gray-500">
                                                 No se encontraron empleados con esos criterios.
                                             </td>
                                         </tr>

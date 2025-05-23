@@ -2,6 +2,7 @@ from flask import Flask, redirect
 from models.extensions import db
 from services.config import Config
 from services.swagger_config import setup_swagger_ui
+import os
 
 from routes.auth_routes import auth_bp
 from routes.admin404 import admin_404_bp
