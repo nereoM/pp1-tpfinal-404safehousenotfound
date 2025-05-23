@@ -1098,6 +1098,7 @@ def obtener_empleados_rendimiento_futuro():
             datos_empleados.append({
                 "id_usuario": empleado.id,
                 "nombre": empleado.nombre,
+                "apellido": empleado.apellido,
                 "desempeno_previo": rendimiento.desempeno_previo,
                 "horas_extras": rendimiento.horas_extras,
                 "antiguedad": calcular_antiguedad(empleado.fecha_ingreso),
@@ -1165,6 +1166,7 @@ def obtener_empleados_riesgo_futuro():
             datos_empleados.append({
                 "id_usuario": empleado.id,
                 "nombre": empleado.nombre,
+                "apellido": empleado.apellido,
                 "desempeno_previo": rendimiento.desempeno_previo,
                 "antiguedad": calcular_antiguedad(empleado.fecha_ingreso),
                 "horas_capacitacion": rendimiento.horas_capacitacion,

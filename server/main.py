@@ -28,6 +28,7 @@ from flasgger import Swagger
 import webbrowser
 import threading
 import time
+import sys
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -38,6 +39,8 @@ jwt.init_app(app)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
 db.init_app(app)
 webbrowser.open("http://localhost:5000")
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(BASE_DIR)
 
 app.register_blueprint(auth_bp,       url_prefix="/auth")
 app.register_blueprint(candidato_bp,  url_prefix="/api")
