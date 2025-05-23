@@ -290,7 +290,10 @@ export default function Login() {
       </button>
 
       {/* fondo */}
-      <div className="absolute inset-0 bg-[url('/city.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
+      <div className="absolute inset-0 z-0">
+        <div className="w-full h-full bg-[url('/city_optimized.webp')] bg-cover bg-center" />
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+      </div>
 
       {/* sobre nosotros */}
       <button onClick={() => setShowInfo(true)} className="absolute bottom-2 right-4 text-xs text-gray-500 hover:text-white z-20">
