@@ -247,6 +247,7 @@ export default function EmpleadosRiesgo() {
                                         <tr>
                                             {[
                                                 "Nombre",
+                                                "Apellido",
                                                 "Rol",
                                                 "Antigüedad",
                                                 "Capacitación",
@@ -269,6 +270,7 @@ export default function EmpleadosRiesgo() {
                                         {empleadosFiltrados.length > 0 ? empleadosFiltrados.map((emp, idx) => (
                                             <tr key={emp.id_usuario} className={`text-gray-800 text-sm ${idx % 2 === 0 ? 'bg-blue-50' : 'bg-white'}`}>
                                                 <td className="p-2 border">{emp.nombre}</td>
+                                                <td className="p-2 border">{emp.apellido}</td>
                                                 <td className="p-2 border">{emp.puesto || "Empleado"}</td>
                                                 <td className="p-2 border">{emp.antiguedad}</td>
                                                 <td className="p-2 border">{emp.horas_capacitacion}</td>
@@ -285,7 +287,7 @@ export default function EmpleadosRiesgo() {
                                             </tr>
                                         )) : (
                                             <tr>
-                                                <td colSpan={14} className="text-center p-4 text-gray-500">
+                                                <td colSpan={15} className="text-center p-4 text-gray-500">
                                                     No se encontraron empleados con esos criterios.
                                                 </td>
                                             </tr>
