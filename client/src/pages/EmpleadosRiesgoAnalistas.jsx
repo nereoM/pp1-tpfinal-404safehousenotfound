@@ -82,6 +82,21 @@ export default function RiesgosAnalistasConTabla() {
         ];
     };
 
+    const colorRendimiento = {
+        "Alto Rendimiento": "bg-green-200 text-green-900 font-bold",
+        "Alto": "bg-green-200 text-green-900 font-bold",
+        "Medio Rendimiento": "bg-yellow-100 text-yellow-900 font-bold",
+        "Medio": "bg-yellow-100 text-yellow-900 font-bold",
+        "Bajo Rendimiento": "bg-red-200 text-red-900 font-bold",
+        "Bajo": "bg-red-200 text-red-900 font-bold",
+    };
+
+    const colorRiesgo = {
+        "alto": "bg-red-200 text-red-900 font-bold",
+        "medio": "bg-yellow-100 text-yellow-900 font-bold",
+        "bajo": "bg-green-200 text-green-900 font-bold",
+    };
+
     const secciones = [
         { titulo: "Distribución de Rendimiento Predicho", resumen: resumen.rendimiento, descripcion: "Muestra cuántos empleados tienen alto, medio o bajo rendimiento." },
         { titulo: "Riesgo de Rotación", resumen: resumen.rotacion, descripcion: "Indica el riesgo de que los empleados roten de puesto o área." },
@@ -280,10 +295,10 @@ export default function RiesgosAnalistasConTabla() {
                                             <td className="p-2 border">{emp.desempeno_previo !== undefined && emp.desempeno_previo !== null ? emp.desempeno_previo : "-"}</td>
                                             <td className="p-2 border">{emp.rendimiento_futuro_predicho !== undefined && emp.rendimiento_futuro_predicho !== null ? emp.rendimiento_futuro_predicho.toFixed(2) : "-"}</td>
                                             <td className="p-2 border">{emp.fecha_calculo_rendimiento ? new Date(emp.fecha_calculo_rendimiento).toLocaleDateString() : "-"}</td>
-                                            <td className="p-2 border font-semibold">{emp.clasificacion_rendimiento}</td>
-                                            <td className="p-2 border">{emp.riesgo_rotacion_predicho}</td>
-                                            <td className="p-2 border">{emp.riesgo_despido_predicho}</td>
-                                            <td className="p-2 border">{emp.riesgo_renuncia_predicho}</td>
+                                            <td className={`p-2 border font-semibold ${colorRendimiento[emp.clasificacion_rendimiento] || ""}`}>{emp.clasificacion_rendimiento}</td>
+                                            <td className={`p-2 border ${colorRiesgo[emp.riesgo_rotacion_predicho] || ""}`}>{emp.riesgo_rotacion_predicho}</td>
+                                            <td className={`p-2 border ${colorRiesgo[emp.riesgo_despido_predicho] || ""}`}>{emp.riesgo_despido_predicho}</td>
+                                            <td className={`p-2 border ${colorRiesgo[emp.riesgo_renuncia_predicho] || ""}`}>{emp.riesgo_renuncia_predicho}</td>
                                         </tr>
                                     )) : (
                                         <tr>
