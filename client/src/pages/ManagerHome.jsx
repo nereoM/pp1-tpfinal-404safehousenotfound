@@ -427,6 +427,12 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
       descripcion: "Accede a las licencias del personal y sus estados.",
       onClick: openModalLicencias
     },
+        {
+      icon: BarChart2,
+      titulo: "Editar Métricas de Analistas",
+      descripcion: "Visualizá y editá las métricas de tus analistas en una tabla interactiva.",
+      onClick: () => setModalRendimientoAnalistas(true),
+    },
     {
       icon: BarChart2,
       titulo: "Visualizar Indicadores de Desempeño y predicciones",
@@ -438,18 +444,6 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
       titulo: "Detección Temprana de Rotación y Riesgos Laborales",
       descripcion: "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
       onClick: () => navigate("/manager/analistas-riesgo"),
-    },
-    {
-      icon: FileText,
-      titulo: "Ver Reportes",
-      descripcion: "Revisa los informes y reportes detallados del sistema.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
-    },
-    {
-      icon: BarChart2,
-      titulo: "Editar Métricas de Analistas",
-      descripcion: "Visualizá y editá las métricas de tus analistas en una tabla interactiva.",
-      onClick: () => setModalRendimientoAnalistas(true),
     },
   ];
 
