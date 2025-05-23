@@ -767,6 +767,7 @@ export default function ReclutadorHome() {
         <ModalPostulantes
           isOpen={modalPostulantesOpen}
           onClose={() => setModalPostulantesOpen(false)}
+          setMostrarFiltros={setMostrarFiltros}
           filtros={filtros}
           setFiltros={setFiltros}
           toggleFiltros={toggleFiltros}

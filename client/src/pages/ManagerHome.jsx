@@ -583,11 +583,7 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
           {modalAnalistaOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
-                {mensajeAnalista && (
-                  <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
-                    {mensajeAnalista}
-                  </div>
-                )}
+                <MensajeAlerta texto={mensajeAnalista} />
                 <h2 className="text-lg font-semibold text-black">
                   Nuevo Analista
                 </h2>
