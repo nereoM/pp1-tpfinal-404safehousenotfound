@@ -6,6 +6,9 @@ export default function RendimientoAnalistas() {
   const [empleados, setEmpleados] = useState([]);
   const [resumen, setResumen] = useState({ alto: 0, medio: 0, bajo: 0 });
   const [loading, setLoading] = useState(true);
+  const [mensaje, setMensaje] = useState(null);
+  const [tipoMensaje, setTipoMensaje] = useState("success");
+  const [notificandoId, setNotificandoId] = useState(null);
 
   // Filtros y búsqueda
   const [searchTerm, setSearchTerm] = useState("");
@@ -92,6 +95,33 @@ export default function RendimientoAnalistas() {
       color: rendimientoColors['Bajo Rendimiento']
     }
   ];
+
+  const notificarBajoRendimiento = async (id_analista) => {
+    setNotificandoId(id_analista); // Bloquea el botón
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/notificar-bajo-rendimiento-analista/${id_analista}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setTipoMensaje("success");
+        setMensaje("Notificación enviada correctamente.");
+      } else {
+        setTipoMensaje("error");
+        setMensaje(data.error || "❌ Error al enviar la notificación.");
+      }
+    } catch (error) {
+      setTipoMensaje("error");
+      setMensaje("❌ Error al enviar la notificación.");
+    }
+    setNotificandoId(null); // Desbloquea el botón
+    setTimeout(() => setMensaje(null), 2000); // Oculta el mensaje después de 5 segundos
+  };
 
   const colorRendimiento = {
     "Alto Rendimiento": "bg-green-200 text-green-900 font-bold",
@@ -260,6 +290,16 @@ export default function RendimientoAnalistas() {
             transition={{ duration: 0.5 }}
           >
             <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">📋 Detalle de Empleados</h3>
+            {mensaje && (
+              <div
+                className={`mx-auto my-4 w-fit px-6 py-3 rounded-lg shadow-md text-center text-lg font-semibold transition-all ${tipoMensaje === "success"
+                  ? "bg-green-100 text-green-800 border border-green-300"
+                  : "bg-red-100 text-red-800 border border-red-300"
+                  }`}
+              >
+                {mensaje}
+              </div>
+            )}
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse border border-gray-300">
                 <thead>
@@ -287,7 +327,20 @@ export default function RendimientoAnalistas() {
                       <td className="p-2 border border-gray-300">{emp.antiguedad}</td>
                       <td className="p-2 border border-gray-300">{emp.horas_capacitacion}</td>
                       <td className="p-2 border border-gray-300">{emp.rendimiento_futuro_predicho !== undefined && emp.rendimiento_futuro_predicho !== null ? emp.rendimiento_futuro_predicho.toFixed(2) : '-'}</td>
-                      <td className={`p-2 border font-semibold ${colorRendimiento[emp.clasificacion_rendimiento] || ""}`}>{emp.clasificacion_rendimiento}</td>
+                      <td className={`p-2 border font-semibold ${colorRendimiento[emp.clasificacion_rendimiento] || ""}`}>
+                        {emp.clasificacion_rendimiento === "Bajo Rendimiento" ? (
+                          <button
+                            className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition disabled:opacity-60 text-sm"
+                            onClick={() => notificarBajoRendimiento(emp.id_usuario)}
+                            title="Notificar bajo rendimiento"
+                            disabled={notificandoId === emp.id_usuario}
+                          >
+                            {notificandoId === emp.id_usuario ? "Enviando notificación..." : "Notificar Bajo Rendimiento"}
+                          </button>
+                        ) : (
+                          emp.clasificacion_rendimiento
+                        )}
+                      </td>
                       <td className="p-2 border border-gray-300">{emp.fecha_calculo_rendimiento ? new Date(emp.fecha_calculo_rendimiento).toLocaleDateString() : '-'}</td>
                     </tr>
                   )) : (
