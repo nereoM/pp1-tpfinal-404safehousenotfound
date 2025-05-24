@@ -306,12 +306,6 @@ export default function AdminEmpHome() {
       descripcion: "Carga un archivo CSV con métricas de desempeño y rotación.",
       onClick: () => setModalSubirMetricas(true),
     },
-    {
-      icon: FileLock,
-      titulo: "Visualizar Indicadores de Desempeño y predicciones",
-      descripcion: "Visualizá y administrá los empleados de tu empresa.",
-      onClick: () => navigate('/admin-emp/empleados-rendimiento'),
-    },
   ];
 
   return (
