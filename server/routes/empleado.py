@@ -814,6 +814,12 @@ def postularme(id_oferta):
     db.session.commit()
     
     crear_notificacion(id_empleado, f"Postulación realizada en la oferta: {oferta.nombre}")
+    
+    empresa_nombre = Empresa.query.get(oferta.id_empresa).nombre
+    
+    mensaje = f"Hola {empleado.nombre}, has realizado una postulación a la oferta: {oferta.nombre}, de la empresa {empresa_nombre}.\n"
+    
+    enviar_notificacion_empleado_mail(empleado.correo, mensaje)
 
     return jsonify({"message": "Postulación realizada correctamente."}), 201
 
@@ -967,3 +973,14 @@ def obtener_contador_notificaciones_no_leidas():
     except Exception as e:
         print(f"Error al obtener contador de notificaciones no leídas: {e}")
         return jsonify({"error": "Error interno al recuperar el contador"}), 500
+    
+    
+def enviar_notificacion_empleado_mail(email_destino, cuerpo):
+    try:
+        asunto = "Postulación realizada"
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
