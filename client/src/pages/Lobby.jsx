@@ -10,7 +10,7 @@ export default function Lobby() {
       <Header />
 
       {/* zona central */}
-      <main className="flex flex-col md:flex-row items-center justify-between px-8 py-16 max-w-7xl mx-auto">
+      <main className="pt-28 flex flex-col md:flex-row items-center justify-between px-12 pb-20 max-w-7xl mx-auto">
         <div className="max-w-xl mb-10 md:mb-0">
           <h1 className="text-4xl font-bold mb-4 text-indigo-700">
             Transformamos el talento en oportunidades reales
