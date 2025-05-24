@@ -151,7 +151,7 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
 
               <label
                 htmlFor="cv-upload"
-                className="flex items-center gap-2 text-sm text-blue-600 cursor-pointer hover:underline"
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 cursor-pointer w-full"
               >
                 <FileText size={16} /> Subir nuevo CV
               </label>
@@ -168,28 +168,28 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
 
               <button
                 onClick={onEditPerfil}
-                className="flex items-center gap-2 text-sm text-blue-600 hover:underline w-full"
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
               >
                 <Edit size={16} /> Editar perfil
               </button>
 
             <button
               onClick={onPostulacion}
-              className="flex items-center gap-2 text-sm text-blue-600 hover:underline w-full"
+              className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
             >
               <ClipboardList size={16} /> Ver postulaciones
             </button>
 
             <button
               onClick={() => window.location.href = "/pagos"}
-              className="flex items-center gap-2 text-sm text-blue-600 hover:underline w-full"
+              className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
             >
               <CreditCard size={16} /> Suscribirse (empresa)
             </button>
 
               <button
                 onClick={onLogout}
-                className="flex items-center gap-2 text-sm text-red-600 hover:underline w-full"
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 w-full"
               >
                 <LogOut size={16} /> Cerrar sesión
               </button>
@@ -201,7 +201,7 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
         {modalVisible && (
           <div
             ref={notificacionesRef}
-            className="absolute right-0 top-16 w-80 bg-white border shadow-lg rounded-lg z-50"
+            className="absolute right-0 top-16 w-80 bg-white border shadow-lg rounded-lg z-50 max-h-[500px] overflow-y-auto"
           >
             {notificaciones.length > 0 ? (
               <ul>

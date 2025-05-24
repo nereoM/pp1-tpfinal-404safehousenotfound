@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { useLicenciasACargo } from "../services/useLicenciasACargo";
+import MensajeAlerta from "./MensajeAlerta";
 
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
@@ -38,17 +39,7 @@ export function LicenciasEmpleadosReclutadoresModal({ onClose }) {
     }));
   };
 
-  if (error) {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-        <div className="bg-white p-6 rounded-2xl w-4/5 max-h-[80vh] overflow-auto text-black">
-          <div className="mb-4 text-center text-red-600 font-semibold">
-            {error}
-          </div>
-        </div>
-      </div>
-    );
-  }
+
 
   if (loading) {
     return (
@@ -195,6 +186,7 @@ export function LicenciasEmpleadosReclutadoresModal({ onClose }) {
               <h2 className="text-lg font-semibold">
                 Indique el motivo del rechazo
               </h2>
+
               <textarea
                 className="w-full p-2 border border-gray-300 rounded resize-none"
                 rows="4"
@@ -202,10 +194,13 @@ export function LicenciasEmpleadosReclutadoresModal({ onClose }) {
                 value={motivoRechazo}
                 onChange={(e) => {
                   setMotivoRechazo(e.target.value);
-                  setError("");
+                  setError(""); // Limpia al escribir
                 }}
-              ></textarea>
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+              />
+
+              {/* ✅ ALERTA DE ERROR DENTRO DEL MODAL */}
+              <MensajeAlerta texto={error} tipo="error" />
+
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setModalRechazoOpen(false)}
@@ -216,15 +211,10 @@ export function LicenciasEmpleadosReclutadoresModal({ onClose }) {
                 <button
                   onClick={() => {
                     if (motivoRechazo.trim()) {
-                      evaluarLicencia(
-                        licenciaSeleccionada.id_licencia,
-                        "rechazada"
-                      );
+                      evaluarLicencia(licenciaSeleccionada.id_licencia, "rechazada");
                       setModalRechazoOpen(false);
                     } else {
-                      setError(
-                        "Debe indicar un motivo para rechazar la licencia."
-                      );
+                      setError("Debe indicar un motivo para rechazar la licencia.");
                     }
                   }}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
