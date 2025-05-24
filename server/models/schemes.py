@@ -174,6 +174,9 @@ class Licencia(db.Model):
     id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), nullable=False)
     motivo_rechazo = db.Column(db.Text, nullable=True)
     dias_requeridos = db.Column(db.Integer, nullable=True)
+    fecha_inicio_sugerencia = db.Column(db.DateTime, nullable=True)
+    fecha_fin_sugerencia = db.Column(db.DateTime, nullable=True)
+    estado_sugerencia = db.Column(db.String(50), nullable=False)
 
 class Preferencias_empresa(db.Model):
     __tablename__ = "preferencias_empresa"

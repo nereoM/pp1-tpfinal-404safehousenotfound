@@ -1258,7 +1258,8 @@ def visualizar_licencias():
     for licencia in licencias:
         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
         if (
-            empleado.id_empresa == manager.id_empresa
+            empleado.id_superior == manager.id
+            and empleado.id_empresa == manager.id_empresa
         ):
             resultado.append(
                 {

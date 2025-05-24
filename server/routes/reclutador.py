@@ -1015,7 +1015,6 @@ def visualizar_licencias_empleados():
         .join(Rol, UsuarioRol.id_rol == Rol.id)
         .filter(
             Usuario.id_empresa == empresa.id,
-            Usuario.id_superior == reclutador.id,
             Rol.slug == "empleado"
         )
         .all()
@@ -1072,9 +1071,17 @@ def obtener_detalle_licencia(id_licencia):
     empleado = Usuario.query.get(licencia.id_empleado)
     if not empleado:
         return jsonify({"error": "Empleado no encontrado"}), 404
+    
+    # Verificar que el usuario tiene rol "empleado"
+    tiene_rol_empleado = (
+        db.session.query(Rol)
+        .join(UsuarioRol, UsuarioRol.id_rol == Rol.id)
+        .filter(UsuarioRol.id_usuario == empleado.id, Rol.slug == "empleado")
+        .first()
+    )
 
     # Solo puede ver si la licencia es de su empresa o de un empleado a su cargo
-    if licencia.id_empresa != reclutador.id_empresa and empleado.id_superior != reclutador.id:
+    if licencia.id_empresa != reclutador.id_empresa and not tiene_rol_empleado:
         return jsonify({"error": "No tienes permiso para ver esta licencia"}), 403
 
     empresa = Empresa.query.get(licencia.id_empresa)
@@ -1108,9 +1115,11 @@ def eval_licencia(id_licencia):
     data = request.get_json()
     nuevo_estado = data.get("estado")  # "aprobada" o "rechazada"
     motivo = data.get("motivo")
+    fecha_inicio_sugerida = data.get("fecha_inicio_sugerida")
+    fecha_fin_sugerida = data.get("fecha_fin_sugerida")
 
-    if nuevo_estado not in ["aprobada", "rechazada"]:
-        return jsonify({"error": "El estado debe ser 'aprobada' o 'rechazada'"}), 400
+    if nuevo_estado not in ["aprobada", "rechazada", "sugerencia"]:
+        return jsonify({"error": "El estado debe ser 'aprobada', 'rechazada' o 'sugerencia'"}), 400
 
     id_reclutador = get_jwt_identity()
     reclutador = Usuario.query.get(id_reclutador)
@@ -1121,18 +1130,59 @@ def eval_licencia(id_licencia):
     empleado = Usuario.query.get(licencia.id_empleado)
     if not empleado:
         return jsonify({"error": "Empleado no encontrado"}), 404
+    
+    # Verificar que el usuario tiene rol "empleado"
+    tiene_rol_empleado = (
+        db.session.query(Rol)
+        .join(UsuarioRol, UsuarioRol.id_rol == Rol.id)
+        .filter(UsuarioRol.id_usuario == empleado.id, Rol.slug == "empleado")
+        .first()
+    )
+
+    # Permitir aprobar si la licencia está pendiente o si la sugerencia fue aceptada
+    puede_aprobar = (
+        (licencia.estado == "pendiente" and licencia.tipo in ["vacaciones"])
+        or (licencia.estado == "pendiente" and licencia.estado_sugerencia == "sugerencia aceptada")
+    )
 
     # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
     if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
         return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
 
     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
-    if licencia.id_empresa != reclutador.id_empresa and empleado.id_superior != reclutador.id:
+    if licencia.id_empresa != reclutador.id_empresa and not tiene_rol_empleado:
         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
+    
+    if nuevo_estado == "aprobada":
+        if not puede_aprobar:
+            return jsonify({"error": "Solo puedes aprobar licencias de vacaciones pendientes o con sugerencia aceptada"}), 403
+        licencia.estado = nuevo_estado
+        # Si la sugerencia fue aceptada, actualizar fechas
+        if licencia.estado_sugerencia == "sugerencia aceptada":
+            licencia.fecha_inicio = licencia.fecha_inicio_sugerida
+            licencia.fecha_fin = licencia.fecha_fin_sugerida
+        if motivo:
+            licencia.motivo_rechazo = motivo
+    elif nuevo_estado == "sugerencia":
+        # Guardar sugerencia de fechas y estado_sugerencia
+        if not fecha_inicio_sugerida or not fecha_fin_sugerida:
+            return jsonify({"error": "Debes indicar fecha de inicio y fin sugeridas"}), 400
+        try:
+            fecha_inicio_dt = datetime.strptime(fecha_inicio_sugerida, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            fecha_fin_dt = datetime.strptime(fecha_fin_sugerida, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        except Exception:
+            return jsonify({"error": "Formato de fecha sugerida inválido"}), 400
 
-    licencia.estado = nuevo_estado
-    if motivo:
-        licencia.motivo_rechazo = motivo
+        licencia.estado_sugerencia = "sugerencia pendiente"
+        licencia.fecha_inicio_sugerida = fecha_inicio_dt
+        licencia.fecha_fin_sugerida = fecha_fin_dt
+        # El estado de la licencia se mantiene pendiente
+        if motivo:
+            licencia.motivo_rechazo = motivo
+    else:
+        licencia.estado = nuevo_estado
+        if motivo:
+            licencia.motivo_rechazo = motivo
 
     db.session.commit()
 
@@ -1155,6 +1205,9 @@ def eval_licencia(id_licencia):
             "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
             "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
             "estado": licencia.estado,
+            "estado_sugerencia": licencia.estado_sugerencia if licencia.estado_sugerencia else None,
+            "fecha_inicio_sugerida": licencia.fecha_inicio_sugerida.isoformat() if licencia.fecha_inicio_sugerida else None,
+            "fecha_fin_sugerida": licencia.fecha_fin_sugerida.isoformat() if licencia.fecha_fin_sugerida else None,
             "empresa": {
                 "id": licencia.id_empresa,
                 "nombre": empresa.nombre if empresa else None,
