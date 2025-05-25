@@ -14,8 +14,12 @@ export function LicenciasACargoModal({ onClose, service }) {
     evaluarLicencia,
     mensajeEvaluacion,
     setError,
-    licenciaSeleccionada, setLicenciaSeleccionada
-  } = useLicenciasACargo({service});
+    licenciaSeleccionada,
+    setLicenciaSeleccionada,
+    sugerirFechas,
+  } = useLicenciasACargo({ service });
+
+  console.log({ licencias });
 
   const [modalRechazoOpen, setModalRechazoOpen] = useState(false);
   const [modalNegociacionFecha, setModalNegociacionFecha] = useState(false);
@@ -27,8 +31,8 @@ export function LicenciasACargoModal({ onClose, service }) {
   };
 
   const handleUpdateFecha = (newDate) => {
-    if(!newDate){
-      return
+    if (!newDate) {
+      return;
     }
 
     setLicenciaSeleccionada((prevState) => ({
@@ -37,8 +41,6 @@ export function LicenciasACargoModal({ onClose, service }) {
       fecha_inicio: newDate.from,
     }));
   };
-
-
 
   if (loading) {
     return (
@@ -166,6 +168,10 @@ export function LicenciasACargoModal({ onClose, service }) {
                             Modificar fechas
                           </button>
                         </section>
+                      ) : licencia.estado === "sugerencia" ? (
+                        <span className="text-yellow-600 italic">
+                          Esperando respuesta del empleado
+                        </span>
                       ) : (
                         <span className="text-gray-500 italic">
                           Licencia ya evaluada ({licencia.estado})
@@ -210,10 +216,15 @@ export function LicenciasACargoModal({ onClose, service }) {
                 <button
                   onClick={() => {
                     if (motivoRechazo.trim()) {
-                      evaluarLicencia(licenciaSeleccionada.id_licencia, "rechazada");
+                      evaluarLicencia(
+                        licenciaSeleccionada.id_licencia,
+                        "rechazada"
+                      );
                       setModalRechazoOpen(false);
                     } else {
-                      setError("Debe indicar un motivo para rechazar la licencia.");
+                      setError(
+                        "Debe indicar un motivo para rechazar la licencia."
+                      );
                     }
                   }}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
@@ -257,13 +268,13 @@ export function LicenciasACargoModal({ onClose, service }) {
                 </button>
                 <button
                   onClick={() => {
-                    evaluarLicencia().then(() => {
-                      setModalNegociacionFecha(false)
-                    })
+                    sugerirFechas().then(() => {
+                      setModalNegociacionFecha(false);
+                    });
                   }}
                   className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
-                  Confirmar
+                  Sugerir fechas
                 </button>
               </div>
             </div>

@@ -140,5 +140,11 @@ export const adminEmpService = {
 
     const data = await fetcher({ url })
     return data
+  },
+  async obtenerLicenciasACargo() {
+    const url = `${API_URL}/api/licencias-mis-managers`;
+
+    const data = await fetcher({ url });
+    return data;
   }
 }

@@ -518,7 +518,7 @@ export default function AdminEmpHome() {
           )}
 
           {
-            modalLicenciasOpen && <LicenciasACargoModal onClose={() => setModalLicenciasOpen(false)} />
+            modalLicenciasOpen && <LicenciasACargoModal service={adminEmpService} onClose={() => setModalLicenciasOpen(false)} />
           }
 
           <ModalParaEditarPerfil

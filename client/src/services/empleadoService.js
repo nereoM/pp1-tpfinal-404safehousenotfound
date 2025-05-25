@@ -221,4 +221,15 @@ export const empleadoService = {
     const data = await fetcher({ url });
     return data;
   },
+  async responderSugerenciaLicencia({ licenciaId, aceptacion }) {
+    const url = `${API_URL}/api/licencia-${licenciaId}/respuesta-sugerencia`
+
+    const options = {
+      method: "PUT",
+      body: JSON.stringify({ aceptacion }),
+    };
+
+    const data = await fetcher({ url, options })
+    return data
+  }
 };
