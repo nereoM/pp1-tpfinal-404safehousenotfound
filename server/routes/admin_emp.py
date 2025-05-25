@@ -1586,3 +1586,54 @@ def obtener_contador_notificaciones_no_leidas():
     except Exception as e:
         print(f"Error al obtener contador de notificaciones no leídas: {e}")
         return jsonify({"error": "Error interno al recuperar el contador"}), 500
+    
+@admin_emp_bp.route("/modificar-dias-licencias", methods=["PUT"])
+@role_required(["admin-emp"])
+def modificar_dias_licencias():
+    """
+    Permite al admin-emp modificar los días por defecto de licencias de su empresa.
+    Solo puede aumentar los días respecto al mínimo legal.
+    """
+    data = request.get_json()
+    id_admin_emp = get_jwt_identity()
+    admin_emp = Usuario.query.get(id_admin_emp)
+    if not admin_emp or not admin_emp.id_empresa:
+        return jsonify({"error": "No tienes una empresa asociada"}), 403
+
+    empresa = Empresa.query.get(admin_emp.id_empresa)
+    if not empresa:
+        return jsonify({"error": "Empresa no encontrada"}), 404
+
+    # Definir los mínimos legales
+    minimos = {
+        "dias_maternidad": 90,
+        "dias_nac_hijo": 10,
+        "dias_duelo": 5,
+        "dias_matrimonio": 10,
+        "dias_mudanza": 2,
+        "dias_estudios": 10
+    }
+
+    # Validar y actualizar cada campo si corresponde
+    cambios = {}
+    for campo, minimo in minimos.items():
+        nuevo_valor = data.get(campo)
+        if nuevo_valor is not None:
+            try:
+                nuevo_valor = int(nuevo_valor)
+            except Exception:
+                return jsonify({"error": f"El valor de {campo} debe ser un número entero"}), 400
+            if nuevo_valor < minimo:
+                return jsonify({"error": f"{campo} no puede ser menor a {minimo} días (mínimo legal)"}), 400
+            setattr(empresa, campo, nuevo_valor)
+            cambios[campo] = nuevo_valor
+
+    if not cambios:
+        return jsonify({"error": "No se enviaron campos válidos para modificar"}), 400
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Días de licencias modificados correctamente",
+        "cambios": cambios
+    }), 200

@@ -91,6 +91,14 @@ class Empresa(db.Model):
     correo = db.Column(db.String(100), nullable=False, unique=True)
     id_admin_emp = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
 
+    # Días por defecto para distintos tipos de licencia
+    dias_maternidad = db.Column(db.Integer, default=90, nullable=False)
+    dias_nac_hijo = db.Column(db.Integer, default=10, nullable=False)
+    dias_duelo = db.Column(db.Integer, default=5, nullable=False)
+    dias_matrimonio = db.Column(db.Integer, default=10, nullable=False)
+    dias_mudanza = db.Column(db.Integer, default=2, nullable=False)
+    dias_estudios = db.Column(db.Integer, default=10, nullable=False)
+
     admin_emp = db.relationship(
         "Usuario", backref="empresa", foreign_keys=[id_admin_emp]
     )
