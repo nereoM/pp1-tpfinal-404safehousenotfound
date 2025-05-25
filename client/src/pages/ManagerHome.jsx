@@ -35,6 +35,7 @@ export default function ManagerHome() {
   const [selectedAnalistas, setSelectedAnalistas] = useState({});
 
 const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
+const inputMetricasRef = useRef(null);
 
 
   const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
@@ -828,13 +829,13 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
                       setArchivoEmpleados(null);
                       if (inputEmpleadosRef.current) inputEmpleadosRef.current.value = "";
                     }}
-                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                    className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={subirEmpleadosDesdeCSV}
-                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
                   >
                     Subir
                   </button>
@@ -849,27 +850,52 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
             </div>
           )}
 
+
           {modalSubirMetricas && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
               <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
                 <h2 className="text-lg font-semibold mb-4">Subir Métricas de Analistas</h2>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={e => setArchivoMetricas(e.target.files[0])}
-                  className="mb-4"
-                />
+
+                {/* Botón personalizado para seleccionar archivo */}
+                <div className="mb-4">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    ref={inputMetricasRef}
+                    onChange={e => setArchivoMetricas(e.target.files[0])}
+                    className="hidden"
+                    id="input-metricas"
+                  />
+                  <label
+                    htmlFor="input-metricas"
+                    className="cursor-pointer inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                  >
+                    Seleccionar archivo
+                  </label>
+
+                  {/* Mostrar nombre del archivo */}
+                  {archivoMetricas && (
+                    <div className="mt-2 text-sm text-gray-700">
+                      Archivo seleccionado: <b>{archivoMetricas.name}</b>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mensaje de alerta si hay */}
                 {mensajeMetricas && (
-                  <div className="mb-2 text-sm text-center text-indigo-700">{mensajeMetricas}</div>
+                  <MensajeAlerta texto={mensajeMetricas} />
                 )}
-                <div className="flex justify-end gap-2">
+
+                {/* Botones de acción */}
+                <div className="flex justify-end gap-2 mt-4">
                   <button
                     onClick={() => {
                       setModalSubirMetricas(false);
                       setMensajeMetricas("");
                       setArchivoMetricas(null);
+                      if (inputMetricasRef.current) inputMetricasRef.current.value = "";
                     }}
-                    className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                    className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
                   >
                     Cancelar
                   </button>
@@ -880,9 +906,14 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
                     Subir
                   </button>
                 </div>
+
+                {/* Instrucciones de columnas */}
                 <div className="mt-4 text-xs text-gray-500">
                   El archivo debe tener las columnas: <br />
-                  <b>id_empleado, desempeno_previo, cantidad_proyectos, tamano_equipo, horas_extras, antiguedad, horas_capacitacion, ausencias_injustificadas, llegadas_tarde, salidas_tempranas</b>
+                  <b>
+                    id_empleado, desempeno_previo, cantidad_proyectos, tamano_equipo, horas_extras,
+                    antiguedad, horas_capacitacion, ausencias_injustificadas, llegadas_tarde, salidas_tempranas
+                  </b>
                 </div>
               </div>
             </div>
