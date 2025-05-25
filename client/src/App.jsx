@@ -33,6 +33,7 @@ function App() {
         <Route path="/reclutador/home" element={<ReclutadorHome />} />
         <Route path="/empresa"element={<DomainLogin />} />
         <Route path="/loginempresa" element={<LoginEmpresa />} />
+        <Route path="/login/:nombre_empresa" element={<LoginEmpresa />} />
         <Route path="/manager/empleados-rendimiento-analistas" element={<RendimientoAnalistas />} />
         <Route path="/manager/analistas-riesgo" element={<RiesgosAnalistasConTabla />} />
 
