@@ -15,6 +15,7 @@ export default function MensajeAlerta({ texto = "", className = "", tipo }) {
       textoLower.includes("falló") ||
       textoLower.includes("requerido") ||
       textoLower.includes("seleccione") ||
+      textoLower.includes("selecciona") ||  // <- Agregado
       textoLower.includes("obligatorio") ||
       textoLower.includes("caracter") ||
       textoLower.includes("unexpected token") ||
