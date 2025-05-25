@@ -8,8 +8,8 @@ export default function Pagos() {
   const [cardCVV, setCardCVV]       = useState("");
   const [cardType, setCardType]     = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [iconFile, setIconFile]     = useState(null);      // <— nuevo
-  const [coverFile, setCoverFile]   = useState(null);      // <— nuevo
+  const [iconFile, setIconFile]     = useState(null);      
+  const [coverFile, setCoverFile]   = useState(null);      
 
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
@@ -117,143 +117,154 @@ export default function Pagos() {
     }
   };
 
-  return (
-    <div className="relative min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 text-gray-800 font-sans flex flex-col items-center justify-center px-6 py-12">
-      {/* Botón de retroceso */}
-      <button
-        onClick={() => (window.location.href = "/login")}
-        className="absolute top-4 left-4 md:top-8 md:left-8 bg-white p-2 rounded-full shadow hover:bg-gray-100 transition"
-        aria-label="Volver"
-      >
-        ←
-      </button>
+ return (
+  <div className="h-screen overflow-hidden flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 text-gray-800 font-sans">
+<button
+  onClick={() => (window.location.href = "/")}
+  className="absolute top-4 left-4 md:top-8 md:left-8"
+  aria-label="Volver"
+>
+  <img src="/icono.png" alt="Volver" className=" w-20 object-contain" />
+</button>
 
-      <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-        {/* IZQUIERDA */}
-        <div className="space-y-6">
-          <h1 className="text-4xl font-bold text-indigo-700">Suscribite a SIGRH+</h1>
-          <p className="text-gray-600 text-lg">
-            Simplificá la gestión de talento en tu empresa. Administrá postulaciones, evaluaciones y desempeños de forma ágil y profesional.
-          </p>
-          <ul className="list-disc list-inside text-gray-700 space-y-2">
-            <li>Planes flexibles</li>
-            <li>Gestión integral de RRHH</li>
-            <li>Acceso inmediato y soporte 24/7</li>
-          </ul>
-          <img
-            src="/mapamundisigrh.png"
-            alt="Portada SIGRH+"
-            className="rounded-xl shadow-lg w-full"
-          />
-        </div>
 
-        {/* DERECHA: FORMULARIO */}
-        <div className="bg-white p-8 rounded-2xl shadow-2xl space-y-6">
-          <h2 className="text-2xl font-semibold text-indigo-700 mb-4 text-center">
-            Datos de suscripción
-          </h2>
+    <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center px-6">
+      
+      {/* IZQUIERDA */}
+      <div className="space-y-6">
+        <h1 className="text-4xl font-bold text-gray-900">Suscribite a <span className="text-indigo-600">SIGRH+</span></h1>
+        <p className="text-gray-600 text-lg">
+          Simplificá la gestión de talento en tu empresa. Administrá postulaciones, evaluaciones y desempeños de forma ágil y profesional.
+        </p>
+        <ul className="list-disc list-inside text-gray-700 space-y-2">
+          <li>Planes flexibles</li>
+          <li>Gestión integral de RRHH</li>
+          <li>Acceso inmediato y soporte 24/7</li>
+        </ul>
+        <img
+          src="/Imagen_para_pagos.png"
+          alt="Portada SIGRH+"
+          className="rounded-xl shadow-lg w-full max-w-md"
+        />
+      </div>
 
-          {error   && <p className="text-red-500 text-center">{error}</p>}
-          {success && <p className="text-green-500 text-center">{success}</p>}
+        {/* FORMULARIO */}
+<form className="space-y-5" onSubmit={handleSubmit}>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <input
+      type="text"
+      placeholder="Nombre de usuario"
+      value={username}
+      onChange={(e) => setUsername(e.target.value)}
+      className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      required
+    />
+    <input
+      type="text"
+      placeholder="Empresa"
+      value={companyName}
+      onChange={(e) => setCompanyName(e.target.value)}
+      className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      required
+    />
+  </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Nombre de usuario"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="border p-3 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Nombre en la tarjeta"
-                value={cardName}
-                onChange={(e) => setCardName(e.target.value)}
-                className="border p-3 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-              />
-            </div>
+  <input
+    type="text"
+    placeholder="Número de tarjeta"
+    value={cardNumber}
+    onChange={(e) => setCardNumber(e.target.value)}
+    className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+    required
+  />
 
-            <input
-              type="text"
-                placeholder="Empresa"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-            />
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <input
+      type="text"
+      placeholder="Nombre en la tarjeta"
+      value={cardName}
+      onChange={(e) => setCardName(e.target.value)}
+      className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      required
+    />
+    <input
+      type="text"
+      placeholder="Código de seguridad (CVV)"
+      value={cardCVV}
+      onChange={(e) => setCardCVV(e.target.value)}
+      className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+      required
+    />
+  </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Número de tarjeta"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(e.target.value)}
-                className="border p-3 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Código de seguridad (CVV)"
-                value={cardCVV}
-                onChange={(e) => setCardCVV(e.target.value)}
-                className="border p-3 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-              />
-            </div>
+  <input
+    type="text"
+    placeholder="Tipo de tarjeta (Visa, Master, etc.)"
+    value={cardType}
+    onChange={(e) => setCardType(e.target.value)}
+    className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+    required
+  />
 
-            <input
-              type="text"
-                placeholder="Tipo de tarjeta (Visa, Master, etc.)"
-                value={cardType}
-                onChange={(e) => setCardType(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-            />
+  {/* Archivos */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+    <div className="w-full">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Ícono de empresa
+      </label>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setIconFile(e.target.files[0])}
+        className="w-full border p-2 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        required
+      />
+      {iconFile && (
+        <img
+          src={URL.createObjectURL(iconFile)}
+          alt="Ícono preview"
+          className="mt-2 h-16 w-16 object-contain rounded border"
+        />
+      )}
+    </div>
 
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Ícono de empresa
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setIconFile(e.target.files[0])}
-                className="w-full border p-2 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-              />
-            </div>
+    <div className="w-full">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Imagen de portada
+      </label>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setCoverFile(e.target.files[0])}
+        className="w-full border p-2 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        required
+      />
+      {coverFile && (
+        <img
+          src={URL.createObjectURL(coverFile)}
+          alt="Portada preview"
+          className="mt-2 h-20 w-full object-cover rounded border"
+        />
+      )}
+    </div>
+  </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Imagen de portada
-              </label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setCoverFile(e.target.files[0])}
-                className="w-full border p-2 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
-              />
-            </div>
+  <button
+    type="submit"
+    disabled={loading}
+    className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center space-x-2"
+  >
+    {loading ? (
+      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+    ) : (
+      "Confirmar y suscribirme"
+    )}
+  </button>
+</form>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center space-x-2"
-            >
-              {loading ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                "Confirmar y suscribirme"
-              )}
-            </button>
-          </form>
+
         </div>
       </div>
-    </div>
+
   );
 }
