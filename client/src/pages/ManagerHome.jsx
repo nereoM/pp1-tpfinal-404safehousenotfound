@@ -15,6 +15,9 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
 
+import MensajeAlerta from "../components/MensajeAlerta"; // alertas
+
+
 export default function ManagerHome() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -30,6 +33,10 @@ export default function ManagerHome() {
   const [ofertas, setOfertas] = useState([]);
   const [analistas, setAnalistas] = useState([]);
   const [selectedAnalistas, setSelectedAnalistas] = useState({});
+
+const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
+
+
   const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
   const [modalRechazoOpen, setModalRechazoOpen] = useState(false);
   const [motivoRechazo, setMotivoRechazo] = useState("");
@@ -243,12 +250,24 @@ export default function ManagerHome() {
 
 
   const handleSelectAnalista = (ofertaId, analistaId) => {
-    setSelectedAnalistas((prev) => ({ ...prev, [ofertaId]: analistaId }));
+    setSelectedAnalistas((prev) => {
+      const actualizado = { ...prev };
+      if (analistaId === "") {
+        delete actualizado[ofertaId]; //  Elimina el campo si está vacío
+      } else {
+        actualizado[ofertaId] = analistaId;
+      }
+      return actualizado;
+    });
   };
 
   const asignarAnalista = async (ofertaId) => {
     const analistaId = selectedAnalistas[ofertaId];
-    if (!analistaId) return setMensajeAsignacion("Seleccione un analista antes de asignar.");
+    if (!analistaId) {
+      setMensajeAsignacion("Seleccione un analista antes de asignar.");
+      return;
+    }
+
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/asignar-analista-oferta`,
@@ -259,13 +278,22 @@ export default function ManagerHome() {
           body: JSON.stringify({ id_oferta: ofertaId, id_analista: analistaId }),
         }
       );
+
       const data = await res.json();
-      if (res.ok) setMensajeAsignacion(data.message);
-      else throw new Error(data.error || data.message);
+
+      if (res.ok) {
+        setMensajeAsignacion(data.message);
+
+        //  marcar como asignada
+        setOfertasAsignadas(prev => new Set(prev).add(ofertaId));
+      } else {
+        throw new Error(data.error || data.message);
+      }
     } catch (err) {
       setMensajeAsignacion(err.message);
     }
   };
+
 
   const obtenerLicencias = async () => {  
     try {
@@ -409,6 +437,12 @@ export default function ManagerHome() {
       descripcion: "Accede a las licencias del personal y sus estados.",
       onClick: openModalLicencias
     },
+        {
+      icon: BarChart2,
+      titulo: "Editar Métricas de Analistas",
+      descripcion: "Visualizá y editá las métricas de tus analistas en una tabla interactiva.",
+      onClick: () => setModalRendimientoAnalistas(true),
+    },
     {
       icon: BarChart2,
       titulo: "Visualizar Indicadores de Desempeño y predicciones",
@@ -420,18 +454,6 @@ export default function ManagerHome() {
       titulo: "Detección Temprana de Rotación y Riesgos Laborales",
       descripcion: "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
       onClick: () => navigate("/manager/analistas-riesgo"),
-    },
-    {
-      icon: FileText,
-      titulo: "Ver Reportes",
-      descripcion: "Revisa los informes y reportes detallados del sistema.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
-    },
-    {
-      icon: BarChart2,
-      titulo: "Editar Métricas de Analistas",
-      descripcion: "Visualizá y editá las métricas de tus analistas en una tabla interactiva.",
-      onClick: () => setModalRendimientoAnalistas(true),
     },
   ];
 
@@ -565,11 +587,7 @@ export default function ManagerHome() {
           {modalAnalistaOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
-                {mensajeAnalista && (
-                  <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
-                    {mensajeAnalista}
-                  </div>
-                )}
+                <MensajeAlerta texto={mensajeAnalista} />
                 <h2 className="text-lg font-semibold text-black">
                   Nuevo Analista
                 </h2>
@@ -624,7 +642,7 @@ export default function ManagerHome() {
 
           {modalRendimientoAnalistas && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-2/3 lg:w-1/2 max-h-[80vh] overflow-auto text-black">
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-11/12 md:w-5/6 lg:w-3/4 max-h-[80vh] overflow-auto text-black">
                 <RendimientoAnalistasTable onSuccess={() => setModalRendimientoAnalistas(false)} />
                 <div className="mt-6 text-right">
                   <button
@@ -639,75 +657,116 @@ export default function ManagerHome() {
           )}
 
           {modalVerOfertasOpen && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              <div className="bg-white p-6 rounded-2xl w-3/4 max-h-[80vh] overflow-auto text-black">
+            <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
+              <div className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl w-3/4 max-h-[89.9vh] text-black shadow-xl flex flex-col">
+                
+                <MensajeAlerta texto={mensajeAsignacion} />
 
-                {mensajeAsignacion && (
-                  <div className="mb-4 text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
-                    {mensajeAsignacion}
+
+                <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
+
+                {ofertas.length === 0 ? (
+                  <p>No hay ofertas disponibles.</p>
+                ) : (
+                  // 🔼 LÍNEA AGREGADA: contenedor scrolleable para la tabla
+                  <div className="flex-1 overflow-auto">
+                    <table className="min-w-full table-auto border-collapse text-black">
+                      <thead className="bg-gray-100 sticky top-0 z-10">
+                        <tr>
+                          <th className="px-4 py-2 text-left">Nombre</th>
+                          <th className="px-4 py-2 text-left">Descripción</th>
+                          <th className="px-4 py-2 text-left">Asignar Analista</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ofertas.map(o => {
+                          const estaAsignada = ofertasAsignadas.has(o.id_oferta); //  Fue asignado con el botón
+                          const analistaSeleccionado = selectedAnalistas[o.id_oferta]; //  Hay algo seleccionado
+
+                          // 🎨 Lógica de color e ícono
+                          let claseColor = "";
+                          let icono = "";
+                          let tooltip = "";
+
+                          if (!o.is_active) {
+                            claseColor = "bg-red-100 text-red-800";
+                            icono = "🛑";
+                            tooltip = "Oferta cerrada";
+                          } else if (estaAsignada) {
+                            claseColor = "bg-green-100 text-green-800";
+                            icono = "✅";
+                            tooltip = "Analista asignado";
+                          } else if (analistaSeleccionado && analistaSeleccionado !== "") {
+
+                            claseColor = "bg-orange-200 text-orange-800";
+                            icono = "⏳";
+                            tooltip = "Analista seleccionado pero no asignado";
+                          } else {
+                            claseColor = "bg-yellow-100 text-yellow-800";
+                            icono = "⚠️";
+                            tooltip = "Sin analista asignado";
+                          }
+
+                          return (
+                            <tr key={o.id_oferta} className={`border-t ${claseColor}`}>
+                              <td className="px-4 py-2 flex items-center gap-2">
+                                <span title={tooltip}>{icono}</span> {o.nombre}
+                              </td>
+                              <td className="px-4 py-2">{o.descripcion}</td>
+                              <td className="px-4 py-2 flex items-center gap-2">
+                                <select
+                                  value={selectedAnalistas[o.id_oferta] || ""}
+                                  onChange={e => handleSelectAnalista(o.id_oferta, e.target.value)}
+                                  className="border px-2 py-1 rounded mr-2 text-black"
+                                  disabled={o.is_active === false || estaAsignada} // ⛔️ Bloqueado si cerrada o asignada
+                                >
+                                  <option value="">Seleccione analista</option>
+                                  {analistas.map(a => (
+                                    <option key={a.id} value={a.id}>{a.username}</option>
+                                  ))}
+                                </select>
+                                <button
+                                  onClick={() => asignarAnalista(o.id_oferta)}
+                                  className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
+                                  disabled={!o.is_active || estaAsignada} // ⛔️ Bloqueado si cerrada o ya asignada
+                                >
+                                  Asignar
+                                </button>
+                                {o.is_active !== false && (
+                                  <button
+                                    onClick={() => cerrarOferta(o.id_oferta)}
+                                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
+                                  >
+                                    Cerrar
+                                  </button>
+                                )}
+                                {o.is_active === false && (
+                                  <span className="ml-2 text-xs text-red-600 font-semibold">Oferta cerrada</span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 )}
 
 
-
-                <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
-                {ofertas.length === 0 ? (
-                  <p>No hay ofertas disponibles.</p>
-                ) : (
-                  <table className="min-w-full table-auto border-collapse text-black">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="px-4 py-2 text-left">Nombre</th>
-                        <th className="px-4 py-2 text-left">Descripción</th>
-                        <th className="px-4 py-2 text-left">Asignar Analista</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ofertas.map(o => (
-                        <tr key={o.id_oferta} className="border-t">
-                          <td className="px-4 py-2">{o.nombre}</td>
-                          <td className="px-4 py-2">{o.descripcion}</td>
-                          <td className="px-4 py-2 flex items-center gap-2">
-                            <select
-                              value={selectedAnalistas[o.id_oferta] || ""}
-                              onChange={e => handleSelectAnalista(o.id_oferta, e.target.value)}
-                              className="border px-2 py-1 rounded mr-2 text-black"
-                              disabled={o.is_active === false}
-                            >
-                              <option value="">Seleccione analista</option>
-                              {analistas.map(a => (
-                                <option key={a.id} value={a.id}>{a.username}</option>
-                              ))}
-                            </select>
-                            <button
-                              onClick={() => asignarAnalista(o.id_oferta)}
-                              className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-                              disabled={o.is_active === false}
-                            >
-                              Asignar
-                            </button>
-                            {o.is_active !== false && (
-                              <button
-                                onClick={() => cerrarOferta(o.id_oferta)}
-                                className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
-                              >
-                                Cerrar
-                              </button>
-                            )}
-                            {o.is_active === false && (
-                              <span className="ml-2 text-xs text-red-600 font-semibold">Oferta cerrada</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-                <div className="mt-6 text-right">
+                <div className="mt-4 text-right">
                   <button
                     onClick={() => {
                       setModalVerOfertasOpen(false);
                       setMensajeAsignacion("");
+                      setSelectedAnalistas(prev => {
+                        const nuevo = { ...prev };
+                        for (const ofertaId in nuevo) {
+                          if (!ofertasAsignadas.has(Number(ofertaId))) {
+                            delete nuevo[ofertaId]; // ✅ solo si estaba en naranja
+                          }
+                        }
+                        return nuevo;
+                      });
                     }}
                     className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
                   >
@@ -721,6 +780,9 @@ export default function ManagerHome() {
           {modalLicenciasOpen && <LicenciasACargoModal onClose={() => setModalLicenciasOpen(false)} />}
 
           {modalSolicitarLicencia && <SolicitarLicenciaModal  onClose={() => setModalSolicitarLicencia(false)}/>}
+
+          {modalLicenciasOpen && <LicenciasEmpleadosReclutadoresModal onClose={() => setModalLicenciasOpen(false)} />}
+            
 
           {modalSubirEmpleados && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">

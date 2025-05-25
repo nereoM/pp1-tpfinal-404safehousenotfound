@@ -1,119 +1,110 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { Bell, Edit, LogOut, FileText } from "lucide-react";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
-import isLightColor from "../components/isLightColor";
-import { Bell } from "lucide-react";
+import { ClipboardList, CreditCard } from "lucide-react";
 
-export function TopBar({ username, onLogout, onNotificaciones, children }) {
-  const blue = "#3b82f6";
+
+export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }) {
+  const API_URL = import.meta.env.VITE_API_URL;
+  const { estilos } = useEstiloEmpresa();
+  const blue = estilos?.color_principal || "#3b82f6";
   const textColor = "#ffffff";
+
+  const perfilRef = useRef(null);
+  const notificacionesRef = useRef(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [perfilVisible, setPerfilVisible] = useState(false);
   const [notificaciones, setNotificaciones] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [rolValido, setRolValido] = useState(false);
-  const modalRef = useRef(null);
 
-  useEffect(() => {
-    const fetchUserRole = async () => {
+  const imgSrc = useMemo(() => {
+    if (!user?.fotoUrl) return "https://i.pravatar.cc/150?img=12";
+    const cleanPath = user.fotoUrl.replace(/^\/+/, "");
+    return cleanPath.startsWith("http") ? cleanPath : `${API_URL}/${cleanPath}`;
+  }, [user?.fotoUrl]);
+
+    const fetchNotificaciones = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/info-candidato`, {
-          method: "GET",
-          credentials: "include",
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setRolValido(true);
-        }
-      } catch (error) {
-        console.error("Error al verificar el rol:", error);
+        const res1 = await fetch(`${API_URL}/api/notificaciones-candidato-no-leidas`, { credentials: "include" });
+        const res2 = await fetch(`${API_URL}/api/notificaciones-candidato-no-leidas-contador`, { credentials: "include" });
+        if (res1.ok) setNotificaciones((await res1.json()).notificaciones);
+        if (res2.ok) setUnreadCount((await res2.json()).total_no_leidas);
+      } catch (e) {
+        console.error("Error al traer notificaciones", e);
       }
     };
+      useEffect(() => {
+        fetchNotificaciones(); 
 
-    fetchUserRole();
+        const handler = () => fetchNotificaciones();
+        window.addEventListener("notificacionActualizada", handler);
+
+        const interval = setInterval(() => {
+          fetchNotificaciones();
+        }, 1000); 
+
+        return () => {
+          window.removeEventListener("notificacionActualizada", handler);
+          clearInterval(interval);
+        };
+      }, []);
+
+  // cierra modales al hacer clic fuera
+  useEffect(() => {
+    const clickOutside = (e) => {
+      if (perfilRef.current && !perfilRef.current.contains(e.target)) {
+        setPerfilVisible(false);
+      }
+    if (notificacionesRef.current && !notificacionesRef.current.contains(e.target)) {
+      setModalVisible(false);
+      setNotificaciones((prev) => prev.filter((n) => !n.leida));
+    }
+    };
+    document.addEventListener("mousedown", clickOutside);
+    return () => document.removeEventListener("mousedown", clickOutside);
   }, []);
 
-  useEffect(() => {
-    if (rolValido) {
-      const fetchNotificaciones = async () => {
-        try {
-          const responseContador = await fetch(`${import.meta.env.VITE_API_URL}/api/notificaciones-candidato-no-leidas-contador`, {
-            method: "GET",
-            credentials: "include",
-          });
+  const handleUploadCVFromTopBar = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
 
-          if (responseContador.ok) {
-            const dataContador = await responseContador.json();
-            setUnreadCount(dataContador.total_no_leidas);
-          }
-
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/notificaciones-candidato-no-leidas`, {
-            method: "GET",
-            credentials: "include",
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            setNotificaciones(data.notificaciones);
-          }
-        } catch (error) {
-          console.error("Error al traer notificaciones:", error);
-        }
-      };
-
-      fetchNotificaciones();
-    }
-  }, [rolValido]);
-
-  const handleNotificacionClick = async (id) => {
     try {
-      await fetch(`${import.meta.env.VITE_API_URL}/api/leer-notificacion-candidato/${id}`, {
-        method: "PUT",
+      const res = await fetch(`${API_URL}/api/upload-cv`, {
+        method: "POST",
         credentials: "include",
+        body: formData,
       });
-      setNotificaciones((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, leida: true } : n))
-      );
-      setUnreadCount((prev) => prev - 1);
+
+      const result = await res.json();
+      if (res.ok) {
+        
+        const successToastEvent = new CustomEvent("cvSubidoOk", {
+          detail: "¡CV subido exitosamente!"
+        });
+        window.dispatchEvent(successToastEvent);
+        window.location.reload();
+      }
     } catch (error) {
-      console.error("Error al marcar como leída:", error);
+      console.error("Error al subir CV:", error);
+      alert("Error de conexión al subir CV");
     }
   };
-
-  const handleClickOutside = (event) => {
-    if (modalRef.current && !modalRef.current.contains(event.target)) {
-      setModalVisible(false);
-    }
-  };
-
-  useEffect(() => {
-    if (modalVisible) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [modalVisible]);
 
   return (
-    <header
-      className="flex justify-between items-center py-4 px-6 border-b"
-      style={{ borderColor: blue, backgroundColor: "#ffffff", color: blue }}
-    >
+<header className="sticky top-0 z-[50] bg-white border-b shadow-sm px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-bold px-3 py-1 rounded" style={{ color: blue }}>
-          SIGRH+
-        </h1>
-        {children}
+        <h1 className="text-2xl font-bold" style={{ color: blue }}>SIGRH+</h1>
       </div>
 
       <div className="flex items-center gap-4 relative">
+        {/* notificaciones */}
         <button
-          onClick={() => setModalVisible(!modalVisible)}
+          onClick={() => {
+            setModalVisible((prev) => !prev);
+            if (!modalVisible) setPerfilVisible(false);
+          }}
           className="relative p-2 rounded-full"
           style={{ backgroundColor: blue, color: textColor }}
-          disabled={!rolValido}
         >
           <Bell size={20} />
           {unreadCount > 0 && (
@@ -123,39 +114,130 @@ export function TopBar({ username, onLogout, onNotificaciones, children }) {
           )}
         </button>
 
-        <span className="font-medium" style={{ color: blue }}>
-          Bienvenido, {username}
-        </span>
-        <button
-          onClick={onLogout}
-          className="px-3 py-1 rounded"
-          style={{ backgroundColor: blue, color: textColor }}
-        >
-          Cerrar sesión
-        </button>
+        {/* icono de usuario */}
+        <img
+          src={imgSrc}
+          alt="foto perfil"
+          className="w-10 h-10 rounded-full border-2 border-blue-600 cursor-pointer"
+          onClick={() => {
+            setPerfilVisible((prev) => !prev);
+            if (!perfilVisible) setModalVisible(false);
+          }}
+        />
 
+        {/* dropdown de perfil */}
+        {perfilVisible && (
+          <div
+            ref={perfilRef}
+            className="absolute right-0 top-16 w-72 bg-white border shadow-lg rounded-lg z-50 p-4"
+          >
+            <div className="text-center">
+              <img src={imgSrc} className="w-16 h-16 rounded-full mx-auto border border-blue-500" />
+              <p className="font-semibold mt-2">{user?.nombre} {user?.apellido}</p>
+              <p className="text-sm text-gray-500">{user?.correo}</p>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {user?.cvUrl && (
+                <a
+                  href={`${API_URL}/${user.cvUrl.replace(/^\//, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-blue-600 hover:underline"
+                >
+                  <FileText size={16} /> Ver CV subido
+                </a>
+              )}
+
+              <label
+                htmlFor="cv-upload"
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 cursor-pointer w-full"
+              >
+                <FileText size={16} /> Subir nuevo CV
+              </label>
+              <input
+                id="cv-upload"
+                type="file"
+                accept=".pdf,.doc,.docx"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) handleUploadCVFromTopBar(file);
+                }}
+              />
+
+              <button
+                onClick={onEditPerfil}
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
+              >
+                <Edit size={16} /> Editar perfil
+              </button>
+
+            <button
+              onClick={onPostulacion}
+              className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
+            >
+              <ClipboardList size={16} /> Ver postulaciones
+            </button>
+
+            <button
+              onClick={() => window.location.href = "/pagos"}
+              className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
+            >
+              <CreditCard size={16} /> Suscribirse (empresa)
+            </button>
+
+              <button
+                onClick={onLogout}
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 w-full"
+              >
+                <LogOut size={16} /> Cerrar sesión
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* modal de notificaciones */}
         {modalVisible && (
-<div
-  ref={modalRef}
-  className="absolute right-0 mt-2 w-80 bg-white border shadow-lg rounded-lg z-50"
-  style={{ transform: "translateX(-60%)", top: "48px" }}
->
-  {notificaciones.length > 0 ? (
-    <ul>
-      {notificaciones.map((notificacion) => (
-        <li
-          key={notificacion.id}
-          className={`p-2 cursor-pointer ${notificacion.leida ? "bg-gray-200" : "bg-white"}`}
-          onClick={() => handleNotificacionClick(notificacion.id)}
-        >
-          {notificacion.mensaje}
-        </li>
-      ))}
-    </ul>
-  ) : (
-    <div className="p-4 text-center text-gray-500">No tienes notificaciones</div>
-  )}
-</div>
+          <div
+            ref={notificacionesRef}
+            className="absolute right-0 top-16 w-80 bg-white border shadow-lg rounded-lg z-50 max-h-[500px] overflow-y-auto"
+          >
+            {notificaciones.length > 0 ? (
+              <ul>
+                {notificaciones.map((n) => (
+                  <li
+                    key={n.id}
+                    className={`p-2 text-sm cursor-pointer ${n.leida ? "text-gray-400" : "hover:bg-gray-100"}`}
+                    onClick={async () => {
+                      if (n.leida) return;
+
+                      try {
+                        await fetch(`${API_URL}/api/leer-notificacion-candidato/${n.id}`, {
+                          method: "PUT",
+                          credentials: "include"
+                        });
+
+                        setNotificaciones((prev) =>
+                          prev.map((notif) =>
+                            notif.id === n.id ? { ...notif, leida: true } : notif
+                          )
+                        );
+
+                        setUnreadCount((prev) => Math.max(prev - 1, 0));
+                      } catch (error) {
+                        console.error("Error al marcar notificación como leída:", error);
+                      }
+                    }}
+                  >
+                    {n.mensaje}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="p-4 text-center text-gray-500 text-sm">No tienes notificaciones</div>
+            )}
+          </div>
         )}
       </div>
     </header>

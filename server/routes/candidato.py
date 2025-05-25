@@ -8,6 +8,8 @@ from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
 from ml.matching_semantico import dividir_cv_en_partes
 from ml.modelo import modelo_sbert
 from models.extensions import db
+from flask_mail import Message
+from models.extensions import mail
 from models.schemes import (
     CV,
     Empresa,
@@ -76,6 +78,10 @@ def postularme(id_oferta):
         return jsonify({"error": "Falta id de oferta o CV seleccionado"}), 400
 
     id_candidato = get_jwt_identity()
+    
+    candidato = Usuario.query.get(id_candidato)
+    if not candidato:
+        return jsonify({"error": "Candidato no encontrado"}), 404
 
     cv = CV.query.filter_by(id=id_cv, id_candidato=id_candidato).first()
     if not cv:
@@ -94,13 +100,19 @@ def postularme(id_oferta):
         is_apto=aptitud_cv,
         fecha_postulacion=datetime.now(timezone.utc),
         estado_postulacion="pendiente",
-        porcentaje_similitud=porcentaje,
+        porcentaje_similitud=porcentaje*100,
     )
 
     db.session.add(nueva_postulacion)
     db.session.commit()
     
     crear_notificacion(id_candidato, f"Postulación realizada en la oferta: {oferta.nombre}")
+    
+    empresa_nombre = Empresa.query.get(oferta.id_empresa).nombre
+    
+    mensaje = f"Hola {candidato.nombre}, has realizado una postulación a la oferta: {oferta.nombre}, de la empresa {empresa_nombre}.\n"
+    
+    enviar_notificacion_candidato_mail(candidato.correo, mensaje)
 
     return jsonify({"message": "Postulación realizada correctamente."}), 201
 
@@ -643,3 +655,14 @@ def obtener_contador_notificaciones_no_leidas():
     except Exception as e:
         print(f"Error al obtener contador de notificaciones no leídas: {e}")
         return jsonify({"error": "Error interno al recuperar el contador"}), 500
+    
+    
+def enviar_notificacion_candidato_mail(email_destino, cuerpo):
+    try:
+        asunto = "Postulación realizada"
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")

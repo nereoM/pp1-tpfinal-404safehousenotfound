@@ -2,6 +2,7 @@ import { GoogleLogin } from '@react-oauth/google';
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Home } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -285,12 +286,25 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
       {/* Botón Volver */}
-      <button onClick={() => navigate("/")} className="absolute top-4 left-4 z-30 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white">
-        <ArrowLeft className="w-5 h-5" />
-      </button>
+        <button
+          onClick={() => navigate("/")}
+          className="absolute top-0 left-6 z-30 rounded-lg transition"
+          aria-label="Volver al menú principal"
+        >
+          <img
+            src="/icono.png"
+            alt="SIGRH+"
+            className="w-24 h-auto cursor-pointer hover:opacity-90"
+          />
+        </button>
 
       {/* fondo */}
-      <div className="absolute inset-0 bg-[url('/city.jpg')] bg-cover bg-center blur-sm brightness-40 z-0"></div>
+    <div className="absolute inset-0 z-0">
+      <div className="w-full h-full bg-[url('/city_blurred_4k_sunrise.webp')] bg-cover bg-center" />
+      <div className="absolute inset-0 bg-black/30" />
+    </div>
+
+
 
       {/* sobre nosotros */}
       <button onClick={() => setShowInfo(true)} className="absolute bottom-2 right-4 text-xs text-gray-500 hover:text-white z-20">
@@ -319,7 +333,7 @@ export default function Login() {
         </div>
 
         {/* Formulario Login/Registro */}
-        <div className="relative w-full max-w-md h-screen max-h-[80vh] z-10">
+        <div className="relative w-full max-w-md h-screen max-h-[100vh] z-10">
           <div className={`w-full h-full relative transition-transform duration-700 ${flipped ? "rotate-y-180" : ""}`} style={{ transformStyle: "preserve-3d" }}>
             {/* Formulario Login */}
             <div className="absolute w-full h-full backface-hidden z-20">
@@ -397,7 +411,7 @@ export default function Login() {
 
                 <div className="text-sm text-center text-gray-300">
                   ¿No tenés usuario?{' '}
-                  <button id="toggle-to-register" type="button" onClick={() => { resetLoginFields(); setFlipped(true) }} className="text-indigo-500 hover:underline">
+                  <button id="toggle-to-register" type="button" onClick={() => { resetLoginFields(); setFlipped(true) }} className="text-white/90 hover:underline hover:underline-offset-2 transition duration-200 cursor-pointer">
                     Registrate acá
                   </button>
                 </div>
@@ -488,7 +502,7 @@ export default function Login() {
 
               <div className="text-sm text-center text-gray-300">
                 ¿Ya tienes cuenta?{' '}
-                <button type="button" id="toggle-to-login" onClick={() => { resetRegisterFields(); setFlipped(false); }} className="text-indigo-500 hover:underline">
+                <button type="button" id="toggle-to-login" onClick={() => { resetRegisterFields(); setFlipped(false); }}  className="text-white/90 hover:underline hover:underline-offset-2 transition duration-200 cursor-pointer">
                   Inicia sesión acá
                 </button>
               </div>

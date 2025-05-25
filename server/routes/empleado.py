@@ -807,13 +807,19 @@ def postularme(id_oferta):
         is_apto=aptitud_cv,
         fecha_postulacion=datetime.now(timezone.utc),
         estado_postulacion="pendiente",
-        porcentaje_similitud=porcentaje,
+        porcentaje_similitud=porcentaje*100,
     )
 
     db.session.add(nueva_postulacion)
     db.session.commit()
     
     crear_notificacion(id_empleado, f"Postulación realizada en la oferta: {oferta.nombre}")
+    
+    empresa_nombre = Empresa.query.get(oferta.id_empresa).nombre
+    
+    mensaje = f"Hola {empleado.nombre}, has realizado una postulación a la oferta: {oferta.nombre}, de la empresa {empresa_nombre}.\n"
+    
+    enviar_notificacion_empleado_mail(empleado.correo, mensaje)
 
     return jsonify({"message": "Postulación realizada correctamente."}), 201
 
@@ -967,3 +973,45 @@ def obtener_contador_notificaciones_no_leidas():
     except Exception as e:
         print(f"Error al obtener contador de notificaciones no leídas: {e}")
         return jsonify({"error": "Error interno al recuperar el contador"}), 500
+    
+    
+def enviar_notificacion_empleado_mail(email_destino, cuerpo):
+    try:
+        asunto = "Postulación realizada"
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
+
+@empleado_bp.route("/licencia-<int:id_licencia>/respuesta-sugerencia", methods=["PUT"])
+@role_required(["empleado"])
+def responder_sugerencia_licencia(id_licencia):
+    """
+    Permite al empleado aceptar o rechazar una sugerencia de fechas de licencia.
+    Espera un JSON con {"aceptacion": True/False}
+    """
+    data = request.get_json()
+    aceptacion = data.get("aceptacion")
+
+    if aceptacion is None:
+        return jsonify({"error": "Debe indicar si acepta o rechaza la sugerencia"}), 400
+
+    id_empleado = get_jwt_identity()
+    licencia = Licencia.query.filter_by(id=id_licencia, id_empleado=id_empleado).first()
+
+    if not licencia:
+        return jsonify({"error": "Licencia no encontrada"}), 404
+
+    if aceptacion:
+        licencia.estado_sugerencia = "sugerencia aceptada"
+    else:
+        licencia.estado_sugerencia = "sugerencia rechazada"
+
+    db.session.commit()
+
+    return jsonify({
+        "message": f"Sugerencia {'aceptada' if aceptacion else 'rechazada'} correctamente",
+        "estado_sugerencia": licencia.estado_sugerencia
+    }), 200

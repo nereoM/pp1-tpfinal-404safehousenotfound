@@ -1035,6 +1035,7 @@ def obtener_datos_rendimiento():
             datos_empleados.append({
                 "id_usuario": usuario.id,
                 "nombre": usuario.nombre,
+                "apellido": usuario.apellido,
                 "horas_capacitacion": rendimiento.horas_capacitacion if rendimiento else None,
                 "horas_extra_finde": rendimiento.horas_extras if rendimiento else None,
                 "ausencias_injustificadas": rendimiento.ausencias_injustificadas if rendimiento else None,
@@ -1098,6 +1099,7 @@ def obtener_empleados_rendimiento_futuro():
             datos_empleados.append({
                 "id_usuario": empleado.id,
                 "nombre": empleado.nombre,
+                "apellido": empleado.apellido,
                 "desempeno_previo": rendimiento.desempeno_previo,
                 "horas_extras": rendimiento.horas_extras,
                 "antiguedad": calcular_antiguedad(empleado.fecha_ingreso),
@@ -1165,6 +1167,7 @@ def obtener_empleados_riesgo_futuro():
             datos_empleados.append({
                 "id_usuario": empleado.id,
                 "nombre": empleado.nombre,
+                "apellido": empleado.apellido,
                 "desempeno_previo": rendimiento.desempeno_previo,
                 "antiguedad": calcular_antiguedad(empleado.fecha_ingreso),
                 "horas_capacitacion": rendimiento.horas_capacitacion,
@@ -1255,7 +1258,8 @@ def visualizar_licencias():
     for licencia in licencias:
         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
         if (
-            empleado.id_empresa == manager.id_empresa
+            empleado.id_superior == manager.id
+            and empleado.id_empresa == manager.id_empresa
         ):
             resultado.append(
                 {
@@ -1394,6 +1398,9 @@ def eval_licencia(id_licencia):
             "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
         }
     }), 200
+
+        # ---------------#
+
 
 @manager_bp.route("/ofertas-libres-reclutadores", methods=["GET"])
 @role_required(["manager"])
@@ -1543,6 +1550,8 @@ def reasignar_oferta_libre(id_oferta):
             "username": nuevo_reclutador.username,
         }
     }), 200
+# -------------------------------
+
 
 @manager_bp.route("/notificar-bajo-rendimiento-analista/<int:id_analista>", methods=["POST"])
 @role_required(["manager"])
@@ -1738,3 +1747,76 @@ def register_employees_from_csv(file_path):
         db.session.commit()
         
         return resultado
+    
+    
+@manager_bp.route("/notificaciones-manager-no-leidas", methods=["GET"])
+@role_required(["manager"])
+def obtener_notificaciones_no_leidas():
+    try:
+        id_usuario = get_jwt_identity()
+
+        notificaciones = (
+            Notificacion.query
+            .filter_by(id_usuario=id_usuario, leida=False)
+            .order_by(Notificacion.fecha_creacion.desc())
+            .all()
+        )
+
+        if not notificaciones:
+            return jsonify({"message": "No se encontraron notificaciones no leídas"}), 404
+
+        resultado = [n.to_dict() for n in notificaciones]
+
+        return jsonify({
+            "message": "Notificaciones no leídas recuperadas correctamente",
+            "notificaciones": resultado
+        }), 200
+
+    except Exception as e:
+        print(f"Error al obtener notificaciones no leídas: {e}")
+        return jsonify({"error": "Error interno al recuperar las notificaciones"}), 500
+
+
+
+@manager_bp.route("/leer-notificacion-manager/<int:id_notificacion>", methods=["PUT"])
+@role_required(["manager"])
+def leer_notificacion(id_notificacion):
+    try:
+        id_usuario = get_jwt_identity()
+
+        notificacion = Notificacion.query.filter_by(id=id_notificacion, id_usuario=id_usuario).first()
+
+        if not notificacion:
+            return jsonify({"error": "Notificación no encontrada o no pertenece al usuario"}), 404
+
+        notificacion.leida = True
+        db.session.commit()
+
+        return jsonify({
+            "message": "Notificación marcada como leída",
+            "notificacion_id": notificacion.id,
+            "estado": "leída"
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al marcar notificación como leída: {e}")
+        return jsonify({"error": "Error interno al actualizar la notificación"}), 500
+    
+
+@manager_bp.route("/notificaciones-manager-no-leidas-contador", methods=["GET"])
+@role_required(["manager"])
+def obtener_contador_notificaciones_no_leidas():
+    try:
+        id_usuario = get_jwt_identity()
+
+        contador = Notificacion.query.filter_by(id_usuario=id_usuario, leida=False).count()
+
+        return jsonify({
+            "message": "Contador de notificaciones no leídas recuperado correctamente",
+            "total_no_leidas": contador
+        }), 200
+
+    except Exception as e:
+        print(f"Error al obtener contador de notificaciones no leídas: {e}")
+        return jsonify({"error": "Error interno al recuperar el contador"}), 500

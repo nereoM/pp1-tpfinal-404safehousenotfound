@@ -4,6 +4,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(true);
     const [mensaje, setMensaje] = useState("");
+    const [tipoMensaje, setTipoMensaje] = useState("success");
     const [saving, setSaving] = useState(false);
 
     // Cargar datos actuales
@@ -14,13 +15,12 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
         })
             .then(res => res.json())
             .then(data => {
-                console.log("Datos recibidos al cargar:", data); // <-- LOG para depuración
                 if (data.datos_empleados) setRows(data.datos_empleados);
                 else setMensaje("No se encontraron datos.");
             })
-            .catch((e) => {
+            .catch(() => {
                 setMensaje("Error al cargar datos.");
-                console.log("Error al cargar datos:", e); // <-- LOG para depuración
+                setTipoMensaje("error");
             })
             .finally(() => setLoading(false));
     }, []);
@@ -38,6 +38,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
     const handleGuardar = async () => {
         setSaving(true);
         setMensaje("");
+        setTipoMensaje("success");
         try {
             const payload = rows.map(row => ({
                 id_empleado: row.id_usuario,
@@ -48,8 +49,6 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                 salidas_tempranas: Number(row.salidas_tempranas) || 0,
             }));
 
-            console.log("Payload enviado al backend:", payload); // <-- LOG para depuración
-
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/cargar-rendimientos-empleados`, {
                 method: "POST",
                 credentials: "include",
@@ -57,108 +56,111 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                 body: JSON.stringify({ empleados: payload }),
             });
 
-
             const contentType = res.headers.get("content-type") || "";
-            console.log("Status:", res.status, "Content-Type:", contentType); // <-- LOG para depuración
 
             if (res.ok) {
                 let data = null;
                 try {
-                    // Intenta parsear JSON, si es posible
                     if (contentType.includes("application/json")) {
                         data = await res.json();
-                        console.log("Respuesta del backend (JSON):", data);
                         setMensaje(data.message || "Datos guardados correctamente.");
                     } else {
-                        const text = await res.text();
-                        console.log("Respuesta del backend (texto):", text);
+                        await res.text();
                         setMensaje("Datos guardados correctamente.");
                     }
-                } catch (e) {
-                    // Si falla el parseo, igual muestra éxito
+                } catch {
                     setMensaje("Datos guardados correctamente.");
-                    console.log("No se pudo parsear JSON, pero status 200:", e);
                 }
-                // NO LLAMES a onSuccess(); así el modal no se cierra automáticamente
+                setTipoMensaje("success");
             } else {
+                setTipoMensaje("error");
                 setMensaje("Error al guardar.");
-                const text = await res.text();
-                console.log("Respuesta inesperada del backend:", text); // <-- LOG para depuración
+                await res.text();
             }
-        } catch (e) {
+        } catch {
+            setTipoMensaje("error");
             setMensaje("Error de red.");
-            console.log("Error en handleGuardar:", e); // <-- LOG para depuración
         }
         setSaving(false);
+        setTimeout(() => setMensaje(""), 5000);
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4">Editar Métricas de Analistas</h2>
-            {mensaje && <div className="mb-2 text-indigo-700">{mensaje}</div>}
+        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-4xl mx-auto">
+            <h2 className="text-2xl font-extrabold mb-6 text-blue-900 flex items-center gap-2">
+                Editar Métricas de Analistas
+            </h2>
             {loading ? (
-                <div className="text-gray-500">Cargando datos...</div>
+                <div className="flex items-center justify-center h-40 text-gray-500 text-lg">
+                    <svg className="animate-spin h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                    Cargando datos...
+                </div>
             ) : (
                 <>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full border border-gray-300 text-sm">
-                            <thead className="bg-gray-100">
+                    <div className="overflow-x-auto rounded-lg border border-gray-200">
+                        <table className="min-w-full text-sm">
+                            <thead className="bg-blue-50">
                                 <tr>
-                                    <th className="p-2 border">Nombre</th>
-                                    <th className="p-2 border">Horas Capacitación</th>
-                                    <th className="p-2 border">Horas Extra Finde</th>
-                                    <th className="p-2 border">Ausencias Injustificadas</th>
-                                    <th className="p-2 border">Llegadas Tarde</th>
-                                    <th className="p-2 border">Salidas Tempranas</th>
+                                    <th className="p-3 border-b text-left font-semibold text-blue-900">Nombre</th>
+                                    <th className="p-3 border-b text-left font-semibold text-blue-900">Apellido</th>
+                                    <th className="p-3 border-b text-left font-semibold text-blue-900">Horas Capacitación</th>
+                                    <th className="p-3 border-b text-left font-semibold text-blue-900">Horas Extra Finde</th>
+                                    <th className="p-3 border-b text-left font-semibold text-blue-900">Ausencias Injustificadas</th>
+                                    <th className="p-3 border-b text-left font-semibold text-blue-900">Llegadas Tarde</th>
+                                    <th className="p-3 border-b text-left font-semibold text-blue-900">Salidas Tempranas</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {rows.map((row, idx) => (
-                                    <tr key={row.id_usuario} className="hover:bg-blue-50">
-                                        <td className="p-2 border">{row.nombre}</td>
-                                        <td className="p-2 border">
+                                    <tr key={row.id_usuario} className="hover:bg-blue-50 transition">
+                                        <td className="p-2 border-b">{row.nombre}</td>
+                                        <td className="p-2 border-b">{row.apellido}</td>
+                                        <td className="p-2 border-b">
                                             <input
                                                 type="number"
                                                 min={0}
                                                 value={row.horas_capacitacion}
                                                 onChange={e => handleChange(idx, "horas_capacitacion", e.target.value)}
-                                                className="w-20 border rounded px-1"
+                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
-                                        <td className="p-2 border">
+                                        <td className="p-2 border-b">
                                             <input
                                                 type="number"
                                                 min={0}
                                                 value={row.horas_extra_finde}
                                                 onChange={e => handleChange(idx, "horas_extra_finde", e.target.value)}
-                                                className="w-20 border rounded px-1"
+                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
-                                        <td className="p-2 border">
+                                        <td className="p-2 border-b">
                                             <input
                                                 type="number"
                                                 min={0}
                                                 value={row.ausencias_injustificadas}
                                                 onChange={e => handleChange(idx, "ausencias_injustificadas", e.target.value)}
-                                                className="w-20 border rounded px-1"
+                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
-                                        <td className="p-2 border">
+                                        <td className="p-2 border-b">
                                             <input
                                                 type="number"
                                                 min={0}
                                                 value={row.llegadas_tarde}
                                                 onChange={e => handleChange(idx, "llegadas_tarde", e.target.value)}
-                                                className="w-20 border rounded px-1"
+                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
-                                        <td className="p-2 border">
+                                        <td className="p-2 border-b">
                                             <input
                                                 type="number"
                                                 min={0}
                                                 value={row.salidas_tempranas}
                                                 onChange={e => handleChange(idx, "salidas_tempranas", e.target.value)}
-                                                className="w-20 border rounded px-1"
+                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
                                     </tr>
@@ -166,15 +168,39 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                             </tbody>
                         </table>
                     </div>
-                    <div className="mt-4 flex justify-end">
+                    <div className="mt-6 flex justify-end">
                         <button
                             onClick={handleGuardar}
                             disabled={saving}
-                            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                            className={`px-6 py-2 rounded font-bold shadow transition
+                                ${saving
+                                    ? "bg-indigo-300 text-white cursor-not-allowed"
+                                    : "bg-indigo-600 hover:bg-indigo-700 text-white"
+                                }`}
                         >
-                            {saving ? "Guardando..." : "Guardar Cambios"}
+                            {saving ? (
+                                <span className="flex items-center gap-2">
+                                    <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                    Guardando...
+                                </span>
+                            ) : "Guardar Cambios"}
                         </button>
                     </div>
+                    {/* Mensaje de éxito o error abajo */}
+                    {mensaje && (
+                        <div
+                            className={`fixed left-1/2 bottom-8 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg text-center text-base font-semibold transition-all z-50
+                                ${tipoMensaje === "success"
+                                    ? "bg-green-100 text-green-800 border border-green-300"
+                                    : "bg-red-100 text-red-800 border border-red-300"
+                                }`}
+                        >
+                            {mensaje}
+                        </div>
+                    )}
                 </>
             )}
         </div>

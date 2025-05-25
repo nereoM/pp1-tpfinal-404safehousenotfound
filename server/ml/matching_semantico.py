@@ -41,4 +41,4 @@ def evaluar_cv_semantico(cv_texto, palabras_clave, umbral_individual):
             return False, 0.0
 
     media_similitud = np.mean(similitudes_totales)
-    return True, media_similitud
+    return True, int(media_similitud)
