@@ -184,6 +184,8 @@ class Preferencias_empresa(db.Model):
     slogan = db.Column(db.String(100), nullable=False)
     descripcion = db.Column(db.Text, nullable=True)
     logo_url = db.Column(db.String(700), nullable=True)
+    icon_url        = db.Column(db.String(700), nullable=True)
+    image_url       = db.Column(db.String(700), nullable=True)
     color_principal = db.Column(db.String(7), nullable=False) # COLOR HEX
     color_secundario = db.Column(db.String(7), nullable=False)
     color_texto = db.Column(db.String(7), nullable=False)

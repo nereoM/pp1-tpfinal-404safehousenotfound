@@ -6,21 +6,37 @@ export default function DomainLogin() {
   const [error, setError]     = useState("");
   const navigate              = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!empresa.trim()) {
+    const nombreEmpresa = empresa.trim().toLowerCase().replace(/\s+/g, "-");
+
+    if (!nombreEmpresa) {
       setError("El nombre de empresa no puede estar vacío.");
       return;
     }
-    const slug = empresa.trim().toLowerCase().replace(/\s+/g, "-");
-    navigate(`/login/${encodeURIComponent(slug)}`);
+
+    try {
+      
+      const res = await fetch(
+        `http://localhost:5000/auth/empresa/${encodeURIComponent(nombreEmpresa)}`,
+        { method: "GET", mode: "cors" }
+      );
+      const data = await res.json();
+
+      if (res.ok) {
+        navigate(`/login/${encodeURIComponent(nombreEmpresa)}`);
+      } else {
+        setError(data.error || "Empresa no encontrada.");
+      }
+    } catch (err) {
+      setError("Error al conectar con el servidor.");
+    }
   };
 
   return (
     <div className="relative flex items-center justify-center h-screen bg-gray-50 px-4 overflow-hidden">
-
+      {/* decorativos */}
       <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 bg-indigo-100 opacity-50 w-64 h-64 rounded-full" />
-
       <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 bg-indigo-100 opacity-50 w-64 h-64 rounded-full" />
 
       <div className="relative flex bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl w-full">
@@ -68,7 +84,7 @@ export default function DomainLogin() {
           <p className="mt-6 text-center text-gray-500 text-sm">
             ¿No recuerdas tu dominio?{" "}
             <button
-              onClick={() => navigate("/soporte/dominio")} //tendria que implementarse sino se saca
+              onClick={() => navigate("/soporte/dominio")}
               className="text-indigo-600 hover:underline"
             >
               Solicítalo aquí

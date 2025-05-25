@@ -1,5 +1,9 @@
 import re
 import string
+import os
+from werkzeug.utils import secure_filename
+from flask import url_for
+
 from datetime import datetime as dt
 
 
@@ -16,7 +20,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
 from itsdangerous import SignatureExpired, URLSafeTimedSerializer
 from models.extensions import db, mail
-from models.schemes import Rol, Usuario, Empresa, Licencia
+from models.schemes import Rol, Usuario, Empresa, Licencia, Preferencias_empresa
 from services.config import Config
 from flasgger import swag_from
 import datetime
@@ -124,6 +128,14 @@ def enviar_confirmacion_email(correo_destino, nombre_usuario):
     )
     msg.body = f"Hola {nombre_usuario}, hacé clic para confirmar tu cuenta: {link}"
     mail.send(msg)
+
+
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "svg"}
+
+def allowed_file(filename):
+    return "." in filename and \
+           filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @swag_from('../docs/auth/confirmar.yml')
 @auth_bp.route("/confirmar/<token>")
@@ -343,6 +355,82 @@ def login_empresa(nombre_empresa):
         return resp, 200
 
     return jsonify({"error": "Credenciales inválidas o usuario no pertenece a esta empresa"}), 401
+
+@auth_bp.route("/empresa/<string:nombre_empresa>", methods=["GET"])
+def obtener_datos_empresa(nombre_empresa):
+    empresa = (
+        db.session.query(Empresa)
+          .filter(Empresa.nombre.ilike(nombre_empresa))
+          .first()
+    )
+    if not empresa:
+        return jsonify({"error": f"La empresa '{nombre_empresa}' no existe"}), 404
+
+    prefs = db.session.query(Preferencias_empresa).filter_by(id_empresa=empresa.id).first()    
+    return jsonify({
+        "nombre":    empresa.nombre,
+        "icon_url":  prefs.icon_url  if prefs and prefs.icon_url   else "",
+        "image_url": prefs.image_url if prefs and prefs.image_url  else "",
+    }), 200
+
+
+
+@auth_bp.route("/empresa/<string:nombre_empresa>/preferencias/upload", methods=["POST"])
+@jwt_required()
+def upload_preferencias_files(nombre_empresa):
+    icon_file  = request.files.get("icono")
+    cover_file = request.files.get("portada")
+    if not icon_file or not cover_file:
+        return jsonify({"error": "Se requieren archivos 'icono' y 'portada'."}), 400
+
+    if not allowed_file(icon_file.filename) or not allowed_file(cover_file.filename):
+        return jsonify({"error": "Formato de archivo no permitido."}), 400
+
+    empresa = (db.session.query(Empresa)
+               .filter(Empresa.nombre.ilike(nombre_empresa))
+               .first())
+    if not empresa:
+        return jsonify({"error": f"La empresa '{nombre_empresa}' no existe."}), 404
+
+    prefs = (db.session.query(Preferencias_empresa)
+             .filter_by(id_empresa=empresa.id)
+             .first())
+    if not prefs:
+        prefs = Preferencias_empresa(
+            id_empresa=empresa.id,
+            slogan="", descripcion="",
+            logo_url="", color_principal="#4f46e5",
+            color_secundario="#a5b4fc", color_texto="#111827",
+            icon_url="", image_url=""
+        )
+        db.session.add(prefs)
+        db.session.commit()
+
+    icon_dir  = os.path.join(current_app.static_folder, "uploads", "iconos")
+    cover_dir = os.path.join(current_app.static_folder, "uploads", "imagenes_emp")
+    os.makedirs(icon_dir,  exist_ok=True)
+    os.makedirs(cover_dir, exist_ok=True)
+
+    icon_filename = secure_filename(f"{empresa.id}_icono_{icon_file.filename}")
+    icon_path     = os.path.join(icon_dir, icon_filename)
+    icon_file.save(icon_path)
+    prefs.icon_url = url_for("static", filename=f"uploads/iconos/{icon_filename}", _external=True)
+
+    cover_filename = secure_filename(f"{empresa.id}_portada_{cover_file.filename}")
+    cover_path     = os.path.join(cover_dir, cover_filename)
+    cover_file.save(cover_path)
+    prefs.image_url = url_for("static", filename=f"uploads/imagenes_emp/{cover_filename}", _external=True)
+
+    db.session.commit()
+
+    return jsonify({
+        "icon_url":  prefs.icon_url,
+        "image_url": prefs.image_url
+    }), 200
+
+
+
+
 
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
