@@ -5,7 +5,7 @@ import { useLicenciasACargo } from "../services/useLicenciasACargo";
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
 
-export function LicenciasEmpleadosReclutadoresModal({ onClose }) {
+export function LicenciasACargoModal({ onClose, service }) {
   const {
     error,
     licencias,
@@ -14,12 +14,11 @@ export function LicenciasEmpleadosReclutadoresModal({ onClose }) {
     mensajeEvaluacion,
     setError,
     licenciaSeleccionada, setLicenciaSeleccionada
-  } = useLicenciasACargo();
+  } = useLicenciasACargo({service});
 
   const [modalRechazoOpen, setModalRechazoOpen] = useState(false);
   const [modalNegociacionFecha, setModalNegociacionFecha] = useState(false);
   const [motivoRechazo, setMotivoRechazo] = useState("");
-  // const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);
 
   const abrirModalRechazo = (licencia) => {
     setLicenciaSeleccionada(licencia);
@@ -66,7 +65,7 @@ export function LicenciasEmpleadosReclutadoresModal({ onClose }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
       <div className="bg-white p-6 rounded-2xl w-4/5 max-h-[80vh] overflow-auto text-black">
         <h2 className="text-2xl font-semibold mb-4 text-center">
-          Mis Licencias
+          Gestión de licencias
         </h2>
 
         {mensajeEvaluacion && (

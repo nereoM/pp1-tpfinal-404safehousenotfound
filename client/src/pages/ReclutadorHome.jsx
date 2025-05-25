@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
-import { BarChart2, FilePlus, FileText, Users } from "lucide-react";
+import { BarChart2, FileLock, FilePlus, FileText, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+import ModalPostulantes from '../components/ModalPostulantes';
 import PageLayout from "../components/PageLayout";
 import { ProfileCard } from "../components/ProfileCard";
 import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal.jsx";
@@ -10,7 +12,6 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { reclutadorService } from '../services/reclutadorService.js';
-import ModalPostulantes from '../components/ModalPostulantes';
 import EmpleadosRendimiento from "./EmpleadosRendimientoEmpleados";
 
 export default function ReclutadorHome() {
@@ -50,6 +51,8 @@ export default function ReclutadorHome() {
   const [estadoPostulaciones, setEstadoPostulaciones] = useState({});
   const [modalRendimientoOpen, setModalRendimientoOpen] = useState(false);
 
+  // Modal
+  const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false)
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -391,9 +394,15 @@ export default function ReclutadorHome() {
     },
     {
       icon: FilePlus,
-      titulo: "Gestionar Licencias",
+      titulo: "Consultar Licencias",
       descripcion: "Visualizá y administrá tus licencias cargadas.",
       onClick: fetchLicencias,
+    },
+    {
+      icon: FileLock,
+      titulo: "Gestionar Licencias",
+      descripcion: "Accede a las licencias de los empleados y sus estados.",
+      onClick: () => setModalLicenciasACargo(true)
     },
     {
       icon: BarChart2,
@@ -792,6 +801,13 @@ export default function ReclutadorHome() {
             </div>
           </div>
         )}
+
+        {
+          modalLicenciasACargo &&
+            <LicenciasACargoModal
+              onClose={() => setModalLicenciasACargo(false)}
+              service={reclutadorService} />
+        }
 
         <ModalParaEditarPerfil
           isOpen={modalEditarPerfilOpen}

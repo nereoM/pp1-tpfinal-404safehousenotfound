@@ -102,7 +102,7 @@ export const managerService = {
     const data = await fetcher({ url, options });
     return data;
   },
-  async obtenerLicenciasEmpleadosReclutadores() {
+  async obtenerLicenciasACargo() {
     const url = `${API_URL}/api/licencias-mis-reclutadores`
     const data = await fetcher({ url });
     return data;

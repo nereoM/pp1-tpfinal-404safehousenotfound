@@ -1,14 +1,15 @@
 import { motion } from "framer-motion";
-import { BarChart, BarChart2, FileLock, FileText, PlusCircle, Users } from 'lucide-react';
+import { BarChart, BarChart2, FileLock, FileText, FileUp, PlusCircle, Users } from 'lucide-react';
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GestionUsuarios from "../components/GestionUsuarios.jsx";
-import { LicenciasEmpleadosReclutadoresModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
+import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
 import ModalOferta from '../components/ModalOferta';
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayout";
 import { ProfileCard } from "../components/ProfileCard";
 import RendimientoAnalistasTable from "../components/RendimientoAnalistasTable";
+import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal.jsx";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
@@ -52,6 +53,9 @@ export default function ManagerHome() {
   const [mensajeEmpleados, setMensajeEmpleados] = useState("");
   const [archivoEmpleados, setArchivoEmpleados] = useState(null);
   const inputEmpleadosRef = useRef();
+
+  // Modal
+  const [modalSolicitarLicencia, setModalSolicitarLicencia] = useState(false)
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -394,6 +398,12 @@ export default function ManagerHome() {
       onClick: () => setModalGestionEquipo(true),
     },
     {
+      icon: FileUp,
+      titulo: "Solicitar Licencia",
+      descripcion: "Solicituar una nueva licencia.",
+      onClick: () => setModalSolicitarLicencia(true),
+    },
+    {
       icon: FileLock,
       titulo: "Consultar Licencias",
       descripcion: "Accede a las licencias del personal y sus estados.",
@@ -708,8 +718,9 @@ export default function ManagerHome() {
             </div>
           )}
 
-          {modalLicenciasOpen && <LicenciasEmpleadosReclutadoresModal onClose={() => setModalLicenciasOpen(false)} />}
-            
+          {modalLicenciasOpen && <LicenciasACargoModal onClose={() => setModalLicenciasOpen(false)} />}
+
+          {modalSolicitarLicencia && <SolicitarLicenciaModal  onClose={() => setModalSolicitarLicencia(false)}/>}
 
           {modalSubirEmpleados && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">

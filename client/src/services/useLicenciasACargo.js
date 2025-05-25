@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { managerService } from "./managerService";
 
-export function useLicenciasACargo() {
+export function useLicenciasACargo({ service }) {
   const [licencias, setLicencias] = useState([]);
   const [loading, setLoading] = useState("");
   const [error, setError] = useState("");
@@ -13,8 +13,8 @@ export function useLicenciasACargo() {
   useEffect(() => {
     setLoading(true);
 
-    managerService
-      .obtenerLicenciasEmpleadosReclutadores()
+    service
+      .obtenerLicenciasACargo()
       .then(setLicencias)
       .then((err) => {
         console.error(err.message);
@@ -23,7 +23,7 @@ export function useLicenciasACargo() {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [service]);
 
   const evaluarLicencia = async () => {
     return managerService.evaluarLicencia({

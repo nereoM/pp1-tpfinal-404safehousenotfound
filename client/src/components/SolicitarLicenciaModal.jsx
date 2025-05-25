@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Check, ChevronsUpDown, FileCheck, UploadCloud } from "lucide-react";
+import { useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
 import { toast } from 'sonner';
@@ -80,9 +80,13 @@ export function SolicitarLicenciaModal({ onClose }) {
     // Selecciona el endpoint según el rol
     let endpointSolicitarLicencia = "/api/solicitar-licencia-empleado";
     let endpointSubirCertificado = "/api/subir-certificado-emp";
+
     if (rol === "reclutador") {
       endpointSolicitarLicencia = "/api/solicitar-licencia-reclutador";
       endpointSubirCertificado = "/api/subir-certificado";
+    }else if(rol === "manager"){
+      endpointSolicitarLicencia = "/api/solicitar-licencia-manager";
+      endpointSubirCertificado = "/api/subir-certificado-manager";
     }
 
     // Si requiere certificado y hay archivo, súbelo primero

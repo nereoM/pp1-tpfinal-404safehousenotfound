@@ -56,6 +56,12 @@ export const reclutadorService = {
     const data = await fetcher({ url });
     return data;
   },
+  async obtenerLicenciasACargo() {
+    const url = `${API_URL}/api/licencias-mis-empleados`;
+
+    const data = await fetcher({ url });
+    return data;
+  },
   async definirPalabrasClave({ idOferta, palabrasClave }) {
     const url = `${API_URL}/api/definir_palabras_clave/${idOferta}`;
 
