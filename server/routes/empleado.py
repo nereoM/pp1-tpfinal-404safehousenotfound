@@ -212,7 +212,7 @@ def solicitar_licencia():
         "duelo", "matrimonio", "mudanza", "estudios", "vacaciones", "otro"
     ]
     if tipo_licencia not in tipos_validos:
-        return jsonify({"error": "Tipo de licencia inválido"}), 400
+        return jsonify({"error": f"Tipo de licencia '{tipo_licencia}' inválido. Tipos permitidos: {', '.join(tipos_validos)}"}), 400
 
     estado = None
     fecha_inicio_dt = None
@@ -329,7 +329,7 @@ def solicitar_licencia():
         except ValueError:
             return jsonify({"error": "Cantidad de días inválida"}), 400
         if dias_requeridos_val < 1 or dias_requeridos_val > dias_maximos["estudios"]:
-            return jsonify({"error": f"La cantidad de dias debe estar entre 1 y {dias_maximos['estudios']}"}), 400
+            return jsonify({"error": f"La cantidad de días para licencia de estudios debe estar entre 1 y {dias_maximos['estudios']}."}), 400
         if not fecha_inicio:
             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
         fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
