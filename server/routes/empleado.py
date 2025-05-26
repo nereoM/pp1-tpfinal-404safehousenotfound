@@ -402,7 +402,37 @@ def solicitar_licencia():
         }
     ), 201
 
-@swag_from("../docs/empleado/mis-licencias.yml")
+# @swag_from("../docs/empleado/mis-licencias.yml")
+# @empleado_bp.route("/mis-licencias-empleado", methods=["GET"])
+# @role_required(["empleado"])
+# def ver_mis_licencias():
+#     id_empleado = get_jwt_identity()
+#     licencias = Licencia.query.filter_by(id_empleado=id_empleado).all()
+
+#     resultado = [
+#         {
+#           "id_licencia": licencia.id,
+#           "tipo": licencia.tipo,
+#           "descripcion": licencia.descripcion,
+#           "fecha_inicio": licencia.fecha_inicio.isoformat()
+#           if licencia.fecha_inicio
+#           else None,
+#           "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+#           "estado": licencia.estado,
+#           "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+#           "empresa": {
+#               "id": licencia.id_empresa,
+#               "nombre": Empresa.query.get(licencia.id_empresa).nombre,
+#           },
+#           "certificado_url": licencia.certificado_url
+#           if licencia.certificado_url
+#           else None,
+#         }
+#         for licencia in licencias
+#     ]
+
+#     return jsonify(resultado), 200
+
 @empleado_bp.route("/mis-licencias-empleado", methods=["GET"])
 @role_required(["empleado"])
 def ver_mis_licencias():
@@ -411,27 +441,60 @@ def ver_mis_licencias():
 
     resultado = [
         {
-          "id_licencia": licencia.id,
-          "tipo": licencia.tipo,
-          "descripcion": licencia.descripcion,
-          "fecha_inicio": licencia.fecha_inicio.isoformat()
-          if licencia.fecha_inicio
-          else None,
-          "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
-          "estado": licencia.estado,
-          "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
-          "empresa": {
-              "id": licencia.id_empresa,
-              "nombre": Empresa.query.get(licencia.id_empresa).nombre,
-          },
-          "certificado_url": licencia.certificado_url
-          if licencia.certificado_url
-          else None,
+            "id_licencia": licencia.id,
+            "tipo": licencia.tipo,
+            "descripcion": licencia.descripcion,
+            "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+            "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+            "estado": licencia.estado,
+            "estado_sugerencia": licencia.estado_sugerencia if hasattr(licencia, "estado_sugerencia") else None,
+            "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat() if hasattr(licencia, "fecha_inicio_sugerencia") and licencia.fecha_inicio_sugerencia else None,
+            "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat() if hasattr(licencia, "fecha_fin_sugerencia") and licencia.fecha_fin_sugerencia else None,
+            "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+            "dias_requeridos": licencia.dias_requeridos if hasattr(licencia, "dias_requeridos") else None,
+            "empresa": {
+                "id": licencia.id_empresa,
+                "nombre": Empresa.query.get(licencia.id_empresa).nombre,
+            },
+            "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
         }
         for licencia in licencias
     ]
 
     return jsonify(resultado), 200
+
+@swag_from("../docs/empleado/licencia-detalle.yml")
+@empleado_bp.route("/mi-licencia-<int:id_licencia>-empleado/informacion", methods=["GET"])
+@role_required(["empleado"])
+def obtener_detalle_licencia_empleado(id_licencia):
+    id_empleado = get_jwt_identity()
+    licencia = Licencia.query.filter_by(id=id_licencia, id_empleado=id_empleado).first()
+
+    if not licencia:
+        return jsonify({"error": "Licencia no encontrada o no pertenece al empleado"}), 404
+
+    empresa = Empresa.query.get(licencia.id_empresa)
+
+    detalle = {
+        "id_licencia": licencia.id,
+        "tipo": licencia.tipo,
+        "descripcion": licencia.descripcion,
+        "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+        "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+        "estado": licencia.estado,
+        "estado_sugerencia": getattr(licencia, "estado_sugerencia", None),
+        "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat() if getattr(licencia, "fecha_inicio_sugerencia", None) else None,
+        "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat() if getattr(licencia, "fecha_fin_sugerencia", None) else None,
+        "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+        "dias_requeridos": getattr(licencia, "dias_requeridos", None),
+        "empresa": {
+            "id": licencia.id_empresa,
+            "nombre": empresa.nombre if empresa else None,
+        },
+        "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+    }
+
+    return jsonify(detalle), 200
 
 UPLOAD_FOLDER = "uploads/certificados"  # Carpeta donde se guardarán los certificados
 ALLOWED_EXTENSIONS = {"pdf"}
