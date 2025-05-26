@@ -17,12 +17,12 @@ export function LicenciasACargoModal({ onClose, service }) {
     licenciaSeleccionada,
     setLicenciaSeleccionada,
     sugerirFechas,
-    aprobarLicencia,
+    motivoRechazo,
+    setMotivoRechazo,
   } = useLicenciasACargo({ service });
 
   const [modalRechazoOpen, setModalRechazoOpen] = useState(false);
   const [modalNegociacionFecha, setModalNegociacionFecha] = useState(false);
-  const [motivoRechazo, setMotivoRechazo] = useState("");
 
   const abrirModalRechazo = (licencia) => {
     setLicenciaSeleccionada(licencia);
@@ -108,18 +108,22 @@ export function LicenciasACargoModal({ onClose, service }) {
                         ? new Date(licencia.fecha_fin).toLocaleDateString()
                         : "-"}
                     </td>
-                    <td className="px-4 py-2 capitalize">
+                    <td>
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
-                          licencia.estado === "activa"
+                          licencia.estado === "activa" ||
+                          licencia.estado === "aprobada"
                             ? "bg-green-100 text-green-800"
-                            : licencia.estado === "aprobada" ||
-                              licencia.estado === "pendiente"
+                            : licencia.estado === "pendiente"
                             ? "bg-yellow-100 text-yellow-800"
+                            : licencia.estado === "sugerencia"
+                            ? "bg-blue-100 text-blue-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {licencia.estado}
+                        {licencia.estado_sugerencia
+                          ? licencia.estado_sugerencia
+                          : licencia.estado}
                       </span>
                     </td>
                     <td className="px-4 py-2">
@@ -142,12 +146,25 @@ export function LicenciasACargoModal({ onClose, service }) {
                       )}
                     </td>
                     <td className="px-4 py-2 space-x-2">
-                      {licencia.estado === "pendiente" ? (
+                      {licencia.estado_sugerencia === "sugerencia aceptada" ? (
+                        <button
+                          onClick={async () =>
+                            evaluarLicencia({
+                              idLicencia: licencia.id_licencia,
+                              estado: "aprobada",
+                            })
+                          }
+                          className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          Aprobar licencia sugerida
+                        </button>
+                      ) : licencia.estado === "pendiente" ? (
                         <section className="flex flex-col gap-1">
                           <button
                             onClick={async () =>
-                              aprobarLicencia({
-                                licencia,
+                              evaluarLicencia({
+                                idLicencia: licencia.id_licencia,
+                                estado: "aprobada",
                               })
                             }
                             className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
@@ -160,15 +177,21 @@ export function LicenciasACargoModal({ onClose, service }) {
                           >
                             Rechazar
                           </button>
-                          <button
-                            onClick={() => {
-                              setLicenciaSeleccionada(licencia);
-                              setModalNegociacionFecha(true);
-                            }}
-                            className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
-                          >
-                            Modificar fechas
-                          </button>
+
+                          {![
+                            "sugerencia aceptada",
+                            "sugerencia rechazada",
+                          ].includes(licencia.estado_sugerencia) && (
+                            <button
+                              onClick={() => {
+                                setLicenciaSeleccionada(licencia);
+                                setModalNegociacionFecha(true);
+                              }}
+                              className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
+                            >
+                              Modificar fechas
+                            </button>
+                          )}
                         </section>
                       ) : licencia.estado === "aprobada" &&
                         licencia.certificado_url ? (
@@ -181,15 +204,21 @@ export function LicenciasACargoModal({ onClose, service }) {
                           >
                             Validar
                           </button>
-                          <button
-                            onClick={() => {
-                              setLicenciaSeleccionada(licencia);
-                              setModalNegociacionFecha(true);
-                            }}
-                            className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
-                          >
-                            Modificar fechas
-                          </button>
+
+                          {![
+                            "sugerencia aceptada",
+                            "sugerencia rechazada",
+                          ].includes(licencia.estado_sugerencia) && (
+                            <button
+                              onClick={() => {
+                                setLicenciaSeleccionada(licencia);
+                                setModalNegociacionFecha(true);
+                              }}
+                              className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
+                            >
+                              Modificar fechas
+                            </button>
+                          )}
                         </section>
                       ) : licencia.estado === "sugerencia" ? (
                         <span className="text-yellow-600 italic">
@@ -239,10 +268,10 @@ export function LicenciasACargoModal({ onClose, service }) {
                 <button
                   onClick={() => {
                     if (motivoRechazo.trim()) {
-                      evaluarLicencia(
-                        licenciaSeleccionada.id_licencia,
-                        "rechazada"
-                      );
+                      evaluarLicencia({
+                        estado: "rechazada",
+                        idLicencia: licenciaSeleccionada.id_licencia,
+                      });
                       setModalRechazoOpen(false);
                     } else {
                       setError(

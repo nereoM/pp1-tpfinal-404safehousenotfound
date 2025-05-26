@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { useEffect, useState } from "react";
 
 export function useLicenciasACargo({ service }) {
@@ -25,18 +26,20 @@ export function useLicenciasACargo({ service }) {
   }, [service]);
 
   const sugerirFechas = async () => {
+    const fechaInicioSugerida = format(licenciaSeleccionada.fecha_inicio, "yyyy-MM-dd");
+    const fechaFinSugerida = format(licenciaSeleccionada.fecha_fin, "yyyy-MM-dd");
+
     return service
       .evaluarLicencia({
         idLicencia: licenciaSeleccionada.id_licencia,
-        fechaFinSugerida: licenciaSeleccionada.fecha_fin,
-        fechaInicioSugerida: licenciaSeleccionada.fecha_inicio,
+        fechaFinSugerida,
+        fechaInicioSugerida,
         estado: "sugerencia",
       })
       .then((res) => {
         setMensajeEvaluacion(
           res.message || "Estado actualizado correctamente."
         );
-        setMotivoRechazo("");
 
         setLicencias((prevState) =>
           prevState.map((item) => {
@@ -46,37 +49,9 @@ export function useLicenciasACargo({ service }) {
 
             return {
               ...item,
-              estado: "sugerencia",
-            };
-          })
-        );
-      })
-      .catch((err) => {
-        console.error("Error al evaluar licencia:", err);
-        setMensajeEvaluacion(err.message || "Error al pçrocesar la solicitud.");
-      });
-  };
-
-  const aprobarLicencia = async ({ licencia }) => {
-    return service
-      .evaluarLicencia({
-        idLicencia: licencia.id_licencia,
-        estado: "aprobada",
-      })
-      .then((res) => {
-        setMensajeEvaluacion(res.message || "Licencia aprobada correctamente.");
-
-        setLicencias((prevState) =>
-          prevState.map((item) => {
-            if (item.licencia.id_licencia !== licencia.id_licencia) {
-              return item;
-            }
-
-            return {
-              ...item,
               licencia: {
                 ...item.licencia,
-                estado: "aprobada",
+                estado: "sugerencia",
               },
             };
           })
@@ -84,26 +59,40 @@ export function useLicenciasACargo({ service }) {
       })
       .catch((err) => {
         console.error("Error al evaluar licencia:", err);
-        setMensajeEvaluacion(err.message || "Error al aprobar la licencia.");
+        setMensajeEvaluacion(err.message || "Error al pçrocesar la solicitud.");
       });
   };
 
   const evaluarLicencia = async ({ estado, idLicencia }) => {
     return service
       .evaluarLicencia({
-        idLicencia,
-        estado,
         motivo: motivoRechazo ?? "",
+        estado,
+        idLicencia,
       })
       .then((res) => {
-        setMensajeEvaluacion(
-          res.message || "Estado actualizado correctamente."
+        setMensajeEvaluacion(res.message || "Licencia actualizada correctamente.");
+
+        // Actualiza el estado de la licencia instantaneamente
+        setLicencias((prevState) =>
+          prevState.map((item) => {
+            if (item.licencia.id_licencia !== idLicencia) {
+              return item;
+            }
+
+            return {
+              ...item,
+              licencia: {
+                ...item.licencia,
+                estado,
+              },
+            };
+          })
         );
-        setMotivoRechazo("");
       })
       .catch((err) => {
         console.error("Error al evaluar licencia:", err);
-        setMensajeEvaluacion(err.message || "Error al pçrocesar la solicitud.");
+        setMensajeEvaluacion(err.message || "Error al evaluar la licencia.");
       });
   };
 
@@ -119,6 +108,6 @@ export function useLicenciasACargo({ service }) {
     licenciaSeleccionada,
     setLicenciaSeleccionada,
     sugerirFechas,
-    aprobarLicencia,
+    setMotivoRechazo
   };
 }

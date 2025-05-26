@@ -227,6 +227,9 @@ export const empleadoService = {
     const options = {
       method: "PUT",
       body: JSON.stringify({ aceptacion }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     };
 
     const data = await fetcher({ url, options })

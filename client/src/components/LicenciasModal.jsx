@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DayPicker } from "react-day-picker";
 import { empleadoService } from "../services/empleadoService";
 
 export function LicenciasModal({ onClose }) {
@@ -27,15 +28,27 @@ export function LicenciasModal({ onClose }) {
     try {
       empleadoService.responderSugerenciaLicencia({
         licenciaId: licenciaSeleccionada.id_licencia,
-        aceptacion
-      })
-      const nuevasLicencias = await empleadoService.misLicencias();
-        setLicencias(nuevasLicencias);
+        aceptacion,
+      });
+      setLicencias((prevState) =>
+        prevState.map((licencia) => {
+          if (licencia.id_licencia !== licenciaSeleccionada.id_licencia) {
+            return licencia;
+          }
+          return {
+            ...licencia,
+            estado_sugerencia: aceptacion
+              ? "sugerencia aceptada"
+              : "sugerencia rechazada",
+          };
+        })
+      );
+      setModalSugerenciaAbierto(false)
     } catch (error) {
       console.error("Error al cancelar la licencia:", error);
-        alert("Ocurrió un error al cancelar la licencia.");
+      alert("Ocurrió un error al cancelar la licencia.");
     }
-  }
+  };
 
   return (
     <div
@@ -60,9 +73,11 @@ export function LicenciasModal({ onClose }) {
               <tr>
                 <th className="p-2 border">Tipo</th>
                 <th className="p-2 border">Descripción</th>
+                <th className="p-2 border">Fecha Inicio</th>
+                <th className="p-2 border">Fecha Fin</th>
                 <th className="p-2 border">Estado</th>
                 <th className="p-2 border">Motivo Rechazo (si aplica)</th>
-                <th className="p-2 border">Acciones</th> {/* <-- NEW COLUMN */}
+                <th className="p-2 border">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -73,6 +88,9 @@ export function LicenciasModal({ onClose }) {
                   estado,
                   motivo_rechazo,
                   id_licencia,
+                  fecha_inicio,
+                  fecha_fin,
+                  estado_sugerencia,
                 } = licencia;
                 return (
                   <tr key={idx} className="hover:bg-indigo-50">
@@ -82,17 +100,26 @@ export function LicenciasModal({ onClose }) {
                         ? descripcion
                         : "-"}
                     </td>
+                    <td className="p-2 border">
+                      {new Date(fecha_inicio).toLocaleDateString()}
+                    </td>
+                    <td className="p-2 border">
+                      {new Date(fecha_fin).toLocaleDateString()}
+                    </td>
                     <td className="p-2 border capitalize">
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
-                          estado === "activa"
+                          licencia.estado === "activa" ||
+                          licencia.estado === "aprobada"
                             ? "bg-green-100 text-green-800"
-                            : estado === "aprobada" || estado === "pendiente"
+                            : licencia.estado === "pendiente"
                             ? "bg-yellow-100 text-yellow-800"
+                            : licencia.estado === "sugerencia"
+                            ? "bg-blue-100 text-blue-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {estado}
+                        {estado_sugerencia ? estado_sugerencia : estado}
                       </span>
                     </td>
                     <td className="px-4 py-2 border border-gray-300">
@@ -105,7 +132,9 @@ export function LicenciasModal({ onClose }) {
                       )}
                     </td>
                     <td className="p-2 border text-center">
-                      {estado === "pendiente" || estado === "activa" ? (
+                      {licencia.estado_sugerencia === "sugerencia aceptada" ? (
+                        "-" // No se puede hacer nada si hay estado_sugerencia
+                      ) : estado === "pendiente" || estado === "activa" ? (
                         <button
                           onClick={() => handleCancelarLicencia(id_licencia)}
                           className="px-2 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
@@ -152,8 +181,8 @@ export function LicenciasModal({ onClose }) {
                 className="flex justify-center"
                 mode="range"
                 selected={{
-                  from: new Date(licenciaSeleccionada.fecha_sugerida_inicio),
-                  to: new Date(licenciaSeleccionada.fecha_sugerida_fin),
+                  from: new Date(licenciaSeleccionada.fecha_inicio_sugerida),
+                  to: new Date(licenciaSeleccionada.fecha_fin_sugerida),
                 }}
                 disabled={{ before: new Date() }}
                 readOnly
