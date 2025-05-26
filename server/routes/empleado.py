@@ -195,6 +195,17 @@ def solicitar_licencia():
 
     now = datetime.now(timezone.utc)
 
+    # Obtener la empresa y los días máximos configurados
+    empresa = Empresa.query.get(empleado.id_empresa)
+    dias_maximos = {
+        "maternidad": empresa.dias_maternidad,
+        "nacimiento_hijo": empresa.dias_nac_hijo,
+        "duelo": empresa.dias_duelo,
+        "matrimonio": empresa.dias_matrimonio,
+        "mudanza": empresa.dias_mudanza,
+        "estudios": empresa.dias_estudios,
+    }
+
     # Tipos de licencia válidos
     tipos_validos = [
         "accidente_laboral", "enfermedad", "maternidad", "nacimiento_hijo",
@@ -243,11 +254,9 @@ def solicitar_licencia():
     # Maternidad
     elif tipo_licencia == "maternidad":
         if not certificado_url:
-            return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
-        if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para maternidad"}), 400
         fecha_inicio_dt = now
-        fecha_fin_dt = now + timedelta(days=90-1)
+        fecha_fin_dt = now + timedelta(days=dias_maximos["maternidad"]-1)
         estado = "activa"
 
     # Paternidad
@@ -257,17 +266,15 @@ def solicitar_licencia():
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para paternidad"}), 400
         fecha_inicio_dt = now
-        fecha_fin_dt = now + timedelta(days=10-1)
+        fecha_fin_dt = now + timedelta(days=dias_maximos["nacimiento_hijo"]-1)
         estado = "activa"
 
     # Duelo
     elif tipo_licencia == "duelo":
         if not certificado_url:
-            return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
-        if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para duelo"}), 400
         fecha_inicio_dt = now
-        fecha_fin_dt = now + timedelta(days=5-1)
+        fecha_fin_dt = now + timedelta(days=dias_maximos["duelo"]-1)
         estado = "activa"
 
     # Matrimonio
@@ -280,7 +287,7 @@ def solicitar_licencia():
             fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         except Exception:
             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
-        fecha_fin_dt = fecha_inicio_dt + timedelta(days=10-1)
+        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_maximos["matrimonio"]-1)
         estado = "aprobada"
 
     # Mudanza
@@ -291,21 +298,38 @@ def solicitar_licencia():
             fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
         except Exception:
             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
-        fecha_fin_dt = fecha_inicio_dt + timedelta(days=2-1)
+        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_maximos["mudanza"]-1)
         estado = "aprobada"
 
     # Estudios
+    # elif tipo_licencia == "estudios":
+    #     if not certificado_url:
+    #         return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+    #     if not dias_requeridos:
+    #         return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
+    #     if dias_requeridos < 1 or dias_requeridos > 10:
+    #         return jsonify({"error": "La cantidad de dias debe estar entre 1 y 10"}), 400
+    #     try:
+    #         dias_requeridos_val = int(dias_requeridos)
+    #     except ValueError:
+    #         return jsonify({"error": "Cantidad de días inválida"}), 400
+    #     if not fecha_inicio:
+    #         return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
+    #     fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    #     fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val-1)
+    #     estado = "aprobada"
+
     elif tipo_licencia == "estudios":
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
         if not dias_requeridos:
             return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
-        if dias_requeridos < 1 or dias_requeridos > 10:
-            return jsonify({"error": "La cantidad de dias debe estar entre 1 y 10"}), 400
         try:
             dias_requeridos_val = int(dias_requeridos)
         except ValueError:
             return jsonify({"error": "Cantidad de días inválida"}), 400
+        if dias_requeridos_val < 1 or dias_requeridos_val > dias_maximos["estudios"]:
+            return jsonify({"error": f"La cantidad de dias debe estar entre 1 y {dias_maximos['estudios']}"}), 400
         if not fecha_inicio:
             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
         fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)

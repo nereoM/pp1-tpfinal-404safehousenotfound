@@ -1159,8 +1159,8 @@ def eval_licencia(id_licencia):
         licencia.estado = nuevo_estado
         # Si la sugerencia fue aceptada, actualizar fechas
         if licencia.estado_sugerencia == "sugerencia aceptada":
-            licencia.fecha_inicio = licencia.fecha_inicio_sugerida
-            licencia.fecha_fin = licencia.fecha_fin_sugerida
+            licencia.fecha_inicio = licencia.fecha_inicio_sugerencia
+            licencia.fecha_fin = licencia.fecha_fin_sugerencia
         if motivo:
             licencia.motivo_rechazo = motivo
     elif nuevo_estado == "sugerencia":
@@ -1174,8 +1174,8 @@ def eval_licencia(id_licencia):
             return jsonify({"error": "Formato de fecha sugerida inválido"}), 400
 
         licencia.estado_sugerencia = "sugerencia pendiente"
-        licencia.fecha_inicio_sugerida = fecha_inicio_dt
-        licencia.fecha_fin_sugerida = fecha_fin_dt
+        licencia.fecha_inicio_sugerencia = fecha_inicio_dt
+        licencia.fecha_fin_sugerencia = fecha_fin_dt
         # El estado de la licencia se mantiene pendiente
         if motivo:
             licencia.motivo_rechazo = motivo
@@ -1206,8 +1206,8 @@ def eval_licencia(id_licencia):
             "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
             "estado": licencia.estado,
             "estado_sugerencia": licencia.estado_sugerencia if licencia.estado_sugerencia else None,
-            "fecha_inicio_sugerida": licencia.fecha_inicio_sugerida.isoformat() if licencia.fecha_inicio_sugerida else None,
-            "fecha_fin_sugerida": licencia.fecha_fin_sugerida.isoformat() if licencia.fecha_fin_sugerida else None,
+            "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat() if licencia.fecha_inicio_sugerencia else None,
+            "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat() if licencia.fecha_fin_sugerencia else None,
             "empresa": {
                 "id": licencia.id_empresa,
                 "nombre": empresa.nombre if empresa else None,
