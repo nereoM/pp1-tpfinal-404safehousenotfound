@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";      
+import { Eye, EyeOff } from "lucide-react";            
+const API_URL = import.meta.env.VITE_API_URL;           
 
 const DEFAULT_COMPANY = {
   nombre:    "SIGRH+",
@@ -28,12 +31,13 @@ export default function LoginEmpresa() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword]     = useState("");
   const [error, setError]           = useState("");
+  const [loading, setLoading]       = useState(false);
 
   useEffect(() => {
     const fetchCompany = async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/auth/empresa/${encodeURIComponent(nombre_empresa)}`,
+          `${API_URL}/auth/empresa/${encodeURIComponent(nombre_empresa)}`,
           { method: "GET", credentials: "include" }
         );
         const data = await res.json();
@@ -43,38 +47,70 @@ export default function LoginEmpresa() {
             icon_url:  data.icon_url || DEFAULT_COMPANY.icon_url,
             image_url: data.image_url || DEFAULT_COMPANY.image_url,
           });
-        } else {
-          // fallback a default
-          setCompany(DEFAULT_COMPANY);
         }
       } catch {
         setCompany(DEFAULT_COMPANY);
       }
     };
-
     fetchCompany();
   }, [nombre_empresa]);
 
-  const handleSubmit = (e) => {
+  // Nuevo handleSubmit asíncrono
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     if (!identifier || !password) {
       setError("Por favor, completa usuario y contraseña.");
       return;
     }
+    setLoading(true);
 
-    navigate("/dashboard");
+    try {
+      // Login tradicional
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ username: identifier, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Error al iniciar sesión");
+
+      //  Obtener usuario y roles
+      const userRes = await fetch(`${API_URL}/auth/me`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const user = await userRes.json();
+      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
+
+      localStorage.setItem("rol", user.roles[0]);
+
+      // redirección  rol
+      if (user.roles.includes("admin-404")) {
+        navigate("/admin/home");
+      } else if (user.roles.includes("reclutador")) {
+        navigate("/reclutador/home");
+      } else if (user.roles.includes("manager")) {
+        navigate("/manager/home");
+      } else if (user.roles.includes("admin-emp")) {
+        navigate("/adminemp/home");
+      } else {
+        navigate("/candidato/home");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-50 px-4">
       <div className="flex bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl w-full">
-        {/* IZQUIERDA: Formulario */}
+        {/*formulario */}
         <div className="w-1/2 p-8">
-          <CompanyHeader
-            name={company.nombre}
-            iconUrl={company.icon_url}
-          />
+          <CompanyHeader name={company.nombre} iconUrl={company.icon_url} />
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -108,29 +144,52 @@ export default function LoginEmpresa() {
             <button
               type="submit"
               className="w-full py-2 mt-4 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700 transition"
+              disabled={loading}
             >
-              Entrar
+              {loading ? "Cargando..." : "Entrar"}
             </button>
 
             <p className="mt-4 text-center text-sm text-gray-600">
               ¿Has olvidado tu contraseña?
             </p>
 
-            <div className="mt-6 space-y-2">
-              <button
-                type="button"
-                className="w-full flex items-center justify-center border border-gray-300 rounded-md px-4 py-2 hover:bg-gray-100"
-              >
-                <img src="/google-icon.svg" alt="Google" className="h-5 w-5 mr-2" />
-                Entrar con Google
-              </button>
-              <button
-                type="button"
-                className="w-full flex items-center justify-center border border-gray-300 rounded-md px-4 py-2 hover:bg-gray-100"
-              >
-                <img src="/microsoft-icon.svg" alt="Microsoft" className="h-5 w-5 mr-2" />
-                Entrar con Microsoft
-              </button>
+            {/* Google Login */}
+            <div className="mt-6 text-center">
+              <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  try {
+                    const tokenGoogle = credentialResponse.credential;
+                    await fetch(`${API_URL}/auth/google`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      credentials: "include",
+                      body: JSON.stringify({ credential: tokenGoogle })
+                    });
+                    const userRes = await fetch(`${API_URL}/auth/me`, {
+                      method: "GET",
+                      credentials: "include",
+                    });
+                    const user = await userRes.json();
+                    if (!userRes.ok) throw new Error(user.error);
+                    localStorage.setItem("rol", user.roles[0]);
+                    // Redirigir igual que arriba
+                    if (user.roles.includes("admin-404")) {
+                      navigate("/admin/home");
+                    } else if (user.roles.includes("reclutador")) {
+                      navigate("/reclutador/home");
+                    } else if (user.roles.includes("manager")) {
+                      navigate("/manager/home");
+                    } else if (user.roles.includes("admin-emp")) {
+                      navigate("/adminemp/home");
+                    } else {
+                      navigate("/candidato/home");
+                    }
+                  } catch (err) {
+                    console.error("Google login error:", err);
+                  }
+                }}
+                onError={() => console.error("Falló el login con Google")}
+              />
             </div>
 
             <p className="mt-6 text-center text-sm text-gray-600">
@@ -147,7 +206,7 @@ export default function LoginEmpresa() {
           </form>
         </div>
 
-        
+        {/*DERECHAD*/}
         <div className="w-1/2">
           <img
             src={company.image_url}

@@ -3,6 +3,7 @@ import string
 import os
 from werkzeug.utils import secure_filename
 from flask import url_for
+from sqlalchemy import func
 
 from datetime import datetime as dt
 
@@ -360,17 +361,21 @@ def login_empresa(nombre_empresa):
 def obtener_datos_empresa(nombre_empresa):
     empresa = (
         db.session.query(Empresa)
-          .filter(Empresa.nombre.ilike(nombre_empresa))
-          .first()
+        .filter(func.lower(Empresa.nombre) == nombre_empresa.lower())
+        .first()
     )
     if not empresa:
         return jsonify({"error": f"La empresa '{nombre_empresa}' no existe"}), 404
 
-    prefs = db.session.query(Preferencias_empresa).filter_by(id_empresa=empresa.id).first()    
+    prefs = (
+        db.session.query(Preferencias_empresa)
+        .filter_by(id_empresa=empresa.id)
+        .first()
+    )
     return jsonify({
         "nombre":    empresa.nombre,
-        "icon_url":  prefs.icon_url  if prefs and prefs.icon_url   else "",
-        "image_url": prefs.image_url if prefs and prefs.image_url  else "",
+        "icon_url":  prefs.icon_url  or "",
+        "image_url": prefs.image_url or "",
     }), 200
 
 
@@ -427,8 +432,6 @@ def upload_preferencias_files(nombre_empresa):
         "icon_url":  prefs.icon_url,
         "image_url": prefs.image_url
     }), 200
-
-
 
 
 
