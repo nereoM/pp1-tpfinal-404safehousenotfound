@@ -40,6 +40,7 @@ export function LicenciasModal({ onClose }) {
             estado_sugerencia: aceptacion
               ? "sugerencia aceptada"
               : "sugerencia rechazada",
+              estado: "rechazada"
           };
         })
       );

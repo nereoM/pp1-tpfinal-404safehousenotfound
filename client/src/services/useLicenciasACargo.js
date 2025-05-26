@@ -52,6 +52,7 @@ export function useLicenciasACargo({ service }) {
               licencia: {
                 ...item.licencia,
                 estado: "sugerencia",
+                estado_sugerencia: "sugerencia pendiente"
               },
             };
           })

@@ -146,7 +146,12 @@ export function LicenciasACargoModal({ onClose, service }) {
                       )}
                     </td>
                     <td className="px-4 py-2 space-x-2">
-                      {licencia.estado_sugerencia === "sugerencia aceptada" ? (
+                      {["aprobada", "activa"].includes(licencia.estado) ? (
+                        <span className="text-gray-500 italic">
+                          Sin acciones disponibles
+                        </span>
+                      ) : licencia.estado_sugerencia ===
+                        "sugerencia aceptada" ? (
                         <button
                           onClick={async () =>
                             evaluarLicencia({
@@ -176,33 +181,6 @@ export function LicenciasACargoModal({ onClose, service }) {
                             className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                           >
                             Rechazar
-                          </button>
-
-                          {![
-                            "sugerencia aceptada",
-                            "sugerencia rechazada",
-                          ].includes(licencia.estado_sugerencia) && (
-                            <button
-                              onClick={() => {
-                                setLicenciaSeleccionada(licencia);
-                                setModalNegociacionFecha(true);
-                              }}
-                              className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
-                            >
-                              Modificar fechas
-                            </button>
-                          )}
-                        </section>
-                      ) : licencia.estado === "aprobada" &&
-                        licencia.certificado_url ? (
-                        <section className="flex flex-col gap-1">
-                          <button
-                            onClick={() =>
-                              evaluarLicencia(licencia.id_licencia, "activa")
-                            }
-                            className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
-                          >
-                            Validar
                           </button>
 
                           {![
