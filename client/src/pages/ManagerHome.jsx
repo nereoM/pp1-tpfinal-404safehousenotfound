@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { BarChart, BarChart2, FileLock, FileText, FileUp, PlusCircle, Users } from 'lucide-react';
+import { BarChart, BarChart2, FileLock, FileSearchIcon, FileText, FileUp, PlusCircle, Users } from 'lucide-react';
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GestionUsuarios from "../components/GestionUsuarios.jsx";
@@ -15,6 +15,7 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
 
+import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta"; // alertas
 
 
@@ -38,6 +39,7 @@ const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
 const inputMetricasRef = useRef(null);
 
 
+  const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false)
   const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
   const [modalRechazoOpen, setModalRechazoOpen] = useState(false);
   const [motivoRechazo, setMotivoRechazo] = useState("");
@@ -433,10 +435,16 @@ const inputMetricasRef = useRef(null);
       onClick: () => setModalSolicitarLicencia(true),
     },
     {
+      icon: FileSearchIcon,
+      titulo: "Ver Mis Licencias",
+      descripcion: "Accede al listado tus licencias.",
+      onClick: () => setModalLicenciasOpen(true),
+    },
+    {
       icon: FileLock,
       titulo: "Consultar Licencias",
       descripcion: "Accede a las licencias del personal y sus estados.",
-      onClick: openModalLicencias
+      onClick: () => setModalLicenciasACargo(true)
     },
         {
       icon: BarChart2,
@@ -778,12 +786,19 @@ const inputMetricasRef = useRef(null);
             </div>
           )}
 
-          {modalLicenciasOpen && <LicenciasACargoModal onClose={() => setModalLicenciasOpen(false)} />}
+          {modalLicenciasOpen &&
+            <LicenciasModal
+              service={managerService}
+              onClose={() => setModalLicenciasOpen(false)}
+            />}
+
+          {modalLicenciasACargo &&
+            <LicenciasACargoModal
+              service={managerService}
+              onClose={() => setModalLicenciasACargo(false)}
+            />}
 
           {modalSolicitarLicencia && <SolicitarLicenciaModal  onClose={() => setModalSolicitarLicencia(false)}/>}
-
-          {modalLicenciasOpen && <LicenciasEmpleadosReclutadoresModal onClose={() => setModalLicenciasOpen(false)} />}
-            
 
           {modalSubirEmpleados && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">

@@ -121,7 +121,9 @@ export function LicenciasACargoModal({ onClose, service }) {
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {licencia.estado_sugerencia
+                        {licencia.estado === "aprobada"
+                          ? "aprobada"
+                          : licencia.estado_sugerencia
                           ? licencia.estado_sugerencia
                           : licencia.estado}
                       </span>

@@ -43,20 +43,6 @@ export const managerService = {
     const data = await fetcher({ url });
     return data.ofertas;
   },
-  // async evaluarLicencia({ idLicencia, estado }) {
-  //   const url = `${API_URL}/api/evaluar-licencia/${idLicencia}`;
-
-  //   const options = {
-  //     method: "PUT",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //     },
-  //     body: JSON.stringify({ estado }),
-  //   };
-
-  //   const data = await fetcher({ url, options });
-  //   return data;
-  // },
   async obtenerEmpleados() {
     const url = `${API_URL}/api/empleados-manager`;
 
@@ -107,18 +93,50 @@ export const managerService = {
     const data = await fetcher({ url });
     return data;
   },
-  async evaluarLicencia({ idLicencia, estado, motivo, fecha_inicio, fecha_fin }) {
-    const url = `${API_URL}/api/licencia-${idLicencia}-reclutador/evaluacion`
+  async misLicencias() {
+    const url = `${API_URL}/api/mis-licencias-manager`;
+
+    const data = await fetcher({ url });
+    return data;
+  },
+  async evaluarLicencia({
+    idLicencia,
+    estado,
+    fechaInicioSugerida,
+    fechaFinSugerida,
+    motivo
+  }) {
+    const url = `${API_URL}/api/licencia-${idLicencia}-reclutador/evaluacion`;
 
     const options = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ estado, motivo }),
+      body: JSON.stringify({
+        estado,
+        motivo,
+        fecha_inicio_sugerida: fechaInicioSugerida,
+        fecha_fin_sugerida: fechaFinSugerida,
+      }),
     };
+
     const data = await fetcher({ url, options });
     return data;
+  },
+  async responderSugerenciaLicencia({ licenciaId, aceptacion }) {
+    const url = `${API_URL}/api/licencia-${licenciaId}-manager/respuesta-sugerencia`
+
+    const options = {
+      method: "PUT",
+      body: JSON.stringify({ aceptacion }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    const data = await fetcher({ url, options })
+    return data
   }
 }
 

@@ -384,7 +384,10 @@ export default function EmpleadoHome() {
           </div>
 
           {modalLicencias && (
-            <LicenciasModal onClose={() => setModalLicencias(false)} />
+            <LicenciasModal
+              service={empleadoService}
+              onClose={() => setModalLicencias(false)}
+            />
           )}
 
           {modalSolicitarLicencia && (
@@ -428,8 +431,9 @@ const Toast = ({ message, type, onClose }) => (
     initial={{ opacity: 0, y: -10 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -10 }}
-    className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
-      }`}
+    className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${
+      type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+    }`}
   >
     {type === "success"}
     <span>{message}</span>

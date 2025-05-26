@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
 import { DayPicker } from "react-day-picker";
-import { empleadoService } from "../services/empleadoService";
 
-export function LicenciasModal({ onClose }) {
+export function LicenciasModal({ onClose, service }) {
   const [licencias, setLicencias] = useState([]);
   const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);
   const [modalSugerenciaAbierto, setModalSugerenciaAbierto] = useState(false);
 
   useEffect(() => {
-    empleadoService.misLicencias().then(setLicencias);
-  }, []);
+    service.misLicencias().then(setLicencias);
+  }, [service]);
 
   const handleCancelarLicencia = async (idLicencia) => {
     if (confirm("¿Estás seguro que deseas cancelar esta licencia?")) {
       try {
-        await empleadoService.cancelarLicencia({ idLicencia });
-        const nuevasLicencias = await empleadoService.misLicencias();
+        await service.cancelarLicencia({ idLicencia });
+        const nuevasLicencias = await service.misLicencias();
         setLicencias(nuevasLicencias);
       } catch (error) {
         console.error("Error al cancelar la licencia:", error);
@@ -26,7 +25,7 @@ export function LicenciasModal({ onClose }) {
 
   const handleResponseSugerencia = async (aceptacion) => {
     try {
-      empleadoService.responderSugerenciaLicencia({
+      service.responderSugerenciaLicencia({
         licenciaId: licenciaSeleccionada.id_licencia,
         aceptacion,
       });
@@ -120,7 +119,12 @@ export function LicenciasModal({ onClose }) {
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {estado_sugerencia ? estado_sugerencia : estado}
+                        {estado === "aprobada"
+                          ? "aprobada"
+                          : estado_sugerencia
+                          ? estado_sugerencia
+                          : estado}
+                        {/* {estado_sugerencia ? estado_sugerencia : estado} */}
                       </span>
                     </td>
                     <td className="px-4 py-2 border border-gray-300">

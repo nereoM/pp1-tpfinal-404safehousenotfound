@@ -67,20 +67,6 @@ export const adminEmpService = {
     const data = await fetcher({ url, options })
     return data
   },
-  async evaluarLicencia({ idLicencia, estado }) {
-    const url = `${API_URL}/api/evaluar-licencia-empleado/${idLicencia}`
-
-    const options = {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ estado }),
-    }
-
-    const data = await fetcher({ url, options })
-    return data
-  },
   async obtenerInfoAdminEmpresa() {
     const url = `${API_URL}/api/info-admin`
 
@@ -146,5 +132,36 @@ export const adminEmpService = {
 
     const data = await fetcher({ url });
     return data;
-  }
+  },
+  async misLicencias() {
+    const url = `${API_URL}/api/licencias-mis-managers`;
+
+    const data = await fetcher({ url });
+    return data;
+  },
+  async evaluarLicencia({
+    idLicencia,
+    estado,
+    fechaInicioSugerida,
+    fechaFinSugerida,
+    motivo
+  }) {
+    const url = `${API_URL}/api/licencia-${idLicencia}-manager/evaluacion`;
+
+    const options = {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        estado,
+        motivo,
+        fecha_inicio_sugerida: fechaInicioSugerida,
+        fecha_fin_sugerida: fechaFinSugerida,
+      }),
+    };
+
+    const data = await fetcher({ url, options });
+    return data;
+  },
 }

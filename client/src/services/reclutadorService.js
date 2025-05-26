@@ -61,7 +61,7 @@ export const reclutadorService = {
     return data.licencia;
   },
   async misLicencias() {
-    const url = `${API_URL}/api/mis-licencias`;
+    const url = `${API_URL}/api/mis-licencias-reclutador`;
 
     const data = await fetcher({ url });
     return data;
@@ -95,9 +95,6 @@ export const reclutadorService = {
   }) {
     const url = `${API_URL}/api/licencia-${idLicencia}-empleado/evaluacion`;
 
-    console.log({ fechaFinSugerida, fechaInicioSugerida });
-
-
     const options = {
       method: "PUT",
       headers: {
@@ -114,4 +111,18 @@ export const reclutadorService = {
     const data = await fetcher({ url, options });
     return data;
   },
+  async responderSugerenciaLicencia({ licenciaId, aceptacion }) {
+    const url = `${API_URL}/api/licencia-${licenciaId}-reclutador/respuesta-sugerencia`
+
+    const options = {
+      method: "PUT",
+      body: JSON.stringify({ aceptacion }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    const data = await fetcher({ url, options })
+    return data
+  }
 };
