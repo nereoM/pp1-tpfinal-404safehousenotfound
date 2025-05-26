@@ -1047,12 +1047,16 @@ def visualizar_licencias_empleados():
                         "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
                         "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
                         "estado": licencia.estado,
+                        "estado_sugerencia": licencia.estado_sugerencia if licencia.estado_sugerencia else None,
+                        "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat() if licencia.fecha_inicio_sugerencia else None,
+                        "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat() if licencia.fecha_fin_sugerencia else None,
                         "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "No Aplica",
                         "empresa": {
                             "id": licencia.id_empresa,
                             "nombre": empresa.nombre,
                         },
                         "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+                        "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None,
                     }
                 }
             )
@@ -1100,6 +1104,9 @@ def obtener_detalle_licencia(id_licencia):
         "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
         "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
         "estado": licencia.estado,
+        "estado_sugerencia": licencia.estado_sugerencia if licencia.estado_sugerencia else None,
+        "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat() if licencia.fecha_inicio_sugerencia else None,
+        "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat() if licencia.fecha_fin_sugerencia else None,
         "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
         "empresa": {
             "id": licencia.id_empresa,
