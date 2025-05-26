@@ -18,12 +18,12 @@ from datetime import datetime
 
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
-from initialize_admins import create_admins
+#from initialize_admins import create_admins
 from models.extensions import mail
 from flask_migrate import Migrate
 
 from ml.modelo import modelo_sbert
-from ml.desempeno_desarrollo.generation import main as ejecutar_generation
+#from ml.desempeno_desarrollo.generation import main as ejecutar_generation
 
 from flasgger import Swagger
 import webbrowser
@@ -32,12 +32,16 @@ import time
 import sys
 
 app = Flask(__name__)
+app.static_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), "dist")
 app.config.from_object(Config)
 mail.init_app(app)
 jwt = JWTManager(app)
 jwt.init_app(app)
 #CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": [
+    "http://localhost:5173", 
+    "https://appsigrh-production.up.railway.app"
+]}}, supports_credentials=True)
 db.init_app(app)
 #webbrowser.open("http://localhost:5000")
 #BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -85,9 +89,18 @@ setup_swagger_ui(app=app)
 
 migrate = Migrate(app, db)
 
-@app.route("/")
-def hello_world():
-    return redirect(location="/apidocs")
+@app.route("/apidocs")
+def docs():
+    return redirect("/apidocs")
+
+@app.route('/')
+def index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+# 🔁 Servir cualquier otro recurso de React (JS, CSS, imágenes, etc.)
+@app.route('/<path:path>')
+def static_proxy(path):
+    return send_from_directory(app.static_folder, path)
 
 def iniciar_app():
     
@@ -99,7 +112,7 @@ def iniciar_db():
         print("Conectando a:", app.config["SQLALCHEMY_DATABASE_URI"])
         try:
             db.create_all()
-            create_admins()
+            #create_admins()
             print("Conexión exitosa a la base de datos MySQL")
         except Exception as e:
             print("Error de conexión:", e)
@@ -121,7 +134,7 @@ scheduler.start()
 """            
 if __name__ == "__main__":
     iniciar_db()
-    ejecutar_generation()
+    #ejecutar_generation()
     threading.Thread(target=open_frontend).start()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

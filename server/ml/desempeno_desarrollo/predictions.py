@@ -4,7 +4,9 @@ import os
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
-def predecir_rend_futuro(df, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/performance_model.pkl'):
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def predecir_rend_futuro(df, ruta_modelo=os.path.join(BASE_DIR, 'trained_models/performance_model.pkl')):
     try:
         # current_directory = os.path.dirname(__file__)
         # ruta_modelo = os.path.join(current_directory, 'trained_models/performance_model.pkl')
@@ -22,7 +24,7 @@ def predecir_rend_futuro(df, ruta_modelo='server/ml/desempeno_desarrollo/trained
 
         df['rendimiento_futuro_predicho'] = np.round(modelo.predict(X), 2)  # <-- Solo dos decimales
 
-        df.to_csv("server/ml/desempeno_desarrollo/data/rendFut_predichos_use&predict.csv", index=False)
+        df.to_csv(os.path.join(BASE_DIR, 'data/rendFut_predichos_use&predict.csv'), index=False)
 
         return df
     
@@ -33,7 +35,7 @@ def predecir_rend_futuro(df, ruta_modelo='server/ml/desempeno_desarrollo/trained
         print(f"Error inesperado: {str(e)}")
         return None
     
-def predecir_rend_futuro_individual(empleado_data, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/performance_model.pkl'):
+def predecir_rend_futuro_individual(empleado_data, ruta_modelo=os.path.join(BASE_DIR, 'trained_models/performance_model.pkl')):
 
     modelo = joblib.load(ruta_modelo)
 
@@ -55,7 +57,7 @@ def predecir_rend_futuro_individual(empleado_data, ruta_modelo='server/ml/desemp
 
     return df.loc[0, 'rendimiento_futuro_predicho']
 
-def predecir_riesgo_rotacion(df, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/rotation_risk_model.pkl'):
+def predecir_riesgo_rotacion(df, ruta_modelo=os.path.join(BASE_DIR, 'trained_models/rotation_risk_model.pkl')):
     try:
         # # Cargar los datos de empleados
         # df = pd.read_csv(ruta_csv)
@@ -80,7 +82,7 @@ def predecir_riesgo_rotacion(df, ruta_modelo='server/ml/desempeno_desarrollo/tra
         df['Riesgo de rotacion predicho'] = le.inverse_transform(predicciones_numericas)
         
         # Guardar resultados
-        df.to_csv("server/ml/desempeno_desarrollo/data/rotacion_predichos.csv", index=False)
+        df.to_csv(os.path.join(BASE_DIR, 'data/rotacion_predichos.csv'), index=False)
 
         return df
     
@@ -91,7 +93,7 @@ def predecir_riesgo_rotacion(df, ruta_modelo='server/ml/desempeno_desarrollo/tra
         print(f"Error inesperado: {str(e)}")
         return None
     
-def predecir_riesgo_rotacion_individual(empleado_data, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/rotation_risk_model.pkl'):
+def predecir_riesgo_rotacion_individual(empleado_data, ruta_modelo=os.path.join(BASE_DIR, 'trained_models/rotation_risk_model.pkl')):
     modelo, le = joblib.load(ruta_modelo)
     
     columnas = ['ausencias_injustificadas', 'llegadas_tarde', 'salidas_tempranas', 'desempeno_previo']
@@ -104,7 +106,7 @@ def predecir_riesgo_rotacion_individual(empleado_data, ruta_modelo='server/ml/de
 
     return riesgo
 
-def predecir_riesgo_despido(df, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/dismissal_risk_model.pkl'):
+def predecir_riesgo_despido(df, ruta_modelo=os.path.join(BASE_DIR, 'trained_models/dismissal_risk_model.pkl')):
     try:
         # Cargar los datos de empleados
         # df = pd.read_csv(ruta_csv)
@@ -146,7 +148,7 @@ def predecir_riesgo_despido(df, ruta_modelo='server/ml/desempeno_desarrollo/trai
         df.rename(columns={'rendimiento_futuro': 'rendimiento_futuro_predicho'}, inplace=True)
         
         # Guardar resultados
-        df.to_csv("server/ml/desempeno_desarrollo/data/despido_predichos.csv", index=False)
+        df.to_csv(os.path.join(BASE_DIR, 'data/despido_predichos.csv'), index=False)
 
         return df
     
@@ -157,7 +159,7 @@ def predecir_riesgo_despido(df, ruta_modelo='server/ml/desempeno_desarrollo/trai
         print(f"Error inesperado: {str(e)}")
         return None
     
-def predecir_riesgo_despido_individual(empleado_data, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/dismissal_risk_model.pkl'):
+def predecir_riesgo_despido_individual(empleado_data, ruta_modelo=os.path.join(BASE_DIR, 'trained_models/dismissal_risk_model.pkl')):
     modelo = joblib.load(ruta_modelo)
     le_rotacion = LabelEncoder()
     le_rotacion.fit(['bajo', 'medio', 'alto'])  # Ajusta si tienes otros valores posibles
@@ -184,7 +186,7 @@ def predecir_riesgo_despido_individual(empleado_data, ruta_modelo='server/ml/des
 
     return riesgo_despido
 
-def predict_resignation_risk(df, ruta_modelo='server/ml/desempeno_desarrollo/trained_models/resignation_risk_model.pkl'):
+def predict_resignation_risk(df, ruta_modelo=os.path.join(BASE_DIR, 'trained_models/resignation_risk_model.pkl')):
     try:
         # Cargar los datos de empleados
         # df = pd.read_csv(ruta_csv)
@@ -229,7 +231,7 @@ def predict_resignation_risk(df, ruta_modelo='server/ml/desempeno_desarrollo/tra
         df.rename(columns={'rendimiento_futuro': 'rendimiento_futuro_predicho'}, inplace=True)
 
         # Guardar resultados
-        df.to_csv("server/ml/desempeno_desarrollo/data/renuncia_predichos.csv", index=False)
+        df.to_csv(os.path.join(BASE_DIR, 'data/renuncia_predichos.csv'), index=False)
 
         return df
     
@@ -242,7 +244,7 @@ def predict_resignation_risk(df, ruta_modelo='server/ml/desempeno_desarrollo/tra
 
 def predecir_riesgo_renuncia_individual(
     empleado_data,
-    ruta_modelo='server/ml/desempeno_desarrollo/trained_models/resignation_risk_model.pkl'
+    ruta_modelo=os.path.join(BASE_DIR, 'trained_models/resignation_risk_model.pkl')
 ):
     modelo = joblib.load(ruta_modelo)
     le_rotacion = LabelEncoder()
@@ -270,11 +272,11 @@ def predecir_riesgo_renuncia_individual(
     return riesgo_renuncia
 
 if __name__ == "__main__":
-    info_empleados = pd.read_csv("server/ml/desempeno_desarrollo/data/info_empleados.csv")
+    info_empleados = pd.read_csv(os.path.join(BASE_DIR, 'data/info_empleados.csv'))
     rendFut_predichos_useANDpredict = predecir_rend_futuro(info_empleados)
 
     # Tomar solamente el primer empleado del archivo emps_riesgos.csv
-    df_emps_riesgos = pd.read_csv("server/ml/desempeno_desarrollo/data/emps_riesgos.csv")
+    df_emps_riesgos = pd.read_csv(os.path.join(BASE_DIR, 'data/emps_riesgos.csv'))
     primer_empleado = df_emps_riesgos.iloc[0:1]
 
     datos_empleado = {

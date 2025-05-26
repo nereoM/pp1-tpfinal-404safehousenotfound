@@ -1,0 +1,31 @@
+# Evitar copiar carpetas innecesarias
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Evitar entorno virtual local
+venv/
+.env/
+.env.*
+
+# Node modules (frontend)
+client/node_modules/
+client/.vite/
+
+# Archivos temporales o de sistema
+.DS_Store
+Thumbs.db
+
+# Otros archivos de lock que no sirven para la imagen
+*.lock
+*.bak
+
+# Git y otros SCM
+.git/
+.gitignore
+
+# Archivos de desarrollo
+*.code-workspace
+*.vscode/
