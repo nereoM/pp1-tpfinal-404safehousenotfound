@@ -1160,6 +1160,7 @@ def eval_licencia(id_licencia):
     if licencia.id_empresa != reclutador.id_empresa and not tiene_rol_empleado:
         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
     
+    message = f"Licencia {nuevo_estado} exitosamente"
     if nuevo_estado == "aprobada":
         if not puede_aprobar:
             return jsonify({"error": "Solo puedes aprobar licencias de vacaciones pendientes o con sugerencia aceptada"}), 403
@@ -1180,13 +1181,14 @@ def eval_licencia(id_licencia):
         except Exception:
             return jsonify({"error": "Formato de fecha sugerida inválido"}), 400
 
-        licencia.estado = nuevo_estado
+        # licencia.estado = nuevo_estado
         licencia.estado_sugerencia = "sugerencia pendiente"
         licencia.fecha_inicio_sugerencia = fecha_inicio_dt
         licencia.fecha_fin_sugerencia = fecha_fin_dt
         # El estado de la licencia se mantiene pendiente
         if motivo:
             licencia.motivo_rechazo = motivo
+        message = "Licencia sugerida exitosamente"
     else:
         licencia.estado = nuevo_estado
         if motivo:
@@ -1197,7 +1199,8 @@ def eval_licencia(id_licencia):
     empresa = Empresa.query.get(licencia.id_empresa)
 
     return jsonify({
-        "message": f"Licencia {nuevo_estado} exitosamente",
+        "message": message,
+        # "message": f"Licencia {nuevo_estado} exitosamente",
         "licencia": {
             "id_licencia": licencia.id,
             "empleado": {
