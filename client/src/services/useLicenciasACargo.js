@@ -39,18 +39,16 @@ export function useLicenciasACargo({ service }) {
         setMotivoRechazo("");
 
         setLicencias((prevState) =>
-          prevState.map(
-            (licencia) => {
-              if (licencia.id_licencia !== licenciaSeleccionada.id_licencia) {
-                return licencia
-              }
-
-              return {
-                ...licencia,
-                estado: "sugerencia"
-              }
+          prevState.map((item) => {
+            if (item.licencia.id_licencia !== licenciaSeleccionada.id_licencia) {
+              return item;
             }
-          )
+
+            return {
+              ...item,
+              estado: "sugerencia",
+            };
+          })
         );
       })
       .catch((err) => {
@@ -59,14 +57,43 @@ export function useLicenciasACargo({ service }) {
       });
   };
 
-  const evaluarLicencia = async () => {
+  const aprobarLicencia = async ({ licencia }) => {
     return service
       .evaluarLicencia({
-        idLicencia: licenciaSeleccionada.id_licencia,
-        fecha_fin: licenciaSeleccionada.fecha_fin,
-        fecha_inicio: licenciaSeleccionada.fecha_inicio,
-        estado: "",
-        motivo: "",
+        idLicencia: licencia.id_licencia,
+        estado: "aprobada",
+      })
+      .then((res) => {
+        setMensajeEvaluacion(res.message || "Licencia aprobada correctamente.");
+
+        setLicencias((prevState) =>
+          prevState.map((item) => {
+            if (item.licencia.id_licencia !== licencia.id_licencia) {
+              return item;
+            }
+
+            return {
+              ...item,
+              licencia: {
+                ...item.licencia,
+                estado: "aprobada",
+              },
+            };
+          })
+        );
+      })
+      .catch((err) => {
+        console.error("Error al evaluar licencia:", err);
+        setMensajeEvaluacion(err.message || "Error al aprobar la licencia.");
+      });
+  };
+
+  const evaluarLicencia = async ({ estado, idLicencia }) => {
+    return service
+      .evaluarLicencia({
+        idLicencia,
+        estado,
+        motivo: motivoRechazo ?? "",
       })
       .then((res) => {
         setMensajeEvaluacion(
@@ -92,5 +119,6 @@ export function useLicenciasACargo({ service }) {
     licenciaSeleccionada,
     setLicenciaSeleccionada,
     sugerirFechas,
+    aprobarLicencia,
   };
 }

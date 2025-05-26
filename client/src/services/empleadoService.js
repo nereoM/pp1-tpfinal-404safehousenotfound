@@ -231,5 +231,16 @@ export const empleadoService = {
 
     const data = await fetcher({ url, options })
     return data
-  }
+  },
+  async cancelarLicencia({ licenciaId }) {
+    // TODO
+    const url = `${API_URL}/api/licencia-${licenciaId}/cancelar`
+
+    const options = {
+      method: "PUT",
+    };
+
+    const data = await fetcher({ url, options })
+    return data
+  },
 };

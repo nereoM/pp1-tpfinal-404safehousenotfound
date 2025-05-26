@@ -91,8 +91,12 @@ export const reclutadorService = {
     estado,
     fechaInicioSugerida,
     fechaFinSugerida,
+    motivo
   }) {
     const url = `${API_URL}/api/licencia-${idLicencia}-empleado/evaluacion`;
+
+    console.log({ fechaFinSugerida, fechaInicioSugerida });
+
 
     const options = {
       method: "PUT",
@@ -101,6 +105,7 @@ export const reclutadorService = {
       },
       body: JSON.stringify({
         estado,
+        motivo,
         fecha_inicio_sugerida: fechaInicioSugerida,
         fecha_fin_sugerida: fechaFinSugerida,
       }),
