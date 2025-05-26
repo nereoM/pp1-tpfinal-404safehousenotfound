@@ -1173,6 +1173,7 @@ def eval_licencia(id_licencia):
         except Exception:
             return jsonify({"error": "Formato de fecha sugerida inválido"}), 400
 
+        licencia.estado = nuevo_estado
         licencia.estado_sugerencia = "sugerencia pendiente"
         licencia.fecha_inicio_sugerencia = fecha_inicio_dt
         licencia.fecha_fin_sugerencia = fecha_fin_dt
