@@ -1150,11 +1150,12 @@ def eval_licencia(id_licencia):
     puede_aprobar = (
         (licencia.estado == "pendiente" and licencia.tipo in ["vacaciones"])
         or (licencia.estado == "pendiente" and licencia.estado_sugerencia == "sugerencia aceptada")
+        or (licencia.estado == "sugerencia" and licencia.estado_sugerencia == "sugerencia aceptada")
     )
 
     # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
-    if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
-        return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
+    # if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
+    #     return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
 
     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
     if licencia.id_empresa != reclutador.id_empresa and not tiene_rol_empleado:
@@ -1181,7 +1182,7 @@ def eval_licencia(id_licencia):
         except Exception:
             return jsonify({"error": "Formato de fecha sugerida inválido"}), 400
 
-        # licencia.estado = nuevo_estado
+        licencia.estado = nuevo_estado
         licencia.estado_sugerencia = "sugerencia pendiente"
         licencia.fecha_inicio_sugerencia = fecha_inicio_dt
         licencia.fecha_fin_sugerencia = fecha_fin_dt

@@ -1094,6 +1094,7 @@ def responder_sugerencia_licencia(id_licencia):
     if aceptacion:
         licencia.estado_sugerencia = "sugerencia aceptada"
     else:
+        licencia.estado = "rechazada"
         licencia.estado_sugerencia = "sugerencia rechazada"
 
     db.session.commit()
