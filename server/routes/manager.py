@@ -1465,6 +1465,30 @@ def obtener_ofertas_libres_reclutadores():
 
     return jsonify({"ofertas_libres_reclutadores": resultado}), 200
 
+@manager_bp.route('/ofertas-asignadas', methods=['GET'])
+@role_required(["manager"])
+def obtener_ofertas_asignadas():
+    try:
+        asignaciones = db.session.query(Oferta_analista.id_oferta, Oferta_analista.id_analista).all()
+        
+        # 📦 PRINT DETALLADO PARA DEBUG VISUAL
+        print("\n" + "="*50)
+        print("📊 ASIGNACIONES DE OFERTAS A ANALISTAS ENCONTRADAS")
+        print("="*50)
+        if not asignaciones:
+            print("⚠️  No se encontraron asignaciones registradas.")
+        for id_oferta, id_analista in asignaciones:
+            print(f"🟢 Oferta ID: {id_oferta}\n🔵 Analista ID: {id_analista}\n" + "-"*30)
+        print("="*50 + "\n")
+
+        return jsonify([
+            {"id_oferta": id_oferta, "id_analista": id_analista}
+            for id_oferta, id_analista in asignaciones
+        ])
+    except Exception as e:
+        print("❌ Error al obtener asignaciones:", str(e))
+        return jsonify({"error": "Error interno"}), 500
+
 @manager_bp.route("/oferta-libre-<int:id_oferta>/informacion", methods=["GET"])
 @role_required(["manager"])
 def obtener_oferta_libre_reclutador(id_oferta):

@@ -136,7 +136,22 @@ export const managerService = {
     };
 
     const data = await fetcher({ url, options })
-    return data
+    return data;
+  },
+  async obtenerOfertasAsignadas() {
+    const url = `${API_URL}/api/ofertas-asignadas`;
+    const data = await fetcher({ url });
+    return { data }; // [{ id_oferta, id_analista }, ...]
+  },
+  async obtenerAnalistasAsignados() {
+    const url = `${API_URL}/api/manager/ofertas-analistas`; // o como se llame
+    const data = await fetcher({ url });
+    // data = [{ id_oferta: 5, id_analista: 33 }, ...]
+    const asignaciones = {};
+    data.forEach(({ id_oferta, id_analista }) => {
+      asignaciones[id_oferta] = id_analista;
+    });
+    return asignaciones;
   }
 }
 

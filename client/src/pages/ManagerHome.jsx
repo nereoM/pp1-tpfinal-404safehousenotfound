@@ -35,8 +35,8 @@ export default function ManagerHome() {
   const [analistas, setAnalistas] = useState([]);
   const [selectedAnalistas, setSelectedAnalistas] = useState({});
 
-const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set()); // facu
-const inputMetricasRef = useRef(null);
+  const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set());
+  const inputMetricasRef = useRef(null);
 
 
   const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false)
@@ -98,6 +98,22 @@ const inputMetricasRef = useRef(null);
 
     cargarUsuario();
   }, []);
+
+  useEffect(() => {
+    const obtenerOfertasAsignadas = async () => {
+      try {
+        const response = await managerService.obtenerOfertasAsignadas();
+        setOfertasAsignadas(new Set(response.data.map(item => Number(item.id_oferta))));
+        console.log("🟩 Ofertas asignadas:", response.data);
+      } catch (error) {
+        console.error("❌ Error al obtener ofertas asignadas:", error);
+      }
+    };
+
+    if (modalVerOfertasOpen) {
+      obtenerOfertasAsignadas();
+    }
+  }, [modalVerOfertasOpen]);
 
   const subirMetricasDesdeCSV = async () => {
     if (!archivoMetricas) {
@@ -239,9 +255,17 @@ const inputMetricasRef = useRef(null);
     }
   };
 
-  const openModalVerOfertas = () => {
-    fetchMisOfertas();
-    fetchAnalistas();
+  const openModalVerOfertas = async () => {
+    await fetchMisOfertas();
+    await fetchAnalistas();
+
+    try {
+      const asignaciones = await managerService.obtenerAnalistasAsignados();
+      setSelectedAnalistas(asignaciones);
+    } catch (error) {
+      console.error("Error al obtener analistas asignados:", error);
+    }
+
     setModalVerOfertasOpen(true);
   };
 
@@ -689,8 +713,8 @@ const inputMetricasRef = useRef(null);
                       </thead>
                       <tbody>
                         {ofertas.map(o => {
-                          const estaAsignada = ofertasAsignadas.has(o.id_oferta); //  Fue asignado con el botón
-                          const analistaSeleccionado = selectedAnalistas[o.id_oferta]; //  Hay algo seleccionado
+                          const estaAsignada = ofertasAsignadas.has(Number(o.id_oferta)); // 🔁 importante: forzamos a number
+                          const analistaSeleccionado = selectedAnalistas[o.id_oferta]; // 🧠 analista seleccionado del dropdown
 
                           // 🎨 Lógica de color e ícono
                           let claseColor = "";
@@ -706,7 +730,6 @@ const inputMetricasRef = useRef(null);
                             icono = "✅";
                             tooltip = "Analista asignado";
                           } else if (analistaSeleccionado && analistaSeleccionado !== "") {
-
                             claseColor = "bg-orange-200 text-orange-800";
                             icono = "⏳";
                             tooltip = "Analista seleccionado pero no asignado";
@@ -715,6 +738,9 @@ const inputMetricasRef = useRef(null);
                             icono = "⚠️";
                             tooltip = "Sin analista asignado";
                           }
+
+                          // 🧪 DEBUG opcional
+                          console.log(`Oferta ${o.id_oferta}: asignada=${estaAsignada}, seleccion=${analistaSeleccionado}`);
 
                           return (
                             <tr key={o.id_oferta} className={`border-t ${claseColor}`}>
@@ -727,7 +753,7 @@ const inputMetricasRef = useRef(null);
                                   value={selectedAnalistas[o.id_oferta] || ""}
                                   onChange={e => handleSelectAnalista(o.id_oferta, e.target.value)}
                                   className="border px-2 py-1 rounded mr-2 text-black"
-                                  disabled={o.is_active === false || estaAsignada} // ⛔️ Bloqueado si cerrada o asignada
+                                  disabled={!o.is_active || estaAsignada} // desactivado si cerrada o ya asignada
                                 >
                                   <option value="">Seleccione analista</option>
                                   {analistas.map(a => (
@@ -737,7 +763,7 @@ const inputMetricasRef = useRef(null);
                                 <button
                                   onClick={() => asignarAnalista(o.id_oferta)}
                                   className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
-                                  disabled={!o.is_active || estaAsignada} // ⛔️ Bloqueado si cerrada o ya asignada
+                                  disabled={!o.is_active || estaAsignada}
                                 >
                                   Asignar
                                 </button>
