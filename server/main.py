@@ -93,14 +93,14 @@ migrate = Migrate(app, db)
 def docs():
     return redirect("/apidocs")
 
-@app.route('/')
-def index():
-    return send_from_directory(app.static_folder, 'index.html')
+@app.route('/assets/<path:filename>')
+def static_files(filename):
+    return send_from_directory(os.path.join(app.static_folder, 'assets'), filename)
 
-# 🔁 Servir cualquier otro recurso de React (JS, CSS, imágenes, etc.)
+@app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def static_proxy(path):
-    return send_from_directory(app.static_folder, path)
+def serve_react(path):
+    return send_from_directory(app.static_folder, 'index.html')
 
 def iniciar_app():
     

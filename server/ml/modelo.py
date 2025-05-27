@@ -1,3 +1,8 @@
+import os
 from sentence_transformers import SentenceTransformer
 
-modelo_sbert = SentenceTransformer("all-MiniLM-L6-v2")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "sbert_model")
+
+modelo_sbert = SentenceTransformer(MODEL_PATH)
+

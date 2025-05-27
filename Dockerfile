@@ -2,10 +2,8 @@
 FROM node:20-alpine AS client-build
 WORKDIR /app
 
-# 👉 Variable de entorno para Vite
 ENV VITE_API_URL=https://appsigrh-production.up.railway.app
 
-# Copiar archivos necesarios para el build del frontend
 COPY client/package.json ./package.json
 COPY client/package-lock.json ./package-lock.json
 COPY client/vite.config.js ./vite.config.js
@@ -20,7 +18,6 @@ FROM python:3.10-slim
 
 ENV PYTHONUNBUFFERED=1
 
-# Dependencias necesarias
 RUN apt-get update && \
     apt-get install -y \
     build-essential \
@@ -28,7 +25,6 @@ RUN apt-get update && \
     pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
-# Mismo path que tenías localmente: /app/server
 WORKDIR /app/server
 
 # Instalar requirements
@@ -41,11 +37,11 @@ RUN pip install --no-cache-dir -r ../requirements.txt && \
 # Copiar backend completo
 COPY server/ .
 
-# Copiar build del frontend al backend (dentro de /app/server/dist)
+COPY server/ml/sbert_model /app/server/ml/sbert_model
+
+# Copiar build del frontend al backend
 COPY --from=client-build /app/dist ./dist
 
-# Exponer el puerto del backend
 EXPOSE 5000
 
-# Iniciar el servidor con gunicorn
 CMD ["gunicorn", "--timeout", "120", "-w", "1", "-b", "0.0.0.0:5000", "main:app"]
