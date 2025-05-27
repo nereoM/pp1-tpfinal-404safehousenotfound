@@ -434,6 +434,13 @@ def asignar_analista_a_oferta():
         return jsonify(
             {"error": "El analista no pertenece a la misma empresa que la oferta."}
         ), 403
+    
+    # Nueva validación: el analista no puede tener más de una oferta asignada
+    oferta_existente = Oferta_analista.query.filter_by(id_analista=analista.id).first()
+    if oferta_existente:
+        return jsonify(
+            {"error": "El analista ya tiene una oferta asignada. No se puede asignar otra."}
+        ), 400
 
     oferta_analista = Oferta_analista(id_oferta=oferta.id, id_analista=analista.id)
     db.session.add(oferta_analista)
