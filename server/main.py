@@ -11,6 +11,7 @@ from routes.reclutador import reclutador_bp
 from routes.manager import manager_bp
 from routes.admin_emp import admin_emp_bp
 from routes.empleado import empleado_bp
+from routes.imagenes import imagenes_bp
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from models.schemes import Licencia
@@ -54,6 +55,7 @@ app.register_blueprint(manager_bp,    url_prefix="/api")
 app.register_blueprint(admin_emp_bp,  url_prefix="/api")
 app.register_blueprint(admin_404_bp,  url_prefix="/api")
 app.register_blueprint(empleado_bp,   url_prefix="/api")
+app.register_blueprint(imagenes_bp, url_prefix="/api")
 
 #### AGREGADO PARA VER CERTIFICADOS ####
 from flask import send_from_directory
