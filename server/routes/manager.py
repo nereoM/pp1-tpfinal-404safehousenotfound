@@ -3,7 +3,6 @@ import secrets
 import re
 import csv
 import pandas as pd
-from ml.desempeno_desarrollo.predictions import predecir_rend_futuro
 from auth.decorators import role_required
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -26,7 +25,9 @@ from models.schemes import (
     RendimientoEmpleado,
     UsuarioRol,
     Notificacion,
-    HistorialRendimientoEmpleado
+    HistorialRendimientoEmpleado,
+    Job_Application,
+    Preferencias_empresa,
 )
 from ml.desempeno_desarrollo.predictions import predecir_rend_futuro_individual, predecir_riesgo_despido_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_renuncia_individual
 
@@ -892,6 +893,9 @@ def registrar_info_laboral_empleados_tabla(file_path):
                 accion = "creado"
 
             if datos_cambiaron:
+                empleados_bajo_rendimiento = 0
+                empleados_alta_renuncia = 0
+                empleados_alta_rotacion = 0
                 try:
                     datos_rend_futuro = {
                         "desempeno_previo": ultimo_rendimiento,
@@ -902,13 +906,15 @@ def registrar_info_laboral_empleados_tabla(file_path):
                         "antiguedad": calcular_antiguedad(antiguedad),
                         "horas_capacitacion": horas_capacitacion
                     }
-                    
                     fecha_actual = datetime.utcnow()
                     rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
                     existe_historial = HistorialRendimientoEmpleado.query.filter_by(
                         id_empleado=id_empleado,
                         fecha_calculo=fecha_actual
                     ).first()
+
+                    if rendimiento.rendimiento_futuro_predicho is not None and rendimiento.rendimiento_futuro_predicho < 5:
+                        empleados_bajo_rendimiento += 1
 
                     if not existe_historial:
                         nuevo_historial = HistorialRendimientoEmpleado(
@@ -917,7 +923,7 @@ def registrar_info_laboral_empleados_tabla(file_path):
                             rendimiento=rendimiento.rendimiento_futuro_predicho
                         )
                         db.session.add(nuevo_historial)
-                        
+                                        
                     datos_rotacion = {
                         "ausencias_injustificadas": ausencias_injustificadas,
                         "llegadas_tarde": llegadas_tarde,
@@ -925,6 +931,9 @@ def registrar_info_laboral_empleados_tabla(file_path):
                         "desempeno_previo": ultimo_rendimiento
                     }
                     rendimiento.riesgo_rotacion_predicho = predecir_riesgo_rotacion_individual(datos_rotacion)
+
+                    if rendimiento.riesgo_rotacion_predicho is not None and rendimiento.riesgo_rotacion_predicho == "alto":
+                        empleados_alta_rotacion += 1
 
                     datos_despido = {
                         "ausencias_injustificadas": ausencias_injustificadas,
@@ -946,6 +955,9 @@ def registrar_info_laboral_empleados_tabla(file_path):
                         "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho
                     }
                     rendimiento.riesgo_renuncia_predicho = predecir_riesgo_renuncia_individual(datos_renuncia)
+
+                    if rendimiento.riesgo_renuncia_predicho is not None and rendimiento.riesgo_renuncia_predicho == "alto":
+                        empleados_alta_renuncia += 1
 
                     nombre_empleado = Usuario.query.get(id_empleado).nombre
                     nombre_empresa = Empresa.query.get(manager.id_empresa).nombre
@@ -994,6 +1006,27 @@ def registrar_info_laboral_empleados_tabla(file_path):
                 "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho if datos_cambiaron else None,
                 "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho if datos_cambiaron else None
             })
+
+        if empleados_bajo_rendimiento > 0:
+            mensaje_manager = (
+                f"Se detectaron {empleados_bajo_rendimiento} empleados con bajo rendimiento "
+                f"en el último análisis. Se recomienda revisar sus casos individualmente."
+            )
+        crear_notificacion_uso_especifico(manager.id, mensaje_manager)
+
+        if empleados_alta_renuncia > 0:
+            mensaje_manager = (
+                f"Se detectaron {empleados_alta_renuncia} empleados con alta probabilidad de renuncia "
+                f"en el último análisis. Se recomienda revisar sus casos individualmente."
+            )
+        crear_notificacion_uso_especifico(manager.id, mensaje_manager)
+
+        if empleados_alta_rotacion > 0:
+            mensaje_manager = (
+                f"Se detectaron {empleados_alta_renuncia} empleados con alta probabilidad de rotación "
+                f"en el último análisis. Se recomienda revisar sus casos individualmente."
+            )
+        crear_notificacion_uso_especifico(manager.id, mensaje_manager)
 
         db.session.commit()
         return resultado
