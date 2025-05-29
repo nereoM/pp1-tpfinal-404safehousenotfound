@@ -301,10 +301,8 @@ def reporte_riesgos():
     for d in dias_mes_data:
         d["mes"] = meses_nombres[d["mes"] - 1]
 
-    # 5. Generar gráfico
     grafico_base64 = grafico_ausencias_base64(dias_mes_data)
 
-    # 6. Render y exportar
     env = Environment(loader=FileSystemLoader("templates"))
     template = env.get_template("reporte_asistencia_profesional.html")
     html_out = template.render(
