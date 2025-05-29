@@ -10,6 +10,7 @@ COPY client/vite.config.js ./vite.config.js
 COPY client/index.html ./index.html
 COPY client/src ./src
 COPY client/public ./public
+COPY client/dist ./dist
 
 RUN npm install && npm run build
 
