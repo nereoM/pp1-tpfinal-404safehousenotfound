@@ -1012,21 +1012,21 @@ def registrar_info_laboral_empleados_tabla(file_path):
                 f"Se detectaron {empleados_bajo_rendimiento} empleados con bajo rendimiento "
                 f"en el último análisis. Se recomienda revisar sus casos individualmente."
             )
-        crear_notificacion_uso_especifico(manager.id, mensaje_manager)
+            crear_notificacion_uso_especifico(manager.id, mensaje_manager)
 
         if empleados_alta_renuncia > 0:
             mensaje_manager = (
                 f"Se detectaron {empleados_alta_renuncia} empleados con alta probabilidad de renuncia "
                 f"en el último análisis. Se recomienda revisar sus casos individualmente."
             )
-        crear_notificacion_uso_especifico(manager.id, mensaje_manager)
+            crear_notificacion_uso_especifico(manager.id, mensaje_manager)
 
         if empleados_alta_rotacion > 0:
             mensaje_manager = (
                 f"Se detectaron {empleados_alta_renuncia} empleados con alta probabilidad de rotación "
                 f"en el último análisis. Se recomienda revisar sus casos individualmente."
             )
-        crear_notificacion_uso_especifico(manager.id, mensaje_manager)
+            crear_notificacion_uso_especifico(manager.id, mensaje_manager)
 
         db.session.commit()
         return resultado
