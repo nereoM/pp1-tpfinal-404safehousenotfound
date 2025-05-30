@@ -14,6 +14,7 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
+import { Download } from "lucide-react";
 
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta"; // alertas
@@ -114,6 +115,31 @@ export default function ManagerHome() {
       obtenerOfertasAsignadas();
     }
   }, [modalVerOfertasOpen]);
+
+  const descargarReporteReclutamiento = async () => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento-manager?formato=excel`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo descargar el reporte");
+      const blob = await res.blob();
+      // Nombre sugerido para el archivo
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "informe_reclutamiento.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error al descargar el reporte de reclutamiento");
+    }
+  };
 
   const subirMetricasDesdeCSV = async () => {
     if (!archivoMetricas) {
@@ -322,7 +348,7 @@ export default function ManagerHome() {
   };
 
 
-  const obtenerLicencias = async () => {  
+  const obtenerLicencias = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/licencias-solicitadas-manager`, {
         method: "GET",
@@ -470,7 +496,7 @@ export default function ManagerHome() {
       descripcion: "Accede a las licencias del personal y sus estados.",
       onClick: () => setModalLicenciasACargo(true)
     },
-        {
+    {
       icon: BarChart2,
       titulo: "Editar Métricas de Analistas",
       descripcion: "Visualizá y editá las métricas de tus analistas en una tabla interactiva.",
@@ -692,9 +718,19 @@ export default function ManagerHome() {
           {modalVerOfertasOpen && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
               <div className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl w-3/4 max-h-[89.9vh] text-black shadow-xl flex flex-col">
-                
+
                 <MensajeAlerta texto={mensajeAsignacion} />
 
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={descargarReporteReclutamiento}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                    title="Descargar reporte de reclutamiento en Excel"
+                  >
+                    <Download className="w-5 h-5" />
+                    Descargar Reporte de Reclutamiento
+                  </button>
+                </div>
 
                 <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
 
@@ -824,7 +860,7 @@ export default function ManagerHome() {
               onClose={() => setModalLicenciasACargo(false)}
             />}
 
-          {modalSolicitarLicencia && <SolicitarLicenciaModal  onClose={() => setModalSolicitarLicencia(false)}/>}
+          {modalSolicitarLicencia && <SolicitarLicenciaModal onClose={() => setModalSolicitarLicencia(false)} />}
 
           {modalSubirEmpleados && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
