@@ -451,7 +451,7 @@ def reporte_desempeno():
 
 
 
-@reportes_bp.route("/reporte-riesgos-manager", methods=["GET"])
+@reportes_bp.route("/reportes-riesgos-manager", methods=["GET"])
 @role_required(["manager"])
 def reporte_riesgos():
     formato = request.args.get("formato", "pdf")
