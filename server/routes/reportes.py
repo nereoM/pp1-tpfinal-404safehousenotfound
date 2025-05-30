@@ -198,14 +198,14 @@ def reporte_reclutamiento():
             adjusted_width = max_length + 2
             ws.column_dimensions[col_letter].width = adjusted_width
 
-        # Guardar archivo
+        from datetime import datetime
+
+        TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
+        os.makedirs(TEMP_DIR, exist_ok=True)
         archivo_excel = f"informe_reclutamiento_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-        ruta_excel = os.path.join(TEMP_DIR, archivo_excel)
-        #os.makedirs("temp", exist_ok=True)
+        ruta_excel = os.path.abspath(os.path.join(TEMP_DIR, archivo_excel))
         wb.save(ruta_excel)
-
         return send_file(ruta_excel, as_attachment=True, download_name=archivo_excel)
-
 
     return {"error": "Formato no soportado"}, 400
 
