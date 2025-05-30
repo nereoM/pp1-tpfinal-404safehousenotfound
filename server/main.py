@@ -12,6 +12,7 @@ from routes.manager import manager_bp
 from routes.admin_emp import admin_emp_bp
 from routes.empleado import empleado_bp
 from routes.imagenes import imagenes_bp
+from routes.reportes import reportes_bp
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from models.schemes import Licencia
@@ -56,6 +57,7 @@ app.register_blueprint(admin_emp_bp,  url_prefix="/api")
 app.register_blueprint(admin_404_bp,  url_prefix="/api")
 app.register_blueprint(empleado_bp,   url_prefix="/api")
 app.register_blueprint(imagenes_bp, url_prefix="/api")
+app.register_blueprint(reportes_bp, url_prefix="/api")
 
 #### AGREGADO PARA VER CERTIFICADOS ####
 from flask import send_from_directory
@@ -137,6 +139,6 @@ scheduler.start()
 if __name__ == "__main__":
     iniciar_db()
     #ejecutar_generation()
-    threading.Thread(target=open_frontend).start()
+    #threading.Thread(target=open_frontend).start()
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

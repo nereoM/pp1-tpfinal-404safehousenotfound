@@ -22,6 +22,11 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update && \
     apt-get install -y \
     build-essential \
+    libpango1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libcairo2 \
+    libffi-dev \
+    shared-mime-info \
     default-libmysqlclient-dev \
     pkg-config && \
     rm -rf /var/lib/apt/lists/*

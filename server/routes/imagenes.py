@@ -4,13 +4,16 @@ from werkzeug.utils import secure_filename
 
 imagenes_bp = Blueprint('imagenes_bp', __name__)
 
+BASE_DIR = os.getcwd()
+
 @imagenes_bp.route('/guardar-imagen-reporte', methods=['POST'])
 def guardar_imagen_reporte():
     if 'imagen' not in request.files:
         return jsonify({"error": "No se envió la imagen"}), 400
 
     imagen = request.files['imagen']
-    carpeta_destino = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'imagenes_reportes'))
+
+    carpeta_destino = os.path.join(BASE_DIR, "imagenes_reportes")
 
     if not os.path.exists(carpeta_destino):
         os.makedirs(carpeta_destino)
