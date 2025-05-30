@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Desempeño</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #222;
+            background: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 950px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px 0 #0001;
+            padding: 32px 40px 40px 40px;
+        }
+        .logo {
+            max-width: 180px;
+            margin-bottom: 24px;
+            display: block;
+        }
+        h1 {
+            background: #0077b6;
+            color: #fff;
+            padding: 18px 0;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+        h2 {
+            background: #0077b6;
+            margin-top: 32px;
+            margin-bottom: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 10px 8px;
+            text-align: center;
+        }
+        th {
+            background: #0077b6;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        tr:nth-child(even) td {
+            background: #f3f4f6;
+        }
+        tr:hover td {
+            background: #e0e7ef;
+        }
+        .footer {
+            margin-top: 36px;
+            text-align: right;
+            color: #888;
+            font-size: 0.95rem;
+        }
+        .grafico {
+            display: block;
+            margin: 30px auto 20px auto;
+            max-width: 600px;
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #0002;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if logo_url %}
+            <img src="{{ logo_url }}" class="logo" alt="Logo empresa">
+        {% endif %}
+        <h1>Reporte de Desempeño - {{ empresa }}</h1>
+
+        <h2>Ranking de Rendimiento Futuro</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Puesto</th>
+                    <th>Rendimiento Futuro</th>
+                    <th>Clasificación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in ranking_futuro %}
+                <tr>
+                    <td>{{ emp.nombre }}</td>
+                    <td>{{ emp.apellido }}</td>
+                    <td>{{ emp.puesto or "Analista" }}</td>
+                    <td>{{ "%.2f"|format(emp.rendimiento_futuro) }}</td>
+                    <td>{{ emp.clasificacion_rendimiento }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Gráfico de Clasificación de Rendimiento</h2>
+        {% if grafico_base64 %}
+            <img src="data:image/png;base64,{{ grafico_base64 }}" class="grafico" alt="Gráfico de rendimiento">
+        {% endif %}
+
+        <h2>Promedio de Rendimiento por Puesto</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Puesto</th>
+                    <th>Promedio</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in promedios_por_puesto %}
+                <tr>
+                    <td>{{ p.puesto }}</td>
+                    <td>{{ "%.2f"|format(p.promedio) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Gráfico de Promedio por Puesto</h2>
+        {% if grafico_puesto_base64 %}
+            <img src="data:image/png;base64,{{ grafico_puesto_base64 }}" class="grafico" alt="Gráfico por puesto">
+        {% endif %}
+
+        <div class="footer">
+            Generado el {{ now().strftime('%d/%m/%Y %H:%M') }}
+        </div>
+    </div>
+</body>
+</html>

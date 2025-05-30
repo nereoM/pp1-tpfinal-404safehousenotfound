@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { motion } from 'framer-motion';
 import { useExportarGraficos } from "../hooks/useExportarGraficos";
+import { Download } from "lucide-react"; // Agrega este import
 
 export default function RendimientoAnalistas() {
   const [empleados, setEmpleados] = useState([]);
@@ -74,14 +75,14 @@ export default function RendimientoAnalistas() {
   }, []);
 
   useExportarGraficos(
-  [
-    { idElemento: "grafico-rendimiento", nombreArchivo: "rendimiento_analistas" },
-    { idElemento: "grafico-cantidad", nombreArchivo: "distribucion_analistas" },
-    { idElemento: "grafico-bar1", nombreArchivo: "promedios_analistas" },
-    { idElemento: "grafico-bar2", nombreArchivo: "cantidad_analistas" }
-  ],
-  !loading && empleados.length > 0
-);
+    [
+      { idElemento: "grafico-rendimiento", nombreArchivo: "rendimiento_analistas" },
+      { idElemento: "grafico-cantidad", nombreArchivo: "distribucion_analistas" },
+      { idElemento: "grafico-bar1", nombreArchivo: "promedios_analistas" },
+      { idElemento: "grafico-bar2", nombreArchivo: "cantidad_analistas" }
+    ],
+    !loading && empleados.length > 0
+  );
 
 
   const resumenData = [
@@ -144,6 +145,31 @@ export default function RendimientoAnalistas() {
     "Bajo": "bg-red-200 text-red-900 font-bold",
   };
 
+  const descargarReporteDesempeno = async (formato = "excel") => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reportes-desempeno-manager?formato=${formato}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo descargar el reporte");
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = window.URL.createObjectURL(blob);
+      a.download = formato === "pdf" ? "reporte_desempeno.pdf" : "reporte_desempeno.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(a.href);
+    } catch (err) {
+      setTipoMensaje("error");
+      setMensaje("Error al descargar el reporte de desempeño.");
+      setTimeout(() => setMensaje(null), 4000);
+    }
+  };
+
   // Animación y visual de Riesgos + Filtros
   const empleadosFiltrados = useMemo(() => {
     return empleados.filter(emp => {
@@ -167,14 +193,34 @@ export default function RendimientoAnalistas() {
         Rendimiento Futuro de Analistas y Empleados
       </h2>
 
+      {/* Botones para descargar el reporte */}
+      <div className="flex flex-col sm:flex-row justify-end gap-2 mb-6">
+        <button
+          onClick={() => descargarReporteDesempeno("excel")}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+          title="Descargar reporte de desempeño en Excel"
+        >
+          <Download className="w-5 h-5" />
+          Descargar Reporte Excel
+        </button>
+        <button
+          onClick={() => descargarReporteDesempeno("pdf")}
+          className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+          title="Descargar reporte de desempeño en PDF"
+        >
+          <Download className="w-5 h-5" />
+          Descargar Reporte PDF
+        </button>
+      </div>
+
       {loading ? (
         <p className="text-center text-lg text-gray-500">Cargando datos...</p>
       ) : (
         <>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-          <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Resumen de Rendimiento</h3>
-          <p className="text-sm text-center text-gray-500 mb-4">Visualización general de los promedios de métricas relevantes por clasificación de rendimiento.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
+              <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Resumen de Rendimiento</h3>
+              <p className="text-sm text-center text-gray-500 mb-4">Visualización general de los promedios de métricas relevantes por clasificación de rendimiento.</p>
 
               {/* div para exportar */}
               <div id="grafico-rendimiento">
@@ -197,70 +243,70 @@ export default function RendimientoAnalistas() {
               <p className="text-sm text-center text-gray-500 mb-4">Cantidad relativa de empleados agrupados según su clasificación de rendimiento.</p>
               <div id="grafico-cantidad">
                 <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie
-                    data={cantidadPorRendimiento}
-                    dataKey="value"
-                    nameKey="name"
-                    outerRadius={80}
-                    label
-                  >
-                    {cantidadPorRendimiento.map((entry, idx) => (
-                      <Cell key={idx} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" />
-                </PieChart>
-            </ResponsiveContainer>
-          </div>
+                  <PieChart>
+                    <Pie
+                      data={cantidadPorRendimiento}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={80}
+                      label
+                    >
+                      {cantidadPorRendimiento.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </motion.div>
 
             <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
               <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Promedio por Clasificación</h3>
               <p className="text-sm text-center text-gray-500 mb-4">Comparación de valores promedio de diferentes métricas por clasificación de rendimiento.</p>
               <div id="grafico-bar1">
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={resumenData}>
-                  <XAxis dataKey="name" stroke="#000" />
-                  <YAxis stroke="#000" />
-                  <Tooltip />
-                  <Legend
-                    formatter={(value) => (
-                      <span style={{ color: '#000', fontWeight: 'bold' }}>{value}</span>
-                    )}
-                  />
-                  <Bar dataKey="value" name="Promedio">
-                    {resumenData.map((entry, idx) => (
-                      <Cell key={idx} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-             </div> 
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={resumenData}>
+                    <XAxis dataKey="name" stroke="#000" />
+                    <YAxis stroke="#000" />
+                    <Tooltip />
+                    <Legend
+                      formatter={(value) => (
+                        <span style={{ color: '#000', fontWeight: 'bold' }}>{value}</span>
+                      )}
+                    />
+                    <Bar dataKey="value" name="Promedio">
+                      {resumenData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </motion.div>
 
             <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
               <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Cantidad de empleados por rendimiento</h3>
               <p className="text-sm text-center text-gray-500 mb-4">Número total de empleados en cada categoría de rendimiento.</p>
               <div id="grafico-bar2">
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={cantidadPorRendimiento}>
-                  <XAxis dataKey="name" stroke="#000" />
-                  <YAxis stroke="#000" allowDecimals={false} />
-                  <Tooltip />
-                  <Legend
-                    formatter={(value) => (
-                      <span style={{ color: '#000', fontWeight: 'bold' }}>{value}</span>
-                    )}
-                  />
-                  <Bar dataKey="value" name="Cantidad">
-                    {cantidadPorRendimiento.map((entry, idx) => (
-                      <Cell key={idx} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={cantidadPorRendimiento}>
+                    <XAxis dataKey="name" stroke="#000" />
+                    <YAxis stroke="#000" allowDecimals={false} />
+                    <Tooltip />
+                    <Legend
+                      formatter={(value) => (
+                        <span style={{ color: '#000', fontWeight: 'bold' }}>{value}</span>
+                      )}
+                    />
+                    <Bar dataKey="value" name="Cantidad">
+                      {cantidadPorRendimiento.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </motion.div>
           </div>
