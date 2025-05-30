@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { motion } from 'framer-motion';
+import { useExportarGraficos } from "../hooks/useExportarGraficos";
 
 export default function EmpleadosRendimiento() {
     const [empleados, setEmpleados] = useState([]);
@@ -71,6 +72,17 @@ export default function EmpleadosRendimiento() {
 
         fetchData();
     }, []);
+
+    useExportarGraficos(
+  [
+    { idElemento: "grafico-rendimiento-empleados", nombreArchivo: "rendimiento_empleados" },
+    { idElemento: "grafico-distribucion-empleados", nombreArchivo: "distribucion_empleados" },
+    { idElemento: "grafico-promedio-empleados", nombreArchivo: "promedios_empleados" },
+    { idElemento: "grafico-cantidad-empleados", nombreArchivo: "cantidad_empleados" }
+  ],
+  !loading && empleados.length > 0
+);
+
 
     const resumenData = [
         { name: 'Alto Rendimiento', value: parseFloat(resumen.alto), color: rendimientoColors['Alto Rendimiento'] },
@@ -162,6 +174,7 @@ export default function EmpleadosRendimiento() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                         <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
                             <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Resumen de Rendimiento</h3>
+                            <div id="grafico-rendimiento-empleados">
                             <p className="text-sm text-center text-gray-500 mb-4">Visualización general de los promedios de métricas relevantes por clasificación de rendimiento.</p>
                             <ResponsiveContainer width="100%" height={220}>
                                 <PieChart>
@@ -174,11 +187,13 @@ export default function EmpleadosRendimiento() {
                                     <Legend verticalAlign="bottom" />
                                 </PieChart>
                             </ResponsiveContainer>
+                            </div>
                         </motion.div>
 
                         <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
                             <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Distribución de empleados por rendimiento</h3>
                             <p className="text-sm text-center text-gray-500 mb-4">Cantidad relativa de empleados agrupados según su clasificación de rendimiento.</p>
+                            <div id="grafico-distribucion-empleados">
                             <ResponsiveContainer width="100%" height={220}>
                                 <PieChart>
                                     <Pie
@@ -196,11 +211,13 @@ export default function EmpleadosRendimiento() {
                                     <Legend verticalAlign="bottom" />
                                 </PieChart>
                             </ResponsiveContainer>
+                            </div>
                         </motion.div>
 
                         <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
                             <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Promedio por Clasificación</h3>
                             <p className="text-sm text-center text-gray-500 mb-4">Comparación de valores promedio de diferentes métricas por clasificación de rendimiento.</p>
+                            <div id="grafico-promedio-empleados">
                             <ResponsiveContainer width="100%" height={220}>
                                 <BarChart data={resumenData}>
                                     <XAxis dataKey="name" stroke="#000" />
@@ -218,11 +235,13 @@ export default function EmpleadosRendimiento() {
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
+                            </div>
                         </motion.div>
 
                         <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
                             <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Cantidad de empleados por rendimiento</h3>
                             <p className="text-sm text-center text-gray-500 mb-4">Número total de empleados en cada categoría de rendimiento.</p>
+                            <div id="grafico-cantidad-empleados">
                             <ResponsiveContainer width="100%" height={220}>
                                 <BarChart data={cantidadPorRendimiento}>
                                     <XAxis dataKey="name" stroke="#000" />
@@ -240,6 +259,7 @@ export default function EmpleadosRendimiento() {
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
+                            </div>
                         </motion.div>
                     </div>
 

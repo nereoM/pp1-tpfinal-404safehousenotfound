@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from "recharts";
 import { motion } from "framer-motion";
+import { useExportarGraficos } from "../hooks/useExportarGraficos";
 
 export default function EmpleadosRiesgo() {
     const [empleados, setEmpleados] = useState([]);
@@ -73,6 +74,16 @@ export default function EmpleadosRiesgo() {
         fetchData();
     }, []);
 
+    useExportarGraficos(
+  [
+    { idElemento: "grafico-rendimiento-empleados-riesgo", nombreArchivo: "riesgo_rendimiento_empleados" },
+    { idElemento: "grafico-rotacion-empleados-riesgo",   nombreArchivo: "riesgo_rotacion_empleados"   },
+    { idElemento: "grafico-despido-empleados-riesgo",    nombreArchivo: "riesgo_despido_empleados"    },
+    { idElemento: "grafico-renuncia-empleados-riesgo",  nombreArchivo: "riesgo_renuncia_empleados"  }
+  ],
+  !loading && empleados.length > 0
+);
+
     const colorRendimiento = {
         "Alto Rendimiento": "bg-green-200 text-green-900 font-bold",
         "Alto": "bg-green-200 text-green-900 font-bold",
@@ -98,10 +109,10 @@ export default function EmpleadosRiesgo() {
     };
 
     const secciones = [
-        { titulo: "Distribución de Rendimiento Predicho", resumen: resumen.rendimiento, descripcion: "Muestra cuántos empleados tienen alto, medio o bajo rendimiento." },
-        { titulo: "Riesgo de Rotación", resumen: resumen.rotacion, descripcion: "Indica el riesgo de que los empleados roten de puesto o área." },
-        { titulo: "Riesgo de Despido", resumen: resumen.despido, descripcion: "Indica el riesgo de que los empleados sean despedidos." },
-        { titulo: "Riesgo de Renuncia", resumen: resumen.renuncia, descripcion: "Indica el riesgo de que los empleados renuncien voluntariamente." },
+        { titulo: "Distribución de Rendimiento Predicho", resumen: resumen.rendimiento, descripcion: "Muestra cuántos empleados tienen alto, medio o bajo rendimiento.", id: "grafico-rendimiento-empleados-riesgo"},
+        { titulo: "Riesgo de Rotación", resumen: resumen.rotacion, descripcion: "Indica el riesgo de que los empleados roten de puesto o área.", id: "grafico-rotacion-empleados-riesgo"},
+        { titulo: "Riesgo de Despido", resumen: resumen.despido, descripcion: "Indica el riesgo de que los empleados sean despedidos.", id: "grafico-despido-empleados-riesgo"},
+        { titulo: "Riesgo de Renuncia", resumen: resumen.renuncia, descripcion: "Indica el riesgo de que los empleados renuncien voluntariamente.", id: "grafico-renuncia-empleados-riesgo"},
     ];
 
     // Normaliza para comparar filtros
@@ -153,34 +164,46 @@ export default function EmpleadosRiesgo() {
                 <p className="text-center text-lg text-gray-500">Cargando datos...</p>
             ) : (
                 <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                        {secciones.map(({ titulo, resumen, descripcion }, idx) => {
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                        {secciones.map(({ titulo, resumen, descripcion, id }, idx) => {
                             const invertido = titulo.includes("Rendimiento");
                             return (
-                                <motion.div key={idx} className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-                                    <h3 className="text-xl font-bold text-center text-gray-800 mb-1">{titulo}</h3>
-                                    <p className="text-md text-center text-gray-500 mb-4 font-medium">{descripcion}</p>
-                                    <ResponsiveContainer width="100%" height={220}>
-                                        <PieChart>
-                                            <Pie
-                                                data={resumenToPieData(resumen, invertido)}
-                                                dataKey="value"
-                                                nameKey="name"
-                                                outerRadius={80}
-                                                label
-                                            >
-                                                {resumenToPieData(resumen, invertido).map((entry, idx) => (
-                                                    <Cell key={idx} fill={entry.color} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                            <Legend verticalAlign="bottom" />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </motion.div>
+                            <motion.div
+                                key={idx}
+                                className="bg-white p-5 rounded-2xl shadow-lg"
+                                whileHover={{ scale: 1.03 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                <h3 className="text-xl font-bold text-center text-gray-800 mb-1">
+                                {titulo}
+                                </h3>
+                                <p className="text-md text-center text-gray-500 mb-4 font-medium">
+                                {descripcion}
+                                </p>
+
+                                <div id={id}>
+                                <ResponsiveContainer width="100%" height={220}>
+                                    <PieChart>
+                                    <Pie
+                                        data={resumenToPieData(resumen, invertido)}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        outerRadius={80}
+                                        label
+                                    >
+                                        {resumenToPieData(resumen, invertido).map((entry, i) => (
+                                        <Cell key={i} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend verticalAlign="bottom" />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                </div>
+                            </motion.div>
                             );
                         })}
-                    </div>
+                        </div>
 
                     {/* Controles de filtros */}
                     <div className="bg-white text-black p-5 rounded-2xl shadow-lg mb-6">
