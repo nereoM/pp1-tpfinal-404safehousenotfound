@@ -116,10 +116,10 @@ export default function ManagerHome() {
     }
   }, [modalVerOfertasOpen]);
 
-  const descargarReporteReclutamiento = async () => {
+  const descargarReporteReclutamiento = async (formato = "excel") => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento-manager?formato=excel`,
+        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento-manager?formato=${formato}`,
         {
           method: "GET",
           credentials: "include",
@@ -127,11 +127,10 @@ export default function ManagerHome() {
       );
       if (!res.ok) throw new Error("No se pudo descargar el reporte");
       const blob = await res.blob();
-      // Nombre sugerido para el archivo
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "informe_reclutamiento.xlsx";
+      a.download = formato === "pdf" ? "informe_reclutamiento.pdf" : "informe_reclutamiento.xlsx";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -721,18 +720,27 @@ export default function ManagerHome() {
 
                 <MensajeAlerta texto={mensajeAsignacion} />
 
-                <div className="mt-6 flex justify-end">
+                <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
+
+                <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
                   <button
-                    onClick={descargarReporteReclutamiento}
+                    onClick={() => descargarReporteReclutamiento("excel")}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
                     title="Descargar reporte de reclutamiento en Excel"
                   >
                     <Download className="w-5 h-5" />
-                    Descargar Reporte de Reclutamiento
+                    Descargar Reporte Excel
+                  </button>
+                  <button
+                    onClick={() => descargarReporteReclutamiento("pdf")}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                    title="Descargar reporte de reclutamiento en PDF"
+                  >
+                    <Download className="w-5 h-5" />
+                    Descargar Reporte PDF
                   </button>
                 </div>
 
-                <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
 
                 {ofertas.length === 0 ? (
                   <p>No hay ofertas disponibles.</p>
