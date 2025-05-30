@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Reclutamiento</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            color: #222;
+            background: #f8fafc;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px 0 #0001;
+            padding: 32px 40px 40px 40px;
+        }
+        .logo {
+            max-width: 180px;
+            margin-bottom: 24px;
+            display: block;
+        }
+        h1 {
+            background: #0077b6;
+            color: #fff;
+            padding: 18px 0;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 32px;
+            font-size: 2rem;
+            letter-spacing: 1px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 12px 8px;
+            text-align: center;
+        }
+        th {
+            background: #0077b6;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        tr:nth-child(even) td {
+            background: #f3f4f6;
+        }
+        tr:hover td {
+            background: #e0e7ef;
+        }
+        .footer {
+            margin-top: 36px;
+            text-align: right;
+            color: #888;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if logo_url %}
+            <img src="{{ logo_url }}" class="logo" alt="Logo empresa">
+        {% endif %}
+        <h1>Informe de Reclutamiento - {{ empresa }}</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Oferta</th>
+                    <th>Postulaciones</th>
+                    <th>Contratados</th>
+                    <th>Tasa de Conversión (%)</th>
+                    <th>Tiempo Promedio (días)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fila in datos %}
+                <tr>
+                    <td>{{ fila.oferta }}</td>
+                    <td>{{ fila.postulaciones }}</td>
+                    <td>{{ fila.contratados }}</td>
+                    <td>{{ fila.tasa_conversion }}</td>
+                    <td>{{ fila.tiempo_promedio }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="footer">
+            Generado el {{ now().strftime('%d/%m/%Y %H:%M') }}
+        </div>
+    </div>
+</body>
+</html>

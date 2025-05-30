@@ -21,7 +21,7 @@ from models.extensions import db
 reportes_bp = Blueprint('reportes_bp', __name__)
 
 BASE_DIR = os.getcwd()
-TEMP_DIR = os.path.join(BASE_DIR, "temp")
+TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')     # <-- AGREGADO POR JOA PARA PROBAR LA PLANTILLA, EVALUAR SI LES SIRVE 
 os.makedirs(TEMP_DIR, exist_ok=True)
 
 
@@ -62,6 +62,29 @@ def reporte_reclutamiento():
         }
         for row in resultados
     ]
+
+    # <-- AGREGADO POR JOA PARA PROBAR LA PLANTILLA, EVALUAR SI LES SIRVE 
+    
+    if formato == "pdf":
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
+        template = env.get_template("reporte_reclutamiento_profesional.html")
+
+        from datetime import datetime
+
+        html_out = template.render(
+            empresa=empresa.nombre if empresa else "Empresa Desconocida",
+            logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
+            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",
+            datos=datos,
+            now=datetime.now  
+        )
+        
+        TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
+        os.makedirs(TEMP_DIR, exist_ok=True)
+        nombre_archivo = f"informe_reclutamiento_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        ruta_archivo = os.path.abspath(os.path.join(TEMP_DIR, nombre_archivo))
+        HTML(string=html_out).write_pdf(ruta_archivo)
+        return send_file(ruta_archivo, as_attachment=True, download_name=nombre_archivo)
 
     # if formato == "pdf":
     #     env = Environment(loader=FileSystemLoader("templates"))
