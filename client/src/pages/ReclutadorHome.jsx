@@ -14,6 +14,7 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { reclutadorService } from '../services/reclutadorService.js';
 import EmpleadosRendimiento from "./EmpleadosRendimientoEmpleados";
+import { Download } from "lucide-react";
 
 export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
@@ -416,6 +417,30 @@ export default function ReclutadorHome() {
   if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
   if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
 
+  const descargarReporteReclutamiento = async (formato) => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento-analista?formato=${formato}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("Error al descargar el reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `informe_reclutamiento.${formato === "excel" ? "xlsx" : "pdf"}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("No se pudo descargar el reporte.");
+    }
+  };
+
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
@@ -489,6 +514,25 @@ export default function ReclutadorHome() {
                 </div>
               )}
 
+              <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
+                <button
+                  onClick={() => descargarReporteReclutamiento("excel")}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                  title="Descargar reporte de reclutamiento en Excel"
+                >
+                  <Download className="w-5 h-5" />
+                  Descargar Reporte Excel
+                </button>
+                <button
+                  onClick={() => descargarReporteReclutamiento("pdf")}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                  title="Descargar reporte de reclutamiento en PDF"
+                >
+                  <Download className="w-5 h-5" />
+                  Descargar Reporte PDF
+                </button>
+              </div>
+
               {ofertasAsignadas.length === 0 ? (
                 <p>No hay ofertas asignadas.</p>
               ) : (
@@ -543,11 +587,11 @@ export default function ReclutadorHome() {
         }
 
         {
-          modalLicenciasOpen && 
-            <LicenciasModal
-              service={reclutadorService}
-              onClose={() => setModalLicenciasOpen(false)}
-            />
+          modalLicenciasOpen &&
+          <LicenciasModal
+            service={reclutadorService}
+            onClose={() => setModalLicenciasOpen(false)}
+          />
         }
 
         {modalEditarEtiquetasOpen && (
@@ -710,9 +754,9 @@ export default function ReclutadorHome() {
 
         {
           modalLicenciasACargo &&
-            <LicenciasACargoModal
-              onClose={() => setModalLicenciasACargo(false)}
-              service={reclutadorService} />
+          <LicenciasACargoModal
+            onClose={() => setModalLicenciasACargo(false)}
+            service={reclutadorService} />
         }
 
         <ModalParaEditarPerfil
