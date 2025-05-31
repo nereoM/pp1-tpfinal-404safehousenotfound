@@ -6,7 +6,7 @@ import MensajeAlerta from "./MensajeAlerta";
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
 
-export function LicenciasACargoModal({ onClose, service }) {
+export function LicenciasACargoModal({ onClose, service, extraContent }) {
   const {
     error,
     licencias,
@@ -59,7 +59,7 @@ export function LicenciasACargoModal({ onClose, service }) {
         <h2 className="text-2xl font-semibold mb-4 text-center">
           Gestión de licencias
         </h2>
-
+        {extraContent}
         {mensajeEvaluacion && (
           <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
             {mensajeEvaluacion}

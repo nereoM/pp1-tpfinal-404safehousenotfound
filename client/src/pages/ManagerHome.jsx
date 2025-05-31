@@ -300,6 +300,29 @@ export default function ManagerHome() {
     setModalLicenciasOpen(true);
   };
 
+  const descargarReporteLicencias = async (formato = "excel") => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reportes-licencias-manager?formato=${formato}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo descargar el reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = formato === "pdf" ? "reporte_licencias.pdf" : "reporte_licencias.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error al descargar el reporte de licencias");
+    }
+  };
 
   const handleSelectAnalista = (ofertaId, analistaId) => {
     setSelectedAnalistas((prev) => {
@@ -866,7 +889,28 @@ export default function ManagerHome() {
             <LicenciasACargoModal
               service={managerService}
               onClose={() => setModalLicenciasACargo(false)}
-            />}
+              extraContent={
+                <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2">
+                  <button
+                    onClick={() => descargarReporteLicencias("excel")}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                    title="Descargar reporte de licencias en Excel"
+                  >
+                    <Download className="w-5 h-5" />
+                    Descargar Licencias Excel
+                  </button>
+                  <button
+                    onClick={() => descargarReporteLicencias("pdf")}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                    title="Descargar reporte de licencias en PDF"
+                  >
+                    <Download className="w-5 h-5" />
+                    Descargar Licencias PDF
+                  </button>
+                </div>
+              }
+            />
+          }
 
           {modalSolicitarLicencia && <SolicitarLicenciaModal onClose={() => setModalSolicitarLicencia(false)} />}
 
