@@ -3,6 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieC
 import { motion } from "framer-motion";
 import { useExportarGraficos } from "../hooks/useExportarGraficos";
 import { Download } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
 
 export default function RiesgosAnalistasConTabla() {
     const [empleados, setEmpleados] = useState([]);
@@ -92,6 +93,19 @@ export default function RiesgosAnalistasConTabla() {
             { name: "Medio", value: res.medio, color: col.medio },
             { name: "Bajo", value: res.bajo, color: col.bajo },
         ];
+    };
+
+    const exportarGrafico = (idElemento, nombreArchivo) => {
+        const elemento = document.getElementById(idElemento);
+        if (!elemento) return;
+        import("html-to-image").then(htmlToImage => {
+            htmlToImage.toPng(elemento).then(dataUrl => {
+                const link = document.createElement("a");
+                link.download = `${nombreArchivo}.png`;
+                link.href = dataUrl;
+                link.click();
+            });
+        });
     };
 
     const descargarReporteRiesgos = async (formato) => {
@@ -221,11 +235,22 @@ export default function RiesgosAnalistasConTabla() {
                                     whileHover={{ scale: 1.03 }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    <h3 className="text-xl font-bold text-center text-gray-800 mb-1">{titulo}</h3>
-                                    <p className="text-md text-center text-gray-500 mb-4 font-medium">{descripcion}</p>
-
-
-                                    <div id={id}>
+                                    {/* Bloque a exportar */}
+                                    <div
+                                        id={id}
+                                        style={{
+                                            background: "#fff",
+                                            padding: 16,
+                                            borderRadius: 12,
+                                            color: "#000"
+                                        }}
+                                    >
+                                        <div style={{ textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                                            {titulo}
+                                        </div>
+                                        <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                                            {descripcion}
+                                        </div>
                                         <ResponsiveContainer width="100%" height={220}>
                                             <PieChart>
                                                 <Pie
@@ -244,6 +269,14 @@ export default function RiesgosAnalistasConTabla() {
                                             </PieChart>
                                         </ResponsiveContainer>
                                     </div>
+                                    <button
+                                        className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                                        onClick={() => exportarGrafico(id, secciones[idx].nombreArchivo || id)}
+                                        title="Descargar imagen del gráfico"
+                                    >
+                                        <ImageIcon className="w-4 h-4" />
+                                        Descargar imagen
+                                    </button>
                                 </motion.div>
                             );
                         })}
