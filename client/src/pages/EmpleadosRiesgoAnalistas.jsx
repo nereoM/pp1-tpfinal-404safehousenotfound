@@ -4,6 +4,8 @@ import { motion } from "framer-motion";
 import { useExportarGraficos } from "../hooks/useExportarGraficos";
 import { Download } from "lucide-react";
 import { Image as ImageIcon } from "lucide-react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function RiesgosAnalistasConTabla() {
     const [empleados, setEmpleados] = useState([]);
@@ -192,6 +194,33 @@ export default function RiesgosAnalistasConTabla() {
         });
     }, [empleados, searchTerm, filtroRendimiento, filtroRotacion, filtroDespido, filtroRenuncia]);
 
+    const exportarTablaExcel = () => {
+        const datos = empleadosFiltrados.map(emp => ({
+            Nombre: emp.nombre,
+            Apellido: emp.apellido,
+            Rol: emp.puesto || "Empleado",
+            Antigüedad: emp.antiguedad,
+            Capacitación: emp.horas_capacitacion,
+            Ausencias: emp.ausencias_injustificadas,
+            Tarde: emp.llegadas_tarde,
+            Tempranas: emp.salidas_tempranas,
+            "Desempeño Previo": emp.desempeno_previo,
+            Predicción: emp.rendimiento_futuro_predicho,
+            "Fecha cálculo": emp.fecha_calculo_rendimiento
+                ? new Date(emp.fecha_calculo_rendimiento).toLocaleDateString()
+                : "-",
+            Rendimiento: emp.clasificacion_rendimiento,
+            Rotación: emp.riesgo_rotacion_predicho,
+            Despido: emp.riesgo_despido_predicho,
+            Renuncia: emp.riesgo_renuncia_predicho,
+        }));
+        const ws = XLSX.utils.json_to_sheet(datos);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Empleados");
+        const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "empleados_riesgo.xlsx");
+    };
+
     return (
         <motion.div
             className="p-6 bg-gray-100 min-h-screen"
@@ -356,7 +385,24 @@ export default function RiesgosAnalistasConTabla() {
                         transition={{ duration: 0.5 }}
                     >
                         <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">Detalle de Analistas y Empleados</h3>
-                        <div className="overflow-x-auto">
+                        <button
+                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                            onClick={() => exportarGrafico("tabla-empleados", "tabla_riesgo")}
+                            title="Descargar imagen de la tabla"
+                        >
+                            <ImageIcon className="w-4 h-4" />
+                            Descargar tabla como imagen
+                        </button>
+
+                        <button
+                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-green-200 text-green-800 rounded hover:bg-green-300 transition text-sm"
+                            onClick={exportarTablaExcel}
+                            title="Descargar tabla como Excel"
+                        >
+                            <Download className="w-4 h-4" />
+                            Descargar tabla Excel
+                        </button>
+                        <div id="tabla-empleados" className="overflow-x-auto">
                             <table className="w-full text-sm text-left border border-gray-200">
                                 <thead className="bg-blue-100 text-gray-900 font-bold text-base">
                                     <tr>
