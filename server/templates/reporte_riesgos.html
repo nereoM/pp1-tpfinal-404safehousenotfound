@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte de Riesgos - {{ empresa }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1, h2 { color: #0077b6; }
+        table { font-size: 11px !important; border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+        th, td { font-size: 11px !important; border: 1px solid #ccc; padding: 8px; text-align: center; }
+        th { background: #f2f2f2; }
+        .logo { max-height: 60px; margin-bottom: 20px; }
+        .grafico { max-width: 500px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    {% if logo_url %}
+        <img src="{{ logo_url }}" class="logo" alt="Logo empresa">
+    {% endif %}
+    <h1>Reporte de Riesgos - {{ empresa }}</h1>
+    <p>Fecha de generación: {{ now().strftime('%d/%m/%Y %H:%M') }}</p>
+
+    <h2>Resumen de Riesgos</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Puesto</th>
+                <th>Rol</th>
+                <th>Riesgo Despido</th>
+                <th>Riesgo Renuncia</th>
+                <th>Riesgo Rotación</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in tabla_completa %}
+            <tr>
+                <td>{{ fila.username }}</td>
+                <td>{{ fila.puesto or "Analista" }}</td>
+                <td>{{ fila.rol }}</td>
+                <td>{{ fila.riesgo_despido }}</td>
+                <td>{{ fila.riesgo_renuncia }}</td>
+                <td>{{ fila.riesgo_rotacion }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Distribución de Riesgos</h2>
+    <h3>Despido</h3>
+    <img src="data:image/png;base64,{{ grafico_despido_base64 }}" class="grafico" alt="Gráfico Despido">
+    <h3>Renuncia</h3>
+    <img src="data:image/png;base64,{{ grafico_renuncia_base64 }}" class="grafico" alt="Gráfico Despido">
+    <h3>Rotación</h3>
+    <img src="data:image/png;base64,{{ grafico_rotacion_base64 }}" class="grafico" alt="Gráfico Despido">
+
+    <h2>Totales por Clasificación</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Clasificación</th>
+                <th>Despido</th>
+                <th>Renuncia</th>
+                <th>Rotación</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for key in resumen_despido.keys() %}
+            <tr>
+                <td>{{ key }}</td>
+                <td>{{ resumen_despido[key] }}</td>
+                <td>{{ resumen_renuncia[key] }}</td>
+                <td>{{ resumen_rotacion[key] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

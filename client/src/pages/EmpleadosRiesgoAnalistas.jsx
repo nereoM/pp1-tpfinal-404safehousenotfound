@@ -113,7 +113,7 @@ export default function RiesgosAnalistasConTabla() {
     const descargarReporteRiesgos = async (formato) => {
         try {
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/reportes-riesgos-manager?formato=${formato}`,
+                `${import.meta.env.VITE_API_URL}/api/reporte-riesgos-manager?formato=${formato}`,
                 {
                     method: "GET",
                     credentials: "include",

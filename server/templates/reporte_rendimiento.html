@@ -46,11 +46,15 @@
             background: #f9fafb;
             border-radius: 8px;
             overflow: hidden;
+            font-size: 11px !important;
+            padding: 2px;
         }
         th, td {
             border: 1px solid #e5e7eb;
-            padding: 10px 8px;
             text-align: center;
+            padding: 2px 4px;
+            word-break: break-all;
+            font-size: 11px !important;
         }
         th {
             background: #0077b6;
@@ -88,12 +92,13 @@
         <h1>Reporte de Desempeño - {{ empresa }}</h1>
 
         <h2>Ranking de Rendimiento Futuro</h2>
-        <table>
+        <table style="width: 100%;">
             <thead>
                 <tr>
                     <th>Nombre</th>
                     <th>Apellido</th>
                     <th>Puesto</th>
+                    <th>Rol</th>
                     <th>Rendimiento Futuro</th>
                     <th>Clasificación</th>
                 </tr>
@@ -104,6 +109,7 @@
                     <td>{{ emp.nombre }}</td>
                     <td>{{ emp.apellido }}</td>
                     <td>{{ emp.puesto or "Analista" }}</td>
+                    <td>{{ emp.rol }}</td>
                     <td>{{ "%.2f"|format(emp.rendimiento_futuro) }}</td>
                     <td>{{ emp.clasificacion_rendimiento }}</td>
                 </tr>

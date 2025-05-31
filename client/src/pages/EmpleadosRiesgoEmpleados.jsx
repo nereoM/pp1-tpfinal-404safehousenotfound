@@ -104,7 +104,7 @@ export default function EmpleadosRiesgo() {
     const descargarReporteRiesgos = async (formato) => {
         try {
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/reportes-riesgos-analista?formato=${formato}`,
+                `${import.meta.env.VITE_API_URL}/api/reportes-riesgo-analista?formato=${formato}`,
                 {
                     method: "GET",
                     credentials: "include",

@@ -512,9 +512,12 @@ def reporte_desempeno():
             Usuario.puesto_trabajo,
             Usuario.username,
             RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion"),
-            RendimientoEmpleado.clasificacion_rendimiento
+            RendimientoEmpleado.clasificacion_rendimiento,
+            Rol.nombre.label("rol")
         )
         .join(Usuario, Usuario.id == RendimientoEmpleado.id_usuario)
+        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+        .join(Rol, UsuarioRol.id_rol == Rol.id)
         .filter(Usuario.id_empresa == manager.id_empresa)
         .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
         .order_by(RendimientoEmpleado.rendimiento_futuro_predicho.desc())
@@ -536,7 +539,8 @@ def reporte_desempeno():
         {
             "nombre": r.nombre,
             "apellido": r.apellido,
-            "puesto": r.puesto_trabajo,
+            "puesto": r.puesto_trabajo or "Analista",
+            "rol": r.rol,
             "username": r.username,
             "rendimiento_futuro": round(r.prediccion, 2),
             "clasificacion_rendimiento": r.clasificacion_rendimiento or clasificar_rendimiento(r.prediccion)
@@ -615,15 +619,25 @@ def reporte_desempeno():
                 print("No se pudo cargar el logo:", e)
 
         # Tabla Ranking
-        ws.append(["", "", "", ""])
-        ws.append(["#", "Nombre", "Usuario", "Rendimiento Futuro"])
-        for cell in ws[3]:
+        # Tabla Ranking
+        ws.append(["", "", "", "", "", ""])
+        ws.append(["#", "Nombre", "Apellido", "Puesto", "Rol", "Usuario", "Rendimiento Futuro", "Clasificación"])
+        for cell in ws[ws.max_row]:
             cell.font = Font(bold=True)
             cell.fill = PatternFill(start_color=color, fill_type="solid")
             cell.alignment = Alignment(horizontal="center")
 
         for i, fila in enumerate(ranking_dict, start=1):
-            ws.append([i, fila["nombre"], fila["username"], fila["rendimiento_futuro"]])
+            ws.append([
+                i,
+                fila["nombre"],
+                fila["apellido"],
+                fila["puesto"] or "Analista",
+                fila["rol"],
+                fila["username"],
+                fila["rendimiento_futuro"],
+                fila["clasificacion_rendimiento"]
+            ])
 
         # Tabla Promedios por Puesto
         ws.append(["", "", "", ""])
@@ -1335,17 +1349,20 @@ def reporte_riesgos():
     empresa = Empresa.query.get(manager.id_empresa)
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
 
-    color = (preferencia.color_secundario or "#2E86C1")[1:]
+    color = (preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1").lstrip("#")
     riesgos = db.session.query(
         Usuario.username,
         Usuario.puesto_trabajo,
+        Rol.nombre.label("rol"),
         RendimientoEmpleado.riesgo_despido_predicho,
         RendimientoEmpleado.riesgo_renuncia_predicho,
         RendimientoEmpleado.riesgo_rotacion_predicho
     ).join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)\
-     .filter(Usuario.id_empresa == empresa.id)\
-     .filter(RendimientoEmpleado.riesgo_despido_predicho != None).all()
-
+    .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)\
+    .join(Rol, UsuarioRol.id_rol == Rol.id)\
+    .filter(Usuario.id_empresa == empresa.id)\
+    .filter(RendimientoEmpleado.riesgo_despido_predicho != None).all()
+    
     resumen_despido = {}
     resumen_renuncia = {}
     resumen_rotacion = {}
@@ -1362,6 +1379,7 @@ def reporte_riesgos():
         tabla_completa.append({
             "username": r.username,
             "puesto": r.puesto_trabajo,
+            "rol": r.rol,
             "riesgo_despido": r.riesgo_despido_predicho,
             "riesgo_renuncia": r.riesgo_renuncia_predicho,
             "riesgo_rotacion": r.riesgo_rotacion_predicho
@@ -1389,6 +1407,49 @@ def reporte_riesgos():
     path_renuncia = generar_grafico(resumen_renuncia, "Riesgo de Renuncia", "grafico_renuncia.png")
     path_rotacion = generar_grafico(resumen_rotacion, "Riesgo de Rotación", "grafico_rotacion.png")
 
+    import base64
+
+    def img_to_base64(path):
+        with open(path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode("utf-8")
+
+    # ...después de generar los gráficos...
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    path_despido = generar_grafico(resumen_despido, "Riesgo de Despido", "grafico_despido.png")
+    path_renuncia = generar_grafico(resumen_renuncia, "Riesgo de Renuncia", "grafico_renuncia.png")
+    path_rotacion = generar_grafico(resumen_rotacion, "Riesgo de Rotación", "grafico_rotacion.png")
+
+    # Agrega esto:
+    grafico_despido_base64 = img_to_base64(path_despido)
+    grafico_renuncia_base64 = img_to_base64(path_renuncia)
+    grafico_rotacion_base64 = img_to_base64(path_rotacion)
+
+    if formato == "pdf":
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
+        template = env.get_template("reporte_riesgos.html") 
+
+        html_out = template.render(
+            empresa=empresa.nombre,
+            logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
+            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",
+            tabla_completa=tabla_completa,
+            resumen_despido=resumen_despido,
+            resumen_renuncia=resumen_renuncia,
+            resumen_rotacion=resumen_rotacion,
+            grafico_despido_base64=grafico_despido_base64,
+            grafico_renuncia_base64=grafico_renuncia_base64,
+            grafico_rotacion_base64=grafico_rotacion_base64,
+            now=datetime.now
+        )
+
+        archivo = f"reporte_riesgos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        ruta = os.path.join(TEMP_DIR, archivo)
+        os.makedirs(TEMP_DIR, exist_ok=True)
+        HTML(string=html_out).write_pdf(ruta)
+
+        return send_file(ruta, as_attachment=True, download_name=archivo)
+
+
     if formato == "excel":
 
         wb = Workbook()
@@ -1415,8 +1476,8 @@ def reporte_riesgos():
             except:
                 pass
 
-        ws.append(["", "", "", "", ""])
-        ws.append(["Usuario", "Puesto", "Riesgo Despido", "Riesgo Renuncia", "Riesgo Rotación"])
+        ws.append(["", "", "", "", "", ""])
+        ws.append(["Usuario", "Puesto", "Rol", "Riesgo Despido", "Riesgo Renuncia", "Riesgo Rotación"])
         for cell in ws[ws.max_row]:
             cell.font = Font(bold=True, color="FFFFFF")
             cell.fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
@@ -1424,7 +1485,8 @@ def reporte_riesgos():
         for fila in tabla_completa:
             ws.append([
                 fila["username"],
-                fila["puesto"],
+                fila["puesto"] or "Analista",
+                fila["rol"],
                 fila["riesgo_despido"],
                 fila["riesgo_renuncia"],
                 fila["riesgo_rotacion"]
