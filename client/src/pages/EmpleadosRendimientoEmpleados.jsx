@@ -2,6 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { motion } from 'framer-motion';
 import { useExportarGraficos } from "../hooks/useExportarGraficos";
+import { Download, Image as ImageIcon } from "lucide-react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function EmpleadosRendimiento() {
     const [empleados, setEmpleados] = useState([]);
@@ -74,14 +77,14 @@ export default function EmpleadosRendimiento() {
     }, []);
 
     useExportarGraficos(
-  [
-    { idElemento: "grafico-rendimiento-empleados", nombreArchivo: "rendimiento_empleados" },
-    { idElemento: "grafico-distribucion-empleados", nombreArchivo: "distribucion_empleados" },
-    { idElemento: "grafico-promedio-empleados", nombreArchivo: "promedios_empleados" },
-    { idElemento: "grafico-cantidad-empleados", nombreArchivo: "cantidad_empleados" }
-  ],
-  !loading && empleados.length > 0
-);
+        [
+            { idElemento: "grafico-rendimiento-empleados", nombreArchivo: "rendimiento_empleados" },
+            { idElemento: "grafico-distribucion-empleados", nombreArchivo: "distribucion_empleados" },
+            { idElemento: "grafico-promedio-empleados", nombreArchivo: "promedios_empleados" },
+            { idElemento: "grafico-cantidad-empleados", nombreArchivo: "cantidad_empleados" }
+        ],
+        !loading && empleados.length > 0
+    );
 
 
     const resumenData = [
@@ -115,6 +118,31 @@ export default function EmpleadosRendimiento() {
         "Medio": "bg-yellow-100 text-yellow-900 font-bold",
         "Bajo Rendimiento": "bg-red-200 text-red-900 font-bold",
         "Bajo": "bg-red-200 text-red-900 font-bold",
+    };
+
+    const descargarReporteDesempeno = async (formato = "excel") => {
+        try {
+            const res = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/reportes-desempeno-analista?formato=${formato}`,
+                {
+                    method: "GET",
+                    credentials: "include",
+                }
+            );
+            if (!res.ok) throw new Error("No se pudo descargar el reporte");
+            const blob = await res.blob();
+            const a = document.createElement("a");
+            a.href = window.URL.createObjectURL(blob);
+            a.download = formato === "pdf" ? "reporte_desempeno.pdf" : "reporte_desempeno.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(a.href);
+        } catch (err) {
+            setTipoMensaje("error");
+            setMensaje("Error al descargar el reporte de desempeño.");
+            setTimeout(() => setMensaje(null), 4000);
+        }
     };
 
     const notificarBajoRendimiento = async (id_analista) => {
@@ -157,6 +185,41 @@ export default function EmpleadosRendimiento() {
         });
     }, [empleados, searchTerm, filtroClasificacion, filtroRol]);
 
+    const exportarTablaExcel = () => {
+        const datos = empleadosFiltrados.map(emp => ({
+            Nombre: emp.nombre,
+            Apellido: emp.apellido,
+            Rol: emp.puesto || "Analista",
+            Previo: emp.desempeno_previo,
+            Extras: emp.horas_extras,
+            Antigüedad: emp.antiguedad,
+            Capacitación: emp.horas_capacitacion,
+            Predicción: emp.rendimiento_futuro_predicho,
+            Clasificación: emp.clasificacion_rendimiento,
+            "Fecha cálculo": emp.fecha_calculo_rendimiento
+                ? new Date(emp.fecha_calculo_rendimiento).toLocaleDateString()
+                : "-",
+        }));
+        const ws = XLSX.utils.json_to_sheet(datos);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Empleados");
+        const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "empleados_empleados.xlsx");
+    };
+
+    const exportarGrafico = (idElemento, nombreArchivo) => {
+        const elemento = document.getElementById(idElemento);
+        if (!elemento) return;
+        import("html-to-image").then(htmlToImage => {
+            htmlToImage.toPng(elemento).then(dataUrl => {
+                const link = document.createElement("a");
+                link.download = `${nombreArchivo}.png`;
+                link.href = dataUrl;
+                link.click();
+            });
+        });
+    };
+
     return (
         <motion.div
             className="p-6 bg-gray-100 min-h-screen"
@@ -167,102 +230,182 @@ export default function EmpleadosRendimiento() {
                 Rendimiento Futuro de Empleados
             </h2>
 
+            {/* Botones para descargar el reporte */}
+            <div className="flex flex-col sm:flex-row justify-end gap-2 mb-6">
+                <button
+                    onClick={() => descargarReporteDesempeno("excel")}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                    title="Descargar reporte de desempeño en Excel"
+                >
+                    <Download className="w-5 h-5" />
+                    Descargar Reporte Excel
+                </button>
+                <button
+                    onClick={() => descargarReporteDesempeno("pdf")}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                    title="Descargar reporte de desempeño en PDF"
+                >
+                    <Download className="w-5 h-5" />
+                    Descargar Reporte PDF
+                </button>
+            </div>
+
             {loading ? (
                 <p className="text-center text-lg text-gray-500">Cargando datos...</p>
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                         <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-                            <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Resumen de Rendimiento</h3>
-                            <div id="grafico-rendimiento-empleados">
-                            <p className="text-sm text-center text-gray-500 mb-4">Visualización general de los promedios de métricas relevantes por clasificación de rendimiento.</p>
-                            <ResponsiveContainer width="100%" height={220}>
-                                <PieChart>
-                                    <Pie data={resumenData} dataKey="value" nameKey="name" outerRadius={80} label>
-                                        {resumenData.map((entry, idx) => (
-                                            <Cell key={idx} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend verticalAlign="bottom" />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            <div
+                                id="grafico-rendimiento"
+                                style={{ background: "#fff", padding: 16, borderRadius: 12 }}
+                            >
+                                <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                                    Resumen de Rendimiento
+                                </div>
+                                <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                                    Visualización general de los promedios de métricas relevantes por clasificación de rendimiento.
+                                </div>
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <PieChart>
+                                        <Pie data={resumenData} dataKey="value" nameKey="name" outerRadius={80} label>
+                                            {resumenData.map((entry, idx) => (
+                                                <Cell key={idx} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend verticalAlign="bottom" />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             </div>
+                            <button
+                                className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                                onClick={() => exportarGrafico("grafico-rendimiento", "rendimiento_analistas")}
+                                title="Descargar imagen del gráfico"
+                            >
+                                <ImageIcon className="w-4 h-4" />
+                                Descargar imagen
+                            </button>
                         </motion.div>
 
                         <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-                            <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Distribución de empleados por rendimiento</h3>
-                            <p className="text-sm text-center text-gray-500 mb-4">Cantidad relativa de empleados agrupados según su clasificación de rendimiento.</p>
-                            <div id="grafico-distribucion-empleados">
-                            <ResponsiveContainer width="100%" height={220}>
-                                <PieChart>
-                                    <Pie
-                                        data={cantidadPorRendimiento}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        outerRadius={80}
-                                        label
-                                    >
-                                        {cantidadPorRendimiento.map((entry, idx) => (
-                                            <Cell key={idx} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend verticalAlign="bottom" />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            <div
+                                id="grafico-cantidad"
+                                style={{ background: "#fff", padding: 16, borderRadius: 12 }}
+                            >
+                                <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                                    Distribución de empleados por rendimiento
+                                </div>
+                                <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                                    Cantidad relativa de empleados agrupados según su clasificación de rendimiento.
+                                </div>
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <PieChart>
+                                        <Pie
+                                            data={cantidadPorRendimiento}
+                                            dataKey="value"
+                                            nameKey="name"
+                                            outerRadius={80}
+                                            label
+                                        >
+                                            {cantidadPorRendimiento.map((entry, idx) => (
+                                                <Cell key={idx} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip />
+                                        <Legend verticalAlign="bottom" />
+                                    </PieChart>
+                                </ResponsiveContainer>
                             </div>
+                            <button
+                                className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                                onClick={() => exportarGrafico("grafico-cantidad", "rendimiento_analistas")}
+                                title="Descargar imagen del gráfico"
+                            >
+                                <ImageIcon className="w-4 h-4" />
+                                Descargar imagen
+                            </button>
                         </motion.div>
 
                         <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-                            <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Promedio por Clasificación</h3>
-                            <p className="text-sm text-center text-gray-500 mb-4">Comparación de valores promedio de diferentes métricas por clasificación de rendimiento.</p>
-                            <div id="grafico-promedio-empleados">
-                            <ResponsiveContainer width="100%" height={220}>
-                                <BarChart data={resumenData}>
-                                    <XAxis dataKey="name" stroke="#000" />
-                                    <YAxis stroke="#000" />
-                                    <Tooltip />
-                                    <Legend
-                                        formatter={(value) => (
-                                            <span style={{ color: '#000', fontWeight: 'bold' }}>{value}</span>
-                                        )}
-                                    />
-                                    <Bar dataKey="value" name="Promedio">
-                                        {resumenData.map((entry, idx) => (
-                                            <Cell key={idx} fill={entry.color} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div
+                                id="grafico-bar1"
+                                style={{ background: "#fff", padding: 16, borderRadius: 12 }}
+                            >
+                                <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                                    Promedio por Clasificación
+                                </div>
+                                <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                                    Comparación de valores promedio de diferentes métricas por clasificación de rendimiento.
+                                </div>
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <BarChart data={resumenData}>
+                                        <XAxis dataKey="name" stroke="#000" />
+                                        <YAxis stroke="#000" />
+                                        <Tooltip />
+                                        <Legend
+                                            formatter={(value) => (
+                                                <span style={{ color: '#000', fontWeight: 'bold' }}>{value}</span>
+                                            )}
+                                        />
+                                        <Bar dataKey="value" name="Promedio">
+                                            {resumenData.map((entry, idx) => (
+                                                <Cell key={idx} fill={entry.color} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </div>
+                            <button
+                                className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                                onClick={() => exportarGrafico("grafico-bar1", "promedios_analistas")}
+                                title="Descargar imagen del gráfico"
+                            >
+                                <ImageIcon className="w-4 h-4" />
+                                Descargar imagen
+                            </button>
                         </motion.div>
 
                         <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-                            <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Cantidad de empleados por rendimiento</h3>
-                            <p className="text-sm text-center text-gray-500 mb-4">Número total de empleados en cada categoría de rendimiento.</p>
-                            <div id="grafico-cantidad-empleados">
-                            <ResponsiveContainer width="100%" height={220}>
-                                <BarChart data={cantidadPorRendimiento}>
-                                    <XAxis dataKey="name" stroke="#000" />
-                                    <YAxis stroke="#000" allowDecimals={false} />
-                                    <Tooltip />
-                                    <Legend
-                                        formatter={(value) => (
-                                            <span style={{ color: '#000', fontWeight: 'bold' }}>{value}</span>
-                                        )}
-                                    />
-                                    <Bar dataKey="value" name="Cantidad">
-                                        {cantidadPorRendimiento.map((entry, idx) => (
-                                            <Cell key={idx} fill={entry.color} />
-                                        ))}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
+                            <div
+                                id="grafico-bar2"
+                                style={{ background: "#fff", padding: 16, borderRadius: 12 }}
+                            >
+                                <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                                    Cantidad de empleados por rendimiento
+                                </div>
+                                <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                                    Número total de empleados en cada categoría de rendimiento.
+                                </div>
+                                <ResponsiveContainer width="100%" height={250}>
+                                    <BarChart data={cantidadPorRendimiento}>
+                                        <XAxis dataKey="name" stroke="#000" />
+                                        <YAxis stroke="#000" allowDecimals={false} />
+                                        <Tooltip />
+                                        <Legend
+                                            formatter={(value) => (
+                                                <span style={{ color: '#000', fontWeight: 'bold' }}>{value}</span>
+                                            )}
+                                        />
+                                        <Bar dataKey="value" name="Cantidad">
+                                            {cantidadPorRendimiento.map((entry, idx) => (
+                                                <Cell key={idx} fill={entry.color} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </div>
+                            <button
+                                className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                                onClick={() => exportarGrafico("grafico-bar2", "cantidad_analistas")}
+                                title="Descargar imagen del gráfico"
+                            >
+                                <ImageIcon className="w-4 h-4" />
+                                Descargar imagen
+                            </button>
                         </motion.div>
                     </div>
-
+                    
                     {/* Controles de filtros */}
                     <div className="bg-white text-black p-5 rounded-2xl shadow-lg mb-6">
                         <h3 className="text-xl font-bold mb-4">Filtros y búsqueda</h3>
@@ -320,7 +463,23 @@ export default function EmpleadosRendimiento() {
                         transition={{ duration: 0.5 }}
                     >
                         <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">Detalle de Empleados</h3>
-                        <div className="overflow-x-auto">
+                        <button
+                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                            onClick={() => exportarGrafico("tabla-empleados", "tabla_empleados")}
+                            title="Descargar imagen de la tabla"
+                        >
+                            <ImageIcon className="w-4 h-4" />
+                            Descargar tabla como imagen
+                        </button>
+                        <button
+                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-green-200 text-green-800 rounded hover:bg-green-300 transition text-sm"
+                            onClick={exportarTablaExcel}
+                            title="Descargar tabla como Excel"
+                        >
+                            <Download className="w-4 h-4" />
+                            Descargar tabla Excel
+                        </button>
+                        <div id="tabla-empleados" className="overflow-x-auto">
                             <table className="w-full text-left border-collapse border border-gray-300">
                                 <thead>
                                     <tr className="bg-blue-200 text-black border border-gray-300">
