@@ -355,6 +355,29 @@ export default function ReclutadorHome() {
     }
   };
 
+  const descargarReporteLicenciasAnalista = async (formato = "excel") => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reportes-licencias-analista?formato=${formato}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo descargar el reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = formato === "pdf" ? "reporte_licencias.pdf" : "reporte_licencias.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error al descargar el reporte de licencias");
+    }
+  };
 
   const acciones = [
     {
@@ -756,7 +779,28 @@ export default function ReclutadorHome() {
           modalLicenciasACargo &&
           <LicenciasACargoModal
             onClose={() => setModalLicenciasACargo(false)}
-            service={reclutadorService} />
+            service={reclutadorService}
+            extraContent={
+              <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2">
+                <button
+                  onClick={() => descargarReporteLicenciasAnalista("excel")}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                  title="Descargar reporte de licencias en Excel"
+                >
+                  <Download className="w-5 h-5" />
+                  Descargar Licencias Excel
+                </button>
+                <button
+                  onClick={() => descargarReporteLicenciasAnalista("pdf")}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                  title="Descargar reporte de licencias en PDF"
+                >
+                  <Download className="w-5 h-5" />
+                  Descargar Licencias PDF
+                </button>
+              </div>
+            }
+          />
         }
 
         <ModalParaEditarPerfil

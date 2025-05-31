@@ -1131,7 +1131,7 @@ def reporte_licencias_manager():
 
 
 @reportes_bp.route("/reportes-licencias-analista", methods=["GET"])
-@role_required(["analista"])
+@role_required(["reclutador"])
 def reporte_licencias_analista():
     formato = request.args.get("formato", "pdf")
 
