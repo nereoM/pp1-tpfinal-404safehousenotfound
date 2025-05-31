@@ -590,6 +590,27 @@ def reporte_riesgos():
 
     #     return send_file(ruta, as_attachment=True, download_name=archivo)
     
+    if formato == "pdf":
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
+        template = env.get_template("reporte_asistencia_profesional.html")
+
+        html_out = template.render(
+            empresa=empresa.nombre,
+            logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
+            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",
+            dias_por_tipo=dias_por_tipo,
+            ranking_empleados=ranking_empleados,
+            frecuencia_empleado=frecuencia_empleado,
+            grafico_ausencias_base64=grafico_base64,
+            now=datetime.now
+        )
+
+        archivo = f"reporte_asistencia_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        ruta = os.path.join(TEMP_DIR, archivo)
+        os.makedirs(TEMP_DIR, exist_ok=True)
+        HTML(string=html_out).write_pdf(ruta)
+
+        return send_file(ruta, as_attachment=True, download_name=archivo)
 
     if formato == "excel":
         wb = Workbook()
