@@ -280,7 +280,7 @@ export default function RiesgosAnalistasConTabla() {
                                         <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
                                             {descripcion}
                                         </div>
-                                        <ResponsiveContainer width="100%" height={220}>
+                                        <ResponsiveContainer width="100%" height={250}>
                                             <PieChart>
                                                 <Pie
                                                     data={resumenToPieData(resumen, invertido)}

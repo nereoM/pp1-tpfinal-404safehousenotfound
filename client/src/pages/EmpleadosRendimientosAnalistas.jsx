@@ -337,7 +337,7 @@ export default function RendimientoAnalistas() {
                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
                   Comparación de valores promedio de diferentes métricas por clasificación de rendimiento.
                 </div>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={resumenData}>
                     <XAxis dataKey="name" stroke="#000" />
                     <YAxis stroke="#000" />
@@ -376,7 +376,7 @@ export default function RendimientoAnalistas() {
                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
                   Número total de empleados en cada categoría de rendimiento.
                 </div>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={cantidadPorRendimiento}>
                     <XAxis dataKey="name" stroke="#000" />
                     <YAxis stroke="#000" allowDecimals={false} />
