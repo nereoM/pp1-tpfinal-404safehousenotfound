@@ -61,6 +61,19 @@
         tr:hover td {
             background: #e0e7ef;
         }
+        .graficos {
+            margin-top: 40px;
+        }
+        .graficos h2 {
+            color: #0077b6;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+        .graficos img {
+            display: block;
+            margin: 0 auto 32px auto;
+            max-width: 100%;
+        }
         .footer {
             margin-top: 36px;
             text-align: right;
@@ -75,6 +88,7 @@
             <img src="{{ logo_url }}" class="logo" alt="Logo empresa">
         {% endif %}
         <h1>Informe de Reclutamiento - {{ empresa }}</h1>
+
         <table>
             <thead>
                 <tr>
@@ -97,6 +111,20 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- ================== BLOQUE DE GRÁFICOS ================== -->
+        <div class="graficos">
+            <h2>Postulaciones por Oferta</h2>
+            <img src="data:image/png;base64,{{ grafico_postulaciones }}" alt="Gráfico postulaciones por oferta">
+
+            <h2>Tasa de Conversión (%)</h2>
+            <img src="data:image/png;base64,{{ grafico_conversion }}" alt="Gráfico tasa de conversión">
+
+            <h2>Tiempo Promedio de Postulación</h2>
+            <img src="data:image/png;base64,{{ grafico_tiempo }}" alt="Gráfico tiempo promedio de postulación">
+        </div>
+        <!-- ================ FIN BLOQUE DE GRÁFICOS ================ -->
+
         <div class="footer">
             Generado el {{ now().strftime('%d/%m/%Y %H:%M') }}
         </div>
