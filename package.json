@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "html-to-image": "^1.11.13"
+    "file-saver": "^2.0.5",
+    "html-to-image": "^1.11.13",
+    "xlsx": "^0.18.5"
   }
 }

@@ -3,6 +3,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieC
 import { motion } from 'framer-motion';
 import { useExportarGraficos } from "../hooks/useExportarGraficos";
 import { Download, Image as ImageIcon } from "lucide-react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function RendimientoAnalistas() {
   const [empleados, setEmpleados] = useState([]);
@@ -84,6 +86,27 @@ export default function RendimientoAnalistas() {
     !loading && empleados.length > 0
   );
 
+  const exportarTablaExcel = () => {
+    const datos = empleadosFiltrados.map(emp => ({
+      Nombre: emp.nombre,
+      Apellido: emp.apellido,
+      Rol: emp.puesto || "Analista",
+      Previo: emp.desempeno_previo,
+      Extras: emp.horas_extras,
+      Antigüedad: emp.antiguedad,
+      Capacitación: emp.horas_capacitacion,
+      Predicción: emp.rendimiento_futuro_predicho,
+      Clasificación: emp.clasificacion_rendimiento,
+      "Fecha cálculo": emp.fecha_calculo_rendimiento
+        ? new Date(emp.fecha_calculo_rendimiento).toLocaleDateString()
+        : "-",
+    }));
+    const ws = XLSX.utils.json_to_sheet(datos);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Empleados");
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "empleados_analistas.xlsx");
+  };
 
   const resumenData = [
     { name: 'Alto Rendimiento', value: parseFloat(resumen.alto), color: rendimientoColors['Alto Rendimiento'] },
@@ -429,6 +452,25 @@ export default function RendimientoAnalistas() {
             transition={{ duration: 0.5 }}
           >
             <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">Detalle de Analistas y Empleados</h3>
+
+            <button
+              className="mb-3 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+              onClick={() => exportarGrafico("tabla-empleados", "tabla_analistas")}
+              title="Descargar imagen de la tabla"
+            >
+              <ImageIcon className="w-4 h-4" />
+              Descargar tabla como imagen
+            </button>
+
+            <button
+              className="mb-3 flex items-center gap-2 px-3 py-1 bg-green-200 text-green-800 rounded hover:bg-green-300 transition text-sm"
+              onClick={exportarTablaExcel}
+              title="Descargar tabla como Excel"
+            >
+              <Download className="w-4 h-4" />
+              Descargar tabla Excel
+            </button>
+            
             {mensaje && (
               <div
                 className={`mx-auto my-4 w-fit px-6 py-3 rounded-lg shadow-md text-center text-lg font-semibold transition-all ${tipoMensaje === "success"
@@ -439,7 +481,8 @@ export default function RendimientoAnalistas() {
                 {mensaje}
               </div>
             )}
-            <div className="overflow-x-auto">
+
+            <div id="tabla-empleados" className="overflow-x-auto">
               <table className="w-full text-left border-collapse border border-gray-300">
                 <thead>
                   <tr className="bg-blue-200 text-black border border-gray-300">
