@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 import { motion } from 'framer-motion';
 import { useExportarGraficos } from "../hooks/useExportarGraficos";
-import { Download } from "lucide-react"; // Agrega este import
+import { Download, Image as ImageIcon } from "lucide-react";
 
 export default function RendimientoAnalistas() {
   const [empleados, setEmpleados] = useState([]);
@@ -108,6 +108,19 @@ export default function RendimientoAnalistas() {
       color: rendimientoColors['Bajo Rendimiento']
     }
   ];
+
+  const exportarGrafico = (idElemento, nombreArchivo) => {
+    const elemento = document.getElementById(idElemento);
+    if (!elemento) return;
+    import("html-to-image").then(htmlToImage => {
+      htmlToImage.toPng(elemento).then(dataUrl => {
+        const link = document.createElement("a");
+        link.download = `${nombreArchivo}.png`;
+        link.href = dataUrl;
+        link.click();
+      });
+    });
+  };
 
   const notificarBajoRendimiento = async (id_analista) => {
     setNotificandoId(id_analista); // Bloquea el botón
@@ -219,12 +232,17 @@ export default function RendimientoAnalistas() {
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
             <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-              <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Resumen de Rendimiento</h3>
-              <p className="text-sm text-center text-gray-500 mb-4">Visualización general de los promedios de métricas relevantes por clasificación de rendimiento.</p>
-
-              {/* div para exportar */}
-              <div id="grafico-rendimiento">
-                <ResponsiveContainer width="100%" height={220}>
+              <div
+                id="grafico-rendimiento"
+                style={{ background: "#fff", padding: 16, borderRadius: 12 }}
+              >
+                <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                  Resumen de Rendimiento
+                </div>
+                <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                  Visualización general de los promedios de métricas relevantes por clasificación de rendimiento.
+                </div>
+                <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
                     <Pie data={resumenData} dataKey="value" nameKey="name" outerRadius={80} label>
                       {resumenData.map((entry, idx) => (
@@ -236,13 +254,28 @@ export default function RendimientoAnalistas() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+              <button
+                className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                onClick={() => exportarGrafico("grafico-rendimiento", "rendimiento_analistas")}
+                title="Descargar imagen del gráfico"
+              >
+                <ImageIcon className="w-4 h-4" />
+                Descargar imagen
+              </button>
             </motion.div>
 
             <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-              <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Distribución de empleados por rendimiento</h3>
-              <p className="text-sm text-center text-gray-500 mb-4">Cantidad relativa de empleados agrupados según su clasificación de rendimiento.</p>
-              <div id="grafico-cantidad">
-                <ResponsiveContainer width="100%" height={220}>
+              <div
+                id="grafico-cantidad"
+                style={{ background: "#fff", padding: 16, borderRadius: 12 }}
+              >
+                <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                  Distribución de empleados por rendimiento
+                </div>
+                <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                  Cantidad relativa de empleados agrupados según su clasificación de rendimiento.
+                </div>
+                <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
                     <Pie
                       data={cantidadPorRendimiento}
@@ -260,12 +293,27 @@ export default function RendimientoAnalistas() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+              <button
+                className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                onClick={() => exportarGrafico("grafico-cantidad", "rendimiento_analistas")}
+                title="Descargar imagen del gráfico"
+              >
+                <ImageIcon className="w-4 h-4" />
+                Descargar imagen
+              </button>
             </motion.div>
 
             <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-              <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Promedio por Clasificación</h3>
-              <p className="text-sm text-center text-gray-500 mb-4">Comparación de valores promedio de diferentes métricas por clasificación de rendimiento.</p>
-              <div id="grafico-bar1">
+              <div
+                id="grafico-bar1"
+                style={{ background: "#fff", padding: 16, borderRadius: 12 }}
+              >
+                <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                  Promedio por Clasificación
+                </div>
+                <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                  Comparación de valores promedio de diferentes métricas por clasificación de rendimiento.
+                </div>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={resumenData}>
                     <XAxis dataKey="name" stroke="#000" />
@@ -284,12 +332,27 @@ export default function RendimientoAnalistas() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              <button
+                className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                onClick={() => exportarGrafico("grafico-bar1", "promedios_analistas")}
+                title="Descargar imagen del gráfico"
+              >
+                <ImageIcon className="w-4 h-4" />
+                Descargar imagen
+              </button>
             </motion.div>
 
             <motion.div className="bg-white p-5 rounded-2xl shadow-lg" whileHover={{ scale: 1.03 }} transition={{ duration: 0.3 }}>
-              <h3 className="text-xl font-bold text-center text-gray-800 mb-1">Cantidad de empleados por rendimiento</h3>
-              <p className="text-sm text-center text-gray-500 mb-4">Número total de empleados en cada categoría de rendimiento.</p>
-              <div id="grafico-bar2">
+              <div
+                id="grafico-bar2"
+                style={{ background: "#fff", padding: 16, borderRadius: 12 }}
+              >
+                <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                  Cantidad de empleados por rendimiento
+                </div>
+                <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                  Número total de empleados en cada categoría de rendimiento.
+                </div>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={cantidadPorRendimiento}>
                     <XAxis dataKey="name" stroke="#000" />
@@ -308,6 +371,14 @@ export default function RendimientoAnalistas() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              <button
+                className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                onClick={() => exportarGrafico("grafico-bar2", "cantidad_analistas")}
+                title="Descargar imagen del gráfico"
+              >
+                <ImageIcon className="w-4 h-4" />
+                Descargar imagen
+              </button>
             </motion.div>
           </div>
 
