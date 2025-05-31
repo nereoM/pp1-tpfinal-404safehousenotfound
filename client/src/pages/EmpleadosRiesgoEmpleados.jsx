@@ -2,6 +2,10 @@ import React, { useEffect, useState, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from "recharts";
 import { motion } from "framer-motion";
 import { useExportarGraficos } from "../hooks/useExportarGraficos";
+import { Download } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export default function EmpleadosRiesgo() {
     const [empleados, setEmpleados] = useState([]);
@@ -75,14 +79,54 @@ export default function EmpleadosRiesgo() {
     }, []);
 
     useExportarGraficos(
-  [
-    { idElemento: "grafico-rendimiento-empleados-riesgo", nombreArchivo: "riesgo_rendimiento_empleados" },
-    { idElemento: "grafico-rotacion-empleados-riesgo",   nombreArchivo: "riesgo_rotacion_empleados"   },
-    { idElemento: "grafico-despido-empleados-riesgo",    nombreArchivo: "riesgo_despido_empleados"    },
-    { idElemento: "grafico-renuncia-empleados-riesgo",  nombreArchivo: "riesgo_renuncia_empleados"  }
-  ],
-  !loading && empleados.length > 0
-);
+        [
+            { idElemento: "grafico-rendimiento-empleados-riesgo", nombreArchivo: "riesgo_rendimiento_empleados" },
+            { idElemento: "grafico-rotacion-empleados-riesgo", nombreArchivo: "riesgo_rotacion_empleados" },
+            { idElemento: "grafico-despido-empleados-riesgo", nombreArchivo: "riesgo_despido_empleados" },
+            { idElemento: "grafico-renuncia-empleados-riesgo", nombreArchivo: "riesgo_renuncia_empleados" }
+        ],
+        !loading && empleados.length > 0
+    );
+
+    const exportarGrafico = (idElemento, nombreArchivo) => {
+        const elemento = document.getElementById(idElemento);
+        if (!elemento) return;
+        import("html-to-image").then(htmlToImage => {
+            htmlToImage.toPng(elemento).then(dataUrl => {
+                const link = document.createElement("a");
+                link.download = `${nombreArchivo}.png`;
+                link.href = dataUrl;
+                link.click();
+            });
+        });
+    };
+
+    const descargarReporteRiesgos = async (formato) => {
+        try {
+            const res = await fetch(
+                `${import.meta.env.VITE_API_URL}/api/reportes-riesgos-analista?formato=${formato}`,
+                {
+                    method: "GET",
+                    credentials: "include",
+                }
+            );
+            if (!res.ok) throw new Error("Error al descargar el reporte");
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download =
+                formato === "pdf"
+                    ? "reporte_riesgos.pdf"
+                    : "reporte_riesgos.xlsx";
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            alert("No se pudo descargar el reporte.");
+        }
+    };
 
     const colorRendimiento = {
         "Alto Rendimiento": "bg-green-200 text-green-900 font-bold",
@@ -109,10 +153,10 @@ export default function EmpleadosRiesgo() {
     };
 
     const secciones = [
-        { titulo: "Distribución de Rendimiento Predicho", resumen: resumen.rendimiento, descripcion: "Muestra cuántos empleados tienen alto, medio o bajo rendimiento.", id: "grafico-rendimiento-empleados-riesgo"},
-        { titulo: "Riesgo de Rotación", resumen: resumen.rotacion, descripcion: "Indica el riesgo de que los empleados roten de puesto o área.", id: "grafico-rotacion-empleados-riesgo"},
-        { titulo: "Riesgo de Despido", resumen: resumen.despido, descripcion: "Indica el riesgo de que los empleados sean despedidos.", id: "grafico-despido-empleados-riesgo"},
-        { titulo: "Riesgo de Renuncia", resumen: resumen.renuncia, descripcion: "Indica el riesgo de que los empleados renuncien voluntariamente.", id: "grafico-renuncia-empleados-riesgo"},
+        { titulo: "Distribución de Rendimiento Predicho", resumen: resumen.rendimiento, descripcion: "Muestra cuántos empleados tienen alto, medio o bajo rendimiento.", id: "grafico-rendimiento-empleados-riesgo" },
+        { titulo: "Riesgo de Rotación", resumen: resumen.rotacion, descripcion: "Indica el riesgo de que los empleados roten de puesto o área.", id: "grafico-rotacion-empleados-riesgo" },
+        { titulo: "Riesgo de Despido", resumen: resumen.despido, descripcion: "Indica el riesgo de que los empleados sean despedidos.", id: "grafico-despido-empleados-riesgo" },
+        { titulo: "Riesgo de Renuncia", resumen: resumen.renuncia, descripcion: "Indica el riesgo de que los empleados renuncien voluntariamente.", id: "grafico-renuncia-empleados-riesgo" },
     ];
 
     // Normaliza para comparar filtros
@@ -150,6 +194,33 @@ export default function EmpleadosRiesgo() {
         });
     }, [empleados, searchTerm, filtroRendimiento, filtroRotacion, filtroDespido, filtroRenuncia]);
 
+    const exportarTablaExcel = () => {
+        const datos = empleadosFiltrados.map(emp => ({
+            Nombre: emp.nombre,
+            Apellido: emp.apellido,
+            Rol: emp.puesto || "Empleado",
+            Antigüedad: emp.antiguedad,
+            Capacitación: emp.horas_capacitacion,
+            Ausencias: emp.ausencias_injustificadas,
+            Tarde: emp.llegadas_tarde,
+            Tempranas: emp.salidas_tempranas,
+            "Desempeño Previo": emp.desempeno_previo,
+            Predicción: emp.rendimiento_futuro_predicho,
+            "Fecha cálculo": emp.fecha_calculo_rendimiento
+                ? new Date(emp.fecha_calculo_rendimiento).toLocaleDateString()
+                : "-",
+            Rendimiento: emp.clasificacion_rendimiento,
+            Rotación: emp.riesgo_rotacion_predicho,
+            Despido: emp.riesgo_despido_predicho,
+            Renuncia: emp.riesgo_renuncia_predicho,
+        }));
+        const ws = XLSX.utils.json_to_sheet(datos);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Empleados");
+        const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        saveAs(new Blob([excelBuffer], { type: "application/octet-stream" }), "empleados_riesgo.xlsx");
+    };
+
     return (
         <motion.div
             className="p-6 bg-gray-100 min-h-screen"
@@ -160,50 +231,85 @@ export default function EmpleadosRiesgo() {
                 Riesgos y Rendimiento de Empleados
             </h2>
 
+            <div className="flex flex-col sm:flex-row justify-end gap-2 mb-6">
+                <button
+                    onClick={() => descargarReporteRiesgos("excel")}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                    title="Descargar reporte de riesgos en Excel"
+                >
+                    <Download className="w-5 h-5" />
+                    Descargar Reporte Excel
+                </button>
+                <button
+                    onClick={() => descargarReporteRiesgos("pdf")}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                    title="Descargar reporte de riesgos en PDF"
+                >
+                    <Download className="w-5 h-5" />
+                    Descargar Reporte PDF
+                </button>
+            </div>
+
             {loading ? (
                 <p className="text-center text-lg text-gray-500">Cargando datos...</p>
             ) : (
                 <>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                         {secciones.map(({ titulo, resumen, descripcion, id }, idx) => {
                             const invertido = titulo.includes("Rendimiento");
                             return (
-                            <motion.div
-                                key={idx}
-                                className="bg-white p-5 rounded-2xl shadow-lg"
-                                whileHover={{ scale: 1.03 }}
-                                transition={{ duration: 0.3 }}
-                            >
-                                <h3 className="text-xl font-bold text-center text-gray-800 mb-1">
-                                {titulo}
-                                </h3>
-                                <p className="text-md text-center text-gray-500 mb-4 font-medium">
-                                {descripcion}
-                                </p>
-
-                                <div id={id}>
-                                <ResponsiveContainer width="100%" height={220}>
-                                    <PieChart>
-                                    <Pie
-                                        data={resumenToPieData(resumen, invertido)}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        outerRadius={80}
-                                        label
+                                <motion.div
+                                    key={idx}
+                                    className="bg-white p-5 rounded-2xl shadow-lg"
+                                    whileHover={{ scale: 1.03 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    {/* Bloque a exportar */}
+                                    <div
+                                        id={id}
+                                        style={{
+                                            background: "#fff",
+                                            padding: 16,
+                                            borderRadius: 12,
+                                            color: "#000"
+                                        }}
                                     >
-                                        {resumenToPieData(resumen, invertido).map((entry, i) => (
-                                        <Cell key={i} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend verticalAlign="bottom" />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                                </div>
-                            </motion.div>
+                                        <div style={{ textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
+                                            {titulo}
+                                        </div>
+                                        <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
+                                            {descripcion}
+                                        </div>
+                                        <ResponsiveContainer width="100%" height={250}>
+                                            <PieChart>
+                                                <Pie
+                                                    data={resumenToPieData(resumen, invertido)}
+                                                    dataKey="value"
+                                                    nameKey="name"
+                                                    outerRadius={80}
+                                                    label
+                                                >
+                                                    {resumenToPieData(resumen, invertido).map((entry, idx2) => (
+                                                        <Cell key={idx2} fill={entry.color} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip />
+                                                <Legend verticalAlign="bottom" />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <button
+                                        className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                                        onClick={() => exportarGrafico(id, secciones[idx].nombreArchivo || id)}
+                                        title="Descargar imagen del gráfico"
+                                    >
+                                        <ImageIcon className="w-4 h-4" />
+                                        Descargar imagen
+                                    </button>
+                                </motion.div>
                             );
                         })}
-                        </div>
+                    </div>
 
                     {/* Controles de filtros */}
                     <div className="bg-white text-black p-5 rounded-2xl shadow-lg mb-6">
@@ -279,7 +385,24 @@ export default function EmpleadosRiesgo() {
                         transition={{ duration: 0.5 }}
                     >
                         <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">Detalle de Empleados</h3>
-                        <div className="overflow-x-auto">
+                        <button
+                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                            onClick={() => exportarGrafico("tabla-empleados", "tabla_riesgo")}
+                            title="Descargar imagen de la tabla"
+                        >
+                            <ImageIcon className="w-4 h-4" />
+                            Descargar tabla como imagen
+                        </button>
+
+                        <button
+                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-green-200 text-green-800 rounded hover:bg-green-300 transition text-sm"
+                            onClick={exportarTablaExcel}
+                            title="Descargar tabla como Excel"
+                        >
+                            <Download className="w-4 h-4" />
+                            Descargar tabla Excel
+                        </button>
+                        <div id="tabla-empleados" className="overflow-x-auto">
                             <table className="w-full text-sm text-left border border-gray-200">
                                 <thead className="bg-blue-100 text-gray-900 font-bold text-base">
                                     <tr>
