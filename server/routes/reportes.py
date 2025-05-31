@@ -509,8 +509,10 @@ def reporte_desempeno():
         db.session.query(
             Usuario.nombre,
             Usuario.apellido,
+            Usuario.puesto_trabajo,
             Usuario.username,
-            RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion")
+            RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion"),
+            RendimientoEmpleado.clasificacion_rendimiento
         )
         .join(Usuario, Usuario.id == RendimientoEmpleado.id_usuario)
         .filter(Usuario.id_empresa == manager.id_empresa)
@@ -519,12 +521,25 @@ def reporte_desempeno():
         .limit(10)
         .all()
     )
+    
+    def clasificar_rendimiento(valor):
+        if valor is None:
+            return "Sin datos"
+        if valor >= 8:
+            return "Alto"
+        elif valor >= 5:
+            return "Medio"
+        else:
+            return "Bajo"
 
     ranking_dict = [
         {
-            "nombre": f"{r.nombre} {r.apellido}",
+            "nombre": r.nombre,
+            "apellido": r.apellido,
+            "puesto": r.puesto_trabajo,
             "username": r.username,
-            "rendimiento_futuro": round(r.prediccion, 2)
+            "rendimiento_futuro": round(r.prediccion, 2),
+            "clasificacion_rendimiento": r.clasificacion_rendimiento or clasificar_rendimiento(r.prediccion)
         }
         for r in ranking_futuro
     ]
@@ -560,7 +575,8 @@ def reporte_desempeno():
         html_out = template.render(
             empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",            ranking_futuro=ranking_dict,
+            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",            
+            ranking_futuro=ranking_dict,
             grafico_base64=grafico_base64,
             promedios_por_puesto=promedios_por_puesto,
             grafico_puesto_base64=grafico_puesto_base64,
@@ -690,32 +706,47 @@ def reporte_desempeno_analista():
     color = preferencia.color_secundario[1:] if preferencia and preferencia.color_secundario else "2E86C1"
 
     ranking_futuro = (
-        db.session.query(
-            Usuario.nombre,
-            Usuario.apellido,
-            Usuario.username,
-            RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion")
+            db.session.query(
+                Usuario.nombre,
+                Usuario.apellido,
+                Usuario.puesto_trabajo,
+                Usuario.username,
+                RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion"),
+                RendimientoEmpleado.clasificacion_rendimiento
+            )
+            .join(Usuario, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+            .join(Rol, Rol.id == UsuarioRol.id_rol)
+            .filter(Usuario.id_empresa == manager.id_empresa)
+            .filter(Rol.slug == "empleado")
+            .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
+            .order_by(RendimientoEmpleado.rendimiento_futuro_predicho.desc())
+            .limit(10)
+            .all()
         )
-        .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
-        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
-        .join(Rol, Rol.id == UsuarioRol.id_rol)
-        .filter(Usuario.id_empresa == manager.id_empresa)
-        .filter(Rol.slug == "empleado")
-        .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
-        .order_by(RendimientoEmpleado.rendimiento_futuro_predicho.desc())
-        .limit(10)
-        .all()
-    )
+    
+    def clasificar_rendimiento(valor):
+        if valor is None:
+            return "Sin datos"
+        if valor >= 8:
+            return "Alto"
+        elif valor >= 5:
+            return "Medio"
+        else:
+            return "Bajo"
 
     ranking_dict = [
         {
-            "nombre": f"{r.nombre} {r.apellido}",
+            "nombre": r.nombre,
+            "apellido": r.apellido,
+            "puesto": r.puesto_trabajo,
             "username": r.username,
-            "rendimiento_futuro": round(r.prediccion, 2)
+            "rendimiento_futuro": round(r.prediccion, 2),
+            "clasificacion_rendimiento": r.clasificacion_rendimiento or clasificar_rendimiento(r.prediccion)
         }
         for r in ranking_futuro
     ]
-
+    
     grafico_base64 = generar_grafico_base64(ranking_dict)
 
     agrupado_por_puesto = (
@@ -750,7 +781,8 @@ def reporte_desempeno_analista():
         html_out = template.render(
             empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",            ranking_futuro=ranking_dict,
+            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",            
+            ranking_futuro=ranking_dict,
             grafico_base64=grafico_base64,
             promedios_por_puesto=promedios_por_puesto,
             grafico_puesto_base64=grafico_puesto_base64,
@@ -870,7 +902,7 @@ def reporte_desempeno_analista():
 
 @reportes_bp.route("/reportes-licencias-manager", methods=["GET"])
 @role_required(["manager"])
-def reporte_licencias():
+def reporte_licencias_manager():
     formato = request.args.get("formato", "pdf")
 
     id_manager = get_jwt_identity()
@@ -1075,7 +1107,7 @@ def reporte_licencias():
 
 @reportes_bp.route("/reportes-licencias-analista", methods=["GET"])
 @role_required(["analista"])
-def reporte_licencias():
+def reporte_licencias_analista():
     formato = request.args.get("formato", "pdf")
 
     id_manager = get_jwt_identity()
@@ -1329,7 +1361,7 @@ def reporte_riesgos():
 
         tabla_completa.append({
             "username": r.username,
-            "puesto": r.puesto_trabajo or "Sin puesto",
+            "puesto": r.puesto_trabajo,
             "riesgo_despido": r.riesgo_despido_predicho,
             "riesgo_renuncia": r.riesgo_renuncia_predicho,
             "riesgo_rotacion": r.riesgo_rotacion_predicho
