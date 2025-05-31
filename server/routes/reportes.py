@@ -13,6 +13,8 @@ from openpyxl.utils import get_column_letter
 from PIL import Image as PILImage
 from PIL import Image
 from io import BytesIO
+import matplotlib
+matplotlib.use("Agg")
 from matplotlib import pyplot as plt
 from models.schemes import Usuario, Empresa, Preferencias_empresa, Oferta_laboral, Job_Application, RendimientoEmpleado, Licencia, Rol, UsuarioRol
 from auth.decorators import role_required
@@ -71,14 +73,39 @@ def reporte_reclutamiento():
         env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
         template = env.get_template("reporte_reclutamiento_profesional.html")
 
-        from datetime import datetime
+        
+        def generar_grafico(datos, campo, titulo, nombre_archivo):
+            etiquetas = [d["oferta"] for d in datos]
+            valores = [d[campo] for d in datos]
+
+            fig, ax = plt.subplots()
+            ax.bar(etiquetas, valores, color=color_hex)
+            ax.set_title(titulo)
+            ax.set_ylabel(campo.replace("_", " ").capitalize())
+            ax.set_xticks(range(len(etiquetas)))
+            ax.set_xticklabels(etiquetas, rotation=45, ha='right')
+
+            img = BytesIO()
+            plt.tight_layout()
+            plt.savefig(img, format="png", dpi=150)
+            plt.close(fig)
+            img.seek(0)
+            return base64.b64encode(img.getvalue()).decode("utf-8")
+        
+        grafico_postulaciones = generar_grafico(datos, "postulaciones", "Postulaciones por Oferta", "postulaciones.png")
+        grafico_conversion = generar_grafico(datos, "tasa_conversion", "Tasa de Conversión", "conversion.png")
+        grafico_tiempo = generar_grafico(datos, "tiempo_promedio", "Tiempo Promedio de Postulación", "tiempo.png")
+
 
         html_out = template.render(
-            empresa=empresa.nombre if empresa else "Empresa Desconocida",
+            empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",
+            color=color_hex,
             datos=datos,
-            now=datetime.now  
+            now=datetime.now,
+            grafico_postulaciones=grafico_postulaciones,
+            grafico_conversion=grafico_conversion,
+            grafico_tiempo=grafico_tiempo
         )
         
         TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
@@ -87,25 +114,6 @@ def reporte_reclutamiento():
         ruta_archivo = os.path.abspath(os.path.join(TEMP_DIR, nombre_archivo))
         HTML(string=html_out).write_pdf(ruta_archivo)
         return send_file(ruta_archivo, as_attachment=True, download_name=nombre_archivo)
-
-    # if formato == "pdf":
-    #     env = Environment(loader=FileSystemLoader("templates"))
-    #     template = env.get_template("reporte_reclutamiento_profesional.html")
-
-    #     html_out = template.render(
-    #         empresa=empresa.nombre if empresa else "Empresa Desconocida",
-    #         logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-    #         color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",
-    #         datos=datos
-    #     )
-
-    #     nombre_archivo = f"informe_reclutamiento_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    #     ruta_archivo = os.path.join("temp", nombre_archivo)
-
-    #     os.makedirs("temp", exist_ok=True)
-    #     HTML(string=html_out).write_pdf(ruta_archivo)
-
-    #     return send_file(ruta_archivo, as_attachment=True, download_name=nombre_archivo)
     
     if formato == "excel":
 
@@ -113,7 +121,7 @@ def reporte_reclutamiento():
         ws = wb.active
         ws.title = "Informe Reclutamiento"
 
-        color_secundario = preferencia.color_secundario if preferencia and preferencia.color_secundario else "2E86C1"
+        color_secundario = preferencia.color_principal if preferencia.color_principal else "2E86C1"
         color_hex = color_secundario if color_secundario.startswith("#") else f"#{color_secundario}"
 
         if preferencia and preferencia.logo_url:
@@ -249,21 +257,46 @@ def reporte_reclutamiento_analista():
         }
         for row in resultados
     ]
-
-    # <-- AGREGADO POR JOA PARA PROBAR LA PLANTILLA, EVALUAR SI LES SIRVE 
     
     if formato == "pdf":
         env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
         template = env.get_template("reporte_reclutamiento_profesional.html")
 
-        from datetime import datetime
+        color_secundario = preferencia.color_principal if preferencia and preferencia.color_principal else "2E86C1"
+        color_hex = color_secundario if color_secundario.startswith("#") else f"#{color_secundario}"
+
+        def generar_grafico(datos, campo, titulo, nombre_archivo):
+            etiquetas = [d["oferta"] for d in datos]
+            valores = [d[campo] for d in datos]
+
+            fig, ax = plt.subplots()
+            ax.bar(etiquetas, valores, color=color_hex)
+            ax.set_title(titulo)
+            ax.set_ylabel(campo.replace("_", " ").capitalize())
+            ax.set_xticks(range(len(etiquetas)))
+            ax.set_xticklabels(etiquetas, rotation=45, ha='right')
+
+            img = BytesIO()
+            plt.tight_layout()
+            plt.savefig(img, format="png", dpi=150)
+            plt.close(fig)
+            img.seek(0)
+            return base64.b64encode(img.getvalue()).decode("utf-8")
+        
+        grafico_postulaciones = generar_grafico(datos, "postulaciones", "Postulaciones por Oferta", "postulaciones.png")
+        grafico_conversion = generar_grafico(datos, "tasa_conversion", "Tasa de Conversión", "conversion.png")
+        grafico_tiempo = generar_grafico(datos, "tiempo_promedio", "Tiempo Promedio de Postulación", "tiempo.png")
+
 
         html_out = template.render(
-            empresa=empresa.nombre if empresa else "Empresa Desconocida",
+            empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",
+            color=color_hex,
             datos=datos,
-            now=datetime.now  
+            now=datetime.now,
+            grafico_postulaciones=grafico_postulaciones,
+            grafico_conversion=grafico_conversion,
+            grafico_tiempo=grafico_tiempo
         )
         
         TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
@@ -272,25 +305,6 @@ def reporte_reclutamiento_analista():
         ruta_archivo = os.path.abspath(os.path.join(TEMP_DIR, nombre_archivo))
         HTML(string=html_out).write_pdf(ruta_archivo)
         return send_file(ruta_archivo, as_attachment=True, download_name=nombre_archivo)
-
-    # if formato == "pdf":
-    #     env = Environment(loader=FileSystemLoader("templates"))
-    #     template = env.get_template("reporte_reclutamiento_profesional.html")
-
-    #     html_out = template.render(
-    #         empresa=empresa.nombre if empresa else "Empresa Desconocida",
-    #         logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-    #         color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",
-    #         datos=datos
-    #     )
-
-    #     nombre_archivo = f"informe_reclutamiento_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    #     ruta_archivo = os.path.join("temp", nombre_archivo)
-
-    #     os.makedirs("temp", exist_ok=True)
-    #     HTML(string=html_out).write_pdf(ruta_archivo)
-
-    #     return send_file(ruta_archivo, as_attachment=True, download_name=nombre_archivo)
     
     if formato == "excel":
 
@@ -298,7 +312,7 @@ def reporte_reclutamiento_analista():
         ws = wb.active
         ws.title = "Informe Reclutamiento"
 
-        color_secundario = preferencia.color_secundario if preferencia and preferencia.color_secundario else "2E86C1"
+        color_secundario = preferencia.color_principal if preferencia and preferencia.color_principal else "2E86C1"
         color_hex = color_secundario if color_secundario.startswith("#") else f"#{color_secundario}"
 
         if preferencia and preferencia.logo_url:
@@ -503,7 +517,7 @@ def reporte_desempeno():
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
     empresa = Empresa.query.get(manager.id_empresa)
 
-    color = preferencia.color_secundario[1:] if preferencia and preferencia.color_secundario else "2E86C1"
+    color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
 
     ranking_futuro = (
         db.session.query(
@@ -579,7 +593,7 @@ def reporte_desempeno():
         html_out = template.render(
             empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",            
+            color=preferencia.color_principal if preferencia and preferencia.color_principal else "#2E86C1",            
             ranking_futuro=ranking_dict,
             grafico_base64=grafico_base64,
             promedios_por_puesto=promedios_por_puesto,
@@ -596,7 +610,7 @@ def reporte_desempeno():
         ws = wb.active
         ws.title = "Reporte Predicción Rendimiento"
 
-        color = preferencia.color_secundario[1:] if preferencia and preferencia.color_secundario else "2E86C1"
+        color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
 
         # Título y logo
         ws.merge_cells("A1:D1")
@@ -717,7 +731,7 @@ def reporte_desempeno_analista():
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
     empresa = Empresa.query.get(manager.id_empresa)
 
-    color = preferencia.color_secundario[1:] if preferencia and preferencia.color_secundario else "2E86C1"
+    color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
     
     ranking_futuro = (
         db.session.query(
@@ -797,7 +811,7 @@ def reporte_desempeno_analista():
         html_out = template.render(
             empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",            
+            color=preferencia.color_principal if preferencia and preferencia.color_principal else "#2E86C1",            
             ranking_futuro=ranking_dict,
             grafico_base64=grafico_base64,
             promedios_por_puesto=promedios_por_puesto,
@@ -814,7 +828,7 @@ def reporte_desempeno_analista():
         ws = wb.active
         ws.title = "Reporte Predicción Rendimiento"
 
-        color = preferencia.color_secundario[1:] if preferencia and preferencia.color_secundario else "2E86C1"
+        color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
 
         # Título y logo
         ws.merge_cells("A1:D1")
@@ -1031,7 +1045,7 @@ def reporte_licencias_manager():
         html_out = template.render(
             empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",
+            color=preferencia.color_principal if preferencia and preferencia.color_principal else "#2E86C1",
             dias_por_tipo=dias_por_tipo,
             ranking_empleados=ranking_empleados,
             frecuencia_empleado=frecuencia_empleado,
@@ -1049,7 +1063,7 @@ def reporte_licencias_manager():
     if formato == "excel":
         wb = Workbook()
 
-        color = preferencia.color_secundario[1:] if preferencia and preferencia.color_secundario else "2E86C1"
+        color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
         logo_path = None
 
         if preferencia and preferencia.logo_url:
@@ -1268,7 +1282,7 @@ def reporte_licencias_analista():
     if formato == "excel":
         wb = Workbook()
 
-        color = preferencia.color_secundario[1:] if preferencia and preferencia.color_secundario else "2E86C1"
+        color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
         logo_path = None
 
         if preferencia and preferencia.logo_url:
@@ -1360,7 +1374,9 @@ def reporte_riesgos():
     empresa = Empresa.query.get(manager.id_empresa)
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
 
-    color = (preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1").lstrip("#")
+    color_excel = (preferencia.color_principal or "#2E86C1").lstrip("#")
+    color_mpl = "#" + color_excel
+
     riesgos = db.session.query(
         Usuario.username,
         Usuario.puesto_trabajo,
@@ -1369,24 +1385,20 @@ def reporte_riesgos():
         RendimientoEmpleado.riesgo_renuncia_predicho,
         RendimientoEmpleado.riesgo_rotacion_predicho
     ).join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)\
-    .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)\
-    .join(Rol, UsuarioRol.id_rol == Rol.id)\
-    .filter(Usuario.id_empresa == empresa.id)\
-    .filter(RendimientoEmpleado.riesgo_despido_predicho != None).all()
-    
+     .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)\
+     .join(Rol, UsuarioRol.id_rol == Rol.id)\
+     .filter(Usuario.id_empresa == empresa.id)\
+     .filter(RendimientoEmpleado.riesgo_despido_predicho != None).all()
+
     resumen_despido = {}
     resumen_renuncia = {}
     resumen_rotacion = {}
-
     tabla_completa = []
 
-    for r in riesgos:
-        def agrupar(dic, clave):
-            if clave in dic:
-                dic[clave] += 1
-            else:
-                dic[clave] = 1
+    def agrupar(dic, clave):
+        dic[clave] = dic.get(clave, 0) + 1
 
+    for r in riesgos:
         tabla_completa.append({
             "username": r.username,
             "puesto": r.puesto_trabajo,
@@ -1401,7 +1413,7 @@ def reporte_riesgos():
 
     def generar_grafico(dic, titulo, nombre_archivo):
         fig, ax = plt.subplots()
-        ax.bar(dic.keys(), dic.values(), color=f"#{color}")
+        ax.bar(dic.keys(), dic.values(), color=color_mpl)
         ax.set_title(titulo)
         img = BytesIO()
         plt.tight_layout()
@@ -1418,80 +1430,62 @@ def reporte_riesgos():
     path_renuncia = generar_grafico(resumen_renuncia, "Riesgo de Renuncia", "grafico_renuncia.png")
     path_rotacion = generar_grafico(resumen_rotacion, "Riesgo de Rotación", "grafico_rotacion.png")
 
-    import base64
-
     def img_to_base64(path):
         with open(path, "rb") as img_file:
             return base64.b64encode(img_file.read()).decode("utf-8")
 
-    # ...después de generar los gráficos...
-    os.makedirs(TEMP_DIR, exist_ok=True)
-    path_despido = generar_grafico(resumen_despido, "Riesgo de Despido", "grafico_despido.png")
-    path_renuncia = generar_grafico(resumen_renuncia, "Riesgo de Renuncia", "grafico_renuncia.png")
-    path_rotacion = generar_grafico(resumen_rotacion, "Riesgo de Rotación", "grafico_rotacion.png")
-
-    # Agrega esto:
-    grafico_despido_base64 = img_to_base64(path_despido)
-    grafico_renuncia_base64 = img_to_base64(path_renuncia)
-    grafico_rotacion_base64 = img_to_base64(path_rotacion)
-
     if formato == "pdf":
         env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
-        template = env.get_template("reporte_riesgos.html") 
+        template = env.get_template("reporte_riesgos.html")
 
         html_out = template.render(
             empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-            color=preferencia.color_secundario if preferencia and preferencia.color_secundario else "#2E86C1",
+            color="#" + color_excel,
             tabla_completa=tabla_completa,
             resumen_despido=resumen_despido,
             resumen_renuncia=resumen_renuncia,
             resumen_rotacion=resumen_rotacion,
-            grafico_despido_base64=grafico_despido_base64,
-            grafico_renuncia_base64=grafico_renuncia_base64,
-            grafico_rotacion_base64=grafico_rotacion_base64,
+            grafico_despido_base64=img_to_base64(path_despido),
+            grafico_renuncia_base64=img_to_base64(path_renuncia),
+            grafico_rotacion_base64=img_to_base64(path_rotacion),
             now=datetime.now
         )
 
         archivo = f"reporte_riesgos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         ruta = os.path.join(TEMP_DIR, archivo)
-        os.makedirs(TEMP_DIR, exist_ok=True)
         HTML(string=html_out).write_pdf(ruta)
-
         return send_file(ruta, as_attachment=True, download_name=archivo)
 
-
     if formato == "excel":
-
         wb = Workbook()
         ws = wb.active
         ws.title = "Reporte Riesgos"
 
-        ws.merge_cells("A1:E1")
+        ws.merge_cells("A1:F1")
         ws["A1"] = f"Reporte de Riesgos - {empresa.nombre}"
         ws["A1"].font = Font(bold=True, size=14)
         ws["A1"].alignment = Alignment(horizontal="center")
 
+        # Logo
         if preferencia and preferencia.logo_url:
             try:
-                import requests
-                from PIL import Image
                 response = requests.get(preferencia.logo_url)
                 img = Image.open(BytesIO(response.content))
                 logo_path = os.path.join(TEMP_DIR, "logo_empresa.png")
                 img.save(logo_path)
                 logo = ExcelImage(logo_path)
-                logo.width = 120
-                logo.height = 60
-                ws.add_image(logo, "F1")
+                logo.width = 110
+                logo.height = 45
+                ws.add_image(logo, "A1")
             except:
                 pass
 
-        ws.append(["", "", "", "", "", ""])
+        ws.append([""])
         ws.append(["Usuario", "Puesto", "Rol", "Riesgo Despido", "Riesgo Renuncia", "Riesgo Rotación"])
         for cell in ws[ws.max_row]:
             cell.font = Font(bold=True, color="FFFFFF")
-            cell.fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+            cell.fill = PatternFill(start_color=color_excel, end_color=color_excel, fill_type="solid")
 
         for fila in tabla_completa:
             ws.append([
@@ -1516,9 +1510,8 @@ def reporte_riesgos():
         archivo = f"reporte_riesgos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         ruta = os.path.join(TEMP_DIR, archivo)
         wb.save(ruta)
-
         return send_file(ruta, as_attachment=True, download_name=archivo)
-    
+
     return {"error": "Formato no soportado"}, 400
 
 
