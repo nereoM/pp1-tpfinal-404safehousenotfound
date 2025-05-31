@@ -718,26 +718,27 @@ def reporte_desempeno_analista():
     empresa = Empresa.query.get(manager.id_empresa)
 
     color = preferencia.color_secundario[1:] if preferencia and preferencia.color_secundario else "2E86C1"
-
+    
     ranking_futuro = (
-            db.session.query(
-                Usuario.nombre,
-                Usuario.apellido,
-                Usuario.puesto_trabajo,
-                Usuario.username,
-                RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion"),
-                RendimientoEmpleado.clasificacion_rendimiento
-            )
-            .join(Usuario, Usuario.id == RendimientoEmpleado.id_usuario)
-            .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
-            .join(Rol, Rol.id == UsuarioRol.id_rol)
-            .filter(Usuario.id_empresa == manager.id_empresa)
-            .filter(Rol.slug == "empleado")
-            .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
-            .order_by(RendimientoEmpleado.rendimiento_futuro_predicho.desc())
-            .limit(10)
-            .all()
+        db.session.query(
+            Usuario.nombre,
+            Usuario.apellido,
+            Usuario.puesto_trabajo,
+            Usuario.username,
+            RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion"),
+            RendimientoEmpleado.clasificacion_rendimiento,
+            Rol.nombre.label("rol")
         )
+        .join(Usuario, Usuario.id == RendimientoEmpleado.id_usuario)
+        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+        .join(Rol, UsuarioRol.id_rol == Rol.id)
+        .filter(Usuario.id_empresa == manager.id_empresa)
+        .filter(Rol.slug == "empleado")
+        .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
+        .order_by(RendimientoEmpleado.rendimiento_futuro_predicho.desc())
+        .limit(10)
+        .all()
+    )
     
     def clasificar_rendimiento(valor):
         if valor is None:
@@ -753,7 +754,8 @@ def reporte_desempeno_analista():
         {
             "nombre": r.nombre,
             "apellido": r.apellido,
-            "puesto": r.puesto_trabajo,
+            "puesto": r.puesto_trabajo or "Analista",
+            "rol": r.rol,
             "username": r.username,
             "rendimiento_futuro": round(r.prediccion, 2),
             "clasificacion_rendimiento": r.clasificacion_rendimiento or clasificar_rendimiento(r.prediccion)
@@ -835,15 +837,24 @@ def reporte_desempeno_analista():
                 print("No se pudo cargar el logo:", e)
 
         # Tabla Ranking
-        ws.append(["", "", "", ""])
-        ws.append(["#", "Nombre", "Usuario", "Rendimiento Futuro"])
-        for cell in ws[3]:
+        ws.append(["", "", "", "", "", ""])
+        ws.append(["#", "Nombre", "Apellido", "Puesto", "Rol", "Usuario", "Rendimiento Futuro", "Clasificación"])
+        for cell in ws[ws.max_row]:
             cell.font = Font(bold=True)
             cell.fill = PatternFill(start_color=color, fill_type="solid")
             cell.alignment = Alignment(horizontal="center")
 
         for i, fila in enumerate(ranking_dict, start=1):
-            ws.append([i, fila["nombre"], fila["username"], fila["rendimiento_futuro"]])
+            ws.append([
+                i,
+                fila["nombre"],
+                fila["apellido"],
+                fila["puesto"] or "Analista",
+                fila["rol"],
+                fila["username"],
+                fila["rendimiento_futuro"],
+                fila["clasificacion_rendimiento"]
+            ])
 
         # Tabla Promedios por Puesto
         ws.append(["", "", "", ""])
