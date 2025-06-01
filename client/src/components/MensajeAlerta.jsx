@@ -15,11 +15,12 @@ export default function MensajeAlerta({ texto = "", className = "", tipo }) {
       textoLower.includes("falló") ||
       textoLower.includes("requerido") ||
       textoLower.includes("seleccione") ||
-      textoLower.includes("selecciona") ||  
+      textoLower.includes("selecciona") ||
       textoLower.includes("obligatorio") ||
       textoLower.includes("caracter") ||
       textoLower.includes("unexpected token") ||
-      textoLower.includes("<!doctype")
+      textoLower.includes("<!doctype") ||
+      textoLower.includes("ya tiene una oferta asignada");
   }
 
   const colorClasses = esError

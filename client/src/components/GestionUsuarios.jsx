@@ -9,10 +9,9 @@ export default function GestionUsuarios({ onClose, textColor , service }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-2xl space-y-4">
+      <div className="bg-white p-6 rounded-lg w-full max-w-5xl space-y-4"> {/* ⬅️ Cambiado a max-w-5xl */}
         <h2 className="text-lg font-semibold text-black">Empleados bajo tu cargo</h2>
 
-        {/* ✅ NUEVO: mensaje de éxito */}
         {mensajeExito && (
           <div className="text-sm text-green-800 bg-green-100 p-2 rounded border border-green-300">
             {mensajeExito}
@@ -22,17 +21,17 @@ export default function GestionUsuarios({ onClose, textColor , service }) {
         {empleados.length === 0 ? (
           <p className="text-sm text-blue-700">No hay empleados asignados.</p> 
         ) : (
-          <div className="overflow-x-auto max-h-96 overflow-y-auto">
-            <table className="min-w-full text-sm text-left border border-blue-200"> 
+          <div className="max-h-[28rem] overflow-y-auto"> {/* ⬅️ Solo vertical scroll */}
+            <table className="min-w-full text-sm text-left border border-blue-200 w-full"> {/* ⬅️ Forzamos ancho completo */}
               <thead className="bg-blue-100">
                 <tr>
-                  <th className="px-6 py-3 border-b border-blue-300 text-blue-900">Nombre</th> 
-                  <th className="px-6 py-3 border-b border-blue-300 text-blue-900">Correo</th> 
-                  <th className="px-6 py-3 border-b border-blue-300 text-blue-900">Rol</th> 
-                  <th className="px-6 py-3 border-b border-blue-300 text-blue-900"></th> 
+                  <th className="px-6 py-3 border-b border-blue-300 text-blue-900">Nombre</th>
+                  <th className="px-6 py-3 border-b border-blue-300 text-blue-900">Correo</th>
+                  <th className="px-6 py-3 border-b border-blue-300 text-blue-900">Rol</th>
+                  <th className="px-6 py-3 border-b border-blue-300 text-blue-900"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-blue-100"> 
+              <tbody className="divide-y divide-blue-100">
                 {empleados
                   .filter((emp) => !emp.roles.includes("candidato"))
                   .map((emp, index) => (
@@ -40,17 +39,17 @@ export default function GestionUsuarios({ onClose, textColor , service }) {
                       key={emp.id}
                       className={
                         index % 2 === 0
-                          ? "bg-white hover:bg-blue-50" 
-                          : "bg-blue-50 hover:bg-blue-100" 
+                          ? "bg-white hover:bg-blue-50"
+                          : "bg-blue-50 hover:bg-blue-100"
                       }
                     >
-                      <td className="px-6 py-3 text-blue-800">{emp.nombre} {emp.apellido}</td> 
+                      <td className="px-6 py-3 text-blue-800">{emp.nombre} {emp.apellido}</td>
                       <td className="px-6 py-3 text-blue-800">{emp.correo}</td>
-                      <td className="px-6 py-3 text-blue-800">{emp.roles.join(", ")}</td> 
+                      <td className="px-6 py-3 text-blue-800">{emp.roles.join(", ")}</td>
                       <td className="px-6 py-3 text-right">
                         <button
                           onClick={() => setConfirmModal({ open: true, id: emp.id })}
-                          className="text-red-600 hover:underline text-sm font-medium" 
+                          className="text-red-600 hover:underline text-sm font-medium"
                         >
                           Desvincular
                         </button>
@@ -61,6 +60,7 @@ export default function GestionUsuarios({ onClose, textColor , service }) {
             </table>
           </div>
         )}
+
         <div className="flex justify-end pt-4">
           <button
             onClick={onClose}

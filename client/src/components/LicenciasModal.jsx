@@ -5,6 +5,8 @@ export function LicenciasModal({ onClose, service }) {
   const [licencias, setLicencias] = useState([]);
   const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);
   const [modalSugerenciaAbierto, setModalSugerenciaAbierto] = useState(false);
+  const [motivoExpandido, setMotivoExpandido] = useState(null); // ✅ AGREGADO
+  const [descripcionExpandida, setDescripcionExpandida] = useState(null); // ✅ AGREGADO
 
   useEffect(() => {
     service.misLicencias().then(setLicencias);
@@ -39,11 +41,11 @@ export function LicenciasModal({ onClose, service }) {
             estado_sugerencia: aceptacion
               ? "sugerencia aceptada"
               : "sugerencia rechazada",
-              estado: aceptacion ? "sugerencia": "rechazada"
+            estado: aceptacion ? "sugerencia" : "rechazada"
           };
         })
       );
-      setModalSugerenciaAbierto(false)
+      setModalSugerenciaAbierto(false);
     } catch (error) {
       console.error("Error al cancelar la licencia:", error);
       alert("Ocurrió un error al cancelar la licencia.");
@@ -94,27 +96,52 @@ export function LicenciasModal({ onClose, service }) {
                 } = licencia;
                 return (
                   <tr key={idx} className="hover:bg-indigo-50">
-                    <td className="p-2 border">{tipo}</td>
-                    <td className="p-2 border">
-                      {descripcion && descripcion.trim() !== ""
-                        ? descripcion
-                        : "-"}
+                    <td className="p-2 border align-top">{tipo}</td>
+
+                    {/* ✅ MODIFICADO: Celda de descripción con truncado y toggle */}
+                    <td className="p-2 border text-sm relative text-gray-800 max-w-xs align-top break-words whitespace-pre-wrap">
+                      {descripcion && descripcion.trim() !== "" ? (
+                        <>
+                          {descripcionExpandida === id_licencia ? (
+                            <>
+                              {descripcion}
+                              <button
+                                onClick={() => setDescripcionExpandida(null)}
+                                className="ml-2 text-blue-600 font-semibold underline text-xs hover:text-white hover:bg-blue-600 px-2 py-0.5 rounded transition-all duration-200"
+                              >
+                                mostrar menos
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {descripcion.slice(0, 50)}...
+                              <button
+                                onClick={() => setDescripcionExpandida(id_licencia)}
+                                className="ml-2 text-blue-600 font-semibold underline text-xs hover:text-white hover:bg-blue-600 px-2 py-0.5 rounded transition-all duration-200"
+                              >
+                                ver completo
+                              </button>
+                            </>
+                          )}
+                        </>
+                      ) : (
+                        "-"
+                      )}
                     </td>
-                    <td className="p-2 border">
+                    <td className="p-2 border align-top">
                       {new Date(fecha_inicio).toLocaleDateString()}
                     </td>
-                    <td className="p-2 border">
+                    <td className="p-2 border align-top">
                       {new Date(fecha_fin).toLocaleDateString()}
                     </td>
-                    <td className="p-2 border capitalize">
+                    <td className="p-2 border capitalize align-top">
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
-                          licencia.estado === "activa" ||
-                          licencia.estado === "aprobada"
+                          estado === "activa" || estado === "aprobada"
                             ? "bg-green-100 text-green-800"
-                            : licencia.estado === "pendiente"
+                            : estado === "pendiente"
                             ? "bg-yellow-100 text-yellow-800"
-                            : licencia.estado === "sugerencia"
+                            : estado === "sugerencia"
                             ? "bg-blue-100 text-blue-800"
                             : "bg-red-100 text-red-800"
                         }`}
@@ -124,21 +151,41 @@ export function LicenciasModal({ onClose, service }) {
                           : estado_sugerencia
                           ? estado_sugerencia
                           : estado}
-                        {/* {estado_sugerencia ? estado_sugerencia : estado} */}
                       </span>
                     </td>
-                    <td className="px-4 py-2 border border-gray-300">
+                    <td className="px-4 py-2 border border-gray-300 relative align-top">
                       {estado === "rechazada" ? (
-                        <span className="text-sm text-red-500 italic">
-                          {motivo_rechazo ?? "Sin motivo especificado"}
-                        </span>
+                        <div className="text-sm text-red-500 italic">
+                          {motivoExpandido === id_licencia ? (
+                            <>
+                              {motivo_rechazo ?? "Sin motivo especificado"}
+                              <button
+                                onClick={() => setMotivoExpandido(null)}
+                                className="ml-2 text-blue-600 underline text-xs"
+                              >
+                                ver menos
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              {(motivo_rechazo ?? "Sin motivo especificado").substring(0, 30)}
+                              ...
+                              <button
+                                onClick={() => setMotivoExpandido(id_licencia)}
+                                className="ml-2 text-blue-600 underline text-xs"
+                              >
+                                ver completo
+                              </button>
+                            </>
+                          )}
+                        </div>
                       ) : (
                         "-"
                       )}
                     </td>
-                    <td className="p-2 border text-center">
+                    <td className="p-2 border text-center align-top">
                       {licencia.estado_sugerencia === "sugerencia aceptada" ? (
-                        "-" // No se puede hacer nada si hay estado_sugerencia
+                        "-"
                       ) : estado === "pendiente" || estado === "activa" ? (
                         <button
                           onClick={() => handleCancelarLicencia(id_licencia)}
