@@ -25,7 +25,7 @@
             display: block;
         }
         h1 {
-            background: #0077b6;
+            background: {{ color }};
             color: #fff;
             padding: 18px 0;
             border-radius: 8px;
@@ -50,7 +50,7 @@
             font-size: 11px !important;
         }
         th {
-            background: #0077b6;
+            background: {{ color }};
             color: #fff;
             font-size: 1rem;
             font-weight: 600;
@@ -65,7 +65,7 @@
             margin-top: 40px;
         }
         .graficos h2 {
-            color: #0077b6;
+            color: {{ color }};
             font-size: 1.5rem;
             margin-bottom: 12px;
         }
@@ -112,21 +112,19 @@
             </tbody>
         </table>
 
-        <!-- ================== BLOQUE DE GRÁFICOS ================== -->
         <div class="graficos">
             <h2>Postulaciones por Oferta</h2>
             <img src="data:image/png;base64,{{ grafico_postulaciones }}" alt="Gráfico postulaciones por oferta">
 
-            <h2>Tasa de Conversión (%)</h2>
+            <h2>Tasa de Conversión</h2>
             <img src="data:image/png;base64,{{ grafico_conversion }}" alt="Gráfico tasa de conversión">
 
             <h2>Tiempo Promedio de Postulación</h2>
             <img src="data:image/png;base64,{{ grafico_tiempo }}" alt="Gráfico tiempo promedio de postulación">
         </div>
-        <!-- ================ FIN BLOQUE DE GRÁFICOS ================ -->
 
         <div class="footer">
-            Generado el {{ now().strftime('%d/%m/%Y %H:%M') }}
+            Generado el {{ now.strftime('%d/%m/%Y %H:%M') }}
         </div>
     </div>
 </body>

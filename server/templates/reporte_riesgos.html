@@ -5,10 +5,10 @@
     <title>Reporte de Riesgos - {{ empresa }}</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 40px; }
-        h1, h2 { color: #0077b6; }
+        h1, h2, h3 { color: {{ color }}; }
         table { font-size: 11px !important; border-collapse: collapse; width: 100%; margin-bottom: 30px; }
         th, td { font-size: 11px !important; border: 1px solid #ccc; padding: 8px; text-align: center; }
-        th { background: #f2f2f2; }
+        th { background: {{ color }}; color: white; }
         .logo { max-height: 60px; margin-bottom: 20px; }
         .grafico { max-width: 500px; margin: 20px 0; }
     </style>
@@ -18,7 +18,7 @@
         <img src="{{ logo_url }}" class="logo" alt="Logo empresa">
     {% endif %}
     <h1>Reporte de Riesgos - {{ empresa }}</h1>
-    <p>Fecha de generación: {{ now().strftime('%d/%m/%Y %H:%M') }}</p>
+    <p>Fecha de generación: {{ now.strftime('%d/%m/%Y %H:%M') }}</p>
 
     <h2>Resumen de Riesgos</h2>
     <table>
@@ -49,10 +49,13 @@
     <h2>Distribución de Riesgos</h2>
     <h3>Despido</h3>
     <img src="data:image/png;base64,{{ grafico_despido_base64 }}" class="grafico" alt="Gráfico Despido">
+    <img src="{{ imagen_despido }}" class="grafico">
     <h3>Renuncia</h3>
     <img src="data:image/png;base64,{{ grafico_renuncia_base64 }}" class="grafico" alt="Gráfico Despido">
+    <img src="{{ imagen_renuncia }}" class="grafico">
     <h3>Rotación</h3>
     <img src="data:image/png;base64,{{ grafico_rotacion_base64 }}" class="grafico" alt="Gráfico Despido">
+    <img src="{{ imagen_rotacion }}" class="grafico">
 
     <h2>Totales por Clasificación</h2>
     <table>

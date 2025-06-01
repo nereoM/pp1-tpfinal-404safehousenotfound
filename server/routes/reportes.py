@@ -67,7 +67,8 @@ def reporte_reclutamiento():
         for row in resultados
     ]
 
-    # <-- AGREGADO POR JOA PARA PROBAR LA PLANTILLA, EVALUAR SI LES SIRVE 
+    color_secundario = preferencia.color_principal if preferencia.color_principal else "2E86C1"
+    color_hex = color_secundario if color_secundario.startswith("#") else f"#{color_secundario}"
     
     if formato == "pdf":
         env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
@@ -96,13 +97,14 @@ def reporte_reclutamiento():
         grafico_conversion = generar_grafico(datos, "tasa_conversion", "Tasa de Conversión", "conversion.png")
         grafico_tiempo = generar_grafico(datos, "tiempo_promedio", "Tiempo Promedio de Postulación", "tiempo.png")
 
+        now = datetime.now()
 
         html_out = template.render(
             empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
             color=color_hex,
             datos=datos,
-            now=datetime.now,
+            now=now,
             grafico_postulaciones=grafico_postulaciones,
             grafico_conversion=grafico_conversion,
             grafico_tiempo=grafico_tiempo
@@ -110,7 +112,7 @@ def reporte_reclutamiento():
         
         TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
         os.makedirs(TEMP_DIR, exist_ok=True)
-        nombre_archivo = f"informe_reclutamiento_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        nombre_archivo = f"informe_reclutamiento_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
         ruta_archivo = os.path.abspath(os.path.join(TEMP_DIR, nombre_archivo))
         HTML(string=html_out).write_pdf(ruta_archivo)
         return send_file(ruta_archivo, as_attachment=True, download_name=nombre_archivo)
@@ -120,9 +122,6 @@ def reporte_reclutamiento():
         wb = Workbook()
         ws = wb.active
         ws.title = "Informe Reclutamiento"
-
-        color_secundario = preferencia.color_principal if preferencia.color_principal else "2E86C1"
-        color_hex = color_secundario if color_secundario.startswith("#") else f"#{color_secundario}"
 
         if preferencia and preferencia.logo_url:
             try:
@@ -207,8 +206,6 @@ def reporte_reclutamiento():
 
             adjusted_width = max_length + 2
             ws.column_dimensions[col_letter].width = adjusted_width
-
-        from datetime import datetime
 
         TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
         os.makedirs(TEMP_DIR, exist_ok=True)
@@ -293,7 +290,7 @@ def reporte_reclutamiento_analista():
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
             color=color_hex,
             datos=datos,
-            now=datetime.now,
+            now=datetime.now(),
             grafico_postulaciones=grafico_postulaciones,
             grafico_conversion=grafico_conversion,
             grafico_tiempo=grafico_tiempo
@@ -398,8 +395,6 @@ def reporte_reclutamiento_analista():
 
             adjusted_width = max_length + 2
             ws.column_dimensions[col_letter].width = adjusted_width
-
-        from datetime import datetime
 
         TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
         os.makedirs(TEMP_DIR, exist_ok=True)
@@ -598,7 +593,7 @@ def reporte_desempeno():
             grafico_base64=grafico_base64,
             promedios_por_puesto=promedios_por_puesto,
             grafico_puesto_base64=grafico_puesto_base64,
-            now=datetime.now
+            now=datetime.now()
         )
         nombre_archivo = f"desempeno_futuro_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         ruta_archivo = os.path.abspath(os.path.join(TEMP_DIR, nombre_archivo))
@@ -816,7 +811,7 @@ def reporte_desempeno_analista():
             grafico_base64=grafico_base64,
             promedios_por_puesto=promedios_por_puesto,
             grafico_puesto_base64=grafico_puesto_base64,
-            now=datetime.now
+            now=datetime.now()
         )
         nombre_archivo = f"desempeno_futuro_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         ruta_archivo = os.path.abspath(os.path.join(TEMP_DIR, nombre_archivo))
@@ -1050,7 +1045,7 @@ def reporte_licencias_manager():
             ranking_empleados=ranking_empleados,
             frecuencia_empleado=frecuencia_empleado,
             grafico_ausencias_base64=grafico_base64,
-            now=datetime.now
+            now=datetime.now()
         )
 
         archivo = f"reporte_asistencia_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1269,7 +1264,7 @@ def reporte_licencias_analista():
             ranking_empleados=ranking_empleados,
             frecuencia_empleado=frecuencia_empleado,
             grafico_ausencias_base64=grafico_base64,
-            now=datetime.now
+            now=datetime.now()
         )
 
         archivo = f"reporte_asistencia_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1438,6 +1433,15 @@ def reporte_riesgos():
         env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
         template = env.get_template("reporte_riesgos.html")
 
+        ruta_img_despido = os.path.join(BASE_DIR, 'imagenes_reportes', 'riesgo_despido_analistas.png')
+        imagen_despido = imagen_a_base64(ruta_img_despido)
+
+        ruta_img_rotacion = os.path.join(BASE_DIR, 'imagenes_reportes', 'riesgo_rotacion_analistas.png')
+        imagen_rotacion = imagen_a_base64(ruta_img_rotacion)
+
+        ruta_img_renuncia = os.path.join(BASE_DIR, 'imagenes_reportes', 'riesgo_renuncia_analistas.png')
+        imagen_renuncia = imagen_a_base64(ruta_img_renuncia)
+
         html_out = template.render(
             empresa=empresa.nombre,
             logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
@@ -1449,7 +1453,10 @@ def reporte_riesgos():
             grafico_despido_base64=img_to_base64(path_despido),
             grafico_renuncia_base64=img_to_base64(path_renuncia),
             grafico_rotacion_base64=img_to_base64(path_rotacion),
-            now=datetime.now
+            imagen_despido=imagen_despido,
+            imagen_rotacion=imagen_rotacion,
+            imagen_renuncia=imagen_renuncia,
+            now=datetime.now()
         )
 
         archivo = f"reporte_riesgos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -1515,5 +1522,11 @@ def reporte_riesgos():
     return {"error": "Formato no soportado"}, 400
 
 
+
+
+def imagen_a_base64(ruta_local):
+    with open(ruta_local, "rb") as img_file:
+        encoded_string = base64.b64encode(img_file.read()).decode("utf-8")
+        return f"data:image/png;base64,{encoded_string}"
 
 
