@@ -1,24 +1,38 @@
 import { motion } from "framer-motion";
-import { BarChart, BarChart2, FileLock, FileSearchIcon, FileText, FileUp, PlusCircle, Users } from 'lucide-react';
-import React, { useEffect, useRef, useState } from "react";
+import {
+  BarChart,
+  BarChart2,
+  Download,
+  FileLock,
+  FileSearchIcon,
+  FileText,
+  FileUp,
+  PlusCircle,
+  Users,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GestionUsuarios from "../components/GestionUsuarios.jsx";
 import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
-import ModalOferta from '../components/ModalOferta';
+import ModalOferta from "../components/ModalOferta";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayout";
 import { ProfileCard } from "../components/ProfileCard";
 import RendimientoAnalistasTable from "../components/RendimientoAnalistasTable";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "../components/shadcn/Accordion.jsx";
 import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal.jsx";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
-import { Download } from "lucide-react";
 
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta"; // alertas
-
 
 export default function ManagerHome() {
   const [user, setUser] = useState(null);
@@ -31,7 +45,12 @@ export default function ManagerHome() {
   const [mensajeVerOfertas, setMensajeVerOferta] = useState("");
   const [mensajeAsignacion, setMensajeAsignacion] = useState("");
   const [formOferta, setFormOferta] = useState({});
-  const [formAnalista, setFormAnalista] = useState({ nombre: "", apellido: "", username: "", email: "" });
+  const [formAnalista, setFormAnalista] = useState({
+    nombre: "",
+    apellido: "",
+    username: "",
+    email: "",
+  });
   const [ofertas, setOfertas] = useState([]);
   const [analistas, setAnalistas] = useState([]);
   const [selectedAnalistas, setSelectedAnalistas] = useState({});
@@ -39,43 +58,42 @@ export default function ManagerHome() {
   const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set());
   const inputMetricasRef = useRef(null);
 
-
-  const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false)
+  const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false);
   const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
-  const [modalRechazoOpen, setModalRechazoOpen] = useState(false);
-  const [motivoRechazo, setMotivoRechazo] = useState("");
   const [licencias, setLicencias] = useState([]);
-  const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);
   const [mensajeLicencias, setMensajeLicencias] = useState("");
-  const [mensajeEvaluacion, setMensajeEvaluacion] = useState("");
   const [modalEditarPerfilOpen, setModalEditarPerfilOpen] = useState(false);
-  const [nombre, setNombre] = useState("");
-  const [apellido, setApellido] = useState("");
-  const [username, setUsername] = useState("");
   const [modalImageFile, setModalImageFile] = useState(null);
-  const [mensajeError, setMensajeError] = useState('');
   const [modalGestionEquipo, setModalGestionEquipo] = useState(false);
   const navigate = useNavigate();
   const [modalSubirMetricas, setModalSubirMetricas] = useState(false);
   const [mensajeMetricas, setMensajeMetricas] = useState("");
   const [archivoMetricas, setArchivoMetricas] = useState(null);
-  const [modalRendimientoAnalistas, setModalRendimientoAnalistas] = useState(false);
+  const [modalRendimientoAnalistas, setModalRendimientoAnalistas] =
+    useState(false);
   const [modalSubirEmpleados, setModalSubirEmpleados] = useState(false);
   const [mensajeEmpleados, setMensajeEmpleados] = useState("");
   const [archivoEmpleados, setArchivoEmpleados] = useState(null);
   const inputEmpleadosRef = useRef();
 
   // Modal
-  const [modalSolicitarLicencia, setModalSolicitarLicencia] = useState(false)
+  const [modalSolicitarLicencia, setModalSolicitarLicencia] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
+
+  const seccionesAmigables = {
+    licencias: "Licencias",
+    ofertas: "Ofertas",
+    empleados: "Empleados",
+    metricas: "Métricas y Desempeño",
+  };
 
   //trae los datos del manager
   useEffect(() => {
     const cargarUsuario = async () => {
       try {
         const res = await fetch(`${import.meta.env.VITE_API_URL}/auth/me`, {
-          credentials: "include"
+          credentials: "include",
         });
         if (!res.ok) throw new Error("No autenticado");
         const data = await res.json();
@@ -88,7 +106,7 @@ export default function ManagerHome() {
           correo: data.correo,
           roles: data.roles,
           empresaId: data.id_empresa,
-          foto_url: data.foto_url
+          foto_url: data.foto_url,
         });
       } catch (err) {
         console.error("Error al cargar usuario:", err);
@@ -104,7 +122,9 @@ export default function ManagerHome() {
     const obtenerOfertasAsignadas = async () => {
       try {
         const response = await managerService.obtenerOfertasAsignadas();
-        setOfertasAsignadas(new Set(response.data.map(item => Number(item.id_oferta))));
+        setOfertasAsignadas(
+          new Set(response.data.map((item) => Number(item.id_oferta)))
+        );
         console.log("🟩 Ofertas asignadas:", response.data);
       } catch (error) {
         console.error("❌ Error al obtener ofertas asignadas:", error);
@@ -119,7 +139,9 @@ export default function ManagerHome() {
   const descargarReporteReclutamiento = async (formato = "excel") => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento-manager?formato=${formato}`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/reportes-reclutamiento-manager?formato=${formato}`,
         {
           method: "GET",
           credentials: "include",
@@ -130,7 +152,10 @@ export default function ManagerHome() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = formato === "pdf" ? "informe_reclutamiento.pdf" : "informe_reclutamiento.xlsx";
+      a.download =
+        formato === "pdf"
+          ? "informe_reclutamiento.pdf"
+          : "informe_reclutamiento.xlsx";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -206,15 +231,20 @@ export default function ManagerHome() {
   //funcion para crear una oferta laboral
   const crearOfertaLaboral = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/crear_oferta_laboral`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formOferta),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/crear_oferta_laboral`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formOferta),
+        }
+      );
       const data = await res.json();
       if (res.ok) {
-        setMensajeOferta(`Oferta creada: ${data.nombre} (ID: ${data.id_oferta})`);
+        setMensajeOferta(
+          `Oferta creada: ${data.nombre} (ID: ${data.id_oferta})`
+        );
         setFormOferta({});
       } else {
         setMensajeOferta(`Error: ${data.error}`);
@@ -226,22 +256,27 @@ export default function ManagerHome() {
 
   const crearAnalista = async () => {
     if (formAnalista.username.trim().length < 4) {
-      setMensajeAnalista("El nombre de usuario debe tener al menos 4 caracteres.");
+      setMensajeAnalista(
+        "El nombre de usuario debe tener al menos 4 caracteres."
+      );
       return;
     }
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-reclutador`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formAnalista.nombre,
-          lastname: formAnalista.apellido,
-          username: formAnalista.username,
-          email: formAnalista.email,
-        }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/registrar-reclutador`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: formAnalista.nombre,
+            lastname: formAnalista.apellido,
+            username: formAnalista.username,
+            email: formAnalista.email,
+          }),
+        }
+      );
 
       const data = await res.json();
       if (res.ok) {
@@ -260,7 +295,10 @@ export default function ManagerHome() {
   //funcion para traer las ofertas que creo el manager
   const fetchMisOfertas = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mis-ofertas-laborales`, { credentials: "include" });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/mis-ofertas-laborales`,
+        { credentials: "include" }
+      );
       const data = await res.json();
       if (res.ok) setOfertas(data.ofertas);
       else throw new Error(data.error || "Error al obtener ofertas");
@@ -271,9 +309,13 @@ export default function ManagerHome() {
 
   const fetchAnalistas = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/empleados-manager`, { credentials: "include" });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/empleados-manager`,
+        { credentials: "include" }
+      );
       const data = await res.json();
-      if (res.ok) setAnalistas(data.filter((e) => e.roles.includes("reclutador")));
+      if (res.ok)
+        setAnalistas(data.filter((e) => e.roles.includes("reclutador")));
       else throw new Error("Error al obtener analistas");
     } catch (err) {
       setMensaje(err.message);
@@ -294,16 +336,12 @@ export default function ManagerHome() {
     setModalVerOfertasOpen(true);
   };
 
-  const openModalLicencias = () => {
-    setMensajeLicencias("");
-    obtenerLicencias();
-    setModalLicenciasOpen(true);
-  };
-
   const descargarReporteLicencias = async (formato = "excel") => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reportes-licencias-manager?formato=${formato}`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/reportes-licencias-manager?formato=${formato}`,
         {
           method: "GET",
           credentials: "include",
@@ -314,7 +352,8 @@ export default function ManagerHome() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = formato === "pdf" ? "reporte_licencias.pdf" : "reporte_licencias.xlsx";
+      a.download =
+        formato === "pdf" ? "reporte_licencias.pdf" : "reporte_licencias.xlsx";
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -350,7 +389,10 @@ export default function ManagerHome() {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id_oferta: ofertaId, id_analista: analistaId }),
+          body: JSON.stringify({
+            id_oferta: ofertaId,
+            id_analista: analistaId,
+          }),
         }
       );
 
@@ -360,7 +402,7 @@ export default function ManagerHome() {
         setMensajeAsignacion(data.message);
 
         //  marcar como asignada
-        setOfertasAsignadas(prev => new Set(prev).add(ofertaId));
+        setOfertasAsignadas((prev) => new Set(prev).add(ofertaId));
       } else {
         throw new Error(data.error || data.message);
       }
@@ -369,16 +411,18 @@ export default function ManagerHome() {
     }
   };
 
-
   const obtenerLicencias = async () => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/licencias-solicitadas-manager`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/licencias-solicitadas-manager`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const data = await res.json();
 
@@ -395,11 +439,14 @@ export default function ManagerHome() {
 
   const cerrarOferta = async (id_oferta) => {
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/cerrar_oferta/${id_oferta}`, {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/cerrar_oferta/${id_oferta}`,
+        {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         setMensajeAsignacion(data.message || "Oferta cerrada exitosamente.");
@@ -411,11 +458,6 @@ export default function ManagerHome() {
     } catch (err) {
       setMensajeAsignacion("Error al conectar con el servidor.");
     }
-  };
-
-  const abrirModalRechazo = (licencia) => {
-    setLicenciaSeleccionada(licencia);
-    setModalRechazoOpen(true);
   };
 
   const handleImageUpload = async (file) => {
@@ -444,99 +486,119 @@ export default function ManagerHome() {
     }
   };
 
-  const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
+  const handleProfileUpdate = async ({
+    nombre,
+    apellido,
+    username,
+    email,
+    password,
+  }) => {
     try {
       const res = await fetch(`${API_URL}/auth/update-profile`, {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ username, email, password }),
       });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
-      setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
+      if (!res.ok)
+        throw new Error(result.error || "Error al actualizar perfil");
+      setUser((prev) => ({
+        ...prev,
+        username: result.username,
+        correo: result.email,
+      }));
       setModalEditarPerfilOpen(false);
     } catch (err) {
       alert(err.message);
     }
   };
 
-
-
-  const acciones = [
-    {
-      icon: Users,
-      titulo: "Ver Listado de Ofertas",
-      descripcion: "Accede al listado de ofertas disponibles en el sistema.",
-      onClick: openModalVerOfertas,
-    },
-    {
-      icon: FileText,
-      titulo: "Subir Empleados por CSV",
-      descripcion: "Carga empleados en lote desde un archivo CSV.",
-      onClick: () => setModalSubirEmpleados(true),
-    },
-    {
-      icon: PlusCircle,
-      titulo: "Publicar una Nueva Oferta",
-      descripcion: "Crea y publica nuevas ofertas en el sistema.",
-      onClick: () => setModalOfertaOpen(true),
-    },
-    {
-      icon: BarChart,
-      titulo: "Crear Analista",
-      descripcion: "Registrá nuevos analistas para tu empresa.",
-      onClick: () => setModalAnalistaOpen(true),
-    },
-    {
-      icon: BarChart2,
-      titulo: "Subir Métricas de Analistas",
-      descripcion: "Carga un archivo CSV con métricas de desempeño y rotación de analistas.",
-      onClick: () => setModalSubirMetricas(true),
-    },
-    {
-      icon: Users,
-      titulo: "Gestionar equipo",
-      descripcion: "Visualizá y administrá los analistas a tu cargo",
-      onClick: () => setModalGestionEquipo(true),
-    },
-    {
-      icon: FileUp,
-      titulo: "Solicitar Licencia",
-      descripcion: "Solicituar una nueva licencia.",
-      onClick: () => setModalSolicitarLicencia(true),
-    },
-    {
-      icon: FileSearchIcon,
-      titulo: "Ver Mis Licencias",
-      descripcion: "Accede al listado tus licencias.",
-      onClick: () => setModalLicenciasOpen(true),
-    },
-    {
-      icon: FileLock,
-      titulo: "Consultar Licencias",
-      descripcion: "Accede a las licencias del personal y sus estados.",
-      onClick: () => setModalLicenciasACargo(true)
-    },
-    {
-      icon: BarChart2,
-      titulo: "Editar Métricas de Analistas",
-      descripcion: "Visualizá y editá las métricas de tus analistas en una tabla interactiva.",
-      onClick: () => setModalRendimientoAnalistas(true),
-    },
-    {
-      icon: BarChart2,
-      titulo: "Visualizar Indicadores de Desempeño y predicciones",
-      descripcion: "Visualizá y administrá los empleados de tu empresa.",
-      onClick: () => navigate('/manager/empleados-rendimiento-analistas'),
-    },
-    {
-      icon: BarChart2,
-      titulo: "Detección Temprana de Rotación y Riesgos Laborales",
-      descripcion: "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
-      onClick: () => navigate("/manager/analistas-riesgo"),
-    },
-  ];
+  const accionesPorSeccion = {
+    licencias: [
+      {
+        icon: FileUp,
+        titulo: "Solicitar Licencia",
+        descripcion: "Solicituar una nueva licencia.",
+        onClick: () => setModalSolicitarLicencia(true),
+      },
+      {
+        icon: FileSearchIcon,
+        titulo: "Ver Mis Licencias",
+        descripcion: "Accede al listado tus licencias.",
+        onClick: () => setModalLicenciasOpen(true),
+      },
+      {
+        icon: FileLock,
+        titulo: "Consultar Licencias",
+        descripcion: "Accede a las licencias del personal y sus estados.",
+        onClick: () => setModalLicenciasACargo(true),
+      },
+    ],
+    ofertas: [
+      {
+        icon: Users,
+        titulo: "Ver Listado de Ofertas",
+        descripcion: "Accede al listado de ofertas disponibles en el sistema.",
+        onClick: openModalVerOfertas,
+      },
+      {
+        icon: PlusCircle,
+        titulo: "Publicar una Nueva Oferta",
+        descripcion: "Crea y publica nuevas ofertas en el sistema.",
+        onClick: () => setModalOfertaOpen(true),
+      },
+    ],
+    empleados: [
+      {
+        icon: FileText,
+        titulo: "Subir Empleados por CSV",
+        descripcion: "Carga empleados en lote desde un archivo CSV.",
+        onClick: () => setModalSubirEmpleados(true),
+      },
+      {
+        icon: Users,
+        titulo: "Gestionar equipo",
+        descripcion: "Visualizá y administrá los analistas a tu cargo",
+        onClick: () => setModalGestionEquipo(true),
+      },
+    ],
+    metricas: [
+      {
+        icon: BarChart,
+        titulo: "Crear Analista",
+        descripcion: "Registrá nuevos analistas para tu empresa.",
+        onClick: () => setModalAnalistaOpen(true),
+      },
+      {
+        icon: BarChart2,
+        titulo: "Subir Métricas de Analistas",
+        descripcion:
+          "Carga un archivo CSV con métricas de desempeño y rotación de analistas.",
+        onClick: () => setModalSubirMetricas(true),
+      },
+      {
+        icon: BarChart2,
+        titulo: "Editar Métricas de Analistas",
+        descripcion:
+          "Visualizá y editá las métricas de tus analistas en una tabla interactiva.",
+        onClick: () => setModalRendimientoAnalistas(true),
+      },
+      {
+        icon: BarChart2,
+        titulo: "Visualizar Indicadores de Desempeño y predicciones",
+        descripcion: "Visualizá y administrá los empleados de tu empresa.",
+        onClick: () => navigate("/manager/empleados-rendimiento-analistas"),
+      },
+      {
+        icon: BarChart2,
+        titulo: "Detección Temprana de Rotación y Riesgos Laborales",
+        descripcion:
+          "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
+        onClick: () => navigate("/manager/analistas-riesgo"),
+      },
+    ],
+  };
 
   const handleLogout = () => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
@@ -558,20 +620,6 @@ export default function ManagerHome() {
         No se pudo cargar el usuario.
       </div>
     );
-
-  const etiquetasCampos = {
-    nombre: "Nombre",
-    descripcion: "Descripción",
-    location: "Ubicación",
-    employment_type: "Tipo de empleo",
-    workplace_type: "Modalidad",
-    salary_min: "Salario mínimo",
-    salary_max: "Salario máximo",
-    currency: "Moneda",
-    experience_level: "Nivel de experiencia",
-    etiquetas: "Etiquetas",
-    fecha_cierre: "Fecha de cierre",
-  };
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
@@ -610,14 +658,17 @@ export default function ManagerHome() {
               <ProfileCard
                 nombre={`${user?.nombre} ${user?.apellido}`}
                 correo={user?.correo}
-                fotoUrl={user?.foto_url ? user.foto_url : "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"}
+                fotoUrl={
+                  user?.foto_url
+                    ? user.foto_url
+                    : "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"
+                }
                 showCvLink={false}
                 size="xl"
                 style={{ borderColor: estilosSafe.color_principal }}
                 textColor={estilosSafe.color_texto}
                 onEdit={() => setModalEditarPerfilOpen(true)}
               />
-
             </motion.div>
 
             <motion.div
@@ -629,30 +680,50 @@ export default function ManagerHome() {
               <h2 className="text-lg font-semibold text-black">
                 Acciones disponibles: Manager de RRHH
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1, duration: 0.4 }}
-                    onClick={onClick}
-                    className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
-                    style={{
-                      backgroundColor: estilosSafe.color_secundario,
-                      borderColor: estilosSafe.color_secundario,
-                      color: estilosSafe.color_texto,
-                    }}
-                  >
-                    <Icon
-                      className="w-6 h-6 mb-2"
-                      style={{ color: estilosSafe.color_texto }}
-                    />
-                    <h3 className="text-base font-semibold">{titulo}</h3>
-                    <p className="text-sm mt-1">{descripcion}</p>
-                  </motion.div>
-                ))}
-              </div>
+              <Accordion type="single" collapsible className="w-full">
+                {Object.entries(accionesPorSeccion).map(
+                  ([seccionKey, acciones]) => (
+                    <AccordionItem key={seccionKey} value={seccionKey}>
+                      <AccordionTrigger className="text-black">
+                        {seccionesAmigables[seccionKey]}
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {acciones.map(
+                            (
+                              { icon: Icon, titulo, descripcion, onClick },
+                              idx
+                            ) => (
+                              <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1, duration: 0.4 }}
+                                onClick={onClick}
+                                className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
+                                style={{
+                                  backgroundColor: estilosSafe.color_secundario,
+                                  borderColor: estilosSafe.color_secundario,
+                                  color: estilosSafe.color_texto,
+                                }}
+                              >
+                                <Icon
+                                  className="w-6 h-6 mb-2"
+                                  style={{ color: estilosSafe.color_texto }}
+                                />
+                                <h3 className="text-base font-semibold">
+                                  {titulo}
+                                </h3>
+                                <p className="text-sm mt-1">{descripcion}</p>
+                              </motion.div>
+                            )
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )
+                )}
+              </Accordion>
             </motion.div>
           </div>
 
@@ -663,7 +734,6 @@ export default function ManagerHome() {
             formOferta={formOferta}
             setFormOferta={setFormOferta}
           />
-
 
           {modalAnalistaOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -701,10 +771,8 @@ export default function ManagerHome() {
                 <div className="flex justify-end gap-2 pt-2">
                   <button
                     onClick={() => {
-
                       setModalAnalistaOpen(false);
                       setMensajeAnalista("");
-
                     }}
                     className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
                   >
@@ -724,7 +792,9 @@ export default function ManagerHome() {
           {modalRendimientoAnalistas && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
               <div className="bg-white p-6 rounded-2xl w-full sm:w-11/12 md:w-5/6 lg:w-3/4 max-h-[80vh] overflow-auto text-black">
-                <RendimientoAnalistasTable onSuccess={() => setModalRendimientoAnalistas(false)} />
+                <RendimientoAnalistasTable
+                  onSuccess={() => setModalRendimientoAnalistas(false)}
+                />
                 <div className="mt-6 text-right">
                   <button
                     onClick={() => setModalRendimientoAnalistas(false)}
@@ -740,7 +810,6 @@ export default function ManagerHome() {
           {modalVerOfertasOpen && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
               <div className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl w-3/4 max-h-[89.9vh] text-black shadow-xl flex flex-col">
-
                 <MensajeAlerta texto={mensajeAsignacion} />
 
                 <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
@@ -764,7 +833,6 @@ export default function ManagerHome() {
                   </button>
                 </div>
 
-
                 {ofertas.length === 0 ? (
                   <p>No hay ofertas disponibles.</p>
                 ) : (
@@ -775,13 +843,18 @@ export default function ManagerHome() {
                         <tr>
                           <th className="px-4 py-2 text-left">Nombre</th>
                           <th className="px-4 py-2 text-left">Descripción</th>
-                          <th className="px-4 py-2 text-left">Asignar Analista</th>
+                          <th className="px-4 py-2 text-left">
+                            Asignar Analista
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
-                        {ofertas.map(o => {
-                          const estaAsignada = ofertasAsignadas.has(Number(o.id_oferta)); // 🔁 importante: forzamos a number
-                          const analistaSeleccionado = selectedAnalistas[o.id_oferta]; // 🧠 analista seleccionado del dropdown
+                        {ofertas.map((o) => {
+                          const estaAsignada = ofertasAsignadas.has(
+                            Number(o.id_oferta)
+                          ); // 🔁 importante: forzamos a number
+                          const analistaSeleccionado =
+                            selectedAnalistas[o.id_oferta]; // 🧠 analista seleccionado del dropdown
 
                           // 🎨 Lógica de color e ícono
                           let claseColor = "";
@@ -796,7 +869,10 @@ export default function ManagerHome() {
                             claseColor = "bg-green-100 text-green-800";
                             icono = "✅";
                             tooltip = "Analista asignado";
-                          } else if (analistaSeleccionado && analistaSeleccionado !== "") {
+                          } else if (
+                            analistaSeleccionado &&
+                            analistaSeleccionado !== ""
+                          ) {
                             claseColor = "bg-orange-200 text-orange-800";
                             icono = "⏳";
                             tooltip = "Analista seleccionado pero no asignado";
@@ -807,10 +883,15 @@ export default function ManagerHome() {
                           }
 
                           // 🧪 DEBUG opcional
-                          console.log(`Oferta ${o.id_oferta}: asignada=${estaAsignada}, seleccion=${analistaSeleccionado}`);
+                          console.log(
+                            `Oferta ${o.id_oferta}: asignada=${estaAsignada}, seleccion=${analistaSeleccionado}`
+                          );
 
                           return (
-                            <tr key={o.id_oferta} className={`border-t ${claseColor}`}>
+                            <tr
+                              key={o.id_oferta}
+                              className={`border-t ${claseColor}`}
+                            >
                               <td className="px-4 py-2 flex items-center gap-2">
                                 <span title={tooltip}>{icono}</span> {o.nombre}
                               </td>
@@ -818,13 +899,20 @@ export default function ManagerHome() {
                               <td className="px-4 py-2 flex items-center gap-2">
                                 <select
                                   value={selectedAnalistas[o.id_oferta] || ""}
-                                  onChange={e => handleSelectAnalista(o.id_oferta, e.target.value)}
+                                  onChange={(e) =>
+                                    handleSelectAnalista(
+                                      o.id_oferta,
+                                      e.target.value
+                                    )
+                                  }
                                   className="border px-2 py-1 rounded mr-2 text-black"
                                   disabled={!o.is_active || estaAsignada} // desactivado si cerrada o ya asignada
                                 >
                                   <option value="">Seleccione analista</option>
-                                  {analistas.map(a => (
-                                    <option key={a.id} value={a.id}>{a.username}</option>
+                                  {analistas.map((a) => (
+                                    <option key={a.id} value={a.id}>
+                                      {a.username}
+                                    </option>
                                   ))}
                                 </select>
                                 <button
@@ -843,7 +931,9 @@ export default function ManagerHome() {
                                   </button>
                                 )}
                                 {o.is_active === false && (
-                                  <span className="ml-2 text-xs text-red-600 font-semibold">Oferta cerrada</span>
+                                  <span className="ml-2 text-xs text-red-600 font-semibold">
+                                    Oferta cerrada
+                                  </span>
                                 )}
                               </td>
                             </tr>
@@ -854,13 +944,12 @@ export default function ManagerHome() {
                   </div>
                 )}
 
-
                 <div className="mt-4 text-right">
                   <button
                     onClick={() => {
                       setModalVerOfertasOpen(false);
                       setMensajeAsignacion("");
-                      setSelectedAnalistas(prev => {
+                      setSelectedAnalistas((prev) => {
                         const nuevo = { ...prev };
                         for (const ofertaId in nuevo) {
                           if (!ofertasAsignadas.has(Number(ofertaId))) {
@@ -879,13 +968,14 @@ export default function ManagerHome() {
             </div>
           )}
 
-          {modalLicenciasOpen &&
+          {modalLicenciasOpen && (
             <LicenciasModal
               service={managerService}
               onClose={() => setModalLicenciasOpen(false)}
-            />}
+            />
+          )}
 
-          {modalLicenciasACargo &&
+          {modalLicenciasACargo && (
             <LicenciasACargoModal
               service={managerService}
               onClose={() => setModalLicenciasACargo(false)}
@@ -910,14 +1000,20 @@ export default function ManagerHome() {
                 </div>
               }
             />
-          }
+          )}
 
-          {modalSolicitarLicencia && <SolicitarLicenciaModal onClose={() => setModalSolicitarLicencia(false)} />}
+          {modalSolicitarLicencia && (
+            <SolicitarLicenciaModal
+              onClose={() => setModalSolicitarLicencia(false)}
+            />
+          )}
 
           {modalSubirEmpleados && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
               <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
-                <h2 className="text-lg font-semibold mb-4">Subir Empleados por CSV</h2>
+                <h2 className="text-lg font-semibold mb-4">
+                  Subir Empleados por CSV
+                </h2>
 
                 {/* Botón "Seleccionar archivo" estilizado */}
                 <div className="mb-4">
@@ -925,7 +1021,7 @@ export default function ManagerHome() {
                     type="file"
                     accept=".csv"
                     ref={inputEmpleadosRef}
-                    onChange={e => setArchivoEmpleados(e.target.files[0])}
+                    onChange={(e) => setArchivoEmpleados(e.target.files[0])}
                     className="hidden"
                     id="input-empleados"
                   />
@@ -945,9 +1041,7 @@ export default function ManagerHome() {
                 </div>
 
                 {/* Mensaje de alerta */}
-                {mensajeEmpleados && (
-                  <MensajeAlerta texto={mensajeEmpleados} />
-                )}
+                {mensajeEmpleados && <MensajeAlerta texto={mensajeEmpleados} />}
 
                 {/* Botones de acción */}
                 <div className="flex justify-end gap-2 mt-4">
@@ -956,7 +1050,8 @@ export default function ManagerHome() {
                       setModalSubirEmpleados(false);
                       setMensajeEmpleados("");
                       setArchivoEmpleados(null);
-                      if (inputEmpleadosRef.current) inputEmpleadosRef.current.value = "";
+                      if (inputEmpleadosRef.current)
+                        inputEmpleadosRef.current.value = "";
                     }}
                     className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
                   >
@@ -979,11 +1074,12 @@ export default function ManagerHome() {
             </div>
           )}
 
-
           {modalSubirMetricas && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
               <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
-                <h2 className="text-lg font-semibold mb-4">Subir Métricas de Analistas</h2>
+                <h2 className="text-lg font-semibold mb-4">
+                  Subir Métricas de Analistas
+                </h2>
 
                 {/* Botón personalizado para seleccionar archivo */}
                 <div className="mb-4">
@@ -991,7 +1087,7 @@ export default function ManagerHome() {
                     type="file"
                     accept=".csv"
                     ref={inputMetricasRef}
-                    onChange={e => setArchivoMetricas(e.target.files[0])}
+                    onChange={(e) => setArchivoMetricas(e.target.files[0])}
                     className="hidden"
                     id="input-metricas"
                   />
@@ -1011,9 +1107,7 @@ export default function ManagerHome() {
                 </div>
 
                 {/* Mensaje de alerta si hay */}
-                {mensajeMetricas && (
-                  <MensajeAlerta texto={mensajeMetricas} />
-                )}
+                {mensajeMetricas && <MensajeAlerta texto={mensajeMetricas} />}
 
                 {/* Botones de acción */}
                 <div className="flex justify-end gap-2 mt-4">
@@ -1022,7 +1116,8 @@ export default function ManagerHome() {
                       setModalSubirMetricas(false);
                       setMensajeMetricas("");
                       setArchivoMetricas(null);
-                      if (inputMetricasRef.current) inputMetricasRef.current.value = "";
+                      if (inputMetricasRef.current)
+                        inputMetricasRef.current.value = "";
                     }}
                     className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
                   >
@@ -1040,8 +1135,9 @@ export default function ManagerHome() {
                 <div className="mt-4 text-xs text-gray-500">
                   El archivo debe tener las columnas: <br />
                   <b>
-                    id_empleado, desempeno_previo, cantidad_proyectos, tamano_equipo, horas_extras,
-                    antiguedad, horas_capacitacion, ausencias_injustificadas, llegadas_tarde, salidas_tempranas
+                    id_empleado, desempeno_previo, cantidad_proyectos,
+                    tamano_equipo, horas_extras, antiguedad, horas_capacitacion,
+                    ausencias_injustificadas, llegadas_tarde, salidas_tempranas
                   </b>
                 </div>
               </div>
@@ -1059,13 +1155,13 @@ export default function ManagerHome() {
             onFileSelect={setModalImageFile}
           />
 
-          {modalGestionEquipo &&
+          {modalGestionEquipo && (
             <GestionUsuarios
               service={managerService}
               onClose={() => setModalGestionEquipo(false)}
-              textColor={estilosSafe.color_texto} />}
-
-
+              textColor={estilosSafe.color_texto}
+            />
+          )}
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>
