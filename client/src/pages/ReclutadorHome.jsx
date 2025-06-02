@@ -603,7 +603,8 @@ export default function ReclutadorHome() {
 
         {modalLicenciaOpen && (
           <SolicitarLicenciaModal
-            onClose={() => setModalLicenciaOpen(false)}
+            open={modalLicenciaOpen}
+            onOpenChange={setModalLicenciaOpen}
             service={reclutadorService}
           />
         )
@@ -612,8 +613,9 @@ export default function ReclutadorHome() {
         {
           modalLicenciasOpen &&
           <LicenciasModal
+            open={modalLicenciasOpen}
+            onOpenChange={setModalLicenciasOpen}
             service={reclutadorService}
-            onClose={() => setModalLicenciasOpen(false)}
           />
         }
 
@@ -778,7 +780,8 @@ export default function ReclutadorHome() {
         {
           modalLicenciasACargo &&
           <LicenciasACargoModal
-            onClose={() => setModalLicenciasACargo(false)}
+            open={modalLicenciasACargo}
+            onOpenChange={setModalLicenciasACargo}
             service={reclutadorService}
             extraContent={
               <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2">
