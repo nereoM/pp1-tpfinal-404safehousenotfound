@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte de Eficacia de Reclutadores</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    .logo { max-height: 60px; margin-bottom: 20px; }
+    h1 { color: {{ color }}; font-size: 1.8rem; margin-bottom: 0; }
+    h2 { color: {{ color }}; font-size: 1.4rem; margin-bottom: 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    .footer { margin-top: 40px; font-size: 0.9rem; text-align: right; color: #888; }
+    .grafico {
+      display: block;
+      margin: 40px auto 20px auto;
+      max-width: 80%;
+      height: auto;
+    }
+  </style>
+</head>
+<body>
+  {% if logo_url %}
+    <img src="{{ logo_url }}" class="logo" alt="Logo de empresa">
+  {% endif %}
+  <h1>Reporte de Eficacia de Reclutadores - {{ empresa }}</h1>
+  <p>Fecha de creación: {{ fecha }}</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Reclutador</th>
+        <th>Postulaciones</th>
+        <th>Contratados</th>
+        <th>Tasa de Conversión (%)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for fila in tabla %}
+      <tr>
+        <td>{{ fila.reclutador }}</td>
+        <td>{{ fila.postulaciones }}</td>
+        <td>{{ fila.contratados }}</td>
+        <td>{{ fila.tasa_conversion }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2 style="margin-top: 40px;">Grafico tasa de conversion por reclutador</h2>
+  <img src="data:image/png;base64,{{ grafico_base64 }}" class="grafico" alt="Gráfico eficacia">
+
+  <h2 style="margin-top: 40px;">Distribución de Contratados por Reclutador</h2>
+  <img src="data:image/png;base64,{{ grafico_torta_base64 }}" class="grafico" alt="Gráfico de Torta">
+
+  <div class="footer">
+    Generado automáticamente por el sistema. 404SafeHouseNotFound SIGRH+.
+  </div>
+</body>
+</html>

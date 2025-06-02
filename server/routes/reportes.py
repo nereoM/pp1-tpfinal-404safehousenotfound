@@ -16,7 +16,7 @@ from io import BytesIO
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
-from models.schemes import Usuario, Empresa, Preferencias_empresa, Oferta_laboral, Job_Application, RendimientoEmpleado, Licencia, Rol, UsuarioRol
+from models.schemes import Usuario, Empresa, Preferencias_empresa, Oferta_laboral, Job_Application, RendimientoEmpleado, Licencia, Rol, UsuarioRol, Oferta_analista
 from auth.decorators import role_required
 from .manager import manager_bp
 from models.extensions import db
@@ -1474,7 +1474,6 @@ def reporte_riesgos():
         ws["A1"].font = Font(bold=True, size=14)
         ws["A1"].alignment = Alignment(horizontal="center")
 
-        # Logo
         if preferencia and preferencia.logo_url:
             try:
                 response = requests.get(preferencia.logo_url)
@@ -1528,5 +1527,192 @@ def imagen_a_base64(ruta_local):
     with open(ruta_local, "rb") as img_file:
         encoded_string = base64.b64encode(img_file.read()).decode("utf-8")
         return f"data:image/png;base64,{encoded_string}"
+    
+
+@reportes_bp.route("/reporte-eficacia-reclutadores", methods=["GET"])
+@role_required(["manager"])
+def reporte_eficacia_reclutadores():
+    formato = request.args.get("formato", "pdf")
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    empresa = Empresa.query.get(manager.id_empresa)
+    preferencia = Preferencias_empresa.query.get(manager.id_empresa)
+
+    color_hex = (preferencia.color_principal or "#2E86C1").lstrip("#")
+    color_mpl = f"#{color_hex}"
+
+    datos = (
+        db.session.query(
+            Usuario.username.label("reclutador"),
+            func.count(Job_Application.id).label("postulaciones"),
+            func.sum(case((Job_Application.is_apto == True, 1), else_=0)).label("contratados")
+        )
+        .join(Oferta_analista, Oferta_analista.id_analista == Usuario.id)
+        .join(Job_Application, Job_Application.id_oferta == Oferta_analista.id_oferta)
+        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+        .join(Rol, UsuarioRol.id_rol == Rol.id)
+        .filter(Rol.slug == "reclutador")
+        .filter(Usuario.id_empresa == empresa.id)
+        .group_by(Usuario.username)
+        .all()
+    )
+
+    tabla = []
+    for r in datos:
+        tasa = round((r.contratados / r.postulaciones) * 100, 2) if r.postulaciones else 0
+        tabla.append({
+            "reclutador": r.reclutador,
+            "postulaciones": r.postulaciones,
+            "contratados": r.contratados,
+            "tasa_conversion": tasa
+        })
+
+    if formato == "excel":
+        return generar_excel_eficacia(tabla, empresa.nombre, preferencia.logo_url, color_hex)
+    elif formato == "pdf":
+        return generar_pdf_eficacia(tabla, empresa.nombre, preferencia.logo_url, f"#{color_hex}")
+    else:
+        return {"error": "Formato no soportado"}, 400
+    
+
+def generar_pdf_eficacia(tabla, nombre_empresa, logo_url, color):
+    env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
+    template = env.get_template("reporte_eficacia_reclutadores.html")
+
+    etiquetas = [r["reclutador"] for r in tabla]
+    valores = [r["tasa_conversion"] for r in tabla]
+
+    fig, ax = plt.subplots()
+    ax.bar(etiquetas, valores, color=color)
+    ax.set_title("Tasa de Conversión por Reclutador")
+    ax.set_ylabel("Tasa (%)")
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+
+    img = BytesIO()
+    plt.savefig(img, format='png', dpi=150)
+    plt.close(fig)
+    img.seek(0)
+    grafico_base64 = base64.b64encode(img.getvalue()).decode("utf-8")
+
+    etiquetas = [fila["reclutador"] for fila in tabla if fila["contratados"] > 0]
+    valores = [fila["contratados"] for fila in tabla if fila["contratados"] > 0]
+
+    fig, ax = plt.subplots()
+    ax.pie(valores, labels=etiquetas, autopct='%1.1f%%', startangle=90)
+    ax.axis('equal')  # Para que sea circular
+
+    img = BytesIO()
+    plt.tight_layout()
+    plt.savefig(img, format='png')
+    plt.close(fig)
+    img.seek(0)
+
+    grafico_torta_base64 = base64.b64encode(img.read()).decode("utf-8")
+
+    html_renderizado = template.render(
+        empresa=nombre_empresa,
+        logo_url=logo_url,
+        color=color,
+        tabla=tabla,
+        fecha=datetime.now().strftime('%d/%m/%Y %H:%M'),
+        grafico_base64=grafico_base64,
+        grafico_torta_base64=grafico_torta_base64,
+    )
+
+    nombre_archivo = f"eficacia_reclutadores_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    path = os.path.join(TEMP_DIR, nombre_archivo)
+
+    HTML(string=html_renderizado).write_pdf(path)
+    return send_file(path, as_attachment=True, download_name=nombre_archivo)
+
+
+def generar_excel_eficacia(tabla, nombre_empresa, logo_url, color_hex):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Eficacia Reclutadores"
+
+    ws.merge_cells("A1:D1")
+    ws["A1"] = f"Reporte de Eficacia - {nombre_empresa}"
+    ws["A1"].font = Font(bold=True, size=14)
+    ws["A1"].alignment = Alignment(horizontal="center")
+
+    if logo_url:
+        try:
+            response = requests.get(logo_url)
+            img = Image.open(BytesIO(response.content))
+            logo_path = os.path.join("temp", "logo_temp.png")
+            img.save(logo_path)
+            excel_img = ExcelImage(logo_path)
+            excel_img.width = 110
+            excel_img.height = 45
+            ws.add_image(excel_img, "A1")
+        except:
+            pass
+
+    ws.append([""])
+    ws.append(["Reclutador", "Postulaciones", "Contratados", "Tasa de Conversión (%)"])
+    for cell in ws[ws.max_row]:
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill(start_color=color_hex, end_color=color_hex, fill_type="solid")
+
+    for fila in tabla:
+        ws.append([
+            fila["reclutador"],
+            fila["postulaciones"],
+            fila["contratados"],
+            fila["tasa_conversion"]
+        ])
+
+    for col in ws.columns:
+        max_len = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+        ws.column_dimensions[get_column_letter(col[0].column)].width = max_len + 2
+
+    fig, ax = plt.subplots()
+    ax.bar(
+        [r["reclutador"] for r in tabla],
+        [r["tasa_conversion"] for r in tabla],
+        color=f"#{color_hex}"
+    )
+    ax.set_title("Tasa de Conversión por Reclutador")
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+
+    ruta_temp = os.path.join("temp", "grafico_excel.png")
+    os.makedirs("temp", exist_ok=True)
+    plt.savefig(ruta_temp)
+    plt.close()
+
+    ultima_fila = ws.max_row + 2
+
+    img_excel = ExcelImage(ruta_temp)
+    img_excel.width = 500
+    img_excel.height = 300
+    ws.add_image(img_excel, f"A{ultima_fila}")
+
+    etiquetas = [fila["reclutador"] for fila in tabla if fila["contratados"] > 0]
+    valores = [fila["contratados"] for fila in tabla if fila["contratados"] > 0]
+
+    fig, ax = plt.subplots()
+    ax.pie(valores, labels=etiquetas, autopct='%1.1f%%', startangle=90)
+    ax.axis('equal')  # Asegura forma circular
+    plt.tight_layout()
+
+    path = os.path.join(TEMP_DIR, "grafico_torta_contratados.png")
+    plt.savefig(path, format='png')
+    plt.close(fig)
+
+    path_grafico_torta = path
+
+    img_torta = ExcelImage(path_grafico_torta)
+    img_torta.width = 500
+    img_torta.height = 300
+    ws.add_image(img_torta, f"A{ultima_fila + 20}")
+
+    nombre_archivo = f"eficacia_reclutadores_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    path = os.path.join(TEMP_DIR, nombre_archivo)
+    wb.save(path)
+    return send_file(path, as_attachment=True, download_name=nombre_archivo)
+
 
 
