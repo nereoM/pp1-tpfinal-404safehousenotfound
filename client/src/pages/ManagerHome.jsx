@@ -135,8 +135,7 @@ export default function ManagerHome() {
   const descargarReporteReclutamiento = async (formato = "excel") => {
     try {
       const res = await fetch(
-        `${
-          import.meta.env.VITE_API_URL
+        `${import.meta.env.VITE_API_URL
         }/api/reportes-reclutamiento-manager?formato=${formato}`,
         {
           method: "GET",
@@ -190,8 +189,8 @@ export default function ManagerHome() {
   const empresaId = user?.empresaId;
   const preferencias = useEmpresaEstilos(empresaId);
 
-  console.log({preferencias});
-  
+  console.log({ preferencias });
+
   const estilos = {
     color_principal: preferencias.estilos?.color_principal ?? "#2563eb",
     color_secundario: preferencias.estilos?.color_secundario ?? "#f3f4f6",
@@ -335,11 +334,37 @@ export default function ManagerHome() {
     setModalVerOfertasOpen(true);
   };
 
+  const descargarReporteEficaciaReclutadores = async (formato = "pdf") => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reporte-eficacia-reclutadores?formato=${formato}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo descargar el reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download =
+        formato === "pdf"
+          ? "eficacia_reclutadores.pdf"
+          : "eficacia_reclutadores.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error al descargar el reporte de eficacia de reclutadores");
+    }
+  };
+
   const descargarReporteLicencias = async (formato = "excel") => {
     try {
       const res = await fetch(
-        `${
-          import.meta.env.VITE_API_URL
+        `${import.meta.env.VITE_API_URL
         }/api/reportes-licencias-manager?formato=${formato}`,
         {
           method: "GET",
@@ -786,7 +811,7 @@ export default function ManagerHome() {
                 <MensajeAlerta texto={mensajeAsignacion} />
 
                 <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
-
+                {/* BOTONES PARA RECLUTAMIENTO */}
                 <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
                   <button
                     onClick={() => descargarReporteReclutamiento("excel")}
@@ -803,6 +828,23 @@ export default function ManagerHome() {
                   >
                     <Download className="w-5 h-5" />
                     Descargar Reporte PDF
+                  </button>
+                  {/* NUEVOS BOTONES PARA EFICACIA */}
+                  <button
+                    onClick={() => descargarReporteEficaciaReclutadores("excel")}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded hover:bg-green-900 transition font-semibold shadow"
+                    title="Descargar reporte de eficacia de reclutadores en Excel"
+                  >
+                    <Download className="w-5 h-5" />
+                    Eficacia Reclutadores Excel
+                  </button>
+                  <button
+                    onClick={() => descargarReporteEficaciaReclutadores("pdf")}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded hover:bg-purple-900 transition font-semibold shadow"
+                    title="Descargar reporte de eficacia de reclutadores en PDF"
+                  >
+                    <Download className="w-5 h-5" />
+                    Eficacia Reclutadores PDF
                   </button>
                 </div>
 
@@ -946,7 +988,7 @@ export default function ManagerHome() {
             open={modalLicenciasOpen}
             service={managerService}
           />
-          
+
           <LicenciasACargoModal
             onOpenChange={setModalLicenciasACargo}
             open={modalLicenciasACargo}

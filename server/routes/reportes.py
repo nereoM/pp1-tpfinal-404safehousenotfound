@@ -1538,7 +1538,7 @@ def reporte_eficacia_reclutadores():
     empresa = Empresa.query.get(manager.id_empresa)
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
 
-    color_hex = (preferencia.color_principal or "#2E86C1").lstrip("#")
+    color_hex = (getattr(preferencia, "color_principal", None) or "#2E86C1").lstrip("#")
     color_mpl = f"#{color_hex}"
 
     datos = (
@@ -1567,13 +1567,14 @@ def reporte_eficacia_reclutadores():
             "tasa_conversion": tasa
         })
 
+    logo_url = preferencia.logo_url if preferencia and getattr(preferencia, "logo_url", None) else None
+
     if formato == "excel":
-        return generar_excel_eficacia(tabla, empresa.nombre, preferencia.logo_url, color_hex)
+        return generar_excel_eficacia(tabla, empresa.nombre, logo_url, color_hex)
     elif formato == "pdf":
-        return generar_pdf_eficacia(tabla, empresa.nombre, preferencia.logo_url, f"#{color_hex}")
+        return generar_pdf_eficacia(tabla, empresa.nombre, logo_url, f"#{color_hex}")
     else:
         return {"error": "Formato no soportado"}, 400
-    
 
 def generar_pdf_eficacia(tabla, nombre_empresa, logo_url, color):
     env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
