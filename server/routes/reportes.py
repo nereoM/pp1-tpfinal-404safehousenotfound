@@ -67,7 +67,7 @@ def reporte_reclutamiento():
         for row in resultados
     ]
 
-    color_secundario = preferencia.color_principal if preferencia.color_principal else "2E86C1"
+    color_secundario = preferencia.color_principal if preferencia and preferencia.color_principal else "2E86C1"
     color_hex = color_secundario if color_secundario.startswith("#") else f"#{color_secundario}"
     
     if formato == "pdf":
@@ -1369,8 +1369,8 @@ def reporte_riesgos():
     empresa = Empresa.query.get(manager.id_empresa)
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
 
-    color_excel = (preferencia.color_principal or "#2E86C1").lstrip("#")
-    color_mpl = "#" + color_excel
+    color_excel = (preferencia.color_principal if preferencia and preferencia.color_principal else "#2E86C1").lstrip("#")
+    color_mpl = "#" + color_excel    
 
     riesgos = db.session.query(
         Usuario.username,
