@@ -54,14 +54,8 @@ export default function ManagerHome() {
   const [ofertas, setOfertas] = useState([]);
   const [analistas, setAnalistas] = useState([]);
   const [selectedAnalistas, setSelectedAnalistas] = useState({});
-
   const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set());
   const inputMetricasRef = useRef(null);
-
-  const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false);
-  const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
-  const [licencias, setLicencias] = useState([]);
-  const [mensajeLicencias, setMensajeLicencias] = useState("");
   const [modalEditarPerfilOpen, setModalEditarPerfilOpen] = useState(false);
   const [modalImageFile, setModalImageFile] = useState(null);
   const [modalGestionEquipo, setModalGestionEquipo] = useState(false);
@@ -78,6 +72,8 @@ export default function ManagerHome() {
 
   // Modal
   const [modalSolicitarLicencia, setModalSolicitarLicencia] = useState(false);
+  const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false);
+  const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -192,15 +188,18 @@ export default function ManagerHome() {
   };
 
   const empresaId = user?.empresaId;
-  const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
+  const preferencias = useEmpresaEstilos(empresaId);
 
-  const estilosSafe = {
-    color_principal: estilos?.color_principal ?? "#2563eb",
-    color_secundario: estilos?.color_secundario ?? "#f3f4f6",
-    color_texto: estilos?.color_texto ?? "#000000",
-    slogan: estilos?.slogan ?? "Bienvenido al panel de Manager",
-    logo_url: estilos?.logo_url ?? null,
+  console.log({preferencias});
+  
+  const estilos = {
+    color_principal: preferencias.estilos?.color_principal ?? "#2563eb",
+    color_secundario: preferencias.estilos?.color_secundario ?? "#f3f4f6",
+    color_texto: preferencias.estilos?.color_texto ?? "#000000",
+    slogan: preferencias.estilos?.slogan ?? "Bienvenido al panel de Empleado",
+    logo_url: preferencias.estilos?.logo_url ?? null,
   };
+
 
   const subirEmpleadosDesdeCSV = async () => {
     if (!archivoEmpleados) {
@@ -411,32 +410,6 @@ export default function ManagerHome() {
     }
   };
 
-  const obtenerLicencias = async () => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/licencias-solicitadas-manager`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setLicencias(data);
-      } else {
-        throw new Error(data.error || "Error al obtener licencias");
-      }
-    } catch (error) {
-      console.error("Error al obtener las licencias:", error);
-      setMensajeLicencias("Error al cargar las licencias.");
-    }
-  };
-
   const cerrarOferta = async (id_oferta) => {
     try {
       const res = await fetch(
@@ -622,7 +595,7 @@ export default function ManagerHome() {
     );
 
   return (
-    <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
+    <EstiloEmpresaContext.Provider value={{ estilos }}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -632,19 +605,19 @@ export default function ManagerHome() {
           <TopBar
             username={`${user.nombre} ${user.apellido}`}
             onLogout={handleLogout}
-            style={{ backgroundColor: estilosSafe.color_principal }}
+            style={{ backgroundColor: estilos.color_principal }}
           />
 
           <div className="px-4 py-6">
             <div
               className="mx-auto w-fit text-sm font-medium px-4 py-2 rounded-full border shadow-sm"
               style={{
-                backgroundColor: estilosSafe.color_secundario,
-                borderColor: estilosSafe.color_principal,
-                color: estilosSafe.color_texto,
+                backgroundColor: estilos.color_secundario,
+                borderColor: estilos.color_principal,
+                color: estilos.color_texto,
               }}
             >
-              {estilosSafe.slogan}
+              {estilos.slogan}
             </div>
           </div>
 
@@ -665,8 +638,8 @@ export default function ManagerHome() {
                 }
                 showCvLink={false}
                 size="xl"
-                style={{ borderColor: estilosSafe.color_principal }}
-                textColor={estilosSafe.color_texto}
+                style={{ borderColor: estilos.color_principal }}
+                textColor={estilos.color_texto}
                 onEdit={() => setModalEditarPerfilOpen(true)}
               />
             </motion.div>
@@ -702,14 +675,14 @@ export default function ManagerHome() {
                                 onClick={onClick}
                                 className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
                                 style={{
-                                  backgroundColor: estilosSafe.color_secundario,
-                                  borderColor: estilosSafe.color_secundario,
-                                  color: estilosSafe.color_texto,
+                                  backgroundColor: estilos.color_secundario,
+                                  borderColor: estilos.color_principal,
+                                  color: estilos.color_texto,
                                 }}
                               >
                                 <Icon
                                   className="w-6 h-6 mb-2"
-                                  style={{ color: estilosSafe.color_texto }}
+                                  style={{ color: estilos.color_principal }}
                                 />
                                 <h3 className="text-base font-semibold">
                                   {titulo}
@@ -968,45 +941,42 @@ export default function ManagerHome() {
             </div>
           )}
 
-          {modalLicenciasOpen && (
-            <LicenciasModal
-              service={managerService}
-              onClose={() => setModalLicenciasOpen(false)}
-            />
-          )}
+          <LicenciasModal
+            onOpenChange={setModalLicenciasOpen}
+            open={modalLicenciasOpen}
+            service={managerService}
+          />
+          
+          <LicenciasACargoModal
+            onOpenChange={setModalLicenciasACargo}
+            open={modalLicenciasACargo}
+            service={managerService}
+            extraContent={
+              <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2">
+                <button
+                  onClick={() => descargarReporteLicencias("excel")}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                  title="Descargar reporte de licencias en Excel"
+                >
+                  <Download className="w-5 h-5" />
+                  Descargar Licencias Excel
+                </button>
+                <button
+                  onClick={() => descargarReporteLicencias("pdf")}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                  title="Descargar reporte de licencias en PDF"
+                >
+                  <Download className="w-5 h-5" />
+                  Descargar Licencias PDF
+                </button>
+              </div>
+            }
+          />
 
-          {modalLicenciasACargo && (
-            <LicenciasACargoModal
-              service={managerService}
-              onClose={() => setModalLicenciasACargo(false)}
-              extraContent={
-                <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2">
-                  <button
-                    onClick={() => descargarReporteLicencias("excel")}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
-                    title="Descargar reporte de licencias en Excel"
-                  >
-                    <Download className="w-5 h-5" />
-                    Descargar Licencias Excel
-                  </button>
-                  <button
-                    onClick={() => descargarReporteLicencias("pdf")}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
-                    title="Descargar reporte de licencias en PDF"
-                  >
-                    <Download className="w-5 h-5" />
-                    Descargar Licencias PDF
-                  </button>
-                </div>
-              }
-            />
-          )}
-
-          {modalSolicitarLicencia && (
-            <SolicitarLicenciaModal
-              onClose={() => setModalSolicitarLicencia(false)}
-            />
-          )}
+          <SolicitarLicenciaModal
+            onOpenChange={setModalSolicitarLicencia}
+            open={modalSolicitarLicencia}
+          />
 
           {modalSubirEmpleados && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
@@ -1159,7 +1129,7 @@ export default function ManagerHome() {
             <GestionUsuarios
               service={managerService}
               onClose={() => setModalGestionEquipo(false)}
-              textColor={estilosSafe.color_texto}
+              textColor={estilos.color_texto}
             />
           )}
         </PageLayout>

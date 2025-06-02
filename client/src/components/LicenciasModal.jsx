@@ -1,7 +1,9 @@
+import { FileX2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DayPicker } from "react-day-picker";
+import { Dialog, DialogContent } from "../components/shadcn/Dialog";
 
-export function LicenciasModal({ onClose, service }) {
+export function LicenciasModal({ service, open, onOpenChange }) {
   const [licencias, setLicencias] = useState([]);
   const [licenciaSeleccionada, setLicenciaSeleccionada] = useState(null);
   const [modalSugerenciaAbierto, setModalSugerenciaAbierto] = useState(false);
@@ -41,7 +43,7 @@ export function LicenciasModal({ onClose, service }) {
             estado_sugerencia: aceptacion
               ? "sugerencia aceptada"
               : "sugerencia rechazada",
-            estado: aceptacion ? "sugerencia" : "rechazada"
+            estado: aceptacion ? "sugerencia" : "rechazada",
           };
         })
       );
@@ -53,22 +55,19 @@ export function LicenciasModal({ onClose, service }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white p-6 rounded-2xl w-3/4 max-h-[70vh] overflow-auto text-black"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="text-black">
         <h2 className="text-2xl font-semibold mb-4 text-center">
           Mis Licencias
         </h2>
 
         {licencias.length === 0 ? (
-          <p className="text-center text-gray-500">
-            No tienes licencias registradas.
-          </p>
+          <div className="flex flex-col gap-4 justify-center items-center text-gray-500">
+            <FileX2 />
+            <p>
+              No tienes licencias registradas.
+            </p>
+          </div>
         ) : (
           <table className="w-full table-auto border border-gray-300 mb-4 text-sm">
             <thead className="bg-gray-100">
@@ -116,7 +115,9 @@ export function LicenciasModal({ onClose, service }) {
                             <>
                               {descripcion.slice(0, 50)}...
                               <button
-                                onClick={() => setDescripcionExpandida(id_licencia)}
+                                onClick={() =>
+                                  setDescripcionExpandida(id_licencia)
+                                }
                                 className="ml-2 text-blue-600 font-semibold underline text-xs hover:text-white hover:bg-blue-600 px-2 py-0.5 rounded transition-all duration-200"
                               >
                                 ver completo
@@ -168,7 +169,9 @@ export function LicenciasModal({ onClose, service }) {
                             </>
                           ) : (
                             <>
-                              {(motivo_rechazo ?? "Sin motivo especificado").substring(0, 30)}
+                              {(
+                                motivo_rechazo ?? "Sin motivo especificado"
+                              ).substring(0, 30)}
                               ...
                               <button
                                 onClick={() => setMotivoExpandido(id_licencia)}
@@ -260,13 +263,13 @@ export function LicenciasModal({ onClose, service }) {
 
         <div className="mt-4 text-right">
           <button
-            onClick={onClose}
+            onClick={() => onOpenChange(false)}
             className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
           >
             Cerrar
           </button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

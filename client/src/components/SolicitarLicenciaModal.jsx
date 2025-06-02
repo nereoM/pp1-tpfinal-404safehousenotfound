@@ -2,7 +2,8 @@ import { Check, ChevronsUpDown, FileCheck, UploadCloud } from "lucide-react";
 import { useState } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
-import { toast } from 'sonner';
+import { toast } from "sonner";
+import { Dialog, DialogContent } from "../components/shadcn/Dialog";
 import { licenciasLaborales } from "../data/constants/tipo-licencias";
 import { cn } from "../lib/utils";
 import {
@@ -20,7 +21,7 @@ import {
   PopoverTrigger,
 } from "./shadcn/Popover";
 
-export function SolicitarLicenciaModal({ onClose }) {
+export function SolicitarLicenciaModal({ open, onOpenChange }) {
   const [formState, setFormState] = useState({
     tipoLicencia: "",
     descripcion: "",
@@ -31,10 +32,13 @@ export function SolicitarLicenciaModal({ onClose }) {
   });
   const [subiendo, setSubiendo] = useState(false);
 
-  const updateTipoLicencia = (tipo) => setFormState(f => ({ ...f, tipoLicencia: tipo }));
-  const updateDescription = (desc) => setFormState(f => ({ ...f, descripcion: desc }));
-  const updateFecha = (range) => setFormState(f => ({ ...f, fecha: range }));
-  const updateCertificado = (file) => setFormState(f => ({ ...f, certificado: file }));
+  const updateTipoLicencia = (tipo) =>
+    setFormState((f) => ({ ...f, tipoLicencia: tipo }));
+  const updateDescription = (desc) =>
+    setFormState((f) => ({ ...f, descripcion: desc }));
+  const updateFecha = (range) => setFormState((f) => ({ ...f, fecha: range }));
+  const updateCertificado = (file) =>
+    setFormState((f) => ({ ...f, certificado: file }));
 
   // Mapea el tipo de licencia del frontend al backend
   const mapTipoLicencia = (tipo) => {
@@ -44,7 +48,8 @@ export function SolicitarLicenciaModal({ onClose }) {
   // Calcula días requeridos según el rango de fechas
   const calcularDias = () => {
     if (formState.fecha && formState.fecha.from && formState.fecha.to) {
-      const diff = (formState.fecha.to - formState.fecha.from) / (1000 * 60 * 60 * 24) + 1;
+      const diff =
+        (formState.fecha.to - formState.fecha.from) / (1000 * 60 * 60 * 24) + 1;
       return diff;
     }
     return "";
@@ -84,7 +89,7 @@ export function SolicitarLicenciaModal({ onClose }) {
     if (rol === "reclutador") {
       endpointSolicitarLicencia = "/api/solicitar-licencia-reclutador";
       endpointSubirCertificado = "/api/subir-certificado";
-    }else if(rol === "manager"){
+    } else if (rol === "manager") {
       endpointSolicitarLicencia = "/api/solicitar-licencia-manager";
       endpointSubirCertificado = "/api/subir-certificado-manager";
     }
@@ -100,23 +105,29 @@ export function SolicitarLicenciaModal({ onClose }) {
       const data = new FormData();
       data.append("file", formState.certificado);
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}${endpointSubirCertificado}`, {
-          method: "POST",
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: data,
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}${endpointSubirCertificado}`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+            body: data,
+          }
+        );
         let json = {};
         try {
           json = await res.json();
         } catch {
-          throw new Error("Respuesta inesperada del servidor al subir certificado");
+          throw new Error(
+            "Respuesta inesperada del servidor al subir certificado"
+          );
         }
-        if (!res.ok) throw new Error(json.error || "Error al subir certificado");
+        if (!res.ok)
+          throw new Error(json.error || "Error al subir certificado");
         certificado_url = json.certificado_url;
-        setFormState(f => ({ ...f, certificado_url }));
+        setFormState((f) => ({ ...f, certificado_url }));
       } catch (err) {
         toast.error(err.message);
         setSubiendo(false);
@@ -148,26 +159,31 @@ export function SolicitarLicenciaModal({ onClose }) {
     };
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}${endpointSolicitarLicencia}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}${endpointSolicitarLicencia}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
       let json = {};
       let text = "";
       try {
         text = await res.text();
         json = JSON.parse(text);
       } catch {
-        throw new Error("Respuesta inesperada del servidor al solicitar licencia: " + text);
+        throw new Error(
+          "Respuesta inesperada del servidor al solicitar licencia: " + text
+        );
       }
       if (!res.ok) throw new Error(json.error || "Error al solicitar licencia");
       toast.success("Solicitud creada correctamente");
-      onClose();
+      onOpenChange(false);
     } catch (err) {
       toast.error(err.message);
     }
@@ -178,13 +194,14 @@ export function SolicitarLicenciaModal({ onClose }) {
   hoy.setHours(0, 0, 0, 0);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4 text-black">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="text-black max-w-md w-[95vw] max-h-[90vh] overflow-auto">
         <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
-
         <form onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Tipo de licencia</label>
+            <label className="text-sm font-medium text-gray-700">
+              Tipo de licencia
+            </label>
             <Popover>
               <PopoverTrigger asChild>
                 <button
@@ -196,8 +213,8 @@ export function SolicitarLicenciaModal({ onClose }) {
                 >
                   {formState.tipoLicencia
                     ? licenciasLaborales.find(
-                      (language) => language.value === formState.tipoLicencia
-                    )?.label
+                        (language) => language.value === formState.tipoLicencia
+                      )?.label
                     : "Selecciona el tipo de licencia"}
                   <ChevronsUpDown className="opacity-50" />
                 </button>
@@ -250,7 +267,9 @@ export function SolicitarLicenciaModal({ onClose }) {
             </div>
 
             <section>
-              <label className="text-sm font-medium text-gray-700">Rango de fechas</label>
+              <label className="text-sm font-medium text-gray-700">
+                Rango de fechas
+              </label>
               <DayPicker
                 className="flex justify-center"
                 mode="range"
@@ -299,7 +318,7 @@ export function SolicitarLicenciaModal({ onClose }) {
 
           <div className="flex justify-end gap-2 pt-4">
             <button
-              onClick={onClose}
+              onClick={() => onOpenChange(false)}
               className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
               type="button"
               disabled={subiendo}
@@ -315,7 +334,7 @@ export function SolicitarLicenciaModal({ onClose }) {
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
