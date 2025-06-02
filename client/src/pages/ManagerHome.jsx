@@ -816,32 +816,32 @@ export default function ManagerHome() {
                   <button
                     onClick={() => descargarReporteReclutamiento("excel")}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
-                    title="Descargar reporte de reclutamiento en Excel"
+                    title="Descargar informe de reclutamiento en formato Excel"
                   >
                     <Download className="w-5 h-5" />
-                    Descargar Reporte Excel
+                    Informe Reclutamiento Excel
                   </button>
                   <button
                     onClick={() => descargarReporteReclutamiento("pdf")}
                     className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
-                    title="Descargar reporte de reclutamiento en PDF"
+                    title="Descargar informe de reclutamiento en PDF"
                   >
                     <Download className="w-5 h-5" />
-                    Descargar Reporte PDF
+                    Informe Reclutamiento PDF
                   </button>
                   {/* NUEVOS BOTONES PARA EFICACIA */}
                   <button
                     onClick={() => descargarReporteEficaciaReclutadores("excel")}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-700 text-white rounded hover:bg-green-900 transition font-semibold shadow"
-                    title="Descargar reporte de eficacia de reclutadores en Excel"
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                    title="Descargar informe de eficacia de reclutadores en formato Excel"
                   >
                     <Download className="w-5 h-5" />
                     Eficacia Reclutadores Excel
                   </button>
                   <button
                     onClick={() => descargarReporteEficaciaReclutadores("pdf")}
-                    className="flex items-center gap-2 px-4 py-2 bg-purple-700 text-white rounded hover:bg-purple-900 transition font-semibold shadow"
-                    title="Descargar reporte de eficacia de reclutadores en PDF"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                    title="Descargar informe de eficacia de reclutadores en PDF"
                   >
                     <Download className="w-5 h-5" />
                     Eficacia Reclutadores PDF
