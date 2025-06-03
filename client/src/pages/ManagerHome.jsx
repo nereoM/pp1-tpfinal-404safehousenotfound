@@ -598,17 +598,7 @@ export default function ManagerHome() {
     ],
   };
 
-  const handleLogout = () => {
-    fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Error al cerrar sesión");
-        navigate("/login");
-      })
-      .catch((err) => console.error("Error al cerrar sesión:", err));
-  };
+  
 
   if (loadingUser)
     return <div className="p-10 text-center">Cargando usuario…</div>;
@@ -629,7 +619,6 @@ export default function ManagerHome() {
         <PageLayout>
           <TopBar
             username={`${user.nombre} ${user.apellido}`}
-            onLogout={handleLogout}
             style={{ backgroundColor: estilos.color_principal }}
           />
 

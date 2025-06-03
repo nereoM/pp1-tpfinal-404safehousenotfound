@@ -3,22 +3,23 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AdminEmpHome from "./pages/AdminEmpHome";
 import AdminHome from "./pages/AdminHome";
 import CandidatoHome from "./pages/CandidatoHome";
+import DomainLogin from "./pages/DominioEmpresa";
 import EmpleadoHome from "./pages/EmpleadoHome";
+import EmpleadosRendimiento from "./pages/EmpleadosRendimientoEmpleados";
+import RendimientoAnalistas from './pages/EmpleadosRendimientosAnalistas';
+import RiesgosAnalistasConTabla from "./pages/EmpleadosRiesgoAnalistas";
+import EmpleadosRiesgo from "./pages/EmpleadosRiesgoEmpleados";
 import Lobby from "./pages/Lobby";
 import LobbyEmp from "./pages/LobbyEmp";
 import Login from "./pages/Login";
+import LoginEmpresa from "./pages/LoginEmpresa";
 import ManagerHome from "./pages/ManagerHome";
 import Pagos from "./pages/Pagos";
 import ReclutadorHome from "./pages/ReclutadorHome";
-import DomainLogin from "./pages/DominioEmpresa";
-import LoginEmpresa from "./pages/LoginEmpresa";
-import RendimientoAnalistas from './pages/EmpleadosRendimientosAnalistas';
-import EmpleadosRendimiento from "./pages/EmpleadosRendimientoEmpleados";
-import EmpleadosRiesgo from "./pages/EmpleadosRiesgoEmpleados";
-import RiesgosAnalistasConTabla from "./pages/EmpleadosRiesgoAnalistas";
 
 import { ReclutadorLayout } from "./components/ReclutadorLayout";
 import Clientes from "./pages/Clientes";
+import NotificacionesPage from "./pages/Notificaciones";
 import Precios from "./pages/Precios";
 import Productos from "./pages/Productos";
 
@@ -48,6 +49,7 @@ function App() {
         <Route path="/manager/home" element={<ManagerHome />} />
         <Route path="/reclutador/empleados-rendimiento" element={<EmpleadosRendimiento />} />
         <Route path="/reclutador/empleados-riesgo" element={<EmpleadosRiesgo />} />
+        <Route path="/notificaciones" element={<NotificacionesPage />} />
       </Routes>
     </BrowserRouter>
   );

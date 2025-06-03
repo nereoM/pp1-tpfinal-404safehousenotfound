@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useRef } from "react";
 import { Bell } from "lucide-react";
-import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import isLightColor from "../components/isLightColor";
+import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
 
-export function TopBar({ username, onLogout, children }) {
+export function TopBar({ username, children }) {
   const { estilos } = useEstiloEmpresa();
   const primary = estilos?.color_principal ?? "#2563eb";
   const logoUrl = estilos?.logo_url ?? null;
@@ -13,6 +14,7 @@ export function TopBar({ username, onLogout, children }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const notificacionesRef = useRef(null);
+  const navigate = useNavigate();
 
   const rol = localStorage.getItem("rol") || "reclutador";
   const endpointBase = {
@@ -49,6 +51,18 @@ export function TopBar({ username, onLogout, children }) {
     document.addEventListener("mousedown", clickOutside);
     return () => document.removeEventListener("mousedown", clickOutside);
   }, []);
+
+  const handleLogout = () => {
+    fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al cerrar sesión");
+        navigate("/login");
+      })
+      .catch((err) => console.error("Error al cerrar sesión:", err));
+  };
 
   return (
     <header
@@ -143,13 +157,16 @@ export function TopBar({ username, onLogout, children }) {
             ) : (
               <div className="p-4 text-center text-gray-500 text-sm">No tienes notificaciones</div>
             )}
+            <footer className="flex justify-center">
+              <Link style={{color: primary}} to="/notificaciones" className="underline text-xs p-2">Ver todas las notificaciones</Link>
+            </footer>
           </div>
         )}
 
         {/* Bienvenida y logout */}
         <span className="font-medium">Bienvenido, {username}</span>
         <button
-          onClick={onLogout}
+          onClick={handleLogout}
           className="px-3 py-1 rounded"
           style={{ backgroundColor: primary, color: textColor }}
         >
