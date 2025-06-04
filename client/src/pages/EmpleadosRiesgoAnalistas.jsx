@@ -228,7 +228,7 @@ export default function RiesgosAnalistasConTabla() {
             animate={{ opacity: 1 }}
         >
             <h2 className="text-3xl font-extrabold text-center text-blue-900 mb-8">
-                Riesgos y Rendimiento de Analistas y Empleados
+                Predicción de Riesgos y Rendimiento de Analistas y Empleados
             </h2>
 
             <div className="flex flex-col sm:flex-row justify-end gap-2 mb-6">
@@ -251,7 +251,7 @@ export default function RiesgosAnalistasConTabla() {
             </div>
 
             {loading ? (
-                <p className="text-center text-lg text-gray-500">Cargando datos...</p>
+                <p className="text-center text-lg text-gray-500">Cargando datos de predicción...</p>
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
@@ -278,7 +278,7 @@ export default function RiesgosAnalistasConTabla() {
                                             {titulo}
                                         </div>
                                         <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
-                                            {descripcion}
+                                            {descripcion} <br></br> <b>Estos valores son estimaciones hipotéticas generadas por modelos predictivos.</b>
                                         </div>
                                         <ResponsiveContainer width="100%" height={250}>
                                             <PieChart>
@@ -375,6 +375,9 @@ export default function RiesgosAnalistasConTabla() {
                                     ))}
                                 </select>
                             </div>
+                            <div className="mt-2 text-xs text-gray-500 text-center">
+                                <b>Nota:</b> Todos los datos y predicciones mostrados en este panel son <b>hipotéticos</b> y generados automáticamente por modelos de predicción. No representan evaluaciones reales ni decisiones efectivas de RRHH.
+                            </div>
                         </div>
                     </div>
 
@@ -384,7 +387,9 @@ export default function RiesgosAnalistasConTabla() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">Detalle de Analistas y Empleados</h3>
+                        <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">
+                            Detalle de Analistas y Empleados (Predicción)
+                        </h3>
                         <button
                             className="mb-3 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
                             onClick={() => exportarGrafico("tabla-empleados", "tabla_riesgo")}
@@ -399,7 +404,7 @@ export default function RiesgosAnalistasConTabla() {
                             onClick={exportarTablaExcel}
                             title="Descargar tabla como Excel"
                         >
-                            <Download className="w-4 h-4" />
+                            <Download className="w-5 h-5" />
                             Descargar tabla Excel
                         </button>
                         <div id="tabla-empleados" className="overflow-x-auto">
@@ -411,12 +416,12 @@ export default function RiesgosAnalistasConTabla() {
                                             "Apellido",
                                             "Rol",
                                             "Antigüedad",
-                                            "Capacitación",
+                                            "Horas de Capacitación",
                                             "Ausencias",
-                                            "Tarde",
-                                            "Tempranas",
+                                            "Llegadas Tarde",
+                                            "Salidas Tempranas",
                                             "Desempeño Previo",
-                                            "Predicción",
+                                            "Predicción Actual",
                                             "Fecha cálculo",
                                             "Rendimiento",
                                             "Rotación",
@@ -455,6 +460,9 @@ export default function RiesgosAnalistasConTabla() {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500 text-center">
+                            <b>Nota:</b> Los valores de predicción y clasificación son generados automáticamente y no deben considerarse decisiones reales de RRHH.
                         </div>
                     </motion.div>
                 </>
