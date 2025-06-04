@@ -39,14 +39,62 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
         setSaving(true);
         setMensaje("");
         setTipoMensaje("success");
+
+        const campos = [
+            "horas_extra_finde",
+            "horas_capacitacion",
+            "ausencias_injustificadas",
+            "llegadas_tarde",
+            "salidas_tempranas"
+        ];
+
+        // Empleados con todos los campos completos y válidos
+        const empleadosValidos = rows.filter(row =>
+            campos.every(key =>
+                row[key] !== "" &&
+                row[key] !== undefined &&
+                row[key] !== null &&
+                !isNaN(Number(row[key]))
+            )
+        );
+
+        // Empleados con al menos un campo numérico completado pero no todos
+        const empleadosIncompletos = rows.filter(row => {
+            const completados = campos.filter(key =>
+                row[key] !== "" &&
+                row[key] !== undefined &&
+                row[key] !== null &&
+                !isNaN(Number(row[key]))
+            ).length;
+            return completados > 0 && completados < campos.length;
+        });
+
+        if (empleadosIncompletos.length > 0) {
+            setSaving(false);
+            setTipoMensaje("error");
+            setMensaje(
+                `Completa todos los campos numéricos para el empleado ${empleadosIncompletos[0].nombre} ${empleadosIncompletos[0].apellido}.`
+            );
+            setTimeout(() => setMensaje(""), 5000);
+            return;
+        }
+
+        if (empleadosValidos.length === 0) {
+            setSaving(false);
+            setTipoMensaje("error");
+            setMensaje("Ningún valor fue modificado.");
+            setTimeout(() => setMensaje(""), 5000);
+            return;
+        }
+
         try {
-            const payload = rows.map(row => ({
+            const payload = empleadosValidos.map(row => ({
                 id_empleado: row.id_usuario,
-                horas_extras: Number(row.horas_extra_finde) || 0,
-                horas_capacitacion: Number(row.horas_capacitacion) || 0,
-                ausencias_injustificadas: Number(row.ausencias_injustificadas) || 0,
-                llegadas_tarde: Number(row.llegadas_tarde) || 0,
-                salidas_tempranas: Number(row.salidas_tempranas) || 0,
+                horas_extras: Number(row.horas_extra_finde),
+                horas_capacitacion: Number(row.horas_capacitacion),
+                ausencias_injustificadas: Number(row.ausencias_injustificadas),
+                llegadas_tarde: Number(row.llegadas_tarde),
+                salidas_tempranas: Number(row.salidas_tempranas)
             }));
 
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/cargar-rendimientos-empleados`, {
@@ -74,7 +122,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                 setTipoMensaje("success");
             } else {
                 setTipoMensaje("error");
-                setMensaje("Error al guardar.");
+                setMensaje("Error: Los datos no fueron modificados.");
                 await res.text();
             }
         } catch {
