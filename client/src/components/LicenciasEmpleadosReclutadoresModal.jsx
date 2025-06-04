@@ -1,4 +1,3 @@
-// COMBINACIÓN ACTUALIZADA
 import { useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { Dialog, DialogContent } from "../components/shadcn/Dialog";
@@ -14,6 +13,7 @@ export function LicenciasACargoModal({
   open,
   onOpenChange,
 }) {
+
   const {
     error,
     licencias,
@@ -32,6 +32,31 @@ export function LicenciasACargoModal({
   const [modalNegociacionFecha, setModalNegociacionFecha] = useState(false);
   const [descripcionExpandida, setDescripcionExpandida] = useState(null);
   const [motivoExpandido, setMotivoExpandido] = useState(null);
+
+  // Filtros
+  const [filtroEmpleado, setFiltroEmpleado] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroDescripcion, setFiltroDescripcion] = useState("");
+
+  // Filtrado de licencias
+  const licenciasFiltradas = licencias.filter((item) => {
+    const licencia = item.licencia;
+    const empleado = licencia.empleado;
+    const empleadoOk = filtroEmpleado
+      ? (`${empleado.nombre} ${empleado.apellido}`.toLowerCase().includes(filtroEmpleado.toLowerCase()))
+      : true;
+    const tipoOk = filtroTipo
+      ? (licencia.tipo?.toLowerCase().includes(filtroTipo.toLowerCase()))
+      : true;
+    const estadoOk = filtroEstado
+      ? (licencia.estado?.toLowerCase() === filtroEstado.toLowerCase())
+      : true;
+    const descripcionOk = filtroDescripcion
+      ? (licencia.descripcion?.toLowerCase().includes(filtroDescripcion.toLowerCase()))
+      : true;
+    return empleadoOk && tipoOk && estadoOk && descripcionOk;
+  });
 
   const abrirModalRechazo = (licencia) => {
     setLicenciaSeleccionada(licencia);
@@ -65,7 +90,54 @@ export function LicenciasACargoModal({
         <h2 className="text-2xl font-semibold mb-4 text-center">
           Gestión de licencias
         </h2>
-        {extraContent}
+        {/* Filtros */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          <div>
+            <label className="block text-xs text-gray-600">Empleado</label>
+            <input
+              type="text"
+              value={filtroEmpleado}
+              onChange={e => setFiltroEmpleado(e.target.value)}
+              className="border px-2 py-1 rounded text-black"
+              placeholder="Buscar por empleado"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-600">Tipo</label>
+            <input
+              type="text"
+              value={filtroTipo}
+              onChange={e => setFiltroTipo(e.target.value)}
+              className="border px-2 py-1 rounded text-black"
+              placeholder="Buscar por tipo"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-600">Estado</label>
+            <select
+              value={filtroEstado}
+              onChange={e => setFiltroEstado(e.target.value)}
+              className="border px-2 py-1 rounded text-black"
+            >
+              <option value="">Todos</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aprobada">Aprobada</option>
+              <option value="rechazada">Rechazada</option>
+              <option value="sugerencia">Sugerencia</option>
+              <option value="activa">Activa</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-600">Descripción</label>
+            <input
+              type="text"
+              value={filtroDescripcion}
+              onChange={e => setFiltroDescripcion(e.target.value)}
+              className="border px-2 py-1 rounded text-black"
+              placeholder="Buscar por descripción"
+            />
+          </div>
+        </div>
         {mensajeEvaluacion && (
           <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
             {mensajeEvaluacion}
@@ -87,7 +159,7 @@ export function LicenciasACargoModal({
             </tr>
           </thead>
           <tbody>
-            {licencias.map((item, index) => {
+            {licenciasFiltradas.map((item, index) => {
               const licencia = item.licencia;
               const empleado = licencia.empleado;
               return (
@@ -135,16 +207,15 @@ export function LicenciasACargoModal({
                   </td>
                   <td className="px-4 py-2 border align-top max-w-[240px]">
                     <span
-                      className={`px-2 py-1 text-xs rounded-full ${
-                        licencia.estado === "activa" ||
+                      className={`px-2 py-1 text-xs rounded-full ${licencia.estado === "activa" ||
                         licencia.estado === "aprobada"
-                          ? "bg-green-100 text-green-800"
-                          : licencia.estado === "pendiente"
+                        ? "bg-green-100 text-green-800"
+                        : licencia.estado === "pendiente"
                           ? "bg-yellow-100 text-yellow-800"
                           : licencia.estado === "sugerencia"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
                     >
                       {licencia.estado === "aprobada"
                         ? "aprobada"
@@ -181,9 +252,8 @@ export function LicenciasACargoModal({
                   <td className="px-4 py-2 border align-top">
                     {licencia.certificado_url ? (
                       <a
-                        href={`${import.meta.env.VITE_API_URL}/${
-                          licencia.certificado_url
-                        }`}
+                        href={`${import.meta.env.VITE_API_URL}/${licencia.certificado_url
+                          }`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-indigo-600 underline"
