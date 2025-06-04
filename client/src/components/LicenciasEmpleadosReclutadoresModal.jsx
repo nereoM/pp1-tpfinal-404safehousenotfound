@@ -3,6 +3,7 @@ import { DayPicker } from "react-day-picker";
 import { Dialog, DialogContent } from "../components/shadcn/Dialog";
 import { useLicenciasACargo } from "../services/useLicenciasACargo";
 import MensajeAlerta from "./MensajeAlerta";
+import { Download } from "lucide-react";
 
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
@@ -84,6 +85,32 @@ export function LicenciasACargoModal({
     );
   }
 
+  const descargarReporteLicenciasFiltradas = async (formato = "excel") => {
+    const ids = licenciasFiltradas.map(item => item.licencia.id_licencia).join(",");
+    console.log("IDs de licencias filtradas enviados al backend:", ids); // 👈 DEBUG
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reportes-licencias?formato=${formato}&ids=${ids}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo descargar el reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = formato === "pdf" ? "reporte_licencias.pdf" : "reporte_licencias.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error al descargar el reporte de licencias");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="text-black max-w-none w-[95vw] max-h-[90vh] overflow-auto">
@@ -138,6 +165,27 @@ export function LicenciasACargoModal({
             />
           </div>
         </div>
+
+        {/* Botones de descarga */}
+        <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2">
+          <button
+            onClick={() => descargarReporteLicenciasFiltradas("excel")}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+            title="Descargar reporte de licencias en Excel"
+          >
+            <Download className="w-5 h-5" />
+            Descargar Licencias Excel
+          </button>
+          <button
+            onClick={() => descargarReporteLicenciasFiltradas("pdf")}
+            className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+            title="Descargar reporte de licencias en PDF"
+          >
+            <Download className="w-5 h-5" />
+            Descargar Licencias PDF
+          </button>
+        </div>
+
         {mensajeEvaluacion && (
           <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
             {mensajeEvaluacion}
