@@ -154,6 +154,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                 <tr>
                                     <th className="p-3 border-b text-left font-semibold text-blue-900">Nombre</th>
                                     <th className="p-3 border-b text-left font-semibold text-blue-900">Apellido</th>
+                                    <th className="p-3 border-b text-left font-semibold text-blue-900">Puesto</th>
                                     <th className="p-3 border-b text-left font-semibold text-blue-900">Horas Capacitación</th>
                                     <th className="p-3 border-b text-left font-semibold text-blue-900">Horas Extra Finde</th>
                                     <th className="p-3 border-b text-left font-semibold text-blue-900">Ausencias Injustificadas</th>
@@ -166,6 +167,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                     <tr key={row.id_usuario} className="hover:bg-blue-50 transition">
                                         <td className="p-2 border-b">{row.nombre}</td>
                                         <td className="p-2 border-b">{row.apellido}</td>
+                                        <td className="p-2 border-b">{row.puesto || "Analista de RRHH"}</td>
                                         <td className="p-2 border-b">
                                             <input
                                                 type="number"
