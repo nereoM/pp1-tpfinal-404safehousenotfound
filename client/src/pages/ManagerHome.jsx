@@ -595,9 +595,9 @@ export default function ManagerHome() {
       },
       {
         icon: BarChart2,
-        titulo: "Editar Métricas de Analistas",
+        titulo: "Editar Métricas de Analistas y Empleados",
         descripcion:
-          "Visualizá y editá las métricas de tus analistas en una tabla interactiva.",
+          "Visualizá y editá las métricas de tus analistas y empleados en una tabla interactiva.",
         onClick: () => setModalRendimientoAnalistas(true),
       },
       {
