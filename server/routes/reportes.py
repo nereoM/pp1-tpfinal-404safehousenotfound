@@ -1057,57 +1057,87 @@ def reporte_licencias_manager():
 
     if formato == "excel":
         wb = Workbook()
+        ws = wb.active
+        ws.title = "Reporte Licencias"
 
-        color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
+        color = (preferencia.color_principal or "#2E86C1").lstrip("#")
         logo_path = None
+        fila = 1  # control de fila actual
+
+        ws.merge_cells("A1:D1")
+        ws["A1"] = f"Reporte de Asistencia - {empresa.nombre}"
+        ws["A1"].font = Font(bold=True, size=14, color="000000")
+        ws["A1"].alignment = Alignment(horizontal="center")
+        ws["A1"].fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+        fila += 2
 
         if preferencia and preferencia.logo_url:
             try:
                 response = requests.get(preferencia.logo_url)
                 if response.status_code == 200:
-                    logo_path = os.path.join("temp", "logo_empresa.png")
+                    logo_path = os.path.join(TEMP_DIR, "logo_empresa.png")
                     with open(logo_path, "wb") as f:
                         f.write(response.content)
-            except Exception as e:
-                print("No se pudo descargar el logo:", e)
-
-        ws1 = wb.active
-        ws1.title = "Días por tipo"
-        ws1.append(["Tipo de Licencia", "Total de Días"])
-        for fila in dias_por_tipo:
-            ws1.append([fila["tipo"], fila["total_dias"]])
-
-        ws1.merge_cells("A1:B1")
-        ws1["A1"] = f"Reporte de Asistencia - {empresa.nombre}"
-        ws1["A1"].font = Font(bold=True, size=14)
-        ws1["A1"].alignment = Alignment(horizontal="center")
-        ws1["A1"].fill = PatternFill(start_color=color, fill_type="solid")
-
-        if logo_path:
-            try:
-                img = ExcelImage(logo_path)
-                img.width = 120
-                img.height = 60
-                ws1.add_image(img, "C1")
+                    logo = ExcelImage(logo_path)
+                    logo.width = 120
+                    logo.height = 60
+                    ws.add_image(logo, "E1")
             except Exception as e:
                 print("No se pudo insertar el logo:", e)
 
-        ws2 = wb.create_sheet("Ranking de Empleados")
-        ws2.append(["#", "Usuario", "Días Totales"])
-        for i, fila in enumerate(ranking_empleados, start=1):
-            ws2.append([i, fila["username"], fila["total_dias"]])
+        ws[f"A{fila}"] = "Días por Tipo de Licencia"
+        ws[f"A{fila}"].font = Font(bold=True, color="000000")
+        ws[f"A{fila}"].fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+        fila += 1
+        ws.append(["Tipo de Licencia", "Total de Días"])
+        for cell in ws[f"A{fila}":f"B{fila}"][0]:
+            cell.font = Font(bold=True, color="000000")
+            cell.fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+        fila += 1
+        for fila_data in dias_por_tipo:
+            ws.append([fila_data["tipo"], fila_data["total_dias"]])
+            fila += 1
 
-        ws3 = wb.create_sheet("Frecuencia por Usuario")
-        ws3.append(["Usuario", "Cantidad de Licencias"])
-        for fila in frecuencia_empleado:
-            ws3.append([fila["username"], fila["cantidad_licencias"]])
+        ws[f"A{fila}"] = "Ranking de Empleados"
+        ws[f"A{fila}"].font = Font(bold=True, color="000000")
+        ws[f"A{fila}"].fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+        fila += 1
+        ws.append(["#", "Usuario", "Días Totales"])
+        for cell in ws[f"A{fila}":f"C{fila}"][0]:
+            cell.font = Font(bold=True, color="000000")
+            cell.fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+        fila += 1
+        for i, fila_data in enumerate(ranking_empleados, start=1):
+            ws.append([i, fila_data["username"], fila_data["total_dias"]])
+            fila += 1
 
-        ws4 = wb.create_sheet("Ausencias por Mes")
-        ws4.append(["Mes", "Total de Días"])
-        for fila in dias_mes_data:
-            ws4.append([fila["mes"], fila["total_dias"]])
+        ws[f"A{fila}"] = "Frecuencia por Usuario"
+        ws[f"A{fila}"].font = Font(bold=True, color="000000")
+        ws[f"A{fila}"].fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+        fila += 1
+        ws.append(["Usuario", "Cantidad de Licencias"])
+        for cell in ws[f"A{fila}":f"B{fila}"][0]:
+            cell.font = Font(bold=True, color="000000")
+            cell.fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+        fila += 1
+        for fila_data in frecuencia_empleado:
+            ws.append([fila_data["username"], fila_data["cantidad_licencias"]])
+            fila += 1
 
-        ruta_grafico = os.path.join("temp", "grafico_ausencias.png")
+        ws[f"A{fila}"] = "Ausencias por Mes"
+        ws[f"A{fila}"].font = Font(bold=True, color="000000")
+        ws[f"A{fila}"].fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+        fila += 1
+        ws.append(["Mes", "Total de Días"])
+        for cell in ws[f"A{fila}":f"B{fila}"][0]:
+            cell.font = Font(bold=True, color="000000")
+            cell.fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+        fila += 1
+        for fila_data in dias_mes_data:
+            ws.append([fila_data["mes"], fila_data["total_dias"]])
+            fila += 1
+
+        ruta_grafico = os.path.join(TEMP_DIR, "grafico_ausencias.png")
         with open(ruta_grafico, "wb") as f:
             f.write(base64.b64decode(grafico_base64))
 
@@ -1115,27 +1145,21 @@ def reporte_licencias_manager():
             img_chart = ExcelImage(ruta_grafico)
             img_chart.width = 600
             img_chart.height = 300
-            ws4.add_image(img_chart, f"A{ws4.max_row + 2}")
+            ws.add_image(img_chart, f"A{fila + 2}")
         except Exception as e:
             print("No se pudo insertar el gráfico:", e)
 
-        for ws in wb.worksheets:
-            for col in ws.columns:
-                max_length = 0
-                col_letter = get_column_letter(col[0].column)
-                for cell in col:
-                    if cell.value:
-                        max_length = max(max_length, len(str(cell.value)))
-                ws.column_dimensions[col_letter].width = max_length + 2
+        for col in ws.columns:
+            max_len = max(len(str(cell.value)) if cell.value else 0 for cell in col)
+            col_letter = get_column_letter(col[0].column)
+            ws.column_dimensions[col_letter].width = max_len + 2
 
         archivo_excel = f"reporte_asistencia_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         ruta_excel = os.path.join(TEMP_DIR, archivo_excel)
         wb.save(ruta_excel)
 
-        return send_file(ruta_excel, as_attachment=True, download_name=archivo_excel)
+    return send_file(ruta_excel, as_attachment=True, download_name=archivo_excel)
 
-    
-    return {"error": "Formato no soportado"}, 400
 
 
 
