@@ -7,6 +7,10 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
     const [tipoMensaje, setTipoMensaje] = useState("success");
     const [saving, setSaving] = useState(false);
 
+    // Filtros
+    const [busqueda, setBusqueda] = useState("");
+    const [filtroPuesto, setFiltroPuesto] = useState("");
+
     // Cargar datos actuales
     useEffect(() => {
         setLoading(true);
@@ -24,6 +28,35 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
             })
             .finally(() => setLoading(false));
     }, []);
+
+    // Obtener lista de puestos únicos para el filtro
+    const puestosUnicos = React.useMemo(
+        () =>
+            Array.from(
+                new Set(
+                    rows
+                        .map(r => r.puesto || "Analista de RRHH")
+                        .filter(Boolean)
+                )
+            ),
+        [rows]
+    );
+
+    // Filtrar filas por búsqueda y puesto
+    const rowsFiltradas = rows.filter(row => {
+        const nombre = row.nombre?.toLowerCase() || "";
+        const apellido = row.apellido?.toLowerCase() || "";
+        const puesto = (row.puesto || "Analista de RRHH").toLowerCase();
+        const textoBusqueda = busqueda.toLowerCase();
+
+        const coincideBusqueda =
+            nombre.includes(textoBusqueda) || apellido.includes(textoBusqueda);
+
+        const coincidePuesto =
+            !filtroPuesto || puesto === filtroPuesto.toLowerCase();
+
+        return coincideBusqueda && coincidePuesto;
+    });
 
     // Manejar edición de celdas
     const handleChange = (idx, field, value) => {
@@ -138,6 +171,26 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
             <h2 className="text-2xl font-extrabold mb-6 text-blue-900 flex items-center gap-2">
                 Editar Métricas de Analistas
             </h2>
+            {/* Filtros */}
+            <div className="flex flex-wrap gap-4 mb-4">
+                <input
+                    type="text"
+                    placeholder="Buscar por nombre o apellido"
+                    value={busqueda}
+                    onChange={e => setBusqueda(e.target.value)}
+                    className="border px-3 py-2 rounded text-xs w-64" // <-- más ancho
+                />
+                <select
+                    value={filtroPuesto}
+                    onChange={e => setFiltroPuesto(e.target.value)}
+                    className="border px-3 py-2 rounded text-xs w-64" // <-- más ancho
+                >
+                    <option value="">Todos los puestos</option>
+                    {puestosUnicos.map(p => (
+                        <option key={p} value={p}>{p}</option>
+                    ))}
+                </select>
+            </div>
             {loading ? (
                 <div className="flex items-center justify-center h-40 text-gray-500 text-lg">
                     <svg className="animate-spin h-6 w-6 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24">
@@ -163,7 +216,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {rows.map((row, idx) => (
+                                {rowsFiltradas.map((row, idx) => (
                                     <tr key={row.id_usuario} className="hover:bg-blue-50 transition">
                                         <td className="p-2 border-b">{row.nombre}</td>
                                         <td className="p-2 border-b">{row.apellido}</td>
@@ -173,7 +226,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                 type="number"
                                                 min={0}
                                                 value={row.horas_capacitacion}
-                                                onChange={e => handleChange(idx, "horas_capacitacion", e.target.value)}
+                                                onChange={e => handleChange(rows.indexOf(row), "horas_capacitacion", e.target.value)}
                                                 className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
@@ -182,7 +235,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                 type="number"
                                                 min={0}
                                                 value={row.horas_extra_finde}
-                                                onChange={e => handleChange(idx, "horas_extra_finde", e.target.value)}
+                                                onChange={e => handleChange(rows.indexOf(row), "horas_extra_finde", e.target.value)}
                                                 className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
@@ -191,7 +244,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                 type="number"
                                                 min={0}
                                                 value={row.ausencias_injustificadas}
-                                                onChange={e => handleChange(idx, "ausencias_injustificadas", e.target.value)}
+                                                onChange={e => handleChange(rows.indexOf(row), "ausencias_injustificadas", e.target.value)}
                                                 className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
@@ -200,7 +253,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                 type="number"
                                                 min={0}
                                                 value={row.llegadas_tarde}
-                                                onChange={e => handleChange(idx, "llegadas_tarde", e.target.value)}
+                                                onChange={e => handleChange(rows.indexOf(row), "llegadas_tarde", e.target.value)}
                                                 className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
@@ -209,7 +262,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                 type="number"
                                                 min={0}
                                                 value={row.salidas_tempranas}
-                                                onChange={e => handleChange(idx, "salidas_tempranas", e.target.value)}
+                                                onChange={e => handleChange(rows.indexOf(row), "salidas_tempranas", e.target.value)}
                                                 className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                             />
                                         </td>
