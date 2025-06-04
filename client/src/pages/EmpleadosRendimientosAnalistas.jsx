@@ -250,7 +250,7 @@ export default function RendimientoAnalistas() {
       </div>
 
       {loading ? (
-        <p className="text-center text-lg text-gray-500">Cargando datos...</p>
+        <p className="text-center text-lg text-gray-500">Cargando datos de predicción...</p>
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
@@ -260,10 +260,10 @@ export default function RendimientoAnalistas() {
                 style={{ background: "#fff", padding: 16, borderRadius: 12 }}
               >
                 <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
-                  Resumen de Rendimiento
+                  Resumen de Predicción de Rendimiento
                 </div>
                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
-                  Visualización general de los promedios de métricas relevantes por clasificación de rendimiento.
+                  Visualización general de los promedios de métricas relevantes por clasificación de rendimiento. <br></br> <b>Estos valores son estimaciones hipotéticas generadas por modelos predictivos.</b>
                 </div>
                 <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
@@ -293,10 +293,10 @@ export default function RendimientoAnalistas() {
                 style={{ background: "#fff", padding: 16, borderRadius: 12 }}
               >
                 <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
-                  Distribución de empleados por rendimiento
+                  Distribución de empleados por predicción de rendimiento
                 </div>
                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
-                  Cantidad relativa de empleados agrupados según su clasificación de rendimiento.
+                  Cantidad relativa de empleados agrupados según su clasificación de rendimiento predicho. <br></br> <b>Estos valores son estimaciones hipotéticas generadas por modelos predictivos.</b>
                 </div>
                 <ResponsiveContainer width="100%" height={250}>
                   <PieChart>
@@ -332,10 +332,10 @@ export default function RendimientoAnalistas() {
                 style={{ background: "#fff", padding: 16, borderRadius: 12 }}
               >
                 <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
-                  Promedio por Clasificación
+                  Promedio por Clasificación (Predicción)
                 </div>
                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
-                  Comparación de valores promedio de diferentes métricas por clasificación de rendimiento.
+                  Comparación de valores promedio de diferentes métricas por clasificación de rendimiento predicho. <br></br> <b>Estos valores son estimaciones hipotéticas generadas por modelos predictivos.</b>
                 </div>
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={resumenData}>
@@ -371,10 +371,10 @@ export default function RendimientoAnalistas() {
                 style={{ background: "#fff", padding: 16, borderRadius: 12 }}
               >
                 <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
-                  Cantidad de empleados por rendimiento
+                  Cantidad de empleados por rendimiento predicho
                 </div>
                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
-                  Número total de empleados en cada categoría de rendimiento.
+                  Número total de empleados en cada categoría de rendimiento según la predicción. <br></br> <b>Estos valores son estimaciones hipotéticas generadas por modelos predictivos.</b>
                 </div>
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={cantidadPorRendimiento}>
@@ -443,6 +443,9 @@ export default function RendimientoAnalistas() {
                 </select>
               </div>
             </div>
+            <div className="mt-2 text-xs text-gray-500 text-center">
+              <b>Nota:</b> Todos los datos y predicciones mostrados en este panel son <b>hipotéticos</b> y generados automáticamente por modelos de predicción. No representan evaluaciones reales ni decisiones efectivas de RRHH.
+            </div>
           </div>
 
           <motion.div
@@ -470,7 +473,7 @@ export default function RendimientoAnalistas() {
               <Download className="w-4 h-4" />
               Descargar tabla Excel
             </button>
-            
+
             {mensaje && (
               <div
                 className={`mx-auto my-4 w-fit px-6 py-3 rounded-lg shadow-md text-center text-lg font-semibold transition-all ${tipoMensaje === "success"
@@ -489,12 +492,12 @@ export default function RendimientoAnalistas() {
                     <th className="p-2 border border-gray-300">Nombre</th>
                     <th className="p-2 border border-gray-300">Apellido</th>
                     <th className="p-2 border border-gray-300">Rol</th>
-                    <th className="p-2 border border-gray-300">Previo</th>
-                    <th className="p-2 border border-gray-300">Extras</th>
+                    <th className="p-2 border border-gray-300">Predicción Previa</th>
+                    <th className="p-2 border border-gray-300">Horas Extras</th>
                     <th className="p-2 border border-gray-300">Antigüedad</th>
-                    <th className="p-2 border border-gray-300">Capacitación</th>
-                    <th className="p-2 border border-gray-300">Predicción</th>
-                    <th className="p-2 border border-gray-300">Clasificación</th>
+                    <th className="p-2 border border-gray-300">Horas de Capacitación</th>
+                    <th className="p-2 border border-gray-300">Predicción Actual</th>
+                    <th className="p-2 border border-gray-300">Clasificación (Predicción)</th>
                     <th className="p-2 border border-gray-300">Fecha cálculo</th>
                   </tr>
                 </thead>
@@ -534,6 +537,9 @@ export default function RendimientoAnalistas() {
                   )}
                 </tbody>
               </table>
+            </div>
+            <div className="mt-2 text-xs text-gray-500 text-center">
+              <b>Nota:</b> Los valores de predicción y clasificación son generados automáticamente y no deben considerarse decisiones reales de RRHH.
             </div>
           </motion.div>
         </>

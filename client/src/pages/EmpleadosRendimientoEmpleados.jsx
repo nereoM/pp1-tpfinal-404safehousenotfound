@@ -251,7 +251,7 @@ export default function EmpleadosRendimiento() {
             </div>
 
             {loading ? (
-                <p className="text-center text-lg text-gray-500">Cargando datos...</p>
+                <p className="text-center text-lg text-gray-500">Cargando datos de predicción...</p>
             ) : (
                 <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
@@ -261,10 +261,10 @@ export default function EmpleadosRendimiento() {
                                 style={{ background: "#fff", padding: 16, borderRadius: 12 }}
                             >
                                 <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
-                                    Resumen de Rendimiento
+                                    Resumen de Predicción de Rendimiento
                                 </div>
                                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
-                                    Visualización general de los promedios de métricas relevantes por clasificación de rendimiento.
+                                    Visualización general de los promedios de métricas relevantes por clasificación de rendimiento. <br></br> <b>Estos valores son estimaciones hipotéticas generadas por modelos predictivos.</b>
                                 </div>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <PieChart>
@@ -294,10 +294,10 @@ export default function EmpleadosRendimiento() {
                                 style={{ background: "#fff", padding: 16, borderRadius: 12 }}
                             >
                                 <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
-                                    Distribución de empleados por rendimiento
+                                    Distribución de empleados por predicción de rendimiento
                                 </div>
                                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
-                                    Cantidad relativa de empleados agrupados según su clasificación de rendimiento.
+                                    Cantidad relativa de empleados agrupados según su clasificación de rendimiento predicho. <br></br> <b>Estos valores son estimaciones hipotéticas generadas por modelos predictivos.</b>
                                 </div>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <PieChart>
@@ -333,10 +333,10 @@ export default function EmpleadosRendimiento() {
                                 style={{ background: "#fff", padding: 16, borderRadius: 12 }}
                             >
                                 <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
-                                    Promedio por Clasificación
+                                    Promedio por Clasificación (Predicción)
                                 </div>
                                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
-                                    Comparación de valores promedio de diferentes métricas por clasificación de rendimiento.
+                                    Comparación de valores promedio de diferentes métricas por clasificación de rendimiento predicho. <br></br> <b>Estos valores son estimaciones hipotéticas generadas por modelos predictivos.</b>
                                 </div>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <BarChart data={resumenData}>
@@ -372,10 +372,10 @@ export default function EmpleadosRendimiento() {
                                 style={{ background: "#fff", padding: 16, borderRadius: 12 }}
                             >
                                 <div style={{ color: "#000", textAlign: "center", fontWeight: "bold", fontSize: 18, marginBottom: 4 }}>
-                                    Cantidad de empleados por rendimiento
+                                    Cantidad de empleados por rendimiento predicho
                                 </div>
                                 <div style={{ textAlign: "center", fontSize: 14, color: "#555", marginBottom: 8 }}>
-                                    Número total de empleados en cada categoría de rendimiento.
+                                    Número total de empleados en cada categoría de rendimiento según la predicción. <br></br> <b>Estos valores son estimaciones hipotéticas generadas por modelos predictivos.</b>
                                 </div>
                                 <ResponsiveContainer width="100%" height={250}>
                                     <BarChart data={cantidadPorRendimiento}>
@@ -405,20 +405,10 @@ export default function EmpleadosRendimiento() {
                             </button>
                         </motion.div>
                     </div>
-                    
+
                     {/* Controles de filtros */}
                     <div className="bg-white text-black p-5 rounded-2xl shadow-lg mb-6">
                         <h3 className="text-xl font-bold mb-4">Filtros y búsqueda</h3>
-                        {mensaje && (
-                            <div
-                                className={`mx-auto my-4 w-fit px-6 py-3 rounded-lg shadow-md text-center text-lg font-semibold transition-all ${tipoMensaje === "success"
-                                    ? "bg-green-100 text-green-800 border border-green-300"
-                                    : "bg-red-100 text-red-800 border border-red-300"
-                                    }`}
-                            >
-                                {mensaje}
-                            </div>
-                        )}
                         <div className="flex flex-wrap gap-4 justify-center items-center">
                             <input
                                 type="text"
@@ -454,6 +444,9 @@ export default function EmpleadosRendimiento() {
                                 </select>
                             </div>
                         </div>
+                        <div className="mt-2 text-xs text-gray-500 text-center">
+                            <b>Nota:</b> Todos los datos y predicciones mostrados en este panel son <b>hipotéticos</b> y generados automáticamente por modelos de predicción. No representan evaluaciones reales ni decisiones efectivas de RRHH.
+                        </div>
                     </div>
 
                     <motion.div
@@ -462,7 +455,19 @@ export default function EmpleadosRendimiento() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">Detalle de Empleados</h3>
+                        <h3 className="text-2xl font-bold text-center text-blue-800 mb-4">
+                            Detalle de Empleados (Predicción)
+                        </h3>
+                        {mensaje && (
+                            <div
+                                className={`mx-auto my-4 w-fit px-6 py-3 rounded-lg shadow-md text-center text-lg font-semibold transition-all ${tipoMensaje === "success"
+                                    ? "bg-green-100 text-green-800 border border-green-300"
+                                    : "bg-red-100 text-red-800 border border-red-300"
+                                    }`}
+                            >
+                                {mensaje}
+                            </div>
+                        )}
                         <button
                             className="mb-3 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
                             onClick={() => exportarGrafico("tabla-empleados", "tabla_empleados")}
@@ -486,12 +491,12 @@ export default function EmpleadosRendimiento() {
                                         <th className="p-2 border border-gray-300">Nombre</th>
                                         <th className="p-2 border border-gray-300">Apellido</th>
                                         <th className="p-2 border border-gray-300">Rol</th>
-                                        <th className="p-2 border border-gray-300">Previo</th>
-                                        <th className="p-2 border border-gray-300">Extras</th>
+                                        <th className="p-2 border border-gray-300">Predicción Previa</th>
+                                        <th className="p-2 border border-gray-300">Horas Extras</th>
                                         <th className="p-2 border border-gray-300">Antigüedad</th>
-                                        <th className="p-2 border border-gray-300">Capacitación</th>
-                                        <th className="p-2 border border-gray-300">Predicción</th>
-                                        <th className="p-2 border border-gray-300">Clasificación</th>
+                                        <th className="p-2 border border-gray-300">Horas de Capacitación</th>
+                                        <th className="p-2 border border-gray-300">Predicción Actual</th>
+                                        <th className="p-2 border border-gray-300">Clasificación (Predicción)</th>
                                         <th className="p-2 border border-gray-300">Fecha cálculo</th>
                                     </tr>
                                 </thead>
@@ -531,6 +536,9 @@ export default function EmpleadosRendimiento() {
                                     )}
                                 </tbody>
                             </table>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500 text-center">
+                            <b>Nota:</b> Los valores de predicción y clasificación son generados automáticamente y no deben considerarse decisiones reales de RRHH.
                         </div>
                     </motion.div>
                 </>
