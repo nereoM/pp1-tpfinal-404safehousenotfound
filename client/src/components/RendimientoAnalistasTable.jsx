@@ -134,7 +134,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
     };
 
     return (
-        <div className="bg-white p-8 rounded-2xl shadow-xl max-w-4xl mx-auto">
+        <div className="bg-white p-8 rounded-2xl shadow-xl w-full" style={{ maxWidth: "none" }}>
             <h2 className="text-2xl font-extrabold mb-6 text-blue-900 flex items-center gap-2">
                 Editar Métricas de Analistas
             </h2>
@@ -148,8 +148,8 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                 </div>
             ) : (
                 <>
-                    <div className="overflow-x-auto rounded-lg border border-gray-200">
-                        <table className="min-w-full text-sm">
+                    <div className="rounded-lg border border-gray-200 w-full">
+                        <table className="w-full text-xs">
                             <thead className="bg-blue-50">
                                 <tr>
                                     <th className="p-3 border-b text-left font-semibold text-blue-900">Nombre</th>
@@ -223,7 +223,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                             onClick={handleGuardar}
                             disabled={saving}
                             className={`px-6 py-2 rounded font-bold shadow transition
-                                ${saving
+                            ${saving
                                     ? "bg-indigo-300 text-white cursor-not-allowed"
                                     : "bg-indigo-600 hover:bg-indigo-700 text-white"
                                 }`}
@@ -243,7 +243,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                     {mensaje && (
                         <div
                             className={`fixed left-1/2 bottom-8 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg text-center text-base font-semibold transition-all z-50
-                                ${tipoMensaje === "success"
+                            ${tipoMensaje === "success"
                                     ? "bg-green-100 text-green-800 border border-green-300"
                                     : "bg-red-100 text-red-800 border border-red-300"
                                 }`}
