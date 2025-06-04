@@ -216,58 +216,66 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {rowsFiltradas.map((row, idx) => (
-                                    <tr key={row.id_usuario} className="hover:bg-blue-50 transition">
-                                        <td className="p-2 border-b">{row.nombre}</td>
-                                        <td className="p-2 border-b">{row.apellido}</td>
-                                        <td className="p-2 border-b">{row.puesto || "Analista de RRHH"}</td>
-                                        <td className="p-2 border-b">
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                value={row.horas_capacitacion}
-                                                onChange={e => handleChange(rows.indexOf(row), "horas_capacitacion", e.target.value)}
-                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-                                            />
-                                        </td>
-                                        <td className="p-2 border-b">
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                value={row.horas_extra_finde}
-                                                onChange={e => handleChange(rows.indexOf(row), "horas_extra_finde", e.target.value)}
-                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-                                            />
-                                        </td>
-                                        <td className="p-2 border-b">
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                value={row.ausencias_injustificadas}
-                                                onChange={e => handleChange(rows.indexOf(row), "ausencias_injustificadas", e.target.value)}
-                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-                                            />
-                                        </td>
-                                        <td className="p-2 border-b">
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                value={row.llegadas_tarde}
-                                                onChange={e => handleChange(rows.indexOf(row), "llegadas_tarde", e.target.value)}
-                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-                                            />
-                                        </td>
-                                        <td className="p-2 border-b">
-                                            <input
-                                                type="number"
-                                                min={0}
-                                                value={row.salidas_tempranas}
-                                                onChange={e => handleChange(rows.indexOf(row), "salidas_tempranas", e.target.value)}
-                                                className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
-                                            />
+                                {rowsFiltradas.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={8} className="text-center py-6 text-gray-500">
+                                            No se encontraron resultados para la búsqueda o filtro seleccionado.
                                         </td>
                                     </tr>
-                                ))}
+                                ) : (
+                                    rowsFiltradas.map((row, idx) => (
+                                        <tr key={row.id_usuario} className="hover:bg-blue-50 transition">
+                                            <td className="p-2 border-b">{row.nombre}</td>
+                                            <td className="p-2 border-b">{row.apellido}</td>
+                                            <td className="p-2 border-b">{row.puesto || "Analista de RRHH"}</td>
+                                            <td className="p-2 border-b">
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={row.horas_capacitacion}
+                                                    onChange={e => handleChange(rows.indexOf(row), "horas_capacitacion", e.target.value)}
+                                                    className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+                                                />
+                                            </td>
+                                            <td className="p-2 border-b">
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={row.horas_extra_finde}
+                                                    onChange={e => handleChange(rows.indexOf(row), "horas_extra_finde", e.target.value)}
+                                                    className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+                                                />
+                                            </td>
+                                            <td className="p-2 border-b">
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={row.ausencias_injustificadas}
+                                                    onChange={e => handleChange(rows.indexOf(row), "ausencias_injustificadas", e.target.value)}
+                                                    className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+                                                />
+                                            </td>
+                                            <td className="p-2 border-b">
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={row.llegadas_tarde}
+                                                    onChange={e => handleChange(rows.indexOf(row), "llegadas_tarde", e.target.value)}
+                                                    className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+                                                />
+                                            </td>
+                                            <td className="p-2 border-b">
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={row.salidas_tempranas}
+                                                    onChange={e => handleChange(rows.indexOf(row), "salidas_tempranas", e.target.value)}
+                                                    className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
