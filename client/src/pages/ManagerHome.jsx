@@ -77,6 +77,25 @@ export default function ManagerHome() {
 
   const API_URL = import.meta.env.VITE_API_URL;
 
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  const [filtroNombre, setFiltroNombre] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [ofertasFiltradas, setOfertasFiltradas] = useState([]);
+
+  useEffect(() => {
+    let filtradas = ofertas;
+    if (filtroNombre)
+      filtradas = filtradas.filter(o =>
+        o.nombre.toLowerCase().includes(filtroNombre.toLowerCase())
+      );
+    if (filtroEstado)
+      filtradas = filtradas.filter(o =>
+        filtroEstado === "abierta" ? o.is_active : !o.is_active
+      );
+    setOfertasFiltradas(filtradas);
+  }, [ofertas, filtroNombre, filtroEstado]);
+
   const seccionesAmigables = {
     licencias: "Licencias",
     ofertas: "Ofertas",
@@ -134,13 +153,11 @@ export default function ManagerHome() {
 
   const descargarReporteReclutamiento = async (formato = "excel") => {
     try {
+      const ids = ofertasFiltradas.map(o => o.id_oferta).join(",");
+      console.log("Enviando IDs de ofertas filtradas:", ids); // 👈 Aquí ves los IDs que se envían
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL
-        }/api/reportes-reclutamiento-manager?formato=${formato}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
+        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento-manager?formato=${formato}&ids=${ids}`,
+        { method: "GET", credentials: "include" }
       );
       if (!res.ok) throw new Error("No se pudo descargar el reporte");
       const blob = await res.blob();
@@ -336,8 +353,9 @@ export default function ManagerHome() {
 
   const descargarReporteEficaciaReclutadores = async (formato = "pdf") => {
     try {
+      const ids = ofertasFiltradas.map(o => o.id_oferta).join(",");
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reporte-eficacia-reclutadores?formato=${formato}`,
+        `${import.meta.env.VITE_API_URL}/api/reporte-eficacia-reclutadores?formato=${formato}&ids=${ids}`,
         {
           method: "GET",
           credentials: "include",
@@ -800,13 +818,38 @@ export default function ManagerHome() {
                 <MensajeAlerta texto={mensajeAsignacion} />
 
                 <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
+                <div className="mb-4 flex flex-wrap gap-4 items-end">
+                  <div>
+                    <label className="block text-xs text-gray-600">Nombre</label>
+                    <input
+                      type="text"
+                      value={filtroNombre}
+                      onChange={e => setFiltroNombre(e.target.value)}
+                      className="border px-2 py-1 rounded text-black"
+                      placeholder="Buscar por nombre"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600">Estado</label>
+                    <select
+                      value={filtroEstado}
+                      onChange={e => setFiltroEstado(e.target.value)}
+                      className="border px-2 py-1 rounded text-black"
+                    >
+                      <option value="">Todos</option>
+                      <option value="abierta">Abierta</option>
+                      <option value="cerrada">Cerrada</option>
+                    </select>
+                  </div>
+                </div>
                 {/* BOTONES PARA RECLUTAMIENTO Y EFICACIA EN UN DESPLEGABLE */}
                 <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
-                  <div className="relative group">
+                  <div className="relative">
                     <button
                       className="flex items-center gap-2 px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-900 transition font-semibold shadow"
                       title="Descargar reportes"
                       type="button"
+                      onClick={() => setOpenDropdown((open) => !open)}
                     >
                       <Download className="w-5 h-5" />
                       Descargar reportes
@@ -814,47 +857,48 @@ export default function ManagerHome() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                       </svg>
                     </button>
-                    <div className="absolute right-0 mt-2 w-64 bg-white border rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition z-50">
-                      <div className="py-2">
-                        <div className="px-4 py-1 text-xs text-gray-500 font-semibold">Informe Reclutamiento</div>
-                        <button
-                          onClick={() => descargarReporteReclutamiento("excel")}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-blue-50 text-blue-700"
-                        >
-                          <Download className="w-4 h-4" />
-                          Descargar en Excel
-                        </button>
-                        <button
-                          onClick={() => descargarReporteReclutamiento("pdf")}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-red-50 text-red-700"
-                        >
-                          <Download className="w-4 h-4" />
-                          Descargar en PDF
-                        </button>
-                        <div className="px-4 py-1 mt-2 text-xs text-gray-500 font-semibold border-t">Eficacia Reclutadores</div>
-                        <button
-                          onClick={() => descargarReporteEficaciaReclutadores("excel")}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-blue-50 text-blue-700"
-                        >
-                          <Download className="w-4 h-4" />
-                          Descargar en Excel
-                        </button>
-                        <button
-                          onClick={() => descargarReporteEficaciaReclutadores("pdf")}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-red-50 text-red-700"
-                        >
-                          <Download className="w-4 h-4" />
-                          Descargar en PDF
-                        </button>
+                    {openDropdown && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white border rounded shadow-lg z-50">
+                        <div className="py-2">
+                          <div className="px-4 py-1 text-xs text-gray-500 font-semibold">Informe Reclutamiento</div>
+                          <button
+                            onClick={() => { setOpenDropdown(false); descargarReporteReclutamiento("excel"); }}
+                            className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-blue-50 text-blue-700"
+                          >
+                            <Download className="w-4 h-4" />
+                            Descargar en Excel
+                          </button>
+                          <button
+                            onClick={() => { setOpenDropdown(false); descargarReporteReclutamiento("pdf"); }}
+                            className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-red-50 text-red-700"
+                          >
+                            <Download className="w-4 h-4" />
+                            Descargar en PDF
+                          </button>
+                          <div className="px-4 py-1 mt-2 text-xs text-gray-500 font-semibold border-t">Eficacia Reclutadores</div>
+                          <button
+                            onClick={() => { setOpenDropdown(false); descargarReporteEficaciaReclutadores("excel"); }}
+                            className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-blue-50 text-blue-700"
+                          >
+                            <Download className="w-4 h-4" />
+                            Descargar en Excel
+                          </button>
+                          <button
+                            onClick={() => { setOpenDropdown(false); descargarReporteEficaciaReclutadores("pdf"); }}
+                            className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-red-50 text-red-700"
+                          >
+                            <Download className="w-4 h-4" />
+                            Descargar en PDF
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
 
-                {ofertas.length === 0 ? (
+                {ofertasFiltradas.length === 0 ? (
                   <p>No hay ofertas disponibles.</p>
                 ) : (
-                  // 🔼 LÍNEA AGREGADA: contenedor scrolleable para la tabla
                   <div className="flex-1 overflow-auto">
                     <table className="min-w-full table-auto border-collapse text-black">
                       <thead className="bg-gray-100 sticky top-0 z-10">
@@ -867,7 +911,7 @@ export default function ManagerHome() {
                         </tr>
                       </thead>
                       <tbody>
-                        {ofertas.map((o) => {
+                        {ofertasFiltradas.map((o) => {
                           const estaAsignada = ofertasAsignadas.has(
                             Number(o.id_oferta)
                           ); // 🔁 importante: forzamos a number
