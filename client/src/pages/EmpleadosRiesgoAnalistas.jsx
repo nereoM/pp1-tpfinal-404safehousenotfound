@@ -299,7 +299,7 @@ export default function RiesgosAnalistasConTabla() {
                                         </ResponsiveContainer>
                                     </div>
                                     <button
-                                        className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                                        className="mt-2 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-xs"
                                         onClick={() => exportarGrafico(id, secciones[idx].nombreArchivo || id)}
                                         title="Descargar imagen del gráfico"
                                     >
@@ -391,7 +391,7 @@ export default function RiesgosAnalistasConTabla() {
                             Detalle de Analistas y Empleados (Predicción)
                         </h3>
                         <button
-                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-sm"
+                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition text-xs"
                             onClick={() => exportarGrafico("tabla-empleados", "tabla_riesgo")}
                             title="Descargar imagen de la tabla"
                         >
@@ -400,7 +400,7 @@ export default function RiesgosAnalistasConTabla() {
                         </button>
 
                         <button
-                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-green-200 text-green-800 rounded hover:bg-green-300 transition text-sm"
+                            className="mb-3 flex items-center gap-2 px-3 py-1 bg-green-200 text-green-800 rounded hover:bg-green-300 transition text-xs"
                             onClick={exportarTablaExcel}
                             title="Descargar tabla como Excel"
                         >
@@ -408,8 +408,8 @@ export default function RiesgosAnalistasConTabla() {
                             Descargar tabla Excel
                         </button>
                         <div id="tabla-empleados" className="overflow-x-auto">
-                            <table className="w-full text-sm text-left border border-gray-200">
-                                <thead className="bg-blue-100 text-gray-900 font-bold text-base">
+                            <table className="w-full text-xs text-left border border-gray-200">
+                                <thead className="bg-blue-100 text-gray-900 font-bold text-xs">
                                     <tr>
                                         {[
                                             "Nombre",
@@ -434,7 +434,7 @@ export default function RiesgosAnalistasConTabla() {
                                 </thead>
                                 <tbody>
                                     {empleadosFiltrados.length > 0 ? empleadosFiltrados.map((emp, idx) => (
-                                        <tr key={emp.id_usuario} className={`text-gray-800 text-sm ${idx % 2 === 0 ? 'bg-blue-50' : 'bg-white'}`}>
+                                        <tr key={emp.id_usuario} className={`text-gray-800 text-xs ${idx % 2 === 0 ? 'bg-blue-50' : 'bg-white'}`}>
                                             <td className="p-2 border">{emp.nombre}</td>
                                             <td className="p-2 border">{emp.apellido}</td>
                                             <td className="p-2 border">{emp.puesto || "Empleado"}</td>
