@@ -484,8 +484,8 @@ export default function EmpleadosRendimiento() {
                             <Download className="w-4 h-4" />
                             Descargar tabla Excel
                         </button>
-                        <div id="tabla-empleados" className="overflow-x-auto">
-                            <table className="w-full text-left border-collapse border border-gray-300">
+                        <div id="tabla-empleados" style={{ overflow: "visible", width: "100%" }}>
+                            <table className="w-full text-left border-collapse border border-gray-300 text-xs">
                                 <thead>
                                     <tr className="bg-blue-200 text-black border border-gray-300">
                                         <th className="p-2 border border-gray-300">Nombre</th>
@@ -514,7 +514,7 @@ export default function EmpleadosRendimiento() {
                                             <td className={`p-2 border font-semibold ${colorRendimiento[emp.clasificacion_rendimiento] || ""}`}>
                                                 {emp.clasificacion_rendimiento === "Bajo Rendimiento" ? (
                                                     <button
-                                                        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition disabled:opacity-60 text-sm"
+                                                        className="px-1 py-0.5 bg-red-500 text-white rounded hover:bg-red-700 transition disabled:opacity-60 text-xs"
                                                         onClick={() => notificarBajoRendimiento(emp.id_usuario)}
                                                         title="Notificar bajo rendimiento"
                                                         disabled={notificandoId === emp.id_usuario}
