@@ -1,8 +1,7 @@
 import { GoogleLogin } from '@react-oauth/google';
-import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Home } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -268,6 +267,40 @@ export default function Login() {
     }
   };
 
+  const usuariosGlobant = [{
+    puesto: "Admin de empresa",
+    callback: async () => {
+        setLoginUsername("valemtz")
+        setLoginPassword("Admin123!")
+        await handleSubmitLogin({preventDefault: () => {}})
+      }
+  },
+  {
+    puesto: "Manager",
+    callback: async () => {
+        setLoginUsername("manager1_globant")
+        setLoginPassword("Manager123!")
+        await handleSubmitLogin({preventDefault: () => {}})
+      }
+  },
+  {
+    puesto: "Reclutador",
+    callback: async () => {
+        setLoginUsername("reclutador1_globant")
+        setLoginPassword("Recluta123!")
+        await handleSubmitLogin({preventDefault: () => {}})
+      }
+  },
+  {
+    puesto: "Empleado",
+    callback: async () => {
+        setLoginUsername("frocha1")
+        setLoginPassword("b4gPju#q^^")
+        await handleSubmitLogin({preventDefault: () => {}})
+      }
+  },
+]
+
   useEffect(() => {
     const handlePopState = (e) => {
       // Evitar que el usuario navegue hacia atrás
@@ -334,6 +367,21 @@ export default function Login() {
 
         {/* Formulario Login/Registro */}
         <div className="relative w-full max-w-md h-screen max-h-[80vh] z-10">
+          {
+            import.meta.env.DEV &&
+            <div className='absolute bg-black/50 flex flex-col gap-2 right-full mr-2 border-white/30 border rounded-xl p-4'>
+              <p className='text-xs text-green-400'>Panel solo visible para entorno de desarrollo, asegurate de haber cargado los usuarios antes (python ./crear_usuarios_y_ofertas.py)</p>
+              <h2 className='text-sm text-center'>Iniciar sesion como empleado de globant:</h2>
+              <ul className='flex flex-col gap-2 *:bg-primary *:px-2 *:py-1 *:rounded-xl'>
+                {
+                  usuariosGlobant.map((usuario) => (
+                    <button className='cursor-pointer hover:opacity-50 transition' key={usuario.puesto} onClick={usuario.callback}>{usuario.puesto}</button>
+                  ))
+                }
+              </ul>
+              <p>Si no anda, toca el boton dos veces</p>
+            </div>
+          }
           <div className={`w-full h-full relative transition-transform duration-700 ${flipped ? "rotate-y-180" : ""}`} style={{ transformStyle: "preserve-3d" }}>
             {/* Formulario Login */}
             <div className="absolute w-full h-full backface-hidden z-20">
