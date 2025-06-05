@@ -195,7 +195,7 @@ export default function AdminRootHome() {
                             <ProfileCard
                                 nombre={`${user?.nombre} ${user?.apellido}`}
                                 correo={user?.correo}
-                                fotoUrl="https://i.postimg.cc/3x2SrWdX/360-F-64676383-Ldbmhi-NM6-Ypzb3-FM4-PPu-FP9r-He7ri8-Ju.webp"
+                                foto_url="https://i.postimg.cc/3x2SrWdX/360-F-64676383-Ldbmhi-NM6-Ypzb3-FM4-PPu-FP9r-He7ri8-Ju.webp"
                                 showCvLink={false}
                                 size="xl"
                                 style={{ borderColor: estilosSafe.color_principal }}

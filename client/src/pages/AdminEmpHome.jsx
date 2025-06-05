@@ -7,15 +7,16 @@ import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutador
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
-import { ProfileCard } from "../components/ProfileCard";
 import SubirEmpleados from "../components/RegistrarEmpleados";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { adminEmpService } from "../services/adminEmpService";
+import MensajeAlerta from "../components/MensajeAlerta";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminEmpHome() {
+  // --- TODOS LOS HOOKS AL PRINCIPIO ---
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
@@ -39,10 +40,8 @@ export default function AdminEmpHome() {
   const [modalSubirMetricas, setModalSubirMetricas] = useState(false);
   const [mensajeMetricas, setMensajeMetricas] = useState("");
   const [archivoMetricas, setArchivoMetricas] = useState(null);
-  // Toast state
   const [toasts, setToasts] = useState([]);
   const toastIdRef = React.useRef(0);
-
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -52,27 +51,8 @@ export default function AdminEmpHome() {
       .catch((err) => console.error("❌ Error al obtener usuario:", err))
       .finally(() => setLoadingUser(false));
   }, []);
-
   const empresaId = user?.empresa_id;
   const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
-
-  const handleActualizarEstilos = () => {
-    setModalPreferencias(false);
-    setTimeout(() => window.location.reload(), 300);
-  };
-
-  if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
-  if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
-  if (loadingEstilos) return <div className="p-10 text-center">Cargando preferencias de empresa…</div>;
-
-  const estilosSafe = {
-    color_principal: estilos?.color_principal ?? "#2563eb",
-    color_secundario: estilos?.color_secundario ?? "#f3f4f6",
-    color_texto: estilos?.color_texto ?? "#000000",
-    slogan: estilos?.slogan ?? "Bienvenido al panel de Administración de Empresa",
-    logo_url: estilos?.logo_url ?? null,
-  };
-
   const showToast = React.useCallback((message, type = "success", duration = 3500) => {
     const id = ++toastIdRef.current;
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -81,6 +61,27 @@ export default function AdminEmpHome() {
     }, duration);
   }, []);
   const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  // --- FIN HOOKS ---
+
+  // --- IFs DE CARGA ---
+  if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
+  if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
+  if (loadingEstilos) return <div className="p-10 text-center">Cargando preferencias de empresa…</div>;
+  // --- FIN IFs DE CARGA ---
+
+  // --- RESTO DE LA LÓGICA Y RETURN ---
+  const estilosSafe = {
+    color_principal: estilos?.color_principal ?? "#2563eb",
+    color_secundario: estilos?.color_secundario ?? "#f3f4f6",
+    color_texto: estilos?.color_texto ?? "#000000",
+    slogan: estilos?.slogan ?? "Bienvenido al panel de Administración de Empresa",
+    logo_url: estilos?.logo_url ?? null,
+  };
+
+  const handleActualizarEstilos = () => {
+    setModalPreferencias(false);
+    setTimeout(() => window.location.reload(), 300);
+  };
 
   // Toast component
   function Toast({ toasts, removeToast }) {
@@ -359,25 +360,7 @@ export default function AdminEmpHome() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4 }}
-              className="relative"
-            >
-              <ProfileCard
-                nombre={`${user?.nombre} ${user?.apellido}`}
-                correo={user?.correo}
-                fotoUrl={user?.fotoUrl ? user.fotoUrl : "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"}
-                showCvLink={false}
-                size="xl"
-                style={{ borderColor: estilosSafe.color_principal }}
-                textColor={estilosSafe.color_texto}
-                onEdit={() => setModalEditarPerfilOpen(true)}
-              />
-
-            </motion.div>
-
+            {/* Se eliminó ProfileCard, solo se deja el resto del contenido */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
