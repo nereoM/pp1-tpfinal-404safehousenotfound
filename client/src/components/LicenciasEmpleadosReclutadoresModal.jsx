@@ -134,13 +134,22 @@ export function LicenciasACargoModal({
           </div>
           <div>
             <label className="block text-xs text-gray-600">Tipo</label>
-            <input
-              type="text"
+            <select
               value={filtroTipo}
               onChange={e => setFiltroTipo(e.target.value)}
               className="border px-2 py-1 rounded text-black"
-              placeholder="Buscar por tipo"
-            />
+            >
+              <option value="">Todos</option>
+              <option value="vacaciones">Vacaciones</option>
+              <option value="enfermedad">Enfermedad</option>
+              <option value="accidente laboral">Accidente laboral</option>
+              <option value="nacimiento_hijo">Nacimiento de hijo/a</option>
+              <option value="duelo">Duelo</option>
+              <option value="estudios">Estudios</option>
+              <option value="matrimonio">Matrimonio</option>
+              <option value="mudanza">Mudanza</option>
+              <option value="otro">Otro</option>
+            </select>
           </div>
           <div>
             <label className="block text-xs text-gray-600">Estado</label>
@@ -155,6 +164,8 @@ export function LicenciasACargoModal({
               <option value="rechazada">Rechazada</option>
               <option value="sugerencia">Sugerencia</option>
               <option value="activa">Activa</option>
+              <option value="activa_y_verificada">Activa y Verificada</option>
+              <option value="invalidada">Invalidada</option>
             </select>
           </div>
           <div>

@@ -825,7 +825,7 @@ def reporte_licencias_manager():
         ws = wb.active
         ws.title = "Reporte Licencias"
 
-        color = (preferencia.color_principal or "#2E86C1").lstrip("#")
+        color = (preferencia.color_principal if preferencia and preferencia.color_principal else "#2E86C1").lstrip("#")        
         logo_path = None
         fila = 1  # control de fila actual
 
