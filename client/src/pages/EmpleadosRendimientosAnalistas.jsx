@@ -183,8 +183,10 @@ export default function RendimientoAnalistas() {
 
   const descargarReporteDesempeno = async (formato = "excel") => {
     try {
+      const ids = empleadosFiltrados.map(e => e.id_usuario).join(",");
+      console.log(`Descargando reporte de desempeño para IDs: ${ids} en formato ${formato}`);
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reportes-desempeno-manager?formato=${formato}`,
+        `${import.meta.env.VITE_API_URL}/api/reportes-desempeno?formato=${formato}&ids=${ids}`,
         {
           method: "GET",
           credentials: "include",
