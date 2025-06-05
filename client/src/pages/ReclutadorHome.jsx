@@ -1,5 +1,5 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { BarChart2, FileLock, FilePlus, FileSearchIcon, FileText, Users } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { BarChart2, Download, FileLock, FilePlus, FileSearchIcon, FileText, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
@@ -13,7 +13,6 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { reclutadorService } from '../services/reclutadorService.js';
 import EmpleadosRendimiento from "./EmpleadosRendimientoEmpleados";
-import { Download } from "lucide-react";
 
 export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
@@ -653,7 +652,6 @@ export default function ReclutadorHome() {
           <SolicitarLicenciaModal
             open={modalLicenciaOpen}
             onOpenChange={setModalLicenciaOpen}
-            service={reclutadorService}
           />
         )
         }
