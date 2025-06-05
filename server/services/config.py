@@ -20,6 +20,8 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "supersecreto")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "clave_para_jwt")
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+    EMBEDDINGS_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     
     JWT_TOKEN_LOCATION = ["cookies"]
     JWT_COOKIE_SECURE = False
