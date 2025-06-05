@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BarChart2, Download, FileLock, FilePlus, FileSearchIcon, FileText, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AccionesPorSeccion } from "../components/AccionesPorSeccion.jsx";
+import { Acciones } from "../components/Acciones.jsx";
 import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
@@ -588,22 +588,7 @@ export default function ReclutadorHome() {
             </div>
           </div>
 
-          {/* Centralizar acciones, eliminar ProfileCard */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-            <div className="md:col-span-3 flex flex-col items-center">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="w-full max-w-3xl space-y-4"
-              >
-                <h2 className="text-lg font-semibold text-black text-center">
-                  Acciones disponibles: Reclutador de RRHH
-                </h2>
-                <AccionesPorSeccion accionesPorSeccion={accionesPorSeccion} estilos={estilosSafe} />
-              </motion.div>
-            </div>
-          </div>
+          <Acciones  acciones={accionesPorSeccion} estilos={estilosSafe}/>
         </PageLayout>
 
         {modalOfertasOpen && (

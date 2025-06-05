@@ -24,7 +24,7 @@ import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
 
-import { AccionesPorSeccion } from "../components/AccionesPorSeccion.jsx";
+import { Acciones } from "../components/Acciones.jsx";
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
 
 // Toast system
@@ -133,11 +133,11 @@ export default function ManagerHome() {
   useEffect(() => {
     let filtradas = ofertas;
     if (filtroNombre)
-      filtradas = filtradas.filter(o =>
+      filtradas = filtradas.filter((o) =>
         o.nombre.toLowerCase().includes(filtroNombre.toLowerCase())
       );
     if (filtroEstado)
-      filtradas = filtradas.filter(o =>
+      filtradas = filtradas.filter((o) =>
         filtroEstado === "abierta" ? o.is_active : !o.is_active
       );
     setOfertasFiltradas(filtradas);
@@ -196,21 +196,27 @@ export default function ManagerHome() {
   const toastIdRef = useRef(0);
 
   // Toast helpers
-  const showToast = useCallback((message, type = "success", duration = 3500) => {
-    const id = ++toastIdRef.current;
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, duration);
-  }, []);
-  const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  const showToast = useCallback(
+    (message, type = "success", duration = 3500) => {
+      const id = ++toastIdRef.current;
+      setToasts((prev) => [...prev, { id, message, type }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, duration);
+    },
+    []
+  );
+  const removeToast = (id) =>
+    setToasts((prev) => prev.filter((t) => t.id !== id));
 
   const descargarReporteReclutamiento = async (formato = "excel") => {
     try {
-      const ids = ofertasFiltradas.map(o => o.id_oferta).join(",");
+      const ids = ofertasFiltradas.map((o) => o.id_oferta).join(",");
       console.log("Enviando IDs de ofertas filtradas:", ids); // 👈 Aquí ves los IDs que se envían
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento?formato=${formato}&ids=${ids}`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/reportes-reclutamiento?formato=${formato}&ids=${ids}`,
         { method: "GET", credentials: "include" }
       );
       if (!res.ok) throw new Error("No se pudo descargar el reporte");
@@ -271,7 +277,6 @@ export default function ManagerHome() {
     logo_url: preferencias.estilos?.logo_url ?? null,
   };
 
-
   const subirEmpleadosDesdeCSV = async () => {
     if (!archivoEmpleados) {
       showToast("Selecciona un archivo CSV.", "error");
@@ -312,7 +317,10 @@ export default function ManagerHome() {
       );
       const data = await res.json();
       if (res.ok) {
-        showToast(`Oferta creada: ${data.nombre} (ID: ${data.id_oferta})`, "success");
+        showToast(
+          `Oferta creada: ${data.nombre} (ID: ${data.id_oferta})`,
+          "success"
+        );
         setFormOferta({});
       } else {
         showToast(`Error: ${data.error}`, "error");
@@ -324,7 +332,10 @@ export default function ManagerHome() {
 
   const crearAnalista = async () => {
     if (formAnalista.username.trim().length < 4) {
-      showToast("El nombre de usuario debe tener al menos 4 caracteres.", "error");
+      showToast(
+        "El nombre de usuario debe tener al menos 4 caracteres.",
+        "error"
+      );
       return;
     }
     try {
@@ -404,9 +415,11 @@ export default function ManagerHome() {
 
   const descargarReporteEficaciaReclutadores = async (formato = "pdf") => {
     try {
-      const ids = ofertasFiltradas.map(o => o.id_oferta).join(",");
+      const ids = ofertasFiltradas.map((o) => o.id_oferta).join(",");
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reporte-eficacia-reclutadores?formato=${formato}&ids=${ids}`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/reporte-eficacia-reclutadores?formato=${formato}&ids=${ids}`,
         {
           method: "GET",
           credentials: "include",
@@ -427,14 +440,18 @@ export default function ManagerHome() {
       window.URL.revokeObjectURL(url);
       showToast("Reporte descargado correctamente.", "success");
     } catch (err) {
-      showToast("Error al descargar el reporte de eficacia de reclutadores", "error");
+      showToast(
+        "Error al descargar el reporte de eficacia de reclutadores",
+        "error"
+      );
     }
   };
 
   const descargarReporteLicencias = async (formato = "excel") => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL
+        `${
+          import.meta.env.VITE_API_URL
         }/api/reportes-licencias-manager?formato=${formato}`,
         {
           method: "GET",
@@ -669,8 +686,6 @@ export default function ManagerHome() {
     ],
   };
 
-
-
   if (loadingUser)
     return <div className="p-10 text-center">Cargando usuario…</div>;
   if (!user)
@@ -688,19 +703,19 @@ export default function ManagerHome() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
       >
-<PageLayout>
-  <TopBar
-    username={`${user.nombre} ${user.apellido}`}
-    user={{
-      nombre: user.nombre,
-      apellido: user.apellido,
-      correo: user.correo,
-      fotoUrl: user.foto_url,
-      cvUrl: user.cvUrl // quita si no existe
-    }}
-    onEditPerfil={() => setModalEditarPerfilOpen(true)}
-    onPostulacion={() => navigate("/manager/postulaciones")}
-  />
+        <PageLayout>
+          <TopBar
+            username={`${user.nombre} ${user.apellido}`}
+            user={{
+              nombre: user.nombre,
+              apellido: user.apellido,
+              correo: user.correo,
+              fotoUrl: user.foto_url,
+              cvUrl: user.cvUrl, // quita si no existe
+            }}
+            onEditPerfil={() => setModalEditarPerfilOpen(true)}
+            onPostulacion={() => navigate("/manager/postulaciones")}
+          />
 
           <div className="px-4 py-6">
             <div
@@ -715,22 +730,7 @@ export default function ManagerHome() {
             </div>
           </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-
-        <div className="md:col-span-3 flex justify-center">
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-            className="space-y-4 w-full max-w-3xl"
-          >
-            <h2 className="text-lg font-semibold text-black text-center">
-              Acciones disponibles: Manager de RRHH
-            </h2>
-            <AccionesPorSeccion accionesPorSeccion={accionesPorSeccion} estilos={estilos} />
-          </motion.div>
-        </div>
-      </div>
+          <Acciones acciones={accionesPorSeccion} estilos={estilos} />
 
           <ModalOferta
             modalOfertaOpen={modalOfertaOpen}
@@ -819,20 +819,24 @@ export default function ManagerHome() {
                 <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
                 <div className="mb-4 flex flex-wrap gap-4 items-end">
                   <div>
-                    <label className="block text-xs text-gray-600">Nombre</label>
+                    <label className="block text-xs text-gray-600">
+                      Nombre
+                    </label>
                     <input
                       type="text"
                       value={filtroNombre}
-                      onChange={e => setFiltroNombre(e.target.value)}
+                      onChange={(e) => setFiltroNombre(e.target.value)}
                       className="border px-2 py-1 rounded text-black"
                       placeholder="Buscar por nombre"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600">Estado</label>
+                    <label className="block text-xs text-gray-600">
+                      Estado
+                    </label>
                     <select
                       value={filtroEstado}
-                      onChange={e => setFiltroEstado(e.target.value)}
+                      onChange={(e) => setFiltroEstado(e.target.value)}
                       className="border px-2 py-1 rounded text-black"
                     >
                       <option value="">Todos</option>
@@ -852,38 +856,64 @@ export default function ManagerHome() {
                     >
                       <Download className="w-5 h-5" />
                       Descargar reportes
-                      <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      <svg
+                        className="ml-2 w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19 9l-7 7-7-7"
+                        />
                       </svg>
                     </button>
                     {openDropdown && (
                       <div className="absolute right-0 mt-2 w-64 bg-white border rounded shadow-lg z-50">
                         <div className="py-2">
-                          <div className="px-4 py-1 text-xs text-gray-500 font-semibold">Informe Reclutamiento</div>
+                          <div className="px-4 py-1 text-xs text-gray-500 font-semibold">
+                            Informe Reclutamiento
+                          </div>
                           <button
-                            onClick={() => { setOpenDropdown(false); descargarReporteReclutamiento("excel"); }}
+                            onClick={() => {
+                              setOpenDropdown(false);
+                              descargarReporteReclutamiento("excel");
+                            }}
                             className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-blue-50 text-blue-700"
                           >
                             <Download className="w-4 h-4" />
                             Descargar en Excel
                           </button>
                           <button
-                            onClick={() => { setOpenDropdown(false); descargarReporteReclutamiento("pdf"); }}
+                            onClick={() => {
+                              setOpenDropdown(false);
+                              descargarReporteReclutamiento("pdf");
+                            }}
                             className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-red-50 text-red-700"
                           >
                             <Download className="w-4 h-4" />
                             Descargar en PDF
                           </button>
-                          <div className="px-4 py-1 mt-2 text-xs text-gray-500 font-semibold border-t">Eficacia Reclutadores</div>
+                          <div className="px-4 py-1 mt-2 text-xs text-gray-500 font-semibold border-t">
+                            Eficacia Reclutadores
+                          </div>
                           <button
-                            onClick={() => { setOpenDropdown(false); descargarReporteEficaciaReclutadores("excel"); }}
+                            onClick={() => {
+                              setOpenDropdown(false);
+                              descargarReporteEficaciaReclutadores("excel");
+                            }}
                             className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-blue-50 text-blue-700"
                           >
                             <Download className="w-4 h-4" />
                             Descargar en Excel
                           </button>
                           <button
-                            onClick={() => { setOpenDropdown(false); descargarReporteEficaciaReclutadores("pdf"); }}
+                            onClick={() => {
+                              setOpenDropdown(false);
+                              descargarReporteEficaciaReclutadores("pdf");
+                            }}
                             className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-red-50 text-red-700"
                           >
                             <Download className="w-4 h-4" />

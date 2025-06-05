@@ -1,8 +1,14 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { FileLock, Settings, Upload, UserPlus, Users } from "lucide-react";
+import {
+  FileLock,
+  Settings,
+  Upload,
+  UserPlus,
+  Users
+} from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AccionesPorSeccion } from "../components/AccionesPorSeccion.jsx";
+import { Acciones } from "../components/Acciones.jsx";
 import GestionUsuarios from "../components/GestionUsuarios";
 import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta";
@@ -23,7 +29,12 @@ export default function AdminEmpHome() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalUsuarios, setModalUsuarios] = useState(false);
   const [modalPreferencias, setModalPreferencias] = useState(false);
-  const [formData, setFormData] = useState({ nombre: "", apellido: "", username: "", email: "" });
+  const [formData, setFormData] = useState({
+    nombre: "",
+    apellido: "",
+    username: "",
+    email: "",
+  });
   const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
   const [licencias, setLicencias] = useState([]);
   const [mensajeLicencias, setMensajeLicencias] = useState("");
@@ -37,11 +48,12 @@ export default function AdminEmpHome() {
   const [apellido, setApellido] = useState("");
   const [username, setUsername] = useState("");
   const [modalImageFile, setModalImageFile] = useState(null);
-  const [mensajeError, setMensajeError] = useState('');
+  const [mensajeError, setMensajeError] = useState("");
   const [modalSubirMetricas, setModalSubirMetricas] = useState(false);
   const [mensajeMetricas, setMensajeMetricas] = useState("");
   const [archivoMetricas, setArchivoMetricas] = useState(null);
   const [toasts, setToasts] = useState([]);
+  
   const toastIdRef = React.useRef(0);
   const navigate = useNavigate();
 
@@ -54,20 +66,33 @@ export default function AdminEmpHome() {
   }, []);
   const empresaId = user?.empresa_id;
   const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
-  const showToast = React.useCallback((message, type = "success", duration = 3500) => {
-    const id = ++toastIdRef.current;
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, duration);
-  }, []);
-  const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
+  const showToast = React.useCallback(
+    (message, type = "success", duration = 3500) => {
+      const id = ++toastIdRef.current;
+      setToasts((prev) => [...prev, { id, message, type }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, duration);
+    },
+    []
+  );
+  const removeToast = (id) =>
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   // --- FIN HOOKS ---
 
   // --- IFs DE CARGA ---
-  if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
-  if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
-  if (loadingEstilos) return <div className="p-10 text-center">Cargando preferencias de empresa…</div>;
+  if (loadingUser)
+    return <div className="p-10 text-center">Cargando usuario…</div>;
+  if (!user)
+    return (
+      <div className="p-10 text-center text-red-600">
+        No se pudo cargar el usuario.
+      </div>
+    );
+  if (loadingEstilos)
+    return (
+      <div className="p-10 text-center">Cargando preferencias de empresa…</div>
+    );
   // --- FIN IFs DE CARGA ---
 
   // --- RESTO DE LA LÓGICA Y RETURN ---
@@ -75,7 +100,8 @@ export default function AdminEmpHome() {
     color_principal: estilos?.color_principal ?? "#2563eb",
     color_secundario: estilos?.color_secundario ?? "#f3f4f6",
     color_texto: estilos?.color_texto ?? "#000000",
-    slogan: estilos?.slogan ?? "Bienvenido al panel de Administración de Empresa",
+    slogan:
+      estilos?.slogan ?? "Bienvenido al panel de Administración de Empresa",
     logo_url: estilos?.logo_url ?? null,
   };
 
@@ -102,12 +128,32 @@ export default function AdminEmpHome() {
               role="alert"
             >
               {toast.type === "success" ? (
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               ) : (
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               )}
               <span>{toast.message}</span>
@@ -132,7 +178,9 @@ export default function AdminEmpHome() {
         payload.motivo = motivoRechazo;
       }
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/licencia-${id_licencia}-empleado/evaluacion`,
+        `${
+          import.meta.env.VITE_API_URL
+        }/api/licencia-${id_licencia}-empleado/evaluacion`,
         {
           method: "PUT",
           credentials: "include",
@@ -145,7 +193,10 @@ export default function AdminEmpHome() {
       );
       const data = await response.json();
       if (response.ok) {
-        showToast(data.message || "Estado actualizado correctamente.", "success");
+        showToast(
+          data.message || "Estado actualizado correctamente.",
+          "success"
+        );
         setMotivoRechazo("");
         obtenerLicencias();
       } else {
@@ -164,7 +215,10 @@ export default function AdminEmpHome() {
   const subirEmpleadosDesdeCSV = async (file) => {
     try {
       const data = await adminEmpService.registrarEmpleadosDesdeCSV(file);
-      showToast(data.message || "Empleados registrados correctamente.", "success");
+      showToast(
+        data.message || "Empleados registrados correctamente.",
+        "success"
+      );
     } catch (error) {
       showToast("Error al registrar empleados.", "error");
     }
@@ -206,27 +260,36 @@ export default function AdminEmpHome() {
       return;
     }
     if (!formData.username.trim() || formData.username.trim().length < 4) {
-      showToast("El nombre de usuario debe tener al menos 4 caracteres.", "error");
+      showToast(
+        "El nombre de usuario debe tener al menos 4 caracteres.",
+        "error"
+      );
       return;
     }
-    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (
+      !formData.email.trim() ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)
+    ) {
       showToast("El correo electrónico no es válido.", "error");
       return;
     }
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-manager`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.nombre,
-          lastname: formData.apellido,
-          username: formData.username,
-          email: formData.email,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/registrar-manager`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: formData.nombre,
+            lastname: formData.apellido,
+            username: formData.username,
+            email: formData.email,
+          }),
+        }
+      );
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Error al registrar el manager.");
@@ -279,17 +342,28 @@ export default function AdminEmpHome() {
     }
   };
 
-  const handleProfileUpdate = async ({ nombre, apellido, username, email, password }) => {
+  const handleProfileUpdate = async ({
+    nombre,
+    apellido,
+    username,
+    email,
+    password,
+  }) => {
     try {
       const res = await fetch(`${API_URL}/auth/update-profile`, {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, email, password })
+        body: JSON.stringify({ username, email, password }),
       });
       const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
-      setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
+      if (!res.ok)
+        throw new Error(result.error || "Error al actualizar perfil");
+      setUser((prev) => ({
+        ...prev,
+        username: result.username,
+        correo: result.email,
+      }));
       setModalEditarPerfilOpen(false);
       showToast("Perfil actualizado correctamente.", "success");
     } catch (err) {
@@ -338,16 +412,23 @@ export default function AdminEmpHome() {
       {
         icon: Upload,
         titulo: "Subir Métricas de Desempeño",
-        descripcion: "Carga un archivo CSV con métricas de desempeño y rotación.",
+        descripcion:
+          "Carga un archivo CSV con métricas de desempeño y rotación.",
         onClick: () => setModalSubirMetricas(true),
       },
     ],
   };
 
   return (
-    <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe, loading: loadingEstilos }}>
+    <EstiloEmpresaContext.Provider
+      value={{ estilos: estilosSafe, loading: loadingEstilos }}
+    >
       <Toast toasts={toasts} removeToast={removeToast} />
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4 }}
+      >
         <PageLayout textColor={estilosSafe.color_texto}>
           <TopBar
             username={`${user.nombre} ${user.apellido}`}
@@ -368,24 +449,15 @@ export default function AdminEmpHome() {
             </div>
           </div>
 
-          {/* Centralizar acciones */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-            <div className="md:col-span-3 flex flex-col items-center">
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="w-full max-w-3xl space-y-4"
-              >
-                <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto, textAlign: "center" }}>
-                  Acciones disponibles: Administrador de Empresa
-                </h2>
-                <AccionesPorSeccion accionesPorSeccion={accionesPorSeccion} estilos={estilosSafe} />
-              </motion.div>
-            </div>
-          </div>
+          <Acciones acciones={accionesPorSeccion} estilos={estilosSafe} />
 
-          {modalUsuarios && <GestionUsuarios service={adminEmpService} onClose={() => setModalUsuarios(false)} textColor={estilosSafe.color_texto} />}
+          {modalUsuarios && (
+            <GestionUsuarios
+              service={adminEmpService}
+              onClose={() => setModalUsuarios(false)}
+              textColor={estilosSafe.color_texto}
+            />
+          )}
 
           {modalPreferencias && (
             <PreferenciasEmpresa
@@ -399,52 +471,87 @@ export default function AdminEmpHome() {
           {modalOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
-                <h2 className="text-lg font-semibold" style={{ color: "#000" }}>Nuevo Manager</h2>
+                <h2 className="text-lg font-semibold" style={{ color: "#000" }}>
+                  Nuevo Manager
+                </h2>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium" style={{ color: "#000" }}>Nombre</label>
+                  <label
+                    className="text-sm font-medium"
+                    style={{ color: "#000" }}
+                  >
+                    Nombre
+                  </label>
                   <input
                     type="text"
                     placeholder="Nombre"
                     value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, nombre: e.target.value })
+                    }
                     className="w-full p-2 border border-gray-300 rounded"
                     style={{ color: "#000" }}
                   />
 
-                  <label className="text-sm font-medium" style={{ color: "#000" }}>Apellido</label>
+                  <label
+                    className="text-sm font-medium"
+                    style={{ color: "#000" }}
+                  >
+                    Apellido
+                  </label>
                   <input
                     type="text"
                     placeholder="Apellido"
                     value={formData.apellido}
-                    onChange={(e) => setFormData({ ...formData, apellido: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, apellido: e.target.value })
+                    }
                     className="w-full p-2 border border-gray-300 rounded"
                     style={{ color: "#000" }}
                   />
 
-                  <label className="text-sm font-medium" style={{ color: "#000" }}>Username</label>
+                  <label
+                    className="text-sm font-medium"
+                    style={{ color: "#000" }}
+                  >
+                    Username
+                  </label>
                   <input
                     type="text"
                     placeholder="Username"
                     value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, username: e.target.value })
+                    }
                     className="w-full p-2 border border-gray-300 rounded"
                     style={{ color: "#000" }}
                   />
 
-                  <label className="text-sm font-medium" style={{ color: "#000" }}>Email</label>
+                  <label
+                    className="text-sm font-medium"
+                    style={{ color: "#000" }}
+                  >
+                    Email
+                  </label>
                   <input
                     type="email"
                     placeholder="Email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     className="w-full p-2 border border-gray-300 rounded"
                     style={{ color: "#000" }}
                   />
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
+                  <button
+                    onClick={() => setModalOpen(false)}
+                    className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  >
+                    Cancelar
+                  </button>
                   <button
                     onClick={crearManager}
                     className="px-4 py-2 text-white rounded"
@@ -464,7 +571,8 @@ export default function AdminEmpHome() {
                 <div className="mt-6 text-right">
                   <button
                     onClick={() => setModalSubirEmpleados(false)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  >
                     Cerrar
                   </button>
                 </div>
@@ -475,13 +583,15 @@ export default function AdminEmpHome() {
           {modalSubirMetricas && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
               <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
-                <h2 className="text-lg font-semibold mb-4">Subir Métricas de Desempeño</h2>
+                <h2 className="text-lg font-semibold mb-4">
+                  Subir Métricas de Desempeño
+                </h2>
 
                 {/* Input de archivo */}
                 <input
                   type="file"
                   accept=".csv"
-                  onChange={e => setArchivoMetricas(e.target.files[0])}
+                  onChange={(e) => setArchivoMetricas(e.target.files[0])}
                   className="mb-2"
                 />
 
@@ -496,9 +606,7 @@ export default function AdminEmpHome() {
                 </div>
 
                 {/* Mensaje de alerta */}
-                {mensajeMetricas && (
-                  <MensajeAlerta texto={mensajeMetricas} />
-                )}
+                {mensajeMetricas && <MensajeAlerta texto={mensajeMetricas} />}
 
                 {/* Botones de acción */}
                 <div className="flex justify-end gap-2 mt-2">
@@ -524,17 +632,21 @@ export default function AdminEmpHome() {
                 <div className="mt-4 text-xs text-gray-500">
                   El archivo debe tener las columnas: <br />
                   <b>
-                    id_empleado, desempeno_previo, cantidad_proyectos, tamano_equipo, horas_extras,
-                    antiguedad, horas_capacitacion, ausencias_injustificadas, llegadas_tarde, salidas_tempranas
+                    id_empleado, desempeno_previo, cantidad_proyectos,
+                    tamano_equipo, horas_extras, antiguedad, horas_capacitacion,
+                    ausencias_injustificadas, llegadas_tarde, salidas_tempranas
                   </b>
                 </div>
               </div>
             </div>
           )}
 
-          {
-            modalLicenciasOpen && <LicenciasACargoModal service={adminEmpService} onClose={() => setModalLicenciasOpen(false)} />
-          }
+          {modalLicenciasOpen && (
+            <LicenciasACargoModal
+              service={adminEmpService}
+              onClose={() => setModalLicenciasOpen(false)}
+            />
+          )}
 
           <ModalParaEditarPerfil
             isOpen={modalEditarPerfilOpen}
@@ -546,7 +658,6 @@ export default function AdminEmpHome() {
             }}
             onFileSelect={setModalImageFile}
           />
-
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>
