@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Acciones } from "../components/AccionesSinSeccion";
+import { AccionesSinSeccion } from "../components/AccionesSinSeccion";
 import { LicenciasModal } from "../components/LicenciasModal";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil";
 import { OfertasRecomendadas } from "../components/OfertasRecomendadas";
@@ -316,7 +316,7 @@ export default function EmpleadoHome() {
                   <h2 className="text-lg font-semibold text-black my-4">
                     Acciones disponibles: Empleado
                   </h2>
-                  <Acciones acciones={acciones} estilos={estilos} />
+                  <AccionesSinSeccion acciones={acciones} estilos={estilos} />
                 </motion.div>
               </div>
             </div>
