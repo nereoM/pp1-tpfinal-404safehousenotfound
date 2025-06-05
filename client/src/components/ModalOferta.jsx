@@ -83,7 +83,9 @@ const ModalOfertaFull = ({
         nuevosErrores.fecha_cierre = 'La fecha de cierre no puede ser anterior a hoy.'; // <-- Agregado
       }
     }
-
+    if (etiquetas.length === 0) {
+      nuevosErrores.etiquetas = 'Debes agregar al menos una etiqueta.';
+    }
     if (parseInt(salary_min) >= parseInt(salary_max)) {
       nuevosErrores.salary_min = 'El salario mínimo no puede ser mayor o igual al salario máximo.';
     }
@@ -294,6 +296,9 @@ const handleConfirmar = () => {
 
           <div className='col-span-2'>
             <TagInput etiquetas={etiquetas} setEtiquetas={setEtiquetas} />
+            {errores.etiquetas && (
+              <p className="text-red-600 text-sm mt-1">{errores.etiquetas}</p>
+            )}
           </div>
 
 
