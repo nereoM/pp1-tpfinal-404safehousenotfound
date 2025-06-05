@@ -20,10 +20,23 @@ def generar_respuesta_gpt(mensaje, rol):
     contexto = "\n\n".join([doc.page_content for doc in documentos_relacionados])
 
     prompt_sistema = f"""
-    Eres un asistente de RRHH. Responde basándote en este contexto:
-    {contexto}
-    Respuesta breve y profesional. Si no sabes la respuesta, di que no puedes ayudar.
-    """.strip()
+### INSTRUCCIONES ABSOLUTAS (DEBES SEGUIRLAS):
+1. ROL ACTUAL DEL USUARIO: '{rol}'
+2. CONTEXTO DISPONIBLE: {contexto}
+
+### REGLAS DE PERMISOS (NUNCA LAS IGNORES):
+- SOLO los roles 'admin-emp' y 'manager' pueden CREAR/MODIFICAR ofertas.
+- Si el rol es 'candidato' o 'reclutador' y pregunta sobre CREAR ofertas, RESPONDE EXACTAMENTE:
+   "Error de permisos: Tu rol '{rol}' no te permite realizar esta acción. Contacta a un manager o administrador."
+
+### FORMATO DE RESPUESTA OBLIGATORIO:
+- Si el rol NO tiene permisos: Usa la plantilla de error de arriba.
+- Si el rol SÍ tiene permisos: Responde basándote en el contexto.
+
+### EJEMPLO:
+Usuario (rol: candidato): "Cómo creo una oferta?"
+Respuesta: "Error de permisos: Tu rol 'candidato' no te permite realizar esta acción."
+""".strip()
 
     # Llamada a Groq (versión depurada)
     url = "https://api.groq.com/openai/v1/chat/completions"
