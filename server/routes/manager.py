@@ -224,6 +224,14 @@ WORKPLACE_TYPES = ["Remoto", "Presencial", "Híbrido"]
 
 EXPERIENCE_LEVELS = ["Junior", "Semi Senior", "Senior", "Sin experiencia"]
 
+def convertir_fecha(fecha_str):
+    for formato in ("%Y-%m-%d", "%d/%m/%Y", "%m-%d-%Y"):
+        try:
+            return datetime.strptime(fecha_str, formato).date()
+        except ValueError:
+            continue
+    return None
+
 @swag_from('../docs/manager/crear-oferta-laboral.yml')
 @manager_bp.route("/crear_oferta_laboral", methods=["POST"])
 @role_required(["manager"])
@@ -256,7 +264,6 @@ def crear_oferta_laboral():
         if not all(
             [
                 nombre,
-                descripcion,
                 location,
                 employment_type,
                 workplace_type,
@@ -289,8 +296,14 @@ def crear_oferta_laboral():
         
         salary_max = int(float(salary_max))
         salary_min = int(float(salary_min))
-        umbral_individual = (int(umbral_individual) / 100) if umbral_individual else 0.55
-        
+        try:
+            if umbral_individual is not None and str(umbral_individual).strip() != "":
+                umbral_individual = float(umbral_individual) / 100
+            else:
+                umbral_individual = 0.55
+        except ValueError:
+            return jsonify({"error": "Umbral individual debe ser un número válido entre 0 y 100."}), 400
+                
         if salary_min == 0 and salary_max == 0:
             return jsonify({"error": "El salario mínimo y máximo no pueden ser 0."}), 400
 
@@ -303,16 +316,17 @@ def crear_oferta_laboral():
         if not validar_fecha(fecha_cierre):
             return jsonify({"error": "Formato de fecha de cierre no válido. Debe ser YYYY-MM-DD, DD/MM/YYYY o MM-DD-YYYY."}), 400
         
-        if fecha_cierre:
-            fecha_cierre = datetime.strptime(fecha_cierre, "%Y-%m-%d").date()
-            if fecha_cierre < datetime.now().date():
-                return jsonify({"error": "La fecha de cierre no puede ser anterior a la fecha actual."}), 400
+        fecha_cierre_obj = convertir_fecha(fecha_cierre)
+        if not fecha_cierre_obj:
+            return jsonify({"error": "Formato de fecha de cierre no válido."}), 400
+        if fecha_cierre_obj < datetime.now().date():
+            return jsonify({"error": "La fecha de cierre no puede ser anterior a la fecha actual."}), 400
 
         nueva_oferta = Oferta_laboral(
             id_empresa=empresa.id,
             id_creador=manager.id,
             nombre=nombre,
-            descripcion=descripcion,
+            descripcion=descripcion if descripcion else None,
             location=location,
             employment_type=employment_type,
             workplace_type=workplace_type,
@@ -323,7 +337,7 @@ def crear_oferta_laboral():
             is_active=True,
             palabras_clave=palabras_clave_json,
             fecha_publicacion=db.func.now(),
-            fecha_cierre=fecha_cierre if fecha_cierre else None,
+            fecha_cierre=fecha_cierre_obj if fecha_cierre_obj else None,
             umbral_individual=umbral_individual,
         )
 
@@ -340,6 +354,8 @@ def crear_oferta_laboral():
         ), 201
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @swag_from('../docs/manager/ver-empleados.yml')
@@ -437,11 +453,11 @@ def asignar_analista_a_oferta():
         ), 403
     
     # Nueva validación: el analista no puede tener más de una oferta asignada
-    oferta_existente = Oferta_analista.query.filter_by(id_analista=analista.id).first()
-    if oferta_existente:
-        return jsonify(
-            {"error": "El analista ya tiene una oferta asignada. No se puede asignar otra."}
-        ), 400
+    #oferta_existente = Oferta_analista.query.filter_by(id_analista=analista.id).first()
+    #if oferta_existente:
+    #    return jsonify(
+    #        {"error": "El analista ya tiene una oferta asignada. No se puede asignar otra."}
+    #    ), 400
     
     # Validar que la oferta NO tenga otro analista asignado
     analista_existente_oferta = Oferta_analista.query.filter_by(id_oferta=oferta.id).first()
