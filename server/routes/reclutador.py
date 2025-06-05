@@ -1486,13 +1486,14 @@ def obtener_detalle_licencia(id_licencia):
 @role_required(["reclutador"])
 def eval_licencia(id_licencia):
     data = request.get_json()
-    nuevo_estado = data.get("estado")  # "aprobada" o "rechazada"
+    nuevo_estado = data.get("estado")  # "aprobada", "rechazada", "sugerencia", "activa y verificada", "invalidada"
     motivo = data.get("motivo")
     fecha_inicio_sugerida = data.get("fecha_inicio_sugerida")
     fecha_fin_sugerida = data.get("fecha_fin_sugerida")
 
-    if nuevo_estado not in ["aprobada", "rechazada", "sugerencia"]:
-        return jsonify({"error": "El estado debe ser 'aprobada', 'rechazada' o 'sugerencia'"}), 400
+    estados_validos = ["aprobada", "rechazada", "sugerencia", "activa y verificada", "invalidada"]
+    if nuevo_estado not in estados_validos:
+        return jsonify({"error": f"El estado debe ser uno de {', '.join(estados_validos)}"}), 400
 
     id_reclutador = get_jwt_identity()
     reclutador = Usuario.query.get(id_reclutador)
@@ -1519,15 +1520,12 @@ def eval_licencia(id_licencia):
         or (licencia.estado == "sugerencia" and licencia.estado_sugerencia == "sugerencia aceptada")
     )
 
-    # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
-    # if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
-    #     return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
-
     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
     if licencia.id_empresa != reclutador.id_empresa and not tiene_rol_empleado:
         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
     
     message = f"Licencia {nuevo_estado} exitosamente"
+
     if nuevo_estado == "aprobada":
         if not puede_aprobar:
             return jsonify({"error": "Solo puedes aprobar licencias de vacaciones pendientes o con sugerencia aceptada"}), 403
@@ -1556,6 +1554,20 @@ def eval_licencia(id_licencia):
         if motivo:
             licencia.motivo_rechazo = motivo
         message = "Licencia sugerida exitosamente"
+    elif nuevo_estado == "activa y verificada":
+        # Solo se puede verificar si está activa
+        if licencia.estado != "activa":
+            return jsonify({"error": "Solo puedes verificar licencias en estado 'activa'"}), 403
+        licencia.estado = "activa y verificada"
+        message = "Licencia verificada exitosamente"
+    elif nuevo_estado == "invalidada":
+        # Solo se puede invalidar si está activa
+        if licencia.estado != "activa":
+            return jsonify({"error": "Solo puedes invalidar licencias en estado 'activa'"}), 403
+        licencia.estado = "invalidada"
+        if motivo:
+            licencia.motivo_rechazo = motivo
+        message = "Licencia invalidada exitosamente"
     else:
         licencia.estado = nuevo_estado
         if motivo:
@@ -1567,7 +1579,6 @@ def eval_licencia(id_licencia):
 
     return jsonify({
         "message": message,
-        # "message": f"Licencia {nuevo_estado} exitosamente",
         "licencia": {
             "id_licencia": licencia.id,
             "empleado": {

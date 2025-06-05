@@ -385,15 +385,16 @@ export default function EmpleadoHome() {
 
           {modalLicencias && (
             <LicenciasModal
+              onOpenChange={setModalLicencias}
+              open={modalLicencias}
               service={empleadoService}
-              onClose={() => setModalLicencias(false)}
             />
           )}
 
           {modalSolicitarLicencia && (
             <SolicitarLicenciaModal
-              onClose={() => setmodalSolicitarLicencia(false)}
-              service={empleadoService}
+              open={modalSolicitarLicencia}
+              onOpenChange={setmodalSolicitarLicencia}
             />
           )}
 
