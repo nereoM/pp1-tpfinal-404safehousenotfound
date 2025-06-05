@@ -9,19 +9,35 @@ export default function ModalParaEditarPerfil({
   onFileSelect
 }) {
   const [username, setUsername] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [preview, setPreview] = useState(null);
+  const [fileName, setFileName] = useState("");
 
   useEffect(() => {
     if (user) {
       setUsername(user.username || "");
+      setNombre(user.nombre || "");
+      setApellido(user.apellido || "");
       setEmail(user.correo || "");
       setPassword("");
+      setPreview(user.foto_url || user.fotoUrl || "https://i.pravatar.cc/150?img=12");
+      setFileName("");
     }
   }, [user, isOpen]);
 
+  const handleFileChange = (file) => {
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+      setFileName(file.name);
+      onFileSelect(file);
+    }
+  };
+
   const handleSubmit = () => {
-    onSave({ username, email, password });
+    onSave({ username, nombre, apellido, email, password });
   };
 
   if (!isOpen) return null;
@@ -35,39 +51,69 @@ export default function ModalParaEditarPerfil({
         >
           <X size={20} />
         </button>
-        <h2 className="text-lg font-semibold">Editar perfil</h2>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full p-2 border rounded text-black"
-          placeholder="Username"
-        />
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 border rounded text-black"
-          placeholder="Email"
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 border rounded text-black"
-          placeholder="Nueva contraseña (opcional)"
-        />
-        <div className="w-full">
+        <h2 className="text-lg font-semibold mb-2 text-center">Editar perfil</h2>
+        <div className="flex flex-col items-center gap-2">
+          <img
+            src={preview}
+            alt="Previsualización"
+            className="w-24 h-24 rounded-full border-2 border-blue-500 object-cover mb-2"
+          />
           <label className="flex items-center justify-center gap-2 p-2 border border-gray-300 rounded cursor-pointer bg-gray-100 hover:bg-gray-200 transition">
             <Upload className="w-5 h-5 text-gray-600" />
-            <span className="text-sm text-gray-700">Nueva foto de perfil</span>
+            <span className="text-sm text-gray-700">Cambiar foto de perfil</span>
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => onFileSelect(e.target.files[0])}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleFileChange(e.target.files[0]);
+                }
+              }}
               className="hidden"
             />
           </label>
+          {fileName && (
+            <span className="text-xs text-gray-500 mt-1">
+              Archivo seleccionado: <b>{fileName}</b>
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-1 gap-2">
+          <input
+            type="text"
+            value={nombre}
+            onChange={(e) => setNombre(e.target.value)}
+            className="w-full p-2 border rounded text-black"
+            placeholder="Nombre"
+          />
+          <input
+            type="text"
+            value={apellido}
+            onChange={(e) => setApellido(e.target.value)}
+            className="w-full p-2 border rounded text-black"
+            placeholder="Apellido"
+          />
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full p-2 border rounded text-black"
+            placeholder="Nombre de usuario"
+          />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full p-2 border rounded text-black"
+            placeholder="Correo electrónico"
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 border rounded text-black"
+            placeholder="Nueva contraseña (opcional)"
+          />
         </div>
         <div className="flex justify-end gap-2 mt-4">
           <button

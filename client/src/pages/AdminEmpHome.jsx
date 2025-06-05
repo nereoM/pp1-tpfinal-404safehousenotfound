@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FileLock, Settings, Upload, UserPlus, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,6 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { adminEmpService } from "../services/adminEmpService";
-import MensajeAlerta from "../components/MensajeAlerta";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminEmpHome() {
@@ -22,7 +21,6 @@ export default function AdminEmpHome() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalUsuarios, setModalUsuarios] = useState(false);
   const [modalPreferencias, setModalPreferencias] = useState(false);
-  const [mensaje, setMensaje] = useState("");
   const [formData, setFormData] = useState({ nombre: "", apellido: "", username: "", email: "" });
   const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
   const [licencias, setLicencias] = useState([]);
@@ -41,7 +39,9 @@ export default function AdminEmpHome() {
   const [modalSubirMetricas, setModalSubirMetricas] = useState(false);
   const [mensajeMetricas, setMensajeMetricas] = useState("");
   const [archivoMetricas, setArchivoMetricas] = useState(null);
-
+  // Toast state
+  const [toasts, setToasts] = useState([]);
+  const toastIdRef = React.useRef(0);
 
   const navigate = useNavigate();
 
@@ -73,11 +73,54 @@ export default function AdminEmpHome() {
     logo_url: estilos?.logo_url ?? null,
   };
 
+  const showToast = React.useCallback((message, type = "success", duration = 3500) => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, duration);
+  }, []);
+  const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
+
+  // Toast component
+  function Toast({ toasts, removeToast }) {
+    return (
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 items-end">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, x: 80, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 80, scale: 0.95 }}
+              transition={{ duration: 0.25 }}
+              className={`min-w-[260px] max-w-xs px-4 py-3 rounded shadow-lg text-white font-semibold flex items-center gap-2
+                ${toast.type === "success" ? "bg-green-600" : "bg-red-600"}`}
+              onClick={() => removeToast(toast.id)}
+              role="alert"
+            >
+              {toast.type === "success" ? (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              <span>{toast.message}</span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
   const obtenerLicencias = async () => {
     adminEmpService
       .obtenerLicenciasSolicitadas()
       .then(setLicencias)
-      .catch(() => setMensajeLicencias("Error al cargar las licencias."));
+      .catch(() => showToast("Error al cargar las licencias.", "error"));
   };
 
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
@@ -86,7 +129,6 @@ export default function AdminEmpHome() {
       if (nuevoEstado === "rechazada") {
         payload.motivo = motivoRechazo;
       }
-
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/api/licencia-${id_licencia}-empleado/evaluacion`,
         {
@@ -99,20 +141,16 @@ export default function AdminEmpHome() {
           body: JSON.stringify(payload),
         }
       );
-
       const data = await response.json();
-      console.log("Respuesta del servidor:", data);
-
       if (response.ok) {
-        setMensajeEvaluacion(data.message || "Estado actualizado correctamente.");
+        showToast(data.message || "Estado actualizado correctamente.", "success");
         setMotivoRechazo("");
         obtenerLicencias();
       } else {
-        setMensajeEvaluacion(data.error || "Error al procesar la solicitud.");
+        showToast(data.error || "Error al procesar la solicitud.", "error");
       }
     } catch (error) {
-      console.error("Error al evaluar licencia:", error);
-      setMensajeEvaluacion("Error al procesar la solicitud.");
+      showToast("Error al procesar la solicitud.", "error");
     }
   };
 
@@ -124,19 +162,18 @@ export default function AdminEmpHome() {
   const subirEmpleadosDesdeCSV = async (file) => {
     try {
       const data = await adminEmpService.registrarEmpleadosDesdeCSV(file);
-      alert(data.message || "Empleados registrados correctamente.");
+      showToast(data.message || "Empleados registrados correctamente.", "success");
     } catch (error) {
-      console.error("Error al subir empleados:", error);
-      alert("Error al registrar empleados.");
+      showToast("Error al registrar empleados.", "error");
     }
   };
 
   const subirMetricasDesdeCSV = async () => {
     if (!archivoMetricas) {
-      setMensajeMetricas("Selecciona un archivo CSV.");
+      showToast("Selecciona un archivo CSV.", "error");
       return;
     }
-    setMensajeMetricas("Subiendo archivo...");
+    showToast("Subiendo archivo...", "success");
     const formData = new FormData();
     formData.append("file", archivoMetricas);
 
@@ -148,34 +185,32 @@ export default function AdminEmpHome() {
       });
       const data = await res.json();
       if (res.ok) {
-        setMensajeMetricas(data.message || "Archivo subido correctamente.");
+        showToast(data.message || "Archivo subido correctamente.", "success");
       } else {
-        setMensajeMetricas(data.error || "Error al subir el archivo.");
+        showToast(data.error || "Error al subir el archivo.", "error");
       }
     } catch (err) {
-      setMensajeMetricas("Error de conexión.");
+      showToast("Error de conexión.", "error");
     }
   };
 
   const crearManager = async () => {
-    // Validaciones de los campos
     if (!formData.nombre.trim() || formData.nombre.trim().length < 2) {
-      setMensaje("El nombre debe tener al menos 2 caracteres.");
+      showToast("El nombre debe tener al menos 2 caracteres.", "error");
       return;
     }
     if (!formData.apellido.trim() || formData.apellido.trim().length < 2) {
-      setMensaje("El apellido debe tener al menos 2 caracteres.");
+      showToast("El apellido debe tener al menos 2 caracteres.", "error");
       return;
     }
     if (!formData.username.trim() || formData.username.trim().length < 4) {
-      setMensaje("El nombre de usuario debe tener al menos 4 caracteres.");
+      showToast("El nombre de usuario debe tener al menos 4 caracteres.", "error");
       return;
     }
     if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setMensaje("El correo electrónico no es válido.");
+      showToast("El correo electrónico no es válido.", "error");
       return;
     }
-
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/registrar-manager`, {
         method: "POST",
@@ -190,24 +225,18 @@ export default function AdminEmpHome() {
           email: formData.email,
         }),
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Error al registrar el manager.");
       }
-
       const data = await response.json();
-
-      // Mostrar mensaje de éxito
-      setMensaje(
-        `Usuario creado correctamente.\n\nUsername: ${data.credentials.username}\nContraseña temporal: ${data.credentials.password}`
+      showToast(
+        `Usuario creado correctamente.\nUsername: ${data.credentials.username}\nContraseña temporal: ${data.credentials.password}`,
+        "success"
       );
-
-      // Limpiar el formulario
       setFormData({ nombre: "", apellido: "", username: "", email: "" });
     } catch (error) {
-      console.error("Error al registrar manager:", error);
-      setMensaje(error.message || "Error al conectar con el servidor.");
+      showToast(error.message || "Error al conectar con el servidor.", "error");
     }
   };
 
@@ -237,15 +266,14 @@ export default function AdminEmpHome() {
 
       const result = await res.json();
       if (res.ok) {
-        alert("Imagen subida exitosamente");
+        showToast("Imagen subida exitosamente", "success");
         setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
         setModalEditarPerfilOpen(false);
       } else {
-        alert("Error: " + (result.error || "desconocido"));
+        showToast("Error: " + (result.error || "desconocido"), "error");
       }
     } catch (err) {
-      console.error("Error al subir imagen:", err);
-      alert("Error de conexión");
+      showToast("Error de conexión", "error");
     }
   };
 
@@ -261,8 +289,9 @@ export default function AdminEmpHome() {
       if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
       setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
       setModalEditarPerfilOpen(false);
+      showToast("Perfil actualizado correctamente.", "success");
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, "error");
     }
   };
 
@@ -307,6 +336,7 @@ export default function AdminEmpHome() {
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe, loading: loadingEstilos }}>
+      <Toast toasts={toasts} removeToast={removeToast} />
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
         <PageLayout textColor={estilosSafe.color_texto}>
           <TopBar
@@ -400,10 +430,6 @@ export default function AdminEmpHome() {
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
                 <h2 className="text-lg font-semibold" style={{ color: "#000" }}>Nuevo Manager</h2>
-
-                {mensaje && (
-                  <MensajeAlerta texto={mensaje} />
-                )}
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium" style={{ color: "#000" }}>Nombre</label>

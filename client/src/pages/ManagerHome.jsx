@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart,
   BarChart2,
@@ -10,7 +10,7 @@ import {
   PlusCircle,
   Users,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import GestionUsuarios from "../components/GestionUsuarios.jsx";
 import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
@@ -32,7 +32,60 @@ import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
 
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
-import MensajeAlerta from "../components/MensajeAlerta"; // alertas
+
+// Toast system
+function Toast({ toasts, removeToast }) {
+  return (
+    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 items-end">
+      <AnimatePresence>
+        {toasts.map((toast) => (
+          <motion.div
+            key={toast.id}
+            initial={{ opacity: 0, x: 80, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 80, scale: 0.95 }}
+            transition={{ duration: 0.25 }}
+            className={`min-w-[260px] max-w-xs px-4 py-3 rounded shadow-lg text-white font-semibold flex items-center gap-2
+              ${toast.type === "success" ? "bg-green-600" : "bg-red-600"}`}
+            onClick={() => removeToast(toast.id)}
+            role="alert"
+          >
+            {toast.type === "success" ? (
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            )}
+            <span>{toast.message}</span>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function ManagerHome() {
   const [user, setUser] = useState(null);
@@ -151,6 +204,20 @@ export default function ManagerHome() {
     }
   }, [modalVerOfertasOpen]);
 
+  // Toast state
+  const [toasts, setToasts] = useState([]);
+  const toastIdRef = useRef(0);
+
+  // Toast helpers
+  const showToast = useCallback((message, type = "success", duration = 3500) => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, duration);
+  }, []);
+  const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
+
   const descargarReporteReclutamiento = async (formato = "excel") => {
     try {
       const ids = ofertasFiltradas.map(o => o.id_oferta).join(",");
@@ -172,17 +239,18 @@ export default function ManagerHome() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      showToast("Reporte descargado correctamente.", "success");
     } catch (err) {
-      alert("Error al descargar el reporte de reclutamiento");
+      showToast("Error al descargar el reporte de reclutamiento", "error");
     }
   };
 
   const subirMetricasDesdeCSV = async () => {
     if (!archivoMetricas) {
-      setMensajeMetricas("Selecciona un archivo CSV.");
+      showToast("Selecciona un archivo CSV.", "error");
       return;
     }
-    setMensajeMetricas("Subiendo archivo...");
+    showToast("Subiendo archivo...", "success");
     const formData = new FormData();
     formData.append("file", archivoMetricas);
 
@@ -194,12 +262,12 @@ export default function ManagerHome() {
       });
       const data = await res.json();
       if (res.ok) {
-        setMensajeMetricas(data.message || "Archivo subido correctamente.");
+        showToast(data.message || "Archivo subido correctamente.", "success");
       } else {
-        setMensajeMetricas(data.error || "Error al subir el archivo.");
+        showToast(data.error || "Error al subir el archivo.", "error");
       }
     } catch (err) {
-      setMensajeMetricas("Error de conexión.");
+      showToast("Error de conexión.", "error");
     }
   };
 
@@ -219,10 +287,10 @@ export default function ManagerHome() {
 
   const subirEmpleadosDesdeCSV = async () => {
     if (!archivoEmpleados) {
-      setMensajeEmpleados("Selecciona un archivo CSV.");
+      showToast("Selecciona un archivo CSV.", "error");
       return;
     }
-    setMensajeEmpleados("Subiendo archivo...");
+    showToast("Subiendo archivo...", "success");
     const formData = new FormData();
     formData.append("file", archivoEmpleados);
 
@@ -234,12 +302,12 @@ export default function ManagerHome() {
       });
       const data = await res.json();
       if (res.ok) {
-        setMensajeEmpleados(data.message || "Archivo subido correctamente.");
+        showToast(data.message || "Archivo subido correctamente.", "success");
       } else {
-        setMensajeEmpleados(data.error || "Error al subir el archivo.");
+        showToast(data.error || "Error al subir el archivo.", "error");
       }
     } catch (err) {
-      setMensajeEmpleados("Error de conexión.");
+      showToast("Error de conexión.", "error");
     }
   };
 
@@ -257,26 +325,21 @@ export default function ManagerHome() {
       );
       const data = await res.json();
       if (res.ok) {
-        setMensajeOferta(
-          `Oferta creada: ${data.nombre} (ID: ${data.id_oferta})`
-        );
+        showToast(`Oferta creada: ${data.nombre} (ID: ${data.id_oferta})`, "success");
         setFormOferta({});
       } else {
-        setMensajeOferta(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, "error");
       }
     } catch (err) {
-      setMensajeOferta("Error al conectar con el servidor");
+      showToast("Error al conectar con el servidor", "error");
     }
   };
 
   const crearAnalista = async () => {
     if (formAnalista.username.trim().length < 4) {
-      setMensajeAnalista(
-        "El nombre de usuario debe tener al menos 4 caracteres."
-      );
+      showToast("El nombre de usuario debe tener al menos 4 caracteres.", "error");
       return;
     }
-
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/registrar-reclutador`,
@@ -295,15 +358,16 @@ export default function ManagerHome() {
 
       const data = await res.json();
       if (res.ok) {
-        setMensajeAnalista(
-          `Analista creado: ${data.credentials.username}\nContraseña temporal: ${data.credentials.password}`
+        showToast(
+          `Analista creado: ${data.credentials.username}\nContraseña temporal: ${data.credentials.password}`,
+          "success"
         );
         setFormAnalista({ nombre: "", apellido: "", username: "", email: "" });
       } else {
-        setMensajeAnalista(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, "error");
       }
     } catch (err) {
-      setMensajeAnalista("Error al conectar con el servidor");
+      showToast("Error al conectar con el servidor", "error");
     }
   };
 
@@ -374,8 +438,9 @@ export default function ManagerHome() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      showToast("Reporte descargado correctamente.", "success");
     } catch (err) {
-      alert("Error al descargar el reporte de eficacia de reclutadores");
+      showToast("Error al descargar el reporte de eficacia de reclutadores", "error");
     }
   };
 
@@ -400,8 +465,9 @@ export default function ManagerHome() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      showToast("Reporte de licencias descargado correctamente.", "success");
     } catch (err) {
-      alert("Error al descargar el reporte de licencias");
+      showToast("Error al descargar el reporte de licencias", "error");
     }
   };
 
@@ -420,7 +486,7 @@ export default function ManagerHome() {
   const asignarAnalista = async (ofertaId) => {
     const analistaId = selectedAnalistas[ofertaId];
     if (!analistaId) {
-      setMensajeAsignacion("Seleccione un analista antes de asignar.");
+      showToast("Seleccione un analista antes de asignar.", "error");
       return;
     }
 
@@ -441,7 +507,7 @@ export default function ManagerHome() {
       const data = await res.json();
 
       if (res.ok) {
-        setMensajeAsignacion(data.message);
+        showToast(data.message, "success");
 
         //  marcar como asignada
         setOfertasAsignadas((prev) => new Set(prev).add(ofertaId));
@@ -449,7 +515,7 @@ export default function ManagerHome() {
         throw new Error(data.error || data.message);
       }
     } catch (err) {
-      setMensajeAsignacion(err.message);
+      showToast(err.message, "error");
     }
   };
 
@@ -465,14 +531,14 @@ export default function ManagerHome() {
       );
       const data = await res.json();
       if (res.ok) {
-        setMensajeAsignacion(data.message || "Oferta cerrada exitosamente.");
+        showToast(data.message || "Oferta cerrada exitosamente.", "success");
         // Refresca las ofertas para actualizar el estado
         fetchMisOfertas();
       } else {
-        setMensajeAsignacion(data.error || "Error al cerrar la oferta.");
+        showToast(data.error || "Error al cerrar la oferta.", "error");
       }
     } catch (err) {
-      setMensajeAsignacion("Error al conectar con el servidor.");
+      showToast("Error al conectar con el servidor.", "error");
     }
   };
 
@@ -490,15 +556,14 @@ export default function ManagerHome() {
 
       const result = await res.json();
       if (res.ok) {
-        alert("Imagen subida exitosamente");
+        showToast("Imagen subida exitosamente", "success");
         setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
         setModalEditarPerfilOpen(false);
       } else {
-        alert("Error: " + (result.error || "desconocido"));
+        showToast("Error: " + (result.error || "desconocido"), "error");
       }
     } catch (err) {
-      console.error("Error al subir imagen:", err);
-      alert("Error de conexión");
+      showToast("Error de conexión", "error");
     }
   };
 
@@ -525,8 +590,9 @@ export default function ManagerHome() {
         correo: result.email,
       }));
       setModalEditarPerfilOpen(false);
+      showToast("Perfil actualizado correctamente.", "success");
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, "error");
     }
   };
 
@@ -629,16 +695,25 @@ export default function ManagerHome() {
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos }}>
+      <Toast toasts={toasts} removeToast={removeToast} />
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
       >
-        <PageLayout>
-          <TopBar
-            username={`${user.nombre} ${user.apellido}`}
-            style={{ backgroundColor: estilos.color_principal }}
-          />
+<PageLayout>
+  <TopBar
+    username={`${user.nombre} ${user.apellido}`}
+    user={{
+      nombre: user.nombre,
+      apellido: user.apellido,
+      correo: user.correo,
+      fotoUrl: user.foto_url,
+      cvUrl: user.cvUrl // quita si no existe
+    }}
+    onEditPerfil={() => setModalEditarPerfilOpen(true)}
+    onPostulacion={() => navigate("/manager/postulaciones")}
+  />
 
           <div className="px-4 py-6">
             <div
@@ -653,84 +728,65 @@ export default function ManagerHome() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-            <motion.div
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4 }}
-              className="relative"
-            >
-              <ProfileCard
-                nombre={`${user?.nombre} ${user?.apellido}`}
-                correo={user?.correo}
-                fotoUrl={
-                  user?.foto_url
-                    ? user.foto_url
-                    : "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"
-                }
-                showCvLink={false}
-                size="xl"
-                style={{ borderColor: estilos.color_principal }}
-                textColor={estilos.color_texto}
-                onEdit={() => setModalEditarPerfilOpen(true)}
-              />
-            </motion.div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="md:col-span-2 space-y-4"
-            >
-              <h2 className="text-lg font-semibold text-black">
-                Acciones disponibles: Manager de RRHH
-              </h2>
-              <Accordion type="single" collapsible className="w-full">
-                {Object.entries(accionesPorSeccion).map(
-                  ([seccionKey, acciones]) => (
-                    <AccordionItem key={seccionKey} value={seccionKey}>
-                      <AccordionTrigger className="text-black">
-                        {seccionesAmigables[seccionKey]}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {acciones.map(
-                            (
-                              { icon: Icon, titulo, descripcion, onClick },
-                              idx
-                            ) => (
-                              <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: idx * 0.1, duration: 0.4 }}
-                                onClick={onClick}
-                                className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
-                                style={{
-                                  backgroundColor: estilos.color_secundario,
-                                  borderColor: estilos.color_principal,
-                                  color: estilos.color_texto,
-                                }}
-                              >
-                                <Icon
-                                  className="w-6 h-6 mb-2"
-                                  style={{ color: estilos.color_principal }}
-                                />
-                                <h3 className="text-base font-semibold">
-                                  {titulo}
-                                </h3>
-                                <p className="text-sm mt-1">{descripcion}</p>
-                              </motion.div>
-                            )
-                          )}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  )
-                )}
-              </Accordion>
-            </motion.div>
-          </div>
+        <div className="md:col-span-3 flex justify-center">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-4 w-full max-w-3xl"
+          >
+            <h2 className="text-lg font-semibold text-black text-center">
+              Acciones disponibles: Manager de RRHH
+            </h2>
+            <Accordion type="single" collapsible className="w-full">
+              {Object.entries(accionesPorSeccion).map(
+                ([seccionKey, acciones]) => (
+                  <AccordionItem key={seccionKey} value={seccionKey}>
+                    <AccordionTrigger className="text-black">
+                      {seccionesAmigables[seccionKey]}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {acciones.map(
+                          (
+                            { icon: Icon, titulo, descripcion, onClick },
+                            idx
+                          ) => (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: idx * 0.1, duration: 0.4 }}
+                              onClick={onClick}
+                              className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
+                              style={{
+                                backgroundColor: estilos.color_secundario,
+                                borderColor: estilos.color_principal,
+                                color: estilos.color_texto,
+                              }}
+                            >
+                              <Icon
+                                className="w-6 h-6 mb-2"
+                                style={{ color: estilos.color_principal }}
+                              />
+                              <h3 className="text-base font-semibold">
+                                {titulo}
+                              </h3>
+                              <p className="text-sm mt-1">{descripcion}</p>
+                            </motion.div>
+                          )
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                )
+              )}
+            </Accordion>
+          </motion.div>
+        </div>
+      </div>
 
           <ModalOferta
             modalOfertaOpen={modalOfertaOpen}
@@ -743,7 +799,7 @@ export default function ManagerHome() {
           {modalAnalistaOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
               <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
-                <MensajeAlerta texto={mensajeAnalista} />
+                {/* Elimina cualquier mensaje dentro de la modal */}
                 <h2 className="text-lg font-semibold text-black">
                   Nuevo Analista
                 </h2>
@@ -815,8 +871,7 @@ export default function ManagerHome() {
           {modalVerOfertasOpen && (
             <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
               <div className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl w-3/4 max-h-[89.9vh] text-black shadow-xl flex flex-col">
-                <MensajeAlerta texto={mensajeAsignacion} />
-
+                {/* Elimina cualquier mensaje dentro de la modal */}
                 <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
                 <div className="mb-4 flex flex-wrap gap-4 items-end">
                   <div>
@@ -1100,7 +1155,7 @@ export default function ManagerHome() {
                 </div>
 
                 {/* Mensaje de alerta */}
-                {mensajeEmpleados && <MensajeAlerta texto={mensajeEmpleados} />}
+                {/* {mensajeEmpleados && <MensajeAlerta texto={mensajeEmpleados} />} */}
 
                 {/* Botones de acción */}
                 <div className="flex justify-end gap-2 mt-4">
@@ -1166,7 +1221,7 @@ export default function ManagerHome() {
                 </div>
 
                 {/* Mensaje de alerta si hay */}
-                {mensajeMetricas && <MensajeAlerta texto={mensajeMetricas} />}
+                {/* {mensajeMetricas && <MensajeAlerta texto={mensajeMetricas} />} */}
 
                 {/* Botones de acción */}
                 <div className="flex justify-end gap-2 mt-4">

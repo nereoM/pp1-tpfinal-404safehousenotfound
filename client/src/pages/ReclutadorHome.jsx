@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { BarChart2, FileLock, FilePlus, FileSearchIcon, FileText, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -104,6 +104,54 @@ export default function ReclutadorHome() {
   };
 
 
+  // Toast state
+  const [toasts, setToasts] = useState([]);
+  const toastIdRef = React.useRef(0);
+
+  // Toast helpers
+  const showToast = React.useCallback((message, type = "success", duration = 3500) => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, duration);
+  }, []);
+  const removeToast = (id) => setToasts((prev) => prev.filter((t) => t.id !== id));
+
+  // Toast component
+  function Toast({ toasts, removeToast }) {
+    return (
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 items-end">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, x: 80, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 80, scale: 0.95 }}
+              transition={{ duration: 0.25 }}
+              className={`min-w-[260px] max-w-xs px-4 py-3 rounded shadow-lg text-white font-semibold flex items-center gap-2
+                ${toast.type === "success" ? "bg-green-600" : "bg-red-600"}`}
+              onClick={() => removeToast(toast.id)}
+              role="alert"
+            >
+              {toast.type === "success" ? (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              <span>{toast.message}</span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
   const fetchOfertasAsignadas = async () => {
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/mis-ofertas-laborales-reclutador`, {
@@ -117,18 +165,18 @@ export default function ReclutadorHome() {
         throw new Error(data.error || "Error al obtener ofertas asignadas");
       }
     } catch (err) {
-      setMensajeOfertas(`${err.message}`);
+      showToast(`${err.message}`, "error");
     }
   };
 
   const solicitarLicencia = async () => {
     // Validaciones
     if (!formLicencia.tipo || formLicencia.tipo.trim().length < 5) {
-      setMensajeLicencia("El tipo de licencia debe tener al menos 5 caracteres.");
+      showToast("El tipo de licencia debe tener al menos 5 caracteres.", "error");
       return;
     }
     if (!formLicencia.descripcion || formLicencia.descripcion.trim().length < 5) {
-      setMensajeLicencia("La descripción debe tener al menos 5 caracteres.");
+      showToast("La descripción debe tener al menos 5 caracteres.", "error");
       return;
     }
 
@@ -145,13 +193,13 @@ export default function ReclutadorHome() {
 
       const data = await res.json();
       if (res.ok) {
-        setMensajeLicencia("Solicitud enviada correctamente.");
+        showToast("Solicitud enviada correctamente.", "success");
         setFormLicencia({ tipo: "", descripcion: "" });
       } else {
-        setMensajeLicencia(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, "error");
       }
     } catch (err) {
-      setMensajeLicencia("Error al conectar con el servidor.");
+      showToast("Error al conectar con el servidor.", "error");
     }
   };
 
@@ -176,12 +224,12 @@ export default function ReclutadorHome() {
   // subir certificado
   const subirCertificado = async () => {
     if (!selectedFile) {
-      setMensajeCertificado("Debes seleccionar un archivo PDF.");
+      showToast("Debes seleccionar un archivo PDF.", "error");
       return;
     }
 
     if (!licenciaId) {
-      setMensajeCertificado("No se encontró la licencia a la cual subir el certificado.");
+      showToast("No se encontró la licencia a la cual subir el certificado.", "error");
       return;
     }
 
@@ -199,14 +247,13 @@ export default function ReclutadorHome() {
 
       const data = await res.json();
       if (res.ok) {
-        setMensajeCertificado(`Certificado subido correctamente`);
+        showToast("Certificado subido correctamente", "success");
         setModalLicenciasOpen(false);
       } else {
-        setMensajeCertificado(`Error: ${data.error}`);
+        showToast(`Error: ${data.error}`, "error");
       }
     } catch (error) {
-      console.error("Error al subir el certificado:", error);
-      setMensajeCertificado("Error al conectar con el servidor.");
+      showToast("Error al conectar con el servidor.", "error");
     }
   };
 
@@ -233,15 +280,15 @@ export default function ReclutadorHome() {
       );
       const data = await res.json();
       if (res.ok) {
-        setMensajeEtiquetas("Etiquetas actualizadas");
+        showToast("Etiquetas actualizadas", "success");
         // refresca la lista de ofertas
         fetchOfertasAsignadas();
         setTimeout(() => setModalEditarEtiquetasOpen(false), 1000);
       } else {
-        setMensajeEtiquetas(`${data.error}`);
+        showToast(`${data.error}`, "error");
       }
     } catch {
-      setMensajeEtiquetas("Error al conectar con el servidor");
+      showToast("Error al conectar con el servidor", "error");
     }
   };
 
@@ -326,15 +373,14 @@ export default function ReclutadorHome() {
 
       const result = await res.json();
       if (res.ok) {
-        alert("Imagen subida exitosamente");
+        showToast("Imagen subida exitosamente", "success");
         setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
         setModalEditarPerfilOpen(false);
       } else {
-        alert("Error: " + (result.error || "desconocido"));
+        showToast("Error: " + (result.error || "desconocido"), "error");
       }
     } catch (err) {
-      console.error("Error al subir imagen:", err);
-      alert("Error de conexión");
+      showToast("Error de conexión", "error");
     }
   };
 
@@ -350,8 +396,9 @@ export default function ReclutadorHome() {
       if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
       setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
       setModalEditarPerfilOpen(false);
+      showToast("Perfil actualizado correctamente.", "success");
     } catch (err) {
-      alert(err.message);
+      showToast(err.message, "error");
     }
   };
 
@@ -374,8 +421,34 @@ export default function ReclutadorHome() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      showToast("Reporte de licencias descargado correctamente.", "success");
     } catch (err) {
-      alert("Error al descargar el reporte de licencias");
+      showToast("Error al descargar el reporte de licencias", "error");
+    }
+  };
+
+  const descargarReporteReclutamiento = async (formato) => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento-analista?formato=${formato}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("Error al descargar el reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `informe_reclutamiento.${formato === "excel" ? "xlsx" : "pdf"}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      showToast("Reporte descargado correctamente.", "success");
+    } catch (e) {
+      showToast("No se pudo descargar el reporte.", "error");
     }
   };
 
@@ -440,32 +513,9 @@ export default function ReclutadorHome() {
   if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
   if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
 
-  const descargarReporteReclutamiento = async (formato) => {
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento-analista?formato=${formato}`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
-      if (!res.ok) throw new Error("Error al descargar el reporte");
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `informe_reclutamiento.${formato === "excel" ? "xlsx" : "pdf"}`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (e) {
-      alert("No se pudo descargar el reporte.");
-    }
-  };
-
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
+      <Toast toasts={toasts} removeToast={removeToast} />
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
         <PageLayout>
           <TopBar

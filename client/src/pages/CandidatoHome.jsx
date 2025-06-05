@@ -205,7 +205,7 @@ const handleUploadCV = async () => {
 
         const result = await res.json();
         if (res.ok) {
-            addToast("¡CV subido exitosamente!");
+            addToast("¡CV subido exitosamente!", "success");
             setCvFile(null);
             setCvPreview(null);
             window.location.reload();
@@ -213,14 +213,13 @@ const handleUploadCV = async () => {
             addToast("Error: " + (result.error || "desconocido"), "error");
         }
     } catch (error) {
-        console.error("Error al subir CV:", error);
         addToast("Error de conexión al subir CV", "error");
     }
 };
 
 const handlePostularse = async () => {
   if (!cvSeleccionado) {
-    return addToast("Elegí un CV para completar tu postulación");
+    return addToast("Elegí un CV para completar tu postulación", "error");
   }
   try {
     const res = await fetch(
@@ -235,19 +234,18 @@ const handlePostularse = async () => {
         })
       }
     );
-            const data = await res.json();
-            if (res.ok) {
-                addToast("Postulación realizada con éxito");
-                setModalOpen(false);
-                setSalarioPretendido("");
-            } else {
-                addToast("Error: " + (data.error || "desconocido"));
-            }
-        } catch (err) {
-            console.error("Error en handlePostularse:", err);
-            addToast("Error de conexión al postularse");
-        }
-    };
+    const data = await res.json();
+    if (res.ok) {
+      addToast("Postulación realizada con éxito", "success");
+      setModalOpen(false);
+      setSalarioPretendido("");
+    } else {
+      addToast("Error: " + (data.error || "desconocido"), "error");
+    }
+  } catch (err) {
+    addToast("Error de conexión al postularse", "error");
+  }
+};
 
     const ofertasFiltradas = ofertas
         .filter((o) =>
@@ -265,9 +263,9 @@ const handlePostularse = async () => {
     }
 
     const handleImageUpload = async (file) => {
-    if (!file) return;
-    const formData = new FormData();
-    formData.append("file", file);
+  if (!file) return;
+  const formData = new FormData();
+  formData.append("file", file);
   
       try {
           const res = await fetch(`${API_URL}/api/subir-image`, {
@@ -278,15 +276,14 @@ const handlePostularse = async () => {
   
           const result = await res.json();
           if (res.ok) {
-              addToast("Imagen subida exitosamente");
+              addToast("Imagen subida exitosamente", "success");
               setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
               setModalEditarPerfilOpen(false); 
           } else {
-              addToast("Error: " + (result.error || "desconocido"));
+              addToast("Error: " + (result.error || "desconocido"), "error");
           }
       } catch (err) {
-          console.error("Error al subir imagen:", err);
-          addToast("Error de conexión");
+          addToast("Error de conexión", "error");
       }
   };
 
@@ -302,8 +299,9 @@ const handlePostularse = async () => {
     if (!res.ok) throw new Error(result.error || "Error al actualizar perfil");
     setUser(prev => ({ ...prev, username: result.username, correo: result.email }));
     setModalEditarPerfilOpen(false);
+    addToast("Perfil actualizado correctamente.", "success");
   } catch (err) {
-    addToast( err.message);
+    addToast(err.message, "error");
   }
 };
 

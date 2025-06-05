@@ -1,19 +1,22 @@
-import { Bell } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Bell, Edit, LogOut, FileText, ClipboardList, CreditCard } from "lucide-react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import isLightColor from "../components/isLightColor";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
 
-export function TopBar({ username, children }) {
+export function TopBar({ username, user, onEditPerfil, onPostulacion }) {
   const { estilos } = useEstiloEmpresa();
   const primary = estilos?.color_principal ?? "#2563eb";
   const logoUrl = estilos?.logo_url ?? null;
   const textColor = estilos?.color_texto ?? (isLightColor(primary) ? "#000000" : "#ffffff");
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const [notificaciones, setNotificaciones] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
+  const [profileVisible, setProfileVisible] = useState(false);
   const notificacionesRef = useRef(null);
+  const profileRef = useRef(null);
   const navigate = useNavigate();
 
   const rol = localStorage.getItem("rol") || "reclutador";
@@ -24,6 +27,13 @@ export function TopBar({ username, children }) {
     reclutador: "reclutador",
     empleado: "empleado"
   }[rol] || "reclutadores";
+
+  // Imagen de perfil
+  const imgSrc = useMemo(() => {
+    if (!user?.fotoUrl) return "https://i.pravatar.cc/150?img=12";
+    const cleanPath = user.fotoUrl.replace(/^\/+/, "");
+    return cleanPath.startsWith("http") ? cleanPath : `${API_URL}/${cleanPath}`;
+  }, [user?.fotoUrl]);
 
   useEffect(() => {
     const fetchNotificaciones = async () => {
@@ -42,10 +52,14 @@ export function TopBar({ username, children }) {
     return () => clearInterval(interval);
   }, [endpointBase]);
 
+  // Cierra modales al hacer clic fuera
   useEffect(() => {
     const clickOutside = (e) => {
       if (notificacionesRef.current && !notificacionesRef.current.contains(e.target)) {
         setModalVisible(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileVisible(false);
       }
     };
     document.addEventListener("mousedown", clickOutside);
@@ -62,6 +76,28 @@ export function TopBar({ username, children }) {
         navigate("/login");
       })
       .catch((err) => console.error("Error al cerrar sesión:", err));
+  };
+
+  // Subir CV desde la card
+  const handleUploadCVFromTopBar = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`${API_URL}/api/upload-cv`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (res.ok) {
+        window.dispatchEvent(new CustomEvent("cvSubidoOk", { detail: "¡CV subido exitosamente!" }));
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error al subir CV:", error);
+      alert("Error de conexión al subir CV");
+    }
   };
 
   return (
@@ -81,13 +117,15 @@ export function TopBar({ username, children }) {
             SIGRH+
           </h1>
         )}
-        {children}
       </div>
 
       <div className="flex items-center gap-4 relative">
         {/* campana */}
         <button
-          onClick={() => setModalVisible((prev) => !prev)}
+          onClick={() => {
+            setModalVisible((prev) => !prev);
+            if (!modalVisible) setProfileVisible(false);
+          }}
           className="relative p-2 rounded-full"
           style={{ backgroundColor: primary, color: textColor }}
         >
@@ -99,11 +137,11 @@ export function TopBar({ username, children }) {
           )}
         </button>
 
-        {/* notificaciones */}
+        {/* modal de notificaciones */}
         {modalVisible && (
           <div
             ref={notificacionesRef}
-            className="absolute top-full left-0 mt-2 w-80 bg-white border shadow-lg rounded-lg z-50 text-black"
+            className="absolute right-0 top-12 w-80 bg-white border shadow-lg rounded-lg z-50 text-black max-h-[500px] overflow-y-auto"
           >
             {notificaciones.length > 0 ? (
               <>
@@ -158,20 +196,67 @@ export function TopBar({ username, children }) {
               <div className="p-4 text-center text-gray-500 text-sm">No tienes notificaciones</div>
             )}
             <footer className="flex justify-center">
-              <Link style={{color: primary}} to="/notificaciones" className="underline text-xs p-2">Ver todas las notificaciones</Link>
+              <Link style={{ color: primary }} to="/notificaciones" className="underline text-xs p-2">Ver todas las notificaciones</Link>
             </footer>
           </div>
         )}
 
-        {/* Bienvenida y logout */}
-        <span className="font-medium">Bienvenido, {username}</span>
-        <button
-          onClick={handleLogout}
-          className="px-3 py-1 rounded"
-          style={{ backgroundColor: primary, color: textColor }}
-        >
-          Cerrar sesión
-        </button>
+        {/* icono de usuario */}
+          <img
+            src={imgSrc}
+            alt="foto perfil"
+            className="w-10 h-10 rounded-full border-2 cursor-pointer"
+            style={{ borderColor: primary }}
+            onClick={() => {
+              setProfileVisible((prev) => !prev);
+              if (!profileVisible) setModalVisible(false);
+            }}
+          />
+
+        {/* dropdown de perfil */}
+        {profileVisible && (
+          <div
+            ref={profileRef}
+            className="absolute right-0 top-12 w-72 bg-white border shadow-lg rounded-lg z-50 p-4"
+            style={{
+              borderColor: primary,
+              backgroundColor: estilos?.color_secundario ?? "#fff",
+              color: textColor,
+            }}
+          >
+            <div className="text-center">
+              <img
+                src={imgSrc}
+                className="w-16 h-16 rounded-full mx-auto border"
+                style={{ borderColor: primary }}
+              />
+              <p className="font-semibold mt-2">{user?.nombre} {user?.apellido}</p>
+              <p className="text-sm text-gray-500">{user?.correo}</p>
+              <p className="text-xs text-gray-400">{rol}</p>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              {/* Elimina Ver CV, Subir nuevo CV, Ver postulaciones y Suscribirse */}
+              <button
+                onClick={onEditPerfil}
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded"
+                style={{
+                  backgroundColor: primary,
+                  color: isLightColor(primary) ? "#000" : "#fff",
+                  width: "100%",
+                }}
+              >
+                <Edit size={16} /> Editar perfil
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 w-full"
+              >
+                <LogOut size={16} /> Cerrar sesión
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
