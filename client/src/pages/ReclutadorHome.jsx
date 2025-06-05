@@ -51,13 +51,15 @@ export default function ReclutadorHome() {
   const [mensajeError, setMensajeError] = useState('');
   const [estadoPostulaciones, setEstadoPostulaciones] = useState({});
   const [modalRendimientoOpen, setModalRendimientoOpen] = useState(false);
+  const [filtroNombreOferta, setFiltroNombreOferta] = useState("");
+  const [filtroDescripcionOferta, setFiltroDescripcionOferta] = useState("");
+  const [ofertasFiltradas, setOfertasFiltradas] = useState([]);
+  const [filtroEstadoOferta, setFiltroEstadoOferta] = useState("");
 
   // Modal
   const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false)
 
   const API_URL = import.meta.env.VITE_API_URL;
-
-
 
   //trae los datos del manager
   useEffect(() => {
@@ -89,7 +91,27 @@ export default function ReclutadorHome() {
     cargarUsuario();
   }, []);
 
+  useEffect(() => {
+    if (!modalOfertasOpen) {
+      setOfertasFiltradas(ofertasAsignadas);
+      return;
+    }
+    setOfertasFiltradas(
+      ofertasAsignadas.filter(oferta => {
+        const estaCerrada = oferta.cerrada === true || oferta.is_active === false;
+        const coincideEstado =
+          filtroEstadoOferta === "" ||
+          (filtroEstadoOferta === "abierta" && !estaCerrada) ||
+          (filtroEstadoOferta === "cerrada" && estaCerrada);
 
+        return (
+          oferta.nombre.toLowerCase().includes(filtroNombreOferta.toLowerCase()) &&
+          oferta.descripcion.toLowerCase().includes(filtroDescripcionOferta.toLowerCase()) &&
+          coincideEstado
+        );
+      })
+    );
+  }, [ofertasAsignadas, filtroNombreOferta, filtroDescripcionOferta, filtroEstadoOferta, modalOfertasOpen]);
 
   const empresaId = user?.empresaId;
   const { estilos, loading: loadingEstilos } = useEmpresaEstilos(empresaId);
@@ -451,18 +473,36 @@ export default function ReclutadorHome() {
     }
   };
 
+  // Nueva función para descargar reporte solo de las ofertas filtradas
+  const descargarReporteReclutamientoFiltrado = async (formato) => {
+    try {
+      const ids = ofertasFiltradas.map(o => o.id_oferta).join(",");
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento?formato=${formato}&ids=${ids}`,
+        { method: "GET", credentials: "include" }
+      );
+      if (!res.ok) throw new Error("Error al descargar el reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `informe_reclutamiento.${formato === "excel" ? "xlsx" : "pdf"}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      showToast("Reporte descargado correctamente.", "success");
+    } catch (e) {
+      showToast("No se pudo descargar el reporte.", "error");
+    }
+  };
+
   const acciones = [
     {
       icon: Users,
       titulo: "Ver Listado de Ofertas Asignadas",
       descripcion: "Accede a tu listado de ofertas asignadas en el sistema",
       onClick: openModalOfertas
-    },
-    {
-      icon: FileText,
-      titulo: "Visualizar Reportes",
-      descripcion: "Revisa los KPIs del sistema.",
-      onClick: () => alert("Funcionalidad en desarrollo"),
     },
     {
       icon: FilePlus,
@@ -579,15 +619,36 @@ export default function ReclutadorHome() {
             <div className="bg-white rounded-lg p-6 w-full max-w-3xl shadow space-y-4 text-black">
               <h2 className="text-xl font-semibold">Ofertas asignadas</h2>
 
-              {mensajeOfertas && (
-                <div className="text-sm text-indigo-700 bg-indigo-100 p-2 rounded">
-                  {mensajeOfertas}
-                </div>
-              )}
+              {/* Filtros */}
+              <div className="flex flex-wrap gap-2 mb-2">
+                <input
+                  type="text"
+                  placeholder="Filtrar por nombre"
+                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                  value={filtroNombreOferta}
+                  onChange={e => setFiltroNombreOferta(e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="Filtrar por descripción"
+                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                  value={filtroDescripcionOferta}
+                  onChange={e => setFiltroDescripcionOferta(e.target.value)}
+                />
+                <select
+                  className="border border-gray-300 rounded px-2 py-1 text-sm"
+                  value={filtroEstadoOferta}
+                  onChange={e => setFiltroEstadoOferta(e.target.value)}
+                >
+                  <option value="">Todas</option>
+                  <option value="abierta">Abierta</option>
+                  <option value="cerrada">Cerrada</option>
+                </select>
+              </div>
 
               <div className="mt-6 flex flex-col sm:flex-row justify-end gap-2">
                 <button
-                  onClick={() => descargarReporteReclutamiento("excel")}
+                  onClick={() => descargarReporteReclutamientoFiltrado("excel")}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
                   title="Descargar reporte de reclutamiento en Excel"
                 >
@@ -595,7 +656,7 @@ export default function ReclutadorHome() {
                   Descargar Reporte Excel
                 </button>
                 <button
-                  onClick={() => descargarReporteReclutamiento("pdf")}
+                  onClick={() => descargarReporteReclutamientoFiltrado("pdf")}
                   className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
                   title="Descargar reporte de reclutamiento en PDF"
                 >
@@ -604,36 +665,47 @@ export default function ReclutadorHome() {
                 </button>
               </div>
 
-              {ofertasAsignadas.length === 0 ? (
+              {ofertasFiltradas.length === 0 ? (
                 <p>No hay ofertas asignadas.</p>
               ) : (
                 <ul className="space-y-2 max-h-[60vh] overflow-y-auto">
-                  {ofertasAsignadas.map((oferta) => (
-                    <li key={oferta.id_oferta} className="p-4 border rounded shadow bg-gray-50">
-                      <h3 className="font-semibold">{oferta.nombre}</h3>
-                      <p className="text-sm">{oferta.descripcion}</p>
-                      <p className="text-xs text-gray-600">
-                        Publicación: {oferta.fecha_publicacion?.split("T")[0]} |
-                        Cierre: {oferta.fecha_cierre?.split("T")[0]}
-                      </p>
-
-                      <div className="mt-2 flex space-x-2">
-                        <button
-                          onClick={() => openEditarEtiquetas(oferta)}
-                          className="px-3 py-1 bg-yellow-500 text-white rounded"
-                        >
-                          Editar etiquetas
-                        </button>
-                        <button
-                          onClick={() => openVerPostulantes(oferta.id_oferta)}
-                          className="px-3 py-1 bg-green-500 text-white rounded"
-                        >
-                          Ver postulantes
-                        </button>
-                      </div>
-                    </li>
-                  ))}
-
+                  {ofertasFiltradas.map((oferta) => {
+                    // Determina el estado real de la oferta
+                    const estaCerrada = oferta.cerrada === true || oferta.is_active === false;
+                    return (
+                      <li key={oferta.id_oferta} className="p-4 border rounded shadow bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold">{oferta.nombre}</h3>
+                          <span className={`ml-2 px-2 py-1 rounded text-xs font-bold
+            ${estaCerrada
+                              ? "bg-red-100 text-red-700 border border-red-300"
+                              : "bg-green-100 text-green-700 border border-green-300"
+                            }`}>
+                            {estaCerrada ? "Cerrada" : "Abierta"}
+                          </span>
+                        </div>
+                        <p className="text-sm">{oferta.descripcion}</p>
+                        <p className="text-xs text-gray-600">
+                          Publicación: {oferta.fecha_publicacion?.split("T")[0]} |
+                          Cierre: {oferta.fecha_cierre?.split("T")[0]}
+                        </p>
+                        <div className="mt-2 flex space-x-2">
+                          <button
+                            onClick={() => openEditarEtiquetas(oferta)}
+                            className="px-3 py-1 bg-yellow-500 text-white rounded"
+                          >
+                            Editar etiquetas
+                          </button>
+                          <button
+                            onClick={() => openVerPostulantes(oferta.id_oferta)}
+                            className="px-3 py-1 bg-green-500 text-white rounded"
+                          >
+                            Ver postulantes
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
 
