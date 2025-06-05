@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { BarChart2, Download, FileLock, FilePlus, FileSearchIcon, FileText, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AccionesPorSeccion } from "../components/AccionesPorSeccion.jsx";
 import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
@@ -496,46 +497,58 @@ export default function ReclutadorHome() {
     }
   };
 
-  const acciones = [
-    {
-      icon: Users,
-      titulo: "Ver Listado de Ofertas Asignadas",
-      descripcion: "Accede a tu listado de ofertas asignadas en el sistema",
-      onClick: openModalOfertas
-    },
-    {
-      icon: FilePlus,
-      titulo: "Cargar Licencias",
-      descripcion: "Carga una nueva licencia.",
-      onClick: () => setModalLicenciaOpen(true)
-    },
-    {
-      icon: FileSearchIcon,
-      titulo: "Ver Mis Licencias",
-      descripcion: "Accede al listado tus licencias.",
-      onClick: () => setModalLicenciasOpen(true),
-    },
-    {
-      icon: FileLock,
-      titulo: "Gestionar Licencias",
-      descripcion: "Accede a las licencias de los empleados y sus estados.",
-      onClick: () => setModalLicenciasACargo(true)
-    },
-    {
-      icon: BarChart2,
-      titulo: "Visualizar Indicadores de Desempeño y predicciones",
-      descripcion: "Visualizá y administrá los empleados de tu empresa.",
-      onClick: () => navigate("/reclutador/empleados-rendimiento"),
-    },
-    {
-      icon: BarChart2,
-      titulo: "Detección Temprana de Rotación y Riesgos Laborales",
-      descripcion: "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
-      onClick: () => navigate("/reclutador/empleados-riesgo"),
-    }
-  ];
-
-
+  const accionesPorSeccion = {
+    ofertas: [
+      {
+        icon: Users,
+        titulo: "Ver Listado de Ofertas Asignadas",
+        descripcion: "Accede a tu listado de ofertas asignadas en el sistema",
+        onClick: openModalOfertas,
+      },
+    ],
+    licencias: [
+      {
+        icon: FilePlus,
+        titulo: "Cargar Licencias",
+        descripcion: "Carga una nueva licencia.",
+        onClick: () => setModalLicenciaOpen(true),
+      },
+      {
+        icon: FileSearchIcon,
+        titulo: "Ver Mis Licencias",
+        descripcion: "Accede al listado tus licencias.",
+        onClick: () => setModalLicenciasOpen(true),
+      },
+      {
+        icon: FileLock,
+        titulo: "Gestionar Licencias",
+        descripcion: "Accede a las licencias de los empleados y sus estados.",
+        onClick: () => setModalLicenciasACargo(true),
+      },
+    ],
+    metricas: [
+      {
+        icon: BarChart2,
+        titulo: "Visualizar Indicadores de Desempeño y predicciones",
+        descripcion: "Visualizá y administrá los empleados de tu empresa.",
+        onClick: () => navigate("/reclutador/empleados-rendimiento"),
+      },
+      {
+        icon: BarChart2,
+        titulo: "Detección Temprana de Rotación y Riesgos Laborales",
+        descripcion:
+          "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
+        onClick: () => navigate("/reclutador/empleados-riesgo"),
+      },
+      {
+        icon: FileText,
+        titulo: "Visualizar Reportes",
+        descripcion: "Revisa los KPIs del sistema.",
+        onClick: () => alert("Funcionalidad en desarrollo"),
+      },
+    ],
+  };
+  
   const handleLogout = () => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
       method: "POST",
@@ -587,27 +600,7 @@ export default function ReclutadorHome() {
                 <h2 className="text-lg font-semibold text-black text-center">
                   Acciones disponibles: Reclutador de RRHH
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
-                    <motion.div
-                      key={idx}
-                      onClick={onClick}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1, duration: 0.4 }}
-                      className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
-                      style={{
-                        backgroundColor: estilosSafe.color_secundario,
-                        borderColor: estilosSafe.color_secundario,
-                        color: estilosSafe.color_texto,
-                      }}
-                    >
-                      <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
-                      <h3 className="text-base font-semibold">{titulo}</h3>
-                      <p className="text-sm mt-1">{descripcion}</p>
-                    </motion.div>
-                  ))}
-                </div>
+                <AccionesPorSeccion accionesPorSeccion={accionesPorSeccion} estilos={estilosSafe} />
               </motion.div>
             </div>
           </div>

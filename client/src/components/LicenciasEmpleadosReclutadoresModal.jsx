@@ -1,9 +1,9 @@
+import { Download } from "lucide-react";
 import { useState } from "react";
 import { DayPicker } from "react-day-picker";
-import { Dialog, DialogContent } from "../components/shadcn/Dialog";
+import { Dialog, DialogContent, DialogTitle } from "../components/shadcn/Dialog";
 import { useLicenciasACargo } from "../services/useLicenciasACargo";
 import MensajeAlerta from "./MensajeAlerta";
-import { Download } from "lucide-react";
 
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
@@ -14,6 +14,7 @@ export function LicenciasACargoModal({
   open,
   onOpenChange,
 }) {
+  console.log("LICENIAS A CARGO");
 
   const {
     error,
@@ -114,9 +115,11 @@ export function LicenciasACargoModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="text-black max-w-none w-[95vw] max-h-[90vh] overflow-auto">
-        <h2 className="text-2xl font-semibold mb-4 text-center">
+        <DialogTitle>
           Gestión de licencias
-        </h2>
+        </DialogTitle>
+        {/* <h2 className="text-2xl font-semibold mb-4 text-center">
+        </h2> */}
         {/* Filtros */}
         <div className="flex flex-wrap gap-4 mb-4">
           <div>
