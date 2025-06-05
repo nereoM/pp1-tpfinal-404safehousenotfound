@@ -334,3 +334,61 @@ def add_risks(ruta_csv, nombre_archivo = "emps_riesgos.csv"):
 
     print(f"Archivo {nombre_archivo}, columnas de rotacion, despido y renuncia agregadas\n")
     return df, os.path.join(save_path, nombre_archivo)
+
+def generar_dataset_postulaciones(cant_empleados, nombre_archivo="emps_postulaciones.csv"):
+
+    data = {
+        'cantidad_postulaciones': [],
+        'desempeno_previo': []
+    }
+
+    for _ in range(cant_empleados):
+        # cantidad_postulaciones: aleatorio entre 0 y 20
+        data['cantidad_postulaciones'].append(np.random.randint(0, 10))
+        # desempeno_previo: aleatorio entre 0 y 10, con mayoría entre 5 y 8
+        valor_desempeno = min(max(0, np.random.normal(6.5, 2)), 10)
+        data['desempeno_previo'].append(round(valor_desempeno, 2))
+
+    df = pd.DataFrame(data)
+
+    save_path = os.path.join("server/ml/desempeno_desarrollo/data")
+    os.makedirs(save_path, exist_ok=True)
+    df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
+
+    print(f"Archivo {nombre_archivo} generado con {cant_empleados} empleados\n")
+    return df, os.path.join(save_path, nombre_archivo)
+
+def agregar_riesgo_rotacion(df, nombre_archivo="emps_postulaciones_riesgos.csv"):
+    """
+    Agrega una columna 'Riesgo de rotacion' al DataFrame basado en:
+    - cantidad_postulaciones: A mayor valor, mayor riesgo.
+    - desempeno_previo: A menor valor, mayor riesgo.
+    
+    Criterios:
+    - Alto riesgo: Postulaciones altas (>5) y bajo desempeño (<5) o postulaciones muy altas (>8).
+    - Medio riesgo: Postulaciones moderadas (3-5) o desempeño medio (5-6).
+    - Bajo riesgo: Postulaciones bajas (<3) y buen desempeño (>6).
+    """
+    riesgo = []
+    
+    for idx, row in df.iterrows():
+        postulaciones = row['cantidad_postulaciones']
+        desempeno = row['desempeno_previo']
+        
+        # Lógica de clasificación
+        if (postulaciones > 5 and desempeno < 5) or (postulaciones > 8):
+            riesgo.append("Alto")
+        elif (postulaciones >= 3 and postulaciones <= 5) or (desempeno >= 5 and desempeno <= 6):
+            riesgo.append("Medio")
+        else:
+            riesgo.append("Bajo")
+    
+    df['Riesgo de rotacion'] = riesgo
+
+    save_path = os.path.join("server/ml/desempeno_desarrollo/data")
+    os.makedirs(save_path, exist_ok=True)
+    df.to_csv(os.path.join(save_path, nombre_archivo), index=False)
+
+    print("df con riesgos")    
+
+    return df
