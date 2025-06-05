@@ -223,7 +223,7 @@ export default function ManagerHome() {
       const ids = ofertasFiltradas.map(o => o.id_oferta).join(",");
       console.log("Enviando IDs de ofertas filtradas:", ids); // 👈 Aquí ves los IDs que se envían
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento-manager?formato=${formato}&ids=${ids}`,
+        `${import.meta.env.VITE_API_URL}/api/reportes-reclutamiento?formato=${formato}&ids=${ids}`,
         { method: "GET", credentials: "include" }
       );
       if (!res.ok) throw new Error("No se pudo descargar el reporte");
