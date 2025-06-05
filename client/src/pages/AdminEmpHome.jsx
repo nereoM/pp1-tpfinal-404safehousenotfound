@@ -1,9 +1,11 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { FileLock, Settings, Upload, UserPlus, Users } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AccionesPorSeccion } from "../components/AccionesPorSeccion.jsx";
 import GestionUsuarios from "../components/GestionUsuarios";
 import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
+import MensajeAlerta from "../components/MensajeAlerta";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
@@ -12,7 +14,6 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { adminEmpService } from "../services/adminEmpService";
-import MensajeAlerta from "../components/MensajeAlerta";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminEmpHome() {
@@ -296,44 +297,52 @@ export default function AdminEmpHome() {
     }
   };
 
-  const acciones = [
-    {
-      icon: UserPlus,
-      titulo: "Crear Managers",
-      descripcion: "Designá managers para gestionar ofertas y equipos.",
-      onClick: () => setModalOpen(true),
-    },
-    {
-      icon: Users,
-      titulo: "Gestionar Usuarios",
-      descripcion: "Visualizá y administrá los usuarios de tu empresa.",
-      onClick: () => setModalUsuarios(true),
-    },
-    {
-      icon: Settings,
-      titulo: "Configurar Empresa",
-      descripcion: "Ajustes de estilo y datos empresariales.",
-      onClick: () => setModalPreferencias(true),
-    },
-    {
-      icon: FileLock,
-      titulo: "Consultar Licencias",
-      descripcion: "Accede a las licencias del personal y sus estados.",
-      onClick: () => setModalLicenciasOpen(true),
-    },
-    {
-      icon: Upload,
-      titulo: "Subir Empleados",
-      descripcion: "Carga un archivo CSV para registrar empleados.",
-      onClick: () => setModalSubirEmpleados(true),
-    },
-    {
-      icon: Upload,
-      titulo: "Subir Métricas de Desempeño",
-      descripcion: "Carga un archivo CSV con métricas de desempeño y rotación.",
-      onClick: () => setModalSubirMetricas(true),
-    },
-  ];
+  const accionesPorSeccion = {
+    usuarios: [
+      {
+        icon: UserPlus,
+        titulo: "Crear Managers",
+        descripcion: "Designá managers para gestionar ofertas y equipos.",
+        onClick: () => setModalOpen(true),
+      },
+      {
+        icon: Users,
+        titulo: "Gestionar Usuarios",
+        descripcion: "Visualizá y administrá los usuarios de tu empresa.",
+        onClick: () => setModalUsuarios(true),
+      },
+    ],
+    empresa: [
+      {
+        icon: Settings,
+        titulo: "Configurar Empresa",
+        descripcion: "Ajustes de estilo y datos empresariales.",
+        onClick: () => setModalPreferencias(true),
+      },
+    ],
+    licencias: [
+      {
+        icon: FileLock,
+        titulo: "Consultar Licencias",
+        descripcion: "Accede a las licencias del personal y sus estados.",
+        onClick: () => setModalLicenciasOpen(true),
+      },
+    ],
+    metricas: [
+      {
+        icon: Upload,
+        titulo: "Subir Empleados",
+        descripcion: "Carga un archivo CSV para registrar empleados.",
+        onClick: () => setModalSubirEmpleados(true),
+      },
+      {
+        icon: Upload,
+        titulo: "Subir Métricas de Desempeño",
+        descripcion: "Carga un archivo CSV con métricas de desempeño y rotación.",
+        onClick: () => setModalSubirMetricas(true),
+      },
+    ],
+  };
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe, loading: loadingEstilos }}>
@@ -371,31 +380,7 @@ export default function AdminEmpHome() {
                 <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto, textAlign: "center" }}>
                   Acciones disponibles: Administrador de Empresa
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.1, duration: 0.4 }}
-                      onClick={onClick}
-                      className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
-                      style={{
-                        backgroundColor: estilosSafe.color_secundario,
-                        borderColor: estilosSafe.color_principal,
-                        color: estilosSafe.color_texto,
-                      }}
-                    >
-                      <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_principal }} />
-                      <h3 className="text-base font-semibold" style={{ color: estilosSafe.color_texto }}>
-                        {titulo}
-                      </h3>
-                      <p className="text-sm mt-1" style={{ color: estilosSafe.color_texto }}>
-                        {descripcion}
-                      </p>
-                    </motion.div>
-                  ))}
-                </div>
+                <AccionesPorSeccion accionesPorSeccion={accionesPorSeccion} estilos={estilosSafe} />
               </motion.div>
             </div>
           </div>
