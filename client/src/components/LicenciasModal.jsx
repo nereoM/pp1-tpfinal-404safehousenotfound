@@ -56,7 +56,7 @@ export function LicenciasModal({ service, open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="text-black">
+      <DialogContent className="text-black w-[95vw] max-w-[1200px]">
         <h2 className="text-2xl font-semibold mb-4 text-center">
           Mis Licencias
         </h2>

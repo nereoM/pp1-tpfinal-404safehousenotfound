@@ -333,7 +333,7 @@ export default function Login() {
         </div>
 
         {/* Formulario Login/Registro */}
-        <div className="relative w-full max-w-md h-screen max-h-[100vh] z-10">
+        <div className="relative w-full max-w-md h-screen max-h-[80vh] z-10">
           <div className={`w-full h-full relative transition-transform duration-700 ${flipped ? "rotate-y-180" : ""}`} style={{ transformStyle: "preserve-3d" }}>
             {/* Formulario Login */}
             <div className="absolute w-full h-full backface-hidden z-20">
