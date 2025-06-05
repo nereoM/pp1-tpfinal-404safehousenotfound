@@ -112,8 +112,10 @@ export default function RiesgosAnalistasConTabla() {
 
     const descargarReporteRiesgos = async (formato) => {
         try {
+            const ids = empleadosFiltrados.map(e => e.id_usuario).join(",");
+            console.log(`Descargando reporte de riesgos para IDs: ${ids} en formato ${formato}`);
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/reporte-riesgos-manager?formato=${formato}`,
+                `${import.meta.env.VITE_API_URL}/api/reportes-riesgos?formato=${formato}&ids=${ids}`,
                 {
                     method: "GET",
                     credentials: "include",
