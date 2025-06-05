@@ -7,7 +7,6 @@ import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import ModalPostulantes from '../components/ModalPostulantes';
 import PageLayout from "../components/PageLayout";
-import { ProfileCard } from "../components/ProfileCard";
 import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal.jsx";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
@@ -537,42 +536,41 @@ export default function ReclutadorHome() {
             </div>
           </div>
 
+          {/* Centralizar acciones, eliminar ProfileCard */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-            <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }} className="relative">
-              <ProfileCard
-                nombre={`${user?.nombre} ${user?.apellido}`}
-                correo={user?.correo}
-                fotoUrl={user?.foto_url ? user.foto_url : "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"}
-                showCvLink={false}
-                size="xl"
-                style={{ borderColor: estilosSafe.color_principal }}
-                textColor={estilosSafe.color_texto}
-                onEdit={() => setModalEditarPerfilOpen(true)}
-              />
-
-            </motion.div>
-
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="md:col-span-2 space-y-4">
-              <h2 className="text-lg font-semibold text-black">Acciones disponibles: Reclutador de RRHH</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
-                  <motion.div
-                    key={idx}
-                    onClick={onClick}
-                    className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
-                    style={{
-                      backgroundColor: estilosSafe.color_secundario,
-                      borderColor: estilosSafe.color_secundario,
-                      color: estilosSafe.color_texto,
-                    }}
-                  >
-                    <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
-                    <h3 className="text-base font-semibold">{titulo}</h3>
-                    <p className="text-sm mt-1">{descripcion}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+            <div className="md:col-span-3 flex flex-col items-center">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="w-full max-w-3xl space-y-4"
+              >
+                <h2 className="text-lg font-semibold text-black text-center">
+                  Acciones disponibles: Reclutador de RRHH
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
+                    <motion.div
+                      key={idx}
+                      onClick={onClick}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1, duration: 0.4 }}
+                      className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
+                      style={{
+                        backgroundColor: estilosSafe.color_secundario,
+                        borderColor: estilosSafe.color_secundario,
+                        color: estilosSafe.color_texto,
+                      }}
+                    >
+                      <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_texto }} />
+                      <h3 className="text-base font-semibold">{titulo}</h3>
+                      <p className="text-sm mt-1">{descripcion}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
           </div>
         </PageLayout>
 

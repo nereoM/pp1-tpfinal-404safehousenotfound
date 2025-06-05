@@ -359,43 +359,45 @@ export default function AdminEmpHome() {
             </div>
           </div>
 
+          {/* Centralizar acciones */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-            {/* Se eliminó ProfileCard, solo se deja el resto del contenido */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="md:col-span-2 space-y-4"
-            >
-              <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto }}>
-                Acciones disponibles: Administrador de Empresa
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1, duration: 0.4 }}
-                    onClick={onClick}
-                    className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
-                    style={{
-                      backgroundColor: estilosSafe.color_secundario,
-                      borderColor: estilosSafe.color_principal,
-                      color: estilosSafe.color_texto,
-                    }}
-                  >
-                    <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_principal }} />
-                    <h3 className="text-base font-semibold" style={{ color: estilosSafe.color_texto }}>
-                      {titulo}
-                    </h3>
-                    <p className="text-sm mt-1" style={{ color: estilosSafe.color_texto }}>
-                      {descripcion}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
+            <div className="md:col-span-3 flex flex-col items-center">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="w-full max-w-3xl space-y-4"
+              >
+                <h2 className="text-lg font-semibold" style={{ color: estilosSafe.color_texto, textAlign: "center" }}>
+                  Acciones disponibles: Administrador de Empresa
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.1, duration: 0.4 }}
+                      onClick={onClick}
+                      className="cursor-pointer border p-5 rounded-xl shadow-sm hover:shadow-md"
+                      style={{
+                        backgroundColor: estilosSafe.color_secundario,
+                        borderColor: estilosSafe.color_principal,
+                        color: estilosSafe.color_texto,
+                      }}
+                    >
+                      <Icon className="w-6 h-6 mb-2" style={{ color: estilosSafe.color_principal }} />
+                      <h3 className="text-base font-semibold" style={{ color: estilosSafe.color_texto }}>
+                        {titulo}
+                      </h3>
+                      <p className="text-sm mt-1" style={{ color: estilosSafe.color_texto }}>
+                        {descripcion}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
           </div>
 
           {modalUsuarios && <GestionUsuarios service={adminEmpService} onClose={() => setModalUsuarios(false)} textColor={estilosSafe.color_texto} />}
