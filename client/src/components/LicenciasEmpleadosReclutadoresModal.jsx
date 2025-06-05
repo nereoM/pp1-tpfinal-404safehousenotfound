@@ -14,8 +14,6 @@ export function LicenciasACargoModal({
   open,
   onOpenChange,
 }) {
-  console.log("LICENIAS A CARGO");
-
   const {
     error,
     licencias,

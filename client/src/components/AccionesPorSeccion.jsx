@@ -7,6 +7,8 @@ const seccionesAmigables = {
   ofertas: "Ofertas",
   empleados: "Empleados",
   metricas: "Métricas y Desempeño",
+  usuarios: "Usuarios",
+  empresa: "Empresa"
 };
 
 export function AccionesPorSeccion({ accionesPorSeccion, estilos }) {
