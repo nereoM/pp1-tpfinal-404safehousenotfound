@@ -1779,29 +1779,29 @@ def register_employees_from_csv(file_path):
         required_fields = {'nombre', 'apellido', 'email', 'username', 'contrasena', 'puesto'}
         puestos_validos = {
             # Tecnología y Desarrollo
-            "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer",
+            "Jefe de Tecnología y Desarrollo", "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer",
             "DevOps Engineer", "Data Engineer", "Ingeniero de Machine Learning",
             "Analista de Datos", "QA Automation Engineer", "Soporte Técnico",
             "Administrador de Base de Datos", "Administrador de Redes", "Especialista en Seguridad Informática",
 
             # Administración y Finanzas
-            "Analista Contable", "Contador Público", "Analista de Finanzas",
+            "Jefe de Administración y Finanzas", "Analista Contable", "Contador Público", "Analista de Finanzas",
             "Administrativo/a", "Asistente Contable",
 
             # Comercial y Ventas
-            "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial",
+            "Jefe Comercial y de Ventas", "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial",
             "Supervisor de Ventas", "Asesor Comercial",
 
             # Marketing y Comunicación
-            "Especialista en Marketing Digital", "Analista de Marketing",
+            "Jefe de Marketing y Comunicación", "Especialista en Marketing Digital", "Analista de Marketing",
             "Community Manager", "Diseñador Gráfico", "Responsable de Comunicación",
 
             # Industria y Producción
-            "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta",
+            "Jefe de Industria y Producción", "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta",
             "Ingeniero de Procesos", "Encargado de Logística",
 
             # Servicios Generales y Gastronomía
-            "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza"
+            "Jefe de Servicios Generales y Gastronomía", "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza"
         }
 
         resultado = []

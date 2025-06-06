@@ -260,6 +260,14 @@ class HistorialRendimientoEmpleado(db.Model):
 
     empleado = db.relationship('Usuario', backref='historial_rendimiento')
 
+class HistorialRendimientoEmpleadoManual(db.Model):
+    __tablename__ = 'historial_rendimiento_empleados_manual'
+
+    id_empleado = db.Column(db.Integer, db.ForeignKey('usuarios.id'), primary_key=True, index=True)
+    fecha_calculo = db.Column(db.DateTime, primary_key=True, default=datetime.utcnow)
+    rendimiento = db.Column(db.Float, nullable=False)
+
+    empleado = db.relationship('Usuario', backref='historial_rendimiento_manual')
 
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)

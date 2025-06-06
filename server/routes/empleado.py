@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from models.extensions import db
-from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral, CV, Job_Application, Notificacion
+from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral, CV, Job_Application, Notificacion, HistorialRendimientoEmpleadoManual
 from auth.decorators import role_required
 import os
 from werkzeug.utils import secure_filename
@@ -1103,3 +1103,64 @@ def responder_sugerencia_licencia(id_licencia):
         "message": f"Sugerencia {'aceptada' if aceptacion else 'rechazada'} correctamente",
         "estado_sugerencia": licencia.estado_sugerencia
     }), 200
+
+@empleado_bp.route("/empleados-mi-area", methods=["GET"])
+@role_required(["empleado"])
+def empleados_mi_area():
+    # Mapear jefe a área y puestos del área
+    area_puestos = {
+        "Jefe de Tecnología y Desarrollo": [
+            "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer",
+            "DevOps Engineer", "Data Engineer", "Ingeniero de Machine Learning",
+            "Analista de Datos", "QA Automation Engineer", "Soporte Técnico",
+            "Administrador de Base de Datos", "Administrador de Redes", "Especialista en Seguridad Informática"
+        ],
+        "Jefe de Administración y Finanzas": [
+            "Analista Contable", "Contador Público", "Analista de Finanzas",
+            "Administrativo/a", "Asistente Contable"
+        ],
+        "Jefe Comercial y de Ventas": [
+            "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial",
+            "Supervisor de Ventas", "Asesor Comercial"
+        ],
+        "Jefe de Marketing y Comunicación": [
+            "Especialista en Marketing Digital", "Analista de Marketing",
+            "Community Manager", "Diseñador Gráfico", "Responsable de Comunicación"
+        ],
+        "Jefe de Industria y Producción": [
+            "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta",
+            "Ingeniero de Procesos", "Encargado de Logística"
+        ],
+        "Jefe de Servicios Generales y Gastronomía": [
+            "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza"
+        ]
+    }
+
+    id_usuario = get_jwt_identity()
+    jefe = Usuario.query.get(id_usuario)
+    if not jefe:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    # Verifica que sea jefe de área
+    if jefe.puesto_trabajo not in area_puestos:
+        return jsonify({"error": "No tienes permisos para acceder a esta información"}), 403
+
+    # Busca empleados de la misma empresa y área
+    empleados = Usuario.query.filter(
+        Usuario.id_empresa == jefe.id_empresa,
+        Usuario.puesto_trabajo.in_(area_puestos[jefe.puesto_trabajo])
+    ).all()
+
+    resultado = [
+        {
+            "id": e.id,
+            "nombre": e.nombre,
+            "apellido": e.apellido,
+            "correo": e.correo,
+            "username": e.username,
+            "puesto_trabajo": e.puesto_trabajo
+        }
+        for e in empleados
+    ]
+
+    return jsonify({"empleados_area": resultado}), 200
