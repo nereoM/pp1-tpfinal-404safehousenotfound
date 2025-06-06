@@ -4,21 +4,32 @@
     <meta charset="UTF-8">
     <title>Reporte de Riesgos - {{ empresa }}</title>
     <style>
+        .header {
+            background: {{ color }};
+            color: #fff;
+            padding: 24px 0 16px 0;
+            text-align: center;
+        }
+        .logo { max-height: 60px; margin-bottom: 10px; }
         body { font-family: Arial, sans-serif; margin: 40px; }
-        h1, h2, h3 { color: {{ color }}; }
+        h1 { color: #fff; font-size: 1.8rem; margin-bottom: 0; } 
+        h2, h3 { color: {{ color }}; }
         table { font-size: 11px !important; border-collapse: collapse; width: 100%; margin-bottom: 30px; }
         th, td { font-size: 11px !important; border: 1px solid #ccc; padding: 8px; text-align: center; }
         th { background: {{ color }}; color: white; }
-        .logo { max-height: 60px; margin-bottom: 20px; }
         .grafico { max-width: 500px; margin: 20px 0; }
     </style>
 </head>
 <body>
-    {% if logo_url %}
-        <img src="{{ logo_url }}" class="logo" alt="Logo empresa">
-    {% endif %}
-    <h1>Reporte de Riesgos - {{ empresa }}</h1>
-    <p>Fecha de generación: {{ now.strftime('%d/%m/%Y %H:%M') }}</p>
+    <div class="header">
+        {% if logo_url %}
+            <img src="{{ logo_url }}" class="logo" alt="Logo empresa">
+        {% endif %}
+        <h1>Reporte de Predicción de Riesgos</h1>
+        <div>{{ empresa }}</div>
+        <div style="font-size:14px;">Generado: {{ now.strftime('%d/%m/%Y %H:%M') }}</div>
+    </div>
+
 
     <h2>Resumen de Riesgos</h2>
     <table>

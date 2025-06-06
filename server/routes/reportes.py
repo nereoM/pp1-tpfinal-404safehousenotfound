@@ -86,12 +86,18 @@ def reporte_reclutamiento():
         template = env.get_template("reporte_reclutamiento_profesional.html")
 
         
-        def generar_grafico(datos, campo, titulo, nombre_archivo):
+        def generar_grafico(datos, campo, titulo, nombre_archivo, tipo="bar"):
             etiquetas = [d["oferta"] for d in datos]
             valores = [d[campo] for d in datos]
 
-            fig, ax = plt.subplots()
-            ax.bar(etiquetas, valores, color=color_hex)
+            fig, ax = plt.subplots(figsize=(10, 4))
+
+            if tipo == "bar":
+                ax.bar(etiquetas, valores, color=color_hex)
+            elif tipo == "line":
+                ax.plot(etiquetas, valores, marker='o', linestyle='-', color=color_hex)
+                ax.set_ylim(bottom=0)
+
             ax.set_title(titulo)
             ax.set_ylabel(campo.replace("_", " ").capitalize())
             ax.set_xticks(range(len(etiquetas)))
@@ -106,7 +112,7 @@ def reporte_reclutamiento():
         
         grafico_postulaciones = generar_grafico(datos, "postulaciones", "Postulaciones por Oferta", "postulaciones.png")
         grafico_conversion = generar_grafico(datos, "tasa_conversion", "Tasa de Conversión", "conversion.png")
-        grafico_tiempo = generar_grafico(datos, "tiempo_promedio", "Tiempo Promedio de Postulación", "tiempo.png")
+        grafico_tiempo = generar_grafico(datos, "tiempo_promedio", "Tiempo Promedio de Postulación", "tiempo.png", tipo="line")
 
         now = datetime.now()
 
@@ -121,8 +127,6 @@ def reporte_reclutamiento():
             grafico_tiempo=grafico_tiempo
         )
         
-        TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
-        os.makedirs(TEMP_DIR, exist_ok=True)
         nombre_archivo = f"informe_reclutamiento_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
         ruta_archivo = os.path.abspath(os.path.join(TEMP_DIR, nombre_archivo))
         HTML(string=html_out).write_pdf(ruta_archivo)
@@ -138,7 +142,7 @@ def reporte_reclutamiento():
             try:
                 response = requests.get(preferencia.logo_url)
                 if response.status_code == 200:
-                    ruta_logo = os.path.join("temp", "logo_empresa.png")
+                    ruta_logo = os.path.join(TEMP_DIR, "logo_empresa.png")
                     with open(ruta_logo, "wb") as f:
                         f.write(response.content)
                     img = ExcelImage(ruta_logo)
@@ -218,8 +222,6 @@ def reporte_reclutamiento():
             adjusted_width = max_length + 2
             ws.column_dimensions[col_letter].width = adjusted_width
 
-        TEMP_DIR = os.path.join(os.path.dirname(__file__), '..', 'temp')
-        os.makedirs(TEMP_DIR, exist_ok=True)
         archivo_excel = f"informe_reclutamiento_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         ruta_excel = os.path.abspath(os.path.join(TEMP_DIR, archivo_excel))
         wb.save(ruta_excel)
@@ -974,7 +976,7 @@ def generar_pdf_eficacia(tabla, nombre_empresa, logo_url, color):
         logo_url=logo_url,
         color=color,
         tabla=tabla,
-        fecha=datetime.now().strftime('%d/%m/%Y %H:%M'),
+        fecha=datetime.now(),
         grafico_base64=grafico_base64,
         grafico_torta_base64=grafico_torta_base64,
     )
@@ -993,14 +995,15 @@ def generar_excel_eficacia(tabla, nombre_empresa, logo_url, color_hex):
 
     ws.merge_cells("A1:D1")
     ws["A1"] = f"Reporte de Eficacia - {nombre_empresa}"
-    ws["A1"].font = Font(bold=True, size=14)
+    ws["A1"].font = Font(bold=True, size=14, color="FFFFFF")
     ws["A1"].alignment = Alignment(horizontal="center")
+    ws["A1"].fill = PatternFill(start_color=color_hex, end_color=color_hex, fill_type="solid")
 
     if logo_url:
         try:
             response = requests.get(logo_url)
             img = Image.open(BytesIO(response.content))
-            logo_path = os.path.join("temp", "logo_temp.png")
+            logo_path = os.path.join(TEMP_DIR, "logo_temp.png")
             img.save(logo_path)
             excel_img = ExcelImage(logo_path)
             excel_img.width = 110
@@ -1037,8 +1040,7 @@ def generar_excel_eficacia(tabla, nombre_empresa, logo_url, color_hex):
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
 
-    ruta_temp = os.path.join("temp", "grafico_excel.png")
-    os.makedirs("temp", exist_ok=True)
+    ruta_temp = os.path.join(TEMP_DIR, "grafico_excel.png")
     plt.savefig(ruta_temp)
     plt.close()
 

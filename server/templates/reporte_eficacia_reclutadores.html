@@ -4,9 +4,16 @@
   <meta charset="UTF-8">
   <title>Reporte de Eficacia de Reclutadores</title>
   <style>
+    .header {
+      background: {{ color }};
+      color: #fff;
+      padding: 24px 0 16px 0;
+      text-align: center;
+    }
+    .logo { max-height: 60px; margin-bottom: 10px; }
+
     body { font-family: Arial, sans-serif; margin: 40px; }
-    .logo { max-height: 60px; margin-bottom: 20px; }
-    h1 { color: {{ color }}; font-size: 1.8rem; margin-bottom: 0; }
+    h1 { color: #fff; font-size: 1.8rem; margin-bottom: 0; }
     h2 { color: {{ color }}; font-size: 1.4rem; margin-bottom: 0; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
     th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
@@ -21,11 +28,14 @@
   </style>
 </head>
 <body>
-  {% if logo_url %}
-    <img src="{{ logo_url }}" class="logo" alt="Logo de empresa">
-  {% endif %}
-  <h1>Reporte de Eficacia de Reclutadores - {{ empresa }}</h1>
-  <p>Fecha de creación: {{ fecha }}</p>
+  <div class="header">
+      {% if logo_url %}
+          <img src="{{ logo_url }}" class="logo" alt="Logo empresa">
+      {% endif %}
+      <h1>Reporte de Eficacia de Reclutadores</h1>
+      <div>{{ empresa }}</div>
+      <div style="font-size:14px;">Generado: {{ fecha.strftime('%d/%m/%Y %H:%M') }}</div>
+  </div>
 
   <table>
     <thead>

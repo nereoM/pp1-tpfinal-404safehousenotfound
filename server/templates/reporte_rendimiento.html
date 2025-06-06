@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <title>Reporte de Desempeño</title>
     <style>
+        .header {
+            background: {{ color }};
+            color: #fff;
+            padding: 24px 0 16px 0;
+            text-align: center;
+        }
+        .logo { max-height: 60px; margin-bottom: 10px; }
+        
         :root {
             --main-color: {{ color }};
         }
@@ -22,11 +30,7 @@
             box-shadow: 0 4px 24px 0 #0001;
             padding: 32px 40px 40px 40px;
         }
-        .logo {
-            max-width: 180px;
-            margin-bottom: 24px;
-            display: block;
-        }
+        
         h1 {
             background: var(--main-color);
             color: #fff;
@@ -92,12 +96,17 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="header">
         {% if logo_url %}
             <img src="{{ logo_url }}" class="logo" alt="Logo empresa">
         {% endif %}
-        <h1>Reporte de Desempeño - {{ empresa }}</h1>
+        <h1>Reporte de Predicción de Rendimiento futuro</h1>
+        <div>{{ empresa }}</div>
+        <div style="font-size:14px;">Generado: {{ now.strftime('%d/%m/%Y %H:%M') }}</div>
+    </div>
 
+
+    <div class="container">
         <h2>Ranking de Rendimiento Futuro</h2>
         <table>
             <thead>
