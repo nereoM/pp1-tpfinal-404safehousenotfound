@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { PaperPlaneIcon } from "@radix-ui/react-icons";
 
-// imagenes según expresiones
+const API_URL = import.meta.env.VITE_API_URL;
+
 const expresiones = {
   neutral: "/avatars/ichi-neutral.png",
-  neutral2: "/avatars/ichi-neutral-ojo-cerrado.png"
+  neutral2: "/avatars/ichi-neutral-ojo-cerrado.png",
 };
 
 export default function IchiChatBot({ estado = "neutral" }) {
@@ -14,36 +15,61 @@ export default function IchiChatBot({ estado = "neutral" }) {
   const [mensajes, setMensajes] = useState([
     {
       remitente: "ichi",
-      texto: "Estoy acá si necesitás ayuda. Podés escribirme lo que quieras resolver.",
+      texto:
+        "Estoy acá si necesitás ayuda. Podés escribirme lo que quieras resolver.",
     },
   ]);
-
   const [estadoActual, setEstadoActual] = useState(estado);
 
+  // parpadeo 
   useEffect(() => {
     const intervalo = setInterval(() => {
-      setEstadoActual("neutral2"); // cerrar el ojo
-      setTimeout(() => setEstadoActual("neutral"), 150); // abrirlo rápido
+      setEstadoActual("neutral2");
+      setTimeout(() => setEstadoActual("neutral"), 150);
     }, 5000);
-
     return () => clearInterval(intervalo);
   }, []);
 
-  const enviarMensaje = () => {
-    if (!input.trim()) return;
-    const nuevoMensaje = { remitente: "user", texto: input };
-    setMensajes([...mensajes, nuevoMensaje]);
+  const enviarMensaje = async () => {
+    const textoUser = input.trim();
+    if (!textoUser) return;
+
+    // agregar mensaje de usuario
+    setMensajes((prev) => [
+      ...prev,
+      { remitente: "user", texto: textoUser },
+    ]);
     setInput("");
 
-    setTimeout(() => {
+    // llamada al backend
+    try {
+      const res = await fetch(`${API_URL}/api/chatbot`, {
+        method: "POST",
+        credentials: "include", // envía cookies JWT
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mensaje: textoUser }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMensajes((prev) => [
+          ...prev,
+          { remitente: "ichi", texto: data.respuesta },
+        ]);
+      } else {
+        setMensajes((prev) => [
+          ...prev,
+          {
+            remitente: "ichi",
+            texto: `Error: ${data.error || res.statusText}`,
+          },
+        ]);
+      }
+    } catch (err) {
       setMensajes((prev) => [
         ...prev,
-        {
-          remitente: "ichi",
-          texto: "Podemos pensarlo juntos. Lo importante es avanzar con claridad.",
-        },
+        { remitente: "ichi", texto: "No puedo conectarme al servidor." },
       ]);
-    }, 800);
+    }
   };
 
   return (
@@ -54,9 +80,8 @@ export default function IchiChatBot({ estado = "neutral" }) {
           animate={{ opacity: 1, y: 0 }}
           className="w-80 bg-white rounded-2xl shadow-xl border border-gray-200 flex flex-col overflow-hidden"
         >
-          {/* header chat */}
+          {/* header */}
           <div className="flex items-center gap-2 p-4 border-b">
-           
             <motion.div
               animate={{ y: [0, -1.5, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
@@ -76,7 +101,7 @@ export default function IchiChatBot({ estado = "neutral" }) {
             </button>
           </div>
 
-
+          {/* mensajes */}
           <div className="flex-1 p-4 space-y-2 overflow-y-auto text-sm">
             {mensajes.map((msg, i) => (
               <div
@@ -92,7 +117,7 @@ export default function IchiChatBot({ estado = "neutral" }) {
             ))}
           </div>
 
-          {/* input*/}
+          {/* input */}
           <div className="p-2 border-t flex items-center gap-2">
             <input
               type="text"
@@ -127,7 +152,9 @@ export default function IchiChatBot({ estado = "neutral" }) {
               className="w-10 h-10 rounded-full"
             />
           </motion.div>
-          <span className="text-[10px] font-medium mt-1 text-gray-600">Ichi</span>
+          <span className="text-[10px] font-medium mt-1 text-gray-600">
+            Ichi
+          </span>
         </motion.button>
       )}
     </div>
