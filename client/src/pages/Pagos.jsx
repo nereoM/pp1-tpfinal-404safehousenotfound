@@ -3,6 +3,7 @@ import { useState } from "react";
 export default function Pagos() {
   const API_URL = import.meta.env.VITE_API_URL;
   const [username, setUsername]       = useState("");
+  const [email, setEmail]             = useState(""); // Nuevo estado para email
   const [cardName, setCardName]       = useState("");
   const [cardNumber, setCardNumber]   = useState("");
   const [cardCVV, setCardCVV]         = useState("");
@@ -24,11 +25,15 @@ export default function Pagos() {
     const cvvRegex     = /^\d{3}$/;
     const tiposValidos = ["visa", "mastercard", "amex", "naranja", "cabal"];
 
-    if (!username || !cardName || !companyName) return "Todos los campos son obligatorios.";
+    // Permitir que username o email esté presente, pero al menos uno
+    if ((!username && !email) || !cardName || !companyName)
+      return "Todos los campos son obligatorios.";
 
-    const e1 = validarCampo(username);    if (e1) return e1;
-    const e2 = validarCampo(cardName);    if (e2) return e2;
-    const e3 = validarCampo(companyName); if (e3) return e3;
+    if (username && validarCampo(username)) return validarCampo(username);
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return "El correo electrónico no es válido.";
+    if (cardName && validarCampo(cardName)) return validarCampo(cardName);
+    if (companyName && validarCampo(companyName)) return validarCampo(companyName);
 
     if (!cardRegex.test(cardNumber)) return "Número de tarjeta inválido.";
     if (!cvvRegex.test(cardCVV))       return "El CVV debe tener 3 dígitos.";
@@ -61,7 +66,8 @@ export default function Pagos() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          username,
+          username: username || undefined,
+          email: email || undefined,
           card_name:    cardName,
           card_number:  cardNumber,
           card_cvv:     cardCVV,
@@ -96,7 +102,7 @@ export default function Pagos() {
 
       setSuccess("¡Suscripción y subida de archivos completada con éxito!");
       // reset
-      setUsername(""); setCardName(""); setCardNumber("");
+      setUsername(""); setEmail(""); setCardName(""); setCardNumber("");
       setCardCVV(""); setCardType(""); setCompanyName("");
       setIconFile(null); setCoverFile(null);
     } catch (err) {
@@ -144,7 +150,6 @@ export default function Pagos() {
           <h2 className="text-2xl font-semibold text-indigo-700 mb-4 text-center">
             Datos de suscripción
           </h2>
-
           {error   && <p className="text-red-500 text-center">{error}</p>}
           {success && <p className="text-green-500 text-center">{success}</p>}
 
@@ -152,21 +157,27 @@ export default function Pagos() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="text"
-                placeholder="Nombre de usuario"
+                placeholder="Nombre de usuario (opcional)"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
               />
               <input
-                type="text"
-                placeholder="Empresa"
-                value={companyName}
-                onChange={(e) => setCompanyName(e.target.value)}
+                type="email"
+                placeholder="Correo electrónico (opcional)"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                required
               />
             </div>
+            <input
+              type="text"
+              placeholder="Empresa"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              required
+            />
 
             <input
               type="text"

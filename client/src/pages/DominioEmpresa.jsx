@@ -42,7 +42,7 @@ export default function DomainLogin() {
       <div className="relative flex bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl w-full">
         <div className="w-1/2 p-8">
           <div className="mb-6 text-center">
-            <img src="/iconoblack.png" alt="SIGRH+" className="mx-auto h-19" />
+            <img src="/icono.png" alt="SIGRH+" className="mx-auto h-19" />
           </div>
           <h1 className="text-2xl font-semibold text-gray-800 mb-2 text-center">
             Accede a tu portal de empresa

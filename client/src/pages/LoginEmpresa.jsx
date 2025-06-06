@@ -56,54 +56,55 @@ export default function LoginEmpresa() {
   }, [nombre_empresa]);
 
   // Nuevo handleSubmit asíncrono
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    if (!identifier || !password) {
-      setError("Por favor, completa usuario y contraseña.");
-      return;
-    }
-    setLoading(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  if (!identifier || !password) {
+    setError("Por favor, completa usuario y contraseña.");
+    return;
+  }
+  setLoading(true);
 
-    try {
-      // Login tradicional
-      const res = await fetch(`${API_URL}/auth/login`, {
+  try {
+    // Llamo al endpoint 'login por empresa'
+    const res = await fetch(
+      `${API_URL}/auth/login/${encodeURIComponent(nombre_empresa)}`,
+      {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ username: identifier, password })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Error al iniciar sesión");
-
-      //  Obtener usuario y roles
-      const userRes = await fetch(`${API_URL}/auth/me`, {
-        method: "GET",
-        credentials: "include",
-      });
-      const user = await userRes.json();
-      if (!userRes.ok) throw new Error(user?.error || "No se pudo obtener el usuario");
-
-      localStorage.setItem("rol", user.roles[0]);
-
-      // redirección  rol
-      if (user.roles.includes("admin-404")) {
-        navigate("/admin/home");
-      } else if (user.roles.includes("reclutador")) {
-        navigate("/reclutador/home");
-      } else if (user.roles.includes("manager")) {
-        navigate("/manager/home");
-      } else if (user.roles.includes("admin-emp")) {
-        navigate("/adminemp/home");
-      } else {
-        navigate("/candidato/home");
       }
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Error al iniciar sesión");
+
+    // Si el login es exitoso, pido /auth/me para sacar roles
+    const userRes = await fetch(`${API_URL}/auth/me`, {
+      method: "GET",
+      credentials: "include",
+    });
+    const user = await userRes.json();
+    if (!userRes.ok) throw new Error(user.error || "No se pudo obtener el usuario");
+
+    localStorage.setItem("rol", user.roles[0]);
+
+    // Redirección según rol (igual que antes)
+    if (user.roles.includes("admin-404")) {
+      navigate("/admin/home");
+    } else if (user.roles.includes("reclutador")) {
+      navigate("/reclutador/home");
+    } else if (user.roles.includes("manager")) {
+      navigate("/manager/home");
+    } else if (user.roles.includes("admin-emp")) {
+      navigate("/adminemp/home");
     }
-  };
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-50 px-4">
@@ -122,7 +123,7 @@ export default function LoginEmpresa() {
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="usuario@empresa.com"
-                className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-gray-800 focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
 
@@ -134,8 +135,8 @@ export default function LoginEmpresa() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                placeholder="contraseña"
+                className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 text-gray-800 focus:border-indigo-500 focus:ring-indigo-500"
               />
             </div>
 
