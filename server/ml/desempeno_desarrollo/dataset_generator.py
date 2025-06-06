@@ -335,7 +335,7 @@ def add_risks(ruta_csv, nombre_archivo = "emps_riesgos.csv"):
     print(f"Archivo {nombre_archivo}, columnas de rotacion, despido y renuncia agregadas\n")
     return df, os.path.join(save_path, nombre_archivo)
 
-def generar_dataset_postulaciones(cant_empleados, nombre_archivo="emps_postulaciones.csv"):
+def generate_rot_post_dataset(cant_empleados, nombre_archivo="rot_post_empleados.csv"):
 
     data = {
         'cantidad_postulaciones': [],
@@ -358,7 +358,7 @@ def generar_dataset_postulaciones(cant_empleados, nombre_archivo="emps_postulaci
     print(f"Archivo {nombre_archivo} generado con {cant_empleados} empleados\n")
     return df, os.path.join(save_path, nombre_archivo)
 
-def agregar_riesgo_rotacion(df, nombre_archivo="emps_postulaciones_riesgos.csv"):
+def add_rot_post_risk(df, nombre_archivo="rot_post_with_risks.csv"):
     """
     Agrega una columna 'Riesgo de rotacion' al DataFrame basado en:
     - cantidad_postulaciones: A mayor valor, mayor riesgo.

@@ -271,6 +271,85 @@ def predecir_riesgo_renuncia_individual(
     riesgo_renuncia = modelo.predict(X)[0]
     return riesgo_renuncia
 
+def predecir_rot_post_muchos(df, nombre_archivo_modelo="rotation_postulation_model.pkl"):
+    """
+    Añade una columna 'Riesgo de rotacion predicho' al DataFrame usando el modelo entrenado
+    
+    Args:
+        df: DataFrame con las columnas ['cantidad_postulaciones', 'desempeno_previo']
+        nombre_archivo_modelo: Nombre del archivo del modelo guardado
+        
+    Returns:
+        DataFrame con la columna adicional de predicciones
+    """
+    # Cargar el modelo y el label encoder
+    model_path = os.path.join("server/ml/desempeno_desarrollo/trained_models", nombre_archivo_modelo)
+    try:
+        model, le = joblib.load(model_path)
+    except FileNotFoundError:
+        raise FileNotFoundError(f"No se encontró el modelo en {model_path}. Primero debes entrenar el modelo.")
+    
+    # Preparar los datos para predicción
+    X = df[['cantidad_postulaciones', 'desempeno_previo']]
+    
+    # Hacer predicciones
+    y_pred_encoded = model.predict(X)
+    y_pred = le.inverse_transform(y_pred_encoded)
+    
+    # Añadir predicciones al DataFrame
+    df['Riesgo de rotacion predicho'] = y_pred
+    
+    # Guardar el resultado (opcional)
+    save_path = os.path.join("server/ml/desempeno_desarrollo/data")
+    os.makedirs(save_path, exist_ok=True)
+    nombre_archivo_salida = "rot_post_muchos_predichos.csv"
+    df.to_csv(os.path.join(save_path, nombre_archivo_salida), index=False)
+    
+    print(f"\nPredicciones completadas. Dataset con predicciones guardado en {nombre_archivo_salida}")
+    print("\nDistribución de riesgos predichos:")
+    print(df['Riesgo de rotacion predicho'].value_counts())
+    
+    return df
+
+def predecir_rot_post_individual(empleado_data, modelo_path="server/ml/desempeno_desarrollo/trained_models/rotation_postulation_model.pkl"):
+    """
+    Predice el riesgo de rotación para un empleado individual.
+    
+    Args:
+        empleado_data: Diccionario con los datos del empleado (cantidad_postulaciones y desempeno_previo)
+        modelo_path: Ruta al modelo entrenado
+        
+    Returns:
+        El riesgo de rotación predicho (como string)
+    """
+    try:
+        # Cargar el modelo y el label encoder
+        import joblib
+        model, le = joblib.load(modelo_path)
+        
+        # Crear un DataFrame con los datos del empleado
+        empleado_df = pd.DataFrame([empleado_data])
+        
+        # Asegurarse de que las columnas están en el orden correcto
+        X = empleado_df[['cantidad_postulaciones', 'desempeno_previo']]
+        
+        # Realizar la predicción
+        y_pred_encoded = model.predict(X)
+        riesgo_predicho = le.inverse_transform(y_pred_encoded)[0]
+        
+        # Mostrar resultados por consola
+        print("\n=== Predicción de Riesgo de Rotación ===")
+        print(f"Empleado con:")
+        print(f"- Cantidad de postulaciones: {empleado_data['cantidad_postulaciones']}")
+        print(f"- Desempeño previo: {empleado_data['desempeno_previo']}")
+        print(f"\nRiesgo de rotación predicho: {riesgo_predicho}")
+        
+        return riesgo_predicho
+        
+    except Exception as e:
+        print(f"Error al predecir el riesgo de rotación: {str(e)}")
+        return None
+
 if __name__ == "__main__":
     info_empleados = pd.read_csv(os.path.join(BASE_DIR, 'data/info_empleados.csv'))
     rendFut_predichos_useANDpredict = predecir_rend_futuro(info_empleados)
@@ -331,3 +410,14 @@ if __name__ == "__main__":
 
     riesgo = predecir_riesgo_renuncia_individual(empleado_data)
     print(f"Riesgo de renuncia individual predicho: {riesgo}")
+
+    rot_post_empleados = pd.read_csv(os.path.join(BASE_DIR, 'data/rot_post_empleados.csv'))
+    df = predecir_rot_post_muchos(rot_post_empleados)
+    # Datos del empleado
+    datos_empleado = {
+        "desempeno_previo": 5.69,
+        "cantidad_postulaciones": 6 
+    }
+
+    # Realizar predicción
+    riesgo = predecir_rot_post_individual(datos_empleado)
