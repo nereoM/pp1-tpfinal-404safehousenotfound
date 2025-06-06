@@ -22,6 +22,7 @@ import Clientes from "./pages/Clientes";
 import NotificacionesPage from "./pages/Notificaciones";
 import Precios from "./pages/Precios";
 import Productos from "./pages/Productos";
+import IchiChatBot from "./components/IchiBot";
 
 function App() {
   return (
@@ -51,6 +52,9 @@ function App() {
         <Route path="/reclutador/empleados-riesgo" element={<EmpleadosRiesgo />} />
         <Route path="/notificaciones" element={<NotificacionesPage />} />
       </Routes>
+
+      {/* IchiBot global en todas las páginas */}
+      <IchiChatBot estado="neutral" />
     </BrowserRouter>
   );
 }
