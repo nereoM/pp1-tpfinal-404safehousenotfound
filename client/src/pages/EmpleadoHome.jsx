@@ -15,7 +15,6 @@ import { OfertasRecomendadas } from "../components/OfertasRecomendadas";
 import PageLayout from "../components/PageLayoutCand";
 import { PostulacionesModal } from "../components/PostulacionesModal";
 import { PostularseModal } from "../components/PostularseModal";
-import { ProfileCard } from "../components/ProfileCard";
 import { SearchFilters } from "../components/SearchFilters";
 import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal";
 import { TopBar } from "../components/TopBar";
@@ -242,16 +241,6 @@ export default function EmpleadoHome() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
             <div>
-              <ProfileCard
-                nombre={`${user?.nombre} ${user?.apellido}`}
-                correo={user?.correo}
-                fotoUrl={
-                  user?.foto_url ||
-                  "https://static.vecteezy.com/system/resources/thumbnails/036/594/092/small_2x/man-empty-avatar-photo-placeholder-for-social-networks-resumes-forums-and-dating-sites-male-and-female-no-photo-images-for-unfilled-user-profile-free-vector.jpg"
-                }
-                cvUrl={cvs[0]?.url || null}
-                onEdit={() => setModalEditarPerfil(true)}
-              />
               <div className="mt-3">
                 <label className="block mb-2 text-sm text-gray-600">
                   Seleccionar CV
