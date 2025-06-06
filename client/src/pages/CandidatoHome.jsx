@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { FileUp, Search, Upload } from "lucide-react";
+import { Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { JobCard } from "../components/JobCard";
@@ -180,6 +180,18 @@ export default function CandidatoHome() {
     }, [busquedaConfirmada]);
 
 
+const handleLogout = () => {
+    fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al cerrar sesión");
+        navigate("/");
+      })
+      .catch((err) => console.error("Error al cerrar sesión:", err));
+  };
+    
 useEffect(() => {
   const handleToastEvent = (e) => {
     addToast(e.detail); // muestra el mensaje recibido
@@ -314,7 +326,7 @@ const handlePostularse = async () => {
                 <TopBar
   username={`${user?.nombre} ${user?.apellido}`}
   user={user}
-  onLogout={() => navigate("/login")}
+  onLogout={handleLogout}
   onEditPerfil={() => setModalEditarPerfilOpen(true)}
   onPostulacion={() => setIsPostulacionesModalOpen(true)}
 />

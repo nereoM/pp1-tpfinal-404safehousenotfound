@@ -1,5 +1,5 @@
-import { Bell, Edit, LogOut, FileText, ClipboardList, CreditCard } from "lucide-react";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { Bell, Edit, LogOut } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import isLightColor from "../components/isLightColor";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
@@ -73,7 +73,7 @@ export function TopBar({ username, user, onEditPerfil, onPostulacion }) {
     })
       .then((res) => {
         if (!res.ok) throw new Error("Error al cerrar sesión");
-        navigate("/login");
+        navigate("/");
       })
       .catch((err) => console.error("Error al cerrar sesión:", err));
   };
