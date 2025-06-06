@@ -3,7 +3,7 @@ import string
 import os
 from werkzeug.utils import secure_filename
 from flask import url_for
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 from datetime import datetime as dt
 
@@ -194,8 +194,12 @@ def login():
         # Verificar si el usuario esta activo
         if not user.activo:
             return jsonify({"error": "Usuario inactivo"}), 401
-        
-        licencias = Licencia.query.filter_by(id_empleado=user.id, estado="aprobada").all()
+
+        licencias = Licencia.query.filter(
+            Licencia.id_empleado == user.id,
+            or_(Licencia.estado == "aprobada", Licencia.estado == "activa")
+        ).all()
+
 
         for licencia in licencias:
             if licencia.fecha_fin > dt.now() and licencia.fecha_inicio <= dt.now():
