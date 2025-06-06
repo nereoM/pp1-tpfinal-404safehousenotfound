@@ -8,16 +8,18 @@ from models.schemes import Usuario
 from sqlalchemy.orm import joinedload
 
 
-ORDEN_ROLES = ["admin-emp", "manager", "reclutador", "candidato"]
+ORDEN_ROLES = ["admin-emp", "manager", "reclutador", "candidato", "empleado"]
 
 def obtener_rol_usuario(user_id):
     usuario = Usuario.query.options(joinedload(Usuario.roles)).filter_by(id=user_id).first()
 
     if usuario and usuario.roles:
-        slugs_usuario = [rol.slug for rol in usuario.roles]
+        slugs_usuario = [rol.slug.strip().lower() for rol in usuario.roles]
+        print(f"DEBUG - Roles del usuario {user_id}: {slugs_usuario}")
 
         for slug_prioritario in ORDEN_ROLES:
             if slug_prioritario in slugs_usuario:
+                print(f"DEBUG - Rol prioritario encontrado: {slug_prioritario}")
                 return slug_prioritario
 
     return "desconocido"

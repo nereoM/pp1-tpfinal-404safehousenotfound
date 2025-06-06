@@ -34,8 +34,8 @@ def generar_respuesta_gpt(mensaje, rol):
 - Si el rol SÍ tiene permisos: Responde basándote en el contexto.
 
 ### EJEMPLO:
-Usuario (rol: candidato): "Cómo creo una oferta?"
-Respuesta: "Error de permisos: Tu rol 'candidato' no te permite realizar esta acción."
+Usuario (rol: reclutador, candidato o empleado): "Cómo creo una oferta?"
+Respuesta: "Error de permisos: Tu rol no te permite realizar esta acción."
 """.strip()
 
     # Llamada a Groq (versión depurada)
@@ -51,7 +51,7 @@ Respuesta: "Error de permisos: Tu rol 'candidato' no te permite realizar esta ac
             {"role": "user", "content": mensaje}
         ],
         "temperature": 0.4,
-        "max_tokens": 100
+        "max_tokens": 80
     }
 
     try:
