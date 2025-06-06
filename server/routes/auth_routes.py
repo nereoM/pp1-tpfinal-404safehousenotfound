@@ -201,9 +201,10 @@ def login():
         ).all()
 
 
+        hoy = dt.now().date()
         for licencia in licencias:
-            if licencia.fecha_fin > dt.now() and licencia.fecha_inicio < dt.now():
-                return jsonify({"error": f"El usuario tiene una licencia vigente, cuenta bloqueada hasta: {licencia.fecha_fin}"}), 401
+            if licencia.fecha_inicio.date() <= hoy <= licencia.fecha_fin.date():
+                return jsonify({"error": f"El usuario tiene una licencia vigente, cuenta bloqueada hasta: {licencia.fecha_fin.date()}"}), 401
 
         # Si la contraseña es correcta y el correo está confirmado, generar el token
         roles = [r.slug for r in user.roles]
