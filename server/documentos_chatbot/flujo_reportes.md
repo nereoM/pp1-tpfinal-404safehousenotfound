@@ -28,10 +28,10 @@ Este proceso permite que los usuarios con rol autorizado (por ejemplo, `manager`
 
 | Rol        | Puede generar reportes             |
 |------------|------------------------------------|
-| admin-emp  | ❌ No tiene acceso.               |
-| manager    | ✅ Todos los reportes de su empresa|
-| reclutador | ✅ Todos los reportes menos el de eficacia de reclitadores/analistas |
-| candidato  | ❌ No autorizado        |
+| admin-emp  | No tiene acceso.                   |
+| manager    | Todos los reportes de su empresa   |
+| reclutador | Todos los reportes menos el de eficacia de reclitadores/analistas |
+| candidato  | No autorizado                      |
 
 ## Tecnologías involucradas
 

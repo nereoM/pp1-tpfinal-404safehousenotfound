@@ -8,14 +8,14 @@ Este proceso permite que usuarios con rol `candidato` o `empleado` se postulen a
 
 | Rol        | Acceso a ofertas                            |
 |------------|---------------------------------------------|
-| Candidato  | ✅ Todas las ofertas públicas               |
-| Empleado   | ✅ Solo ofertas de su propia empresa       |
-| Otros      | ❌ No pueden postularse                      |
+| Candidato  | Todas las ofertas públicas                  |
+| Empleado   | Solo ofertas de su propia empresa           |
+| Otros      | No pueden postularse                        |
 
 
 ## Flujo completo
 
-### 1. Subida de CV (Obligatorio antes de postularse)
+## 1. Subida de CV (Obligatorio antes de postularse)
 
 - El usuario debe subir su CV en formato PDF.
 - Accede al botón de "Subir CV" ubicado en la parte superior derecha de la interfaz.
@@ -23,20 +23,20 @@ Este proceso permite que usuarios con rol `candidato` o `empleado` se postulen a
 
 *Si no sube el CV, podrá acceder al listado de ofertas pero no podrá recibir recomendaciones.*
 
-### 2. Visualización de Ofertas
+## 2. Visualización de Ofertas
 
 - **Candidatos**: ven todas las ofertas públicas del sistema.
 - **Empleados**: solo ven las ofertas asociadas a su empresa.
 
 
-### 3. Recomendaciones Personalizadas
+## 3. Recomendaciones Personalizadas
 
 - Una vez subido el CV, el sistema analiza el contenido del mismo.
 - Se genera una lista de **ofertas recomendadas** según varias variables.
 - El usuario puede navegar entre recomendaciones y todas las ofertas disponibles.
 
 
-### 4. Postulación
+## 4. Postulación
 
 - Al hacer clic en una oferta, el usuario ve los detalles.
 - Debe seleccionar un CV de la lista de CVs disponibles (subidos previamente) que le aparecen al momento de postularse.

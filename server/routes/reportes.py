@@ -432,7 +432,7 @@ def reporte_desempeno():
                     logo_img = ExcelImage(logo_path)
                     logo_img.width = 120
                     logo_img.height = 60
-                    ws.add_image(logo_img, "E1")
+                    ws.add_image(logo_img, "A1")
             except Exception as e:
                 print("No se pudo cargar el logo:", e)
 
