@@ -202,7 +202,7 @@ def login():
 
 
         for licencia in licencias:
-            if licencia.fecha_fin > dt.now() and licencia.fecha_inicio <= dt.now():
+            if licencia.fecha_fin > dt.now() and licencia.fecha_inicio < dt.now():
                 return jsonify({"error": f"El usuario tiene una licencia vigente, cuenta bloqueada hasta: {licencia.fecha_fin}"}), 401
 
         # Si la contraseña es correcta y el correo está confirmado, generar el token
