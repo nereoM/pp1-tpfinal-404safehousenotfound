@@ -300,35 +300,14 @@ def grafico_ausencias_base64(data):
     return base64.b64encode(buffer.read()).decode("utf-8")
 
 
-
-    # env = Environment(loader=FileSystemLoader("templates"))
-    # template = env.get_template("reporte_rendimiento.html")
-
-    # if formato == "pdf":
-    #     html_out = template.render(
-    #         empresa=empresa.nombre,
-    #         logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-    #         color=preferencia.color_secundario or "#2E86C1",
-    #         ranking_futuro=ranking_dict,
-    #         grafico_base64=grafico_base64,
-    #         promedios_por_puesto=promedios_por_puesto,
-    #         grafico_puesto_base64=grafico_puesto_base64
-    #     )
-    
-    #     nombre_archivo = f"desempeno_futuro_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    #     ruta_archivo = os.path.join("temp", nombre_archivo)
-    #     os.makedirs("temp", exist_ok=True)
-    #     HTML(string=html_out).write_pdf(ruta_archivo)
-
-    #     return send_file(ruta_archivo, as_attachment=True, download_name=nombre_archivo)
-
-
-
 @reportes_bp.route("/reportes-desempeno", methods=["GET"])
 @role_required(["manager", "reclutador"])
 def reporte_desempeno():
     formato = request.args.get("formato", "pdf")
 
+    ids_str = request.args.get("ids")
+    ids_filtrados = list(map(int, ids_str.split(","))) if ids_str else None
+
     id_manager = get_jwt_identity()
     manager = Usuario.query.get(id_manager)
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
@@ -336,25 +315,29 @@ def reporte_desempeno():
 
     color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
 
-    ranking_futuro = (
-        db.session.query(
-            Usuario.nombre,
-            Usuario.apellido,
-            Usuario.puesto_trabajo,
-            Usuario.username,
-            RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion"),
-            RendimientoEmpleado.clasificacion_rendimiento,
-            Rol.nombre.label("rol")
+    if not ids_filtrados:
+        ranking_futuro = []
+    else:
+        ranking_futuro = (
+            db.session.query(
+                Usuario.nombre,
+                Usuario.apellido,
+                Usuario.puesto_trabajo,
+                Usuario.username,
+                RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion"),
+                RendimientoEmpleado.clasificacion_rendimiento,
+                Rol.nombre.label("rol")
+            )
+            .join(Usuario, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+            .join(Rol, UsuarioRol.id_rol == Rol.id)
+            .filter(Usuario.id_empresa == manager.id_empresa)
+            .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
+            .filter(Usuario.id.in_(ids_filtrados))
+            .order_by(RendimientoEmpleado.rendimiento_futuro_predicho.desc())
+            .limit(10)
+            .all()
         )
-        .join(Usuario, Usuario.id == RendimientoEmpleado.id_usuario)
-        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
-        .join(Rol, UsuarioRol.id_rol == Rol.id)
-        .filter(Usuario.id_empresa == manager.id_empresa)
-        .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
-        .order_by(RendimientoEmpleado.rendimiento_futuro_predicho.desc())
-        .limit(10)
-        .all()
-    )
     
     def clasificar_rendimiento(valor):
         if valor is None:
@@ -381,18 +364,22 @@ def reporte_desempeno():
 
     grafico_base64 = generar_grafico_base64(ranking_dict)
 
-    agrupado_por_puesto = (
-        db.session.query(
-            Usuario.puesto_trabajo,
-            func.avg(RendimientoEmpleado.rendimiento_futuro_predicho).label("promedio")
+    if not ids_filtrados:
+        agrupado_por_puesto = []
+    else:
+        agrupado_por_puesto = (
+            db.session.query(
+                Usuario.puesto_trabajo,
+                func.avg(RendimientoEmpleado.rendimiento_futuro_predicho).label("promedio")
+            )
+            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .filter(Usuario.id_empresa == empresa.id)
+            .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
+            .filter(Usuario.id.in_(ids_filtrados))
+            .group_by(Usuario.puesto_trabajo)
+            .order_by(func.avg(RendimientoEmpleado.rendimiento_futuro_predicho).desc())
+            .all()
         )
-        .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
-        .filter(Usuario.id_empresa == empresa.id)
-        .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
-        .group_by(Usuario.puesto_trabajo)
-        .order_by(func.avg(RendimientoEmpleado.rendimiento_futuro_predicho).desc())
-        .all()
-    )
 
     promedios_por_puesto = [
         {
@@ -535,225 +522,6 @@ def reporte_desempeno():
         return send_file(ruta_excel, as_attachment=True, download_name=archivo_excel)
 
     return {"error": "Formato no soportado"}, 400
-
-
-
-@reportes_bp.route("/reportes-desempeno-analista", methods=["GET"])
-@role_required(["reclutador"])
-def reporte_desempeno_analista():
-    formato = request.args.get("formato", "pdf")
-
-    id_manager = get_jwt_identity()
-    manager = Usuario.query.get(id_manager)
-    preferencia = Preferencias_empresa.query.get(manager.id_empresa)
-    empresa = Empresa.query.get(manager.id_empresa)
-
-    color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
-    
-    ranking_futuro = (
-        db.session.query(
-            Usuario.nombre,
-            Usuario.apellido,
-            Usuario.puesto_trabajo,
-            Usuario.username,
-            RendimientoEmpleado.rendimiento_futuro_predicho.label("prediccion"),
-            RendimientoEmpleado.clasificacion_rendimiento,
-            Rol.nombre.label("rol")
-        )
-        .join(Usuario, Usuario.id == RendimientoEmpleado.id_usuario)
-        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
-        .join(Rol, UsuarioRol.id_rol == Rol.id)
-        .filter(Usuario.id_empresa == manager.id_empresa)
-        .filter(Rol.slug == "empleado")
-        .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
-        .order_by(RendimientoEmpleado.rendimiento_futuro_predicho.desc())
-        .limit(10)
-        .all()
-    )
-    
-    def clasificar_rendimiento(valor):
-        if valor is None:
-            return "Sin datos"
-        if valor >= 8:
-            return "Alto"
-        elif valor >= 5:
-            return "Medio"
-        else:
-            return "Bajo"
-
-    ranking_dict = [
-        {
-            "nombre": r.nombre,
-            "apellido": r.apellido,
-            "puesto": r.puesto_trabajo or "Analista",
-            "rol": r.rol,
-            "username": r.username,
-            "rendimiento_futuro": round(r.prediccion, 2),
-            "clasificacion_rendimiento": r.clasificacion_rendimiento or clasificar_rendimiento(r.prediccion)
-        }
-        for r in ranking_futuro
-    ]
-    
-    grafico_base64 = generar_grafico_base64(ranking_dict)
-
-    agrupado_por_puesto = (
-        db.session.query(
-            Usuario.puesto_trabajo,
-            func.avg(RendimientoEmpleado.rendimiento_futuro_predicho).label("promedio")
-        )
-        .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
-        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
-        .join(Rol, Rol.id == UsuarioRol.id_rol)
-        .filter(Usuario.id_empresa == empresa.id)
-        .filter(Rol.slug == "empleado")
-        .filter(RendimientoEmpleado.rendimiento_futuro_predicho != None)
-        .group_by(Usuario.puesto_trabajo)
-        .order_by(func.avg(RendimientoEmpleado.rendimiento_futuro_predicho).desc())
-        .all()
-    )
-
-    promedios_por_puesto = [
-        {
-            "puesto": row.puesto_trabajo if row.puesto_trabajo else "Analista",
-            "promedio": round(row.promedio, 2)
-        }
-        for row in agrupado_por_puesto
-    ]
-
-    grafico_puesto_base64 = generar_grafico_promedio_puesto_base64(promedios_por_puesto)
-
-    if formato == "pdf":
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), '..', 'templates')))
-        template = env.get_template("reporte_rendimiento.html")
-        html_out = template.render(
-            empresa=empresa.nombre,
-            logo_url=preferencia.logo_url if preferencia and preferencia.logo_url else None,
-            color=preferencia.color_principal if preferencia and preferencia.color_principal else "#2E86C1",            
-            ranking_futuro=ranking_dict,
-            grafico_base64=grafico_base64,
-            promedios_por_puesto=promedios_por_puesto,
-            grafico_puesto_base64=grafico_puesto_base64,
-            now=datetime.now()
-        )
-        nombre_archivo = f"desempeno_futuro_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        ruta_archivo = os.path.abspath(os.path.join(TEMP_DIR, nombre_archivo))
-        HTML(string=html_out).write_pdf(ruta_archivo)
-        return send_file(ruta_archivo, as_attachment=True, download_name=nombre_archivo)
-
-    if formato == "excel":
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Reporte Predicción Rendimiento"
-
-        color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
-
-        # Título y logo
-        ws.merge_cells("A1:D1")
-        ws["A1"] = f"Reporte Predicción de Rendimiento - {empresa.nombre}"
-        ws["A1"].font = Font(bold=True, size=14)
-        ws["A1"].alignment = Alignment(horizontal="center")
-
-        if preferencia and preferencia.logo_url:
-            try:
-                response = requests.get(preferencia.logo_url)
-                if response.status_code == 200:
-                    logo_path = os.path.join(TEMP_DIR, "logo_empresa.png")
-                    with open(logo_path, "wb") as f:
-                        f.write(response.content)
-                    logo_img = ExcelImage(logo_path)
-                    logo_img.width = 120
-                    logo_img.height = 60
-                    ws.add_image(logo_img, "E1")
-            except Exception as e:
-                print("No se pudo cargar el logo:", e)
-
-        # Tabla Ranking
-        ws.append(["", "", "", "", "", ""])
-        ws.append(["#", "Nombre", "Apellido", "Puesto", "Rol", "Usuario", "Rendimiento Futuro", "Clasificación"])
-        for cell in ws[ws.max_row]:
-            cell.font = Font(bold=True)
-            cell.fill = PatternFill(start_color=color, fill_type="solid")
-            cell.alignment = Alignment(horizontal="center")
-
-        for i, fila in enumerate(ranking_dict, start=1):
-            ws.append([
-                i,
-                fila["nombre"],
-                fila["apellido"],
-                fila["puesto"] or "Analista",
-                fila["rol"],
-                fila["username"],
-                fila["rendimiento_futuro"],
-                fila["clasificacion_rendimiento"]
-            ])
-
-        # Tabla Promedios por Puesto
-        ws.append(["", "", "", ""])
-        ws.append(["Puesto", "Promedio de Rendimiento Futuro"])
-        for cell in ws[ws.max_row]:
-            cell.font = Font(bold=True)
-            cell.fill = PatternFill(start_color=color, fill_type="solid")
-            cell.alignment = Alignment(horizontal="center")
-
-        for fila in promedios_por_puesto:
-            ws.append([fila["puesto"], fila["promedio"]])
-
-        # Guardar gráficos dinámicos
-        ruta_grafico1 = os.path.join(TEMP_DIR, "grafico_ranking.png")
-        ruta_grafico2 = os.path.join(TEMP_DIR, "grafico_puesto.png")
-        with open(ruta_grafico1, "wb") as f:
-            f.write(base64.b64decode(grafico_base64))
-        with open(ruta_grafico2, "wb") as f:
-            f.write(base64.b64decode(grafico_puesto_base64))
-
-        img1 = ExcelImage(ruta_grafico1)
-        img2 = ExcelImage(ruta_grafico2)
-        img1.width = img2.width = 600
-        img1.height = img2.height = 300
-        ws.add_image(img1, f"A{ws.max_row + 2}")
-        ws.add_image(img2, f"A{ws.max_row + 20}")
-
-        # Insertar imágenes externas del frontend
-        imagenes_custom = [
-            "cantidad_analistas.png",
-            "distribucion_analistas.png",
-            "promedios_analistas.png",
-            "rendimiento_analistas.png"
-        ]
-        imagenes_path = os.path.join(os.getcwd(), "imagenes_reportes")
-        fila_inicio = ws.max_row + 2
-        columna_inicio = "G"
-
-        for i, nombre in enumerate(imagenes_custom):
-            ruta_imagen = os.path.join(imagenes_path, nombre)
-            if os.path.exists(ruta_imagen):
-                try:
-                    img = ExcelImage(ruta_imagen)
-                    img.width = 600
-                    img.height = 300
-                    celda = f"{columna_inicio}{fila_inicio + i * 18}"
-                    ws.add_image(img, celda)
-                except Exception as e:
-                    print(f"Error insertando imagen {nombre}:", e)
-
-        # Ajustar ancho de columnas
-        for col in ws.columns:
-            max_length = 0
-            col_letter = get_column_letter(col[0].column)
-            for cell in col:
-                if cell.value:
-                    max_length = max(max_length, len(str(cell.value)))
-            ws.column_dimensions[col_letter].width = max_length + 2
-
-        archivo_excel = f"desempeno_futuro_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
-        ruta_excel = os.path.join(TEMP_DIR, archivo_excel)
-        wb.save(ruta_excel)
-
-        return send_file(ruta_excel, as_attachment=True, download_name=archivo_excel)
-
-    return {"error": "Formato no soportado"}, 400
-
-
 
 
 @reportes_bp.route("/reportes-licencias", methods=["GET"])
@@ -930,6 +698,9 @@ def reporte_licencias_manager():
 @role_required(["manager", "reclutador"])
 def reporte_riesgos():
     formato = request.args.get("formato", "pdf")
+    ids_str = request.args.get("ids")
+    ids_filtrados = list(map(int, ids_str.split(","))) if ids_str else None
+    print(ids_filtrados)
 
     id_manager = get_jwt_identity()
     manager = Usuario.query.get(id_manager)
@@ -939,18 +710,24 @@ def reporte_riesgos():
     color_excel = (preferencia.color_principal if preferencia and preferencia.color_principal else "#2E86C1").lstrip("#")
     color_mpl = "#" + color_excel    
 
-    riesgos = db.session.query(
-        Usuario.username,
-        Usuario.puesto_trabajo,
-        Rol.nombre.label("rol"),
-        RendimientoEmpleado.riesgo_despido_predicho,
-        RendimientoEmpleado.riesgo_renuncia_predicho,
-        RendimientoEmpleado.riesgo_rotacion_predicho
-    ).join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)\
-     .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)\
-     .join(Rol, UsuarioRol.id_rol == Rol.id)\
-     .filter(Usuario.id_empresa == empresa.id)\
-     .filter(RendimientoEmpleado.riesgo_despido_predicho != None).all()
+
+    if not ids_filtrados:
+        riesgos = []
+    else:
+        riesgos = db.session.query(
+            Usuario.username,
+            Usuario.puesto_trabajo,
+            Rol.nombre.label("rol"),
+            RendimientoEmpleado.riesgo_despido_predicho,
+            RendimientoEmpleado.riesgo_renuncia_predicho,
+            RendimientoEmpleado.riesgo_rotacion_predicho
+        ).join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)\
+        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)\
+        .join(Rol, UsuarioRol.id_rol == Rol.id)\
+        .filter(Usuario.id_empresa == empresa.id)\
+        .filter(RendimientoEmpleado.riesgo_despido_predicho != None)\
+        .filter(Usuario.id.in_(ids_filtrados))\
+        .all()
 
     resumen_despido = {}
     resumen_renuncia = {}

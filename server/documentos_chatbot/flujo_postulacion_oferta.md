@@ -12,7 +12,6 @@ Este proceso permite que usuarios con rol `candidato` o `empleado` se postulen a
 | Empleado   | ✅ Solo ofertas de su propia empresa       |
 | Otros      | ❌ No pueden postularse                      |
 
----
 
 ## Flujo completo
 
@@ -24,14 +23,11 @@ Este proceso permite que usuarios con rol `candidato` o `empleado` se postulen a
 
 *Si no sube el CV, podrá acceder al listado de ofertas pero no podrá recibir recomendaciones.*
 
----
-
 ### 2. Visualización de Ofertas
 
 - **Candidatos**: ven todas las ofertas públicas del sistema.
 - **Empleados**: solo ven las ofertas asociadas a su empresa.
 
----
 
 ### 3. Recomendaciones Personalizadas
 
@@ -39,7 +35,6 @@ Este proceso permite que usuarios con rol `candidato` o `empleado` se postulen a
 - Se genera una lista de **ofertas recomendadas** según varias variables.
 - El usuario puede navegar entre recomendaciones y todas las ofertas disponibles.
 
----
 
 ### 4. Postulación
 
@@ -52,7 +47,6 @@ Este proceso permite que usuarios con rol `candidato` o `empleado` se postulen a
   - Fecha de postulación
   - Estado inicial (ej: `pendiente` o `en revisión`)
 
----
 
 ## Requisitos previos
 
@@ -60,15 +54,12 @@ Este proceso permite que usuarios con rol `candidato` o `empleado` se postulen a
 - Haber subido un CV o varios validos.
 - Tener acceso a las ofertas (según el rol)
 
----
 
 ## Errores comunes
 
 - No haber subido CV (bloquea todo el flujo)
 - Intentar postularse a ofertas fuera de su empresa (`empleado`)
 - Duplicar postulaciones (el sistema puede prevenirlo)
-
----
 
 ## Resultado esperado
 
