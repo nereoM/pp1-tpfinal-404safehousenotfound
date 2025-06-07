@@ -8,7 +8,7 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
   const [modalDesempeñoOpen, setModalDesempeñoOpen] = useState(false);
   const [rendimiento, setRendimiento] = useState("");
-  
+
   useEffect(() => {
     if (open) {
       empleadoService.obtenerEmpleadosMiArea().then((res) => setEmpleados(res.empleados_area));
@@ -104,8 +104,9 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
 
               <div className="mt-4 flex justify-end gap-2">
                 <button
+                  disabled={rendimiento.length === 0}
                   onClick={handleAsignarDesempeño}
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  className="disabled:opacity-50 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
                 >
                   Aceptar
                 </button>
