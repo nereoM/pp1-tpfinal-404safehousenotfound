@@ -1,9 +1,9 @@
 import { Download } from "lucide-react";
 import { useState } from "react";
 import { DayPicker } from "react-day-picker";
-import { Dialog, DialogContent, DialogTitle } from "../components/shadcn/Dialog";
 import { useLicenciasACargo } from "../services/useLicenciasACargo";
 import MensajeAlerta from "./MensajeAlerta";
+import { Dialog, DialogContent, DialogTitle } from "./shadcn/Dialog";
 
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
@@ -32,6 +32,7 @@ export function LicenciasACargoModal({
   const [modalNegociacionFecha, setModalNegociacionFecha] = useState(false);
   const [descripcionExpandida, setDescripcionExpandida] = useState(null);
   const [motivoExpandido, setMotivoExpandido] = useState(null);
+  const [modalInvalidacionOpen, setModalInvalidacionOpen] = useState(false);
 
   // Filtros
   const [filtroEmpleado, setFiltroEmpleado] = useState("");
@@ -268,7 +269,7 @@ export function LicenciasACargoModal({
                   <td className="px-4 py-2 border align-top max-w-[240px]">
                     <span
                       className={`px-2 py-1 text-xs rounded-full ${licencia.estado === "activa" ||
-                        licencia.estado === "aprobada"
+                        licencia.estado === "aprobada" || licencia.estado === "activa y verificada"
                         ? "bg-green-100 text-green-800"
                         : licencia.estado === "pendiente"
                           ? "bg-yellow-100 text-yellow-800"
@@ -355,6 +356,30 @@ export function LicenciasACargoModal({
                         </button>
                       </div>
                     )}
+                    {licencia.estado === "activa" && (
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() =>
+                            evaluarLicencia({
+                              idLicencia: licencia.id_licencia,
+                              estado: "activa y verificada",
+                            })
+                          }
+                          className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          Verificar
+                        </button>
+                        <button
+                          onClick={() => {
+                            setLicenciaSeleccionada(licencia);
+                            setModalInvalidacionOpen(true);
+                          }}
+                          className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                        >
+                          Invalidar
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               );
@@ -395,6 +420,53 @@ export function LicenciasACargoModal({
                         idLicencia: licenciaSeleccionada.id_licencia,
                       });
                       setModalRechazoOpen(false);
+                    } else {
+                      setError(
+                        "Debe indicar un motivo para rechazar la licencia."
+                      );
+                    }
+                  }}
+                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {modalInvalidacionOpen && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg w-full max-w-md shadow space-y-4">
+              <h2 className="text-lg font-semibold">
+                Indique el motivo de invalidacion de licencia
+              </h2>
+              <textarea
+                className="w-full p-2 border border-gray-300 rounded resize-none"
+                rows="4"
+                placeholder="Las fechas del certificado no coninciden..."
+                value={motivoRechazo}
+                onChange={(e) => {
+                  setMotivoRechazo(e.target.value);
+                  setError("");
+                }}
+              />
+              <MensajeAlerta texto={error} tipo="error" />
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setModalInvalidacionOpen(false)}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => {
+                    if (motivoRechazo.trim()) {
+                      evaluarLicencia({
+                        estado: "invalidada",
+                        idLicencia: licenciaSeleccionada.id_licencia,
+                      });
+                      setModalInvalidacionOpen(false);
                     } else {
                       setError(
                         "Debe indicar un motivo para rechazar la licencia."

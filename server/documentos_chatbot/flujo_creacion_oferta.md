@@ -11,12 +11,14 @@ Este proceso permite que un manager cree una nueva oferta laboral y la asigne a 
 5. La oferta se publica y queda disponible para los candidatos y empleados.
 
 ## Errores comunes
+- No tener rol de manager
 - No seleccionar modalidad laboral.
 - Ingresar salario en formato incorrecto o que el salario mínimo sea mayor al salario máximo.
 - Selección incorrecta de fecha de cierre.
 
 ## Requisitos previos
-- El usuario debe tener rol `manager` y tener sesión iniciada.
+- El usuario debe tener rol manager y tener sesión iniciada.
+- El usuario SI O SI DEBE tener rol manager. MANAGER
 - El backend debe tener conectividad con la base de datos activa.
 
 ## Ejemplo real

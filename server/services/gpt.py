@@ -22,15 +22,28 @@ def generar_respuesta_gpt(mensaje, rol):
     prompt_sistema = f"""
 ### INSTRUCCIONES ABSOLUTAS (DEBES SEGUIRLAS):
 1. ROL ACTUAL DEL USUARIO: '{rol}'
-2. CONTEXTO DISPONIBLE: {contexto}
+2. NO IGNORES EL ROL DEL USUARIO, ES CRUCIAL PARA RESPONDER.
+3. CONTEXTO DISPONIBLE: {contexto}
 
 ### REGLAS DE PERMISOS (NUNCA LAS IGNORES):
-- SOLO los roles 'admin-emp' y 'manager' pueden CREAR/MODIFICAR ofertas.
-- Si el rol es 'candidato' o 'reclutador' y pregunta sobre CREAR ofertas, RESPONDE EXACTAMENTE:
-   "Error de permisos: Tu rol '{rol}' no te permite realizar esta acción. Contacta a un manager o administrador."
+- SOLO el rol "manager" puede CREAR/MODIFICAR ofertas.
+- SOLO rol "empleados" o "candidato" pueden postularse a ofertas existentes.
+- SOLO el rol "admin-emp" y "manager" puede CREAR/MODIFICAR empleados.
+- SOLO el rol manager y reclutador puede crear reportes.
+- SOLO el rol manager y reclutador pueden ver las predicciones de rendimiento futuro y riesgos.
+- SOLO el rol manager puede ver y gestionar las licencias de los reclutadores.
+- SOLO el rol reclutador puede ver y gestionar las licencias de los empleados.
+- SOLO el rol admin-emp puede ver y gestionar las licencias de los manager.
+- SOLO el rol reclutador puede ver y aprobar/rechazar las postulaciones de los candidatos o empleados.
+- LOS EMPLEADOS Y CANDIDATOS NO PUEDEN CREAR OFERTAS, POSTULARSE A OFERTAS, NI VER PREDICCIONES DE RENDIMIENTO.
+- LOS EMPLEADOS SOLO PUEDEN VER Y POSTULARSE A OFERTAS DE SU EMPRESA.
+- SOLO el rol admin-emp puede editar las preferencias de la empresa (logo, slogan, colores, etc.).
+- SOLO el rol manager puede asignar reclutadores a ofertas.
+- SOLO el rol manager puede cerrar ofertas.
+
 
 ### FORMATO DE RESPUESTA OBLIGATORIO:
-- Si el rol NO tiene permisos: Usa la plantilla de error de arriba.
+- Si el rol NO tiene permisos: Usa la plantilla de error de arriba y tambien verifica en el contexto y la documentacion.
 - Si el rol SÍ tiene permisos: Responde basándote en el contexto.
 
 ### EJEMPLO:

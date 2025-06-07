@@ -1521,12 +1521,15 @@ def obtener_notificaciones_no_leidas():
     try:
         id_usuario = get_jwt_identity()
 
-        notificaciones = (
-            Notificacion.query
-            .filter_by(id_usuario=id_usuario, leida=False)
-            .order_by(Notificacion.fecha_creacion.desc())
-            .all()
-        )
+        # Leer el parámetro ?todas=true
+        mostrar_todas = request.args.get("todas", "false").lower() == "true"
+
+        query = Notificacion.query.filter_by(id_usuario=id_usuario)
+
+        if not mostrar_todas:
+            query = query.filter_by(leida=False)
+
+        notificaciones = query.order_by(Notificacion.fecha_creacion.desc()).all()
 
         if not notificaciones:
             return jsonify({"message": "No se encontraron notificaciones no leídas"}), 404

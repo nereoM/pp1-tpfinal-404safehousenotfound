@@ -3,7 +3,7 @@ import { BarChart2, Download, FileLock, FilePlus, FileSearchIcon, FileText, User
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Acciones } from "../components/Acciones.jsx";
-import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
+import { LicenciasACargoModal } from "../components/LicenciasACargoModal.jsx";
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import ModalPostulantes from '../components/ModalPostulantes';
