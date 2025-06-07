@@ -232,26 +232,6 @@ export default function EmpleadosRendimiento() {
                 Rendimiento Futuro de Empleados
             </h2>
 
-            {/* Botones para descargar el reporte */}
-            <div className="flex flex-col sm:flex-row justify-end gap-2 mb-6">
-                <button
-                    onClick={() => descargarReporteDesempeno("excel")}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
-                    title="Descargar reporte de desempeño en Excel"
-                >
-                    <Download className="w-5 h-5" />
-                    Descargar Reporte Excel
-                </button>
-                <button
-                    onClick={() => descargarReporteDesempeno("pdf")}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
-                    title="Descargar reporte de desempeño en PDF"
-                >
-                    <Download className="w-5 h-5" />
-                    Descargar Reporte PDF
-                </button>
-            </div>
-
             {loading ? (
                 <p className="text-center text-lg text-gray-500">Cargando datos de predicción...</p>
             ) : (
@@ -449,6 +429,26 @@ export default function EmpleadosRendimiento() {
                         <div className="mt-2 text-xs text-gray-500 text-center">
                             <b>Nota:</b> Todos los datos y predicciones mostrados en este panel son <b>hipotéticos</b> y generados automáticamente por modelos de predicción. No representan evaluaciones reales ni decisiones efectivas de RRHH.
                         </div>
+                    </div>
+
+                    {/* Botones para descargar el reporte */}
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 mb-6">
+                        <button
+                            onClick={() => descargarReporteDesempeno("excel")}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                            title="Descargar reporte de desempeño en Excel"
+                        >
+                            <Download className="w-5 h-5" />
+                            Descargar Reporte Excel
+                        </button>
+                        <button
+                            onClick={() => descargarReporteDesempeno("pdf")}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                            title="Descargar reporte de desempeño en PDF"
+                        >
+                            <Download className="w-5 h-5" />
+                            Descargar Reporte PDF
+                        </button>
                     </div>
 
                     <motion.div
