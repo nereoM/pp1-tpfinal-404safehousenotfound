@@ -320,7 +320,7 @@ export default function ManagerHome() {
     color_principal: preferencias.estilos?.color_principal ?? "#2563eb",
     color_secundario: preferencias.estilos?.color_secundario ?? "#f3f4f6",
     color_texto: preferencias.estilos?.color_texto ?? "#000000",
-    slogan: preferencias.estilos?.slogan ?? "Bienvenido al panel de Empleado",
+    slogan: preferencias.estilos?.slogan ?? "Bienvenido al panel de Manager",
     logo_url: preferencias.estilos?.logo_url ?? null,
   };
 

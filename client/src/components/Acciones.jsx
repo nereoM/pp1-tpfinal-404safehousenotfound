@@ -28,7 +28,7 @@ export function Acciones({ estilos, acciones }) {
               textAlign: "center",
             }}
           >
-            Acciones disponibles: Administrador de Empresa
+            Acciones disponibles
           </h2>
           <section
             className="flex justify-end items-center gap-2"
