@@ -218,6 +218,7 @@ class RendimientoEmpleado(db.Model):
     riesgo_despido_predicho = db.Column(db.String(50), nullable=True)
     riesgo_renuncia_predicho = db.Column(db.String(50), nullable=True)
     clasificacion_rendimiento = db.Column(db.String(50), nullable=True)
+    desempeno_real = db.Column(db.Float, nullable=True)
     fecha_calculo_rendimiento = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
 
     # Relación con Usuario
