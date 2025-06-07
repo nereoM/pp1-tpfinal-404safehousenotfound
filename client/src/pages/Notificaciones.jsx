@@ -89,7 +89,7 @@ export default function NotificacionesPage() {
         const res1 = await fetch(
           `${
             import.meta.env.VITE_API_URL
-          }/api/notificaciones-${endpointBase}-no-leidas`,
+          }/api/notificaciones-${endpointBase}-no-leidas?todas=true`,
           { credentials: "include" }
         );
         const json = await res1.json();
