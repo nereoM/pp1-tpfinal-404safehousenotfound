@@ -9,6 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AccionesSinSeccion } from "../components/AccionesSinSeccion";
+import { GestionarDesempeñoEmpleadosModal } from "../components/GestionarDesempeñoEmpleadosModal";
 import { LicenciasModal } from "../components/LicenciasModal";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil";
 import { OfertasRecomendadas } from "../components/OfertasRecomendadas";
@@ -23,6 +24,15 @@ import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { useOfertasRecomendadas } from "../hooks/useOfertasRecomendadas";
 import { authService } from "../services/authService";
 import { empleadoService } from "../services/empleadoService";
+
+const jefeRoles = [
+  "Jefe de Tecnología y Desarrollo",
+  "Jefe de Administración y Finanzas",
+  "Jefe Comercial y de Ventas",
+  "Jefe de Marketing y Comunicación",
+  "Jefe de Industria y Producción",
+  "Jefe de Servicios Generales y Gastronomía"
+];
 
 export default function EmpleadoHome() {
   const [loading, setLoading] = useState(true);
@@ -42,12 +52,15 @@ export default function EmpleadoHome() {
   /** @type {[CV[]]} */
   const [cvs, setCvs] = useState([]);
 
+  console.log({ user });
+
   // Modales
   const [modalPostulaciones, setModalPostulaciones] = useState(false);
   const [modalSolicitarLicencia, setmodalSolicitarLicencia] = useState(false);
   const [modalLicencias, setModalLicencias] = useState(false);
   const [modalEditarPefil, setModalEditarPerfil] = useState(false);
   const [modalImageFile, setModalImageFile] = useState(null);
+  const [modalGestionarDesempeño, setModalGestionarDesempeño] = useState(false);
 
   // Custom Hooks
   const { ofertas, ofertasIsLoading, ofertasError, handlerAplicarFiltros } =
@@ -135,7 +148,13 @@ export default function EmpleadoHome() {
       descripcion: "Accede al listado de tus postulaciones.",
       onClick: () => setModalPostulaciones(true),
     },
-  ];
+     jefeRoles.includes(user.puesto_trabajo) && {
+      icon: SquareChartGanttIcon,
+      titulo: "Asignar desempeño",
+      descripcion: "Gestiona el desempeño de los empleados de tu área",
+      onClick: () => setModalGestionarDesempeño(true),
+    },
+  ].filter(Boolean);
 
   const handleUploadCv = () => {
     empleadoService
@@ -368,6 +387,11 @@ export default function EmpleadoHome() {
           {modalPostulaciones && (
             <PostulacionesModal onClose={() => setModalPostulaciones(false)} />
           )}
+
+          <GestionarDesempeñoEmpleadosModal
+            onOpenChange={setModalGestionarDesempeño}
+            open={modalGestionarDesempeño}
+          />
 
           <ModalParaEditarPerfil
             isOpen={modalEditarPefil}

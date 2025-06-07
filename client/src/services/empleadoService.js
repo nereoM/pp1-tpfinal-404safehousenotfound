@@ -246,4 +246,37 @@ export const empleadoService = {
     const data = await fetcher({ url, options })
     return data
   },
+  /**
+   * Obtiene los empleados del área del jefe autenticado.
+   *
+   */
+  async obtenerEmpleadosMiArea() {
+    const url = `${API_URL}/api/empleados-mi-area`;
+
+    const data = await fetcher({ url });
+    return data;
+  },
+  /**
+   * Registra el rendimiento de un empleado dentro del área del jefe autenticado.
+   *
+   * @param {Object} params
+   * @param {number} params.id_empleado - ID del empleado a calificar.
+   * @param {number|string} params.rendimiento - Valor numérico del rendimiento (0.0 a 10.0).
+   *
+   * @returns {Promise<Object>} Confirmación de registro de rendimiento.
+   */
+  async establecerRendimientoEmpleado({ id_empleado, rendimiento }) {
+    const url = `${API_URL}/api/establecer-rendimiento-empleado`;
+
+    const options = {
+      method: "POST",
+      body: JSON.stringify({ id_empleado, rendimiento }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+
+    const data = await fetcher({ url, options });
+    return data;
+  },
 };

@@ -34,37 +34,37 @@ export async function login(data) {
 
 export const authService = {
   /**
- * Obtiene la información del usuario autenticado mediante JWT.
- *
- * @returns {Promise<Usuario>} Información del usuario
- */
+   * Obtiene la información del usuario autenticado mediante JWT.
+   *
+   * @returns {Promise<Usuario>} Información del usuario
+   */
   async obtenerInfoUsuario() {
-    const url = `${API_URL}/auth/me`
+    const url = `${API_URL}/auth/me`;
 
-    const data = await fetcher({ url })
-    return data
+    const data = await fetcher({ url });
+    return data;
   },
   async logout() {
-    const url = `${API_URL}/auth/logout`
+    const url = `${API_URL}/auth/logout`;
 
     const options = {
-      method: "POST"
-    }
+      method: "POST",
+    };
 
-    await fetcher({ url, options })
+    await fetcher({ url, options });
   },
   async updateProfile({ email, password, username }) {
-    const url = `${API_URL}/auth/update-profile`
+    const url = `${API_URL}/auth/update-profile`;
 
     const options = {
       method: "PUT",
       body: JSON.stringify({ email, password, username }),
       headers: {
-        "Content-Type": "application/json"
-      }
-    }
+        "Content-Type": "application/json",
+      },
+    };
 
-    const data = await fetcher({ url, options })
-    return data
-  }
-}
+    const data = await fetcher({ url, options });
+    return data;
+  },
+};

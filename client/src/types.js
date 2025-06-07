@@ -25,7 +25,8 @@
  * @property {string} apellido - apellido del usuario
  * @property {string} username - username
  * @property {string} foto_url - url de la foto de perfil
- */
+ * @property {string} puesto_trabajo - puesto de trabajo del empleado
+*/
 
 
 /**
