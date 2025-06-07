@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
 import { NotificationActive } from "../components/notifications/NotificationActive";
@@ -58,9 +58,52 @@ const initialNotificaciones = [
   },
 ];
 
+function mapNotificacionApiToFrontend(n) {
+  return {
+    id: n.id.toString(),
+    titulo: n.mensaje,
+    contenido: n.mensaje,
+    opened: n.leida,
+    fecha_creacion: n.fecha_creacion,
+  };
+}
+
 export default function NotificacionesPage() {
-  const [notificaciones, setNotificaciones] = useState(initialNotificaciones);
+  const [notificaciones, setNotificaciones] = useState([]);
   const [notificacionActiva, setNotificacionActiva] = useState(null);
+
+  const rol = localStorage.getItem("rol") || "reclutador";
+
+  const endpointBase =
+    {
+      candidato: "candidato",
+      manager: "manager",
+      "admin-emp": "admin-emp",
+      reclutador: "reclutador",
+      empleado: "empleado",
+    }[rol] || "reclutadores";
+
+  useEffect(() => {
+    const fetchNotificaciones = async () => {
+      try {
+        const res1 = await fetch(
+          `${
+            import.meta.env.VITE_API_URL
+          }/api/notificaciones-${endpointBase}-no-leidas`,
+          { credentials: "include" }
+        );
+        const json = await res1.json();
+        const mapped = json.notificaciones.map(mapNotificacionApiToFrontend);
+        setNotificaciones(mapped);
+      } catch (e) {
+        console.error("Error al traer notificaciones", e);
+      }
+    };
+
+    fetchNotificaciones();
+    const interval = setInterval(fetchNotificaciones, 2000);
+    return () => clearInterval(interval);
+  }, [endpointBase]);
 
   const handleSelect = (id) => {
     setNotificaciones((prev) =>
