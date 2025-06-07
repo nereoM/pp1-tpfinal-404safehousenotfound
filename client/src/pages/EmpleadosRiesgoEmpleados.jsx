@@ -233,25 +233,6 @@ export default function EmpleadosRiesgo() {
                 Predicción de Riesgos y Rendimiento de Empleados
             </h2>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-2 mb-6">
-                <button
-                    onClick={() => descargarReporteRiesgos("excel")}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
-                    title="Descargar reporte de riesgos en Excel"
-                >
-                    <Download className="w-5 h-5" />
-                    Descargar Reporte Excel
-                </button>
-                <button
-                    onClick={() => descargarReporteRiesgos("pdf")}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
-                    title="Descargar reporte de riesgos en PDF"
-                >
-                    <Download className="w-5 h-5" />
-                    Descargar Reporte PDF
-                </button>
-            </div>
-
             {loading ? (
                 <p className="text-center text-lg text-gray-500">Cargando datos de predicción...</p>
             ) : (
@@ -381,6 +362,25 @@ export default function EmpleadosRiesgo() {
                                 <b>Nota:</b> Todos los datos y predicciones mostrados en este panel son <b>hipotéticos</b> y generados automáticamente por modelos de predicción. No representan evaluaciones reales ni decisiones efectivas de RRHH.
                             </div>
                         </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row justify-end gap-2 mb-6">
+                        <button
+                            onClick={() => descargarReporteRiesgos("excel")}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                            title="Descargar reporte de riesgos en Excel"
+                        >
+                            <Download className="w-5 h-5" />
+                            Descargar Reporte Excel
+                        </button>
+                        <button
+                            onClick={() => descargarReporteRiesgos("pdf")}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                            title="Descargar reporte de riesgos en PDF"
+                        >
+                            <Download className="w-5 h-5" />
+                            Descargar Reporte PDF
+                        </button>
                     </div>
 
                     <motion.div
