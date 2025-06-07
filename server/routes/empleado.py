@@ -1106,6 +1106,7 @@ def responder_sugerencia_licencia(id_licencia):
         "message": f"Sugerencia {'aceptada' if aceptacion else 'rechazada'} correctamente",
         "estado_sugerencia": licencia.estado_sugerencia
     }), 200
+    
 
 @empleado_bp.route("/empleados-mi-area", methods=["GET"])
 @role_required(["empleado"])

@@ -25,6 +25,7 @@ from models.schemes import (
 )
 from werkzeug.utils import secure_filename
 from flasgger import swag_from
+from ml.desempeno_desarrollo.predictions import predecir_rot_post_individual
 
 reclutador_bp = Blueprint("reclutador", __name__)
 
@@ -951,6 +952,21 @@ def obtener_empleados_riesgo_futuro():
         datos_empleados = []
 
         for empleado, rendimiento in empleados:
+            historial = sorted(empleado.historial_rendimiento_manual, key=lambda x: x.fecha_calculo, reverse=True)
+            empleado_data = []
+            cantidad_postulaciones = obtener_cantidad_postulaciones(empleado.id)
+            if historial:
+                ultimo_rendimiento_manual = historial[0].rendimiento
+                empleado_data.append({
+                    "cantidad_postulaciones": cantidad_postulaciones,
+                    "desempeno_previo": ultimo_rendimiento_manual
+                })
+                riesgo_rotacion_intencional = predecir_rot_post_individual(empleado_data)
+            else:
+                ultimo_rendimiento_manual = "-"
+                riesgo_rotacion_intencional = "-"
+            
+            
             datos_empleados.append({
                 "id_usuario": empleado.id,
                 "nombre": empleado.nombre,
@@ -961,13 +977,16 @@ def obtener_empleados_riesgo_futuro():
                 "ausencias_injustificadas": rendimiento.ausencias_injustificadas,
                 "llegadas_tarde": rendimiento.llegadas_tarde,
                 "salidas_tempranas": rendimiento.salidas_tempranas,
-                "puesto": empleado.puesto_trabajo,
+                "puesto": empleado.puesto_trabajo if empleado.puesto_trabajo else "Analista",                
                 "riesgo_rotacion_predicho": rendimiento.riesgo_rotacion_predicho,
                 "riesgo_despido_predicho": rendimiento.riesgo_despido_predicho,
                 "riesgo_renuncia_predicho": rendimiento.riesgo_renuncia_predicho,
                 "rendimiento_futuro_predicho": rendimiento.rendimiento_futuro_predicho,
                 "clasificacion_rendimiento": clasificar_rendimiento(rendimiento.rendimiento_futuro_predicho),
-                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento
+                "fecha_calculo_rendimiento": rendimiento.fecha_calculo_rendimiento,
+                "ultimo_rendimiento_manual": ultimo_rendimiento_manual,
+                "cantidad_postulaciones": cantidad_postulaciones,
+                "riesgo_rotacion_intencional": riesgo_rotacion_intencional
             })
 
         resumen_rendimiento = {
@@ -1006,6 +1025,14 @@ def obtener_empleados_riesgo_futuro():
     except Exception as e:
         print(f"Error en /empleados-riesgo-analistas: {e}")
         return jsonify({"error": str(e)}), 500
+    
+def obtener_cantidad_postulaciones(id_empleado):
+    cantidad = (
+        db.session.query(db.func.count(Job_Application.id))
+        .filter(Job_Application.id_candidato == id_empleado)
+        .scalar()
+    )
+    return cantidad
     
 @reclutador_bp.route("/notificar-bajo-rendimiento-empleados/<int:id_empleado>", methods=["POST"])
 @role_required(["reclutador"])

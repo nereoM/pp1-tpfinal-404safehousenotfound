@@ -214,6 +214,7 @@ class RendimientoEmpleado(db.Model):
     salidas_tempranas = db.Column(db.Integer, nullable=True)
     rendimiento_futuro_predicho = db.Column(db.Float, nullable=True)
     riesgo_rotacion_predicho = db.Column(db.String(50), nullable=True)
+    riesgo_rotacion_intencional = db.Column(db.String(50), nullable=True)
     riesgo_despido_predicho = db.Column(db.String(50), nullable=True)
     riesgo_renuncia_predicho = db.Column(db.String(50), nullable=True)
     clasificacion_rendimiento = db.Column(db.String(50), nullable=True)
