@@ -1164,3 +1164,87 @@ def empleados_mi_area():
     ]
 
     return jsonify({"empleados_area": resultado}), 200
+
+from datetime import datetime
+
+@empleado_bp.route("/establecer-rendimiento-empleado", methods=["POST"])
+@role_required(["empleado"])
+def establecer_rendimiento_empleado():
+    data = request.get_json()
+    id_empleado = data.get("id_empleado")
+    rendimiento = data.get("rendimiento")
+
+    # Validación básica
+    if id_empleado is None or rendimiento is None:
+        return jsonify({"error": "Faltan datos requeridos (id_empleado, rendimiento)"}), 400
+
+    try:
+        rendimiento = float(rendimiento)
+    except ValueError:
+        return jsonify({"error": "El rendimiento debe ser un número"}), 400
+
+    if rendimiento < 0.0 or rendimiento > 10.0:
+        return jsonify({"error": "El rendimiento debe estar entre 0.0 y 10.0"}), 400
+
+    # Solo dos decimales
+    rendimiento = round(rendimiento, 2)
+
+    # Mapear jefe a área y puestos del área
+    area_puestos = {
+        "Jefe de Tecnología y Desarrollo": [
+            "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer",
+            "DevOps Engineer", "Data Engineer", "Ingeniero de Machine Learning",
+            "Analista de Datos", "QA Automation Engineer", "Soporte Técnico",
+            "Administrador de Base de Datos", "Administrador de Redes", "Especialista en Seguridad Informática"
+        ],
+        "Jefe de Administración y Finanzas": [
+            "Analista Contable", "Contador Público", "Analista de Finanzas",
+            "Administrativo/a", "Asistente Contable"
+        ],
+        "Jefe Comercial y de Ventas": [
+            "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial",
+            "Supervisor de Ventas", "Asesor Comercial"
+        ],
+        "Jefe de Marketing y Comunicación": [
+            "Especialista en Marketing Digital", "Analista de Marketing",
+            "Community Manager", "Diseñador Gráfico", "Responsable de Comunicación"
+        ],
+        "Jefe de Industria y Producción": [
+            "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta",
+            "Ingeniero de Procesos", "Encargado de Logística"
+        ],
+        "Jefe de Servicios Generales y Gastronomía": [
+            "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza"
+        ]
+    }
+
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe:
+        return jsonify({"error": "Usuario jefe no encontrado"}), 404
+
+    if jefe.puesto_trabajo not in area_puestos:
+        return jsonify({"error": "No tienes permisos para calificar empleados"}), 403
+
+    empleado = Usuario.query.get(id_empleado)
+    if not empleado:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    # Validar que el empleado pertenece a la misma empresa y área
+    if empleado.id_empresa != jefe.id_empresa or empleado.puesto_trabajo not in area_puestos[jefe.puesto_trabajo]:
+        return jsonify({"error": "No puedes calificar a este empleado"}), 403
+
+    # Registrar el rendimiento
+    nuevo_registro = HistorialRendimientoEmpleadoManual(
+        id_empleado=id_empleado,
+        fecha=datetime.now(),
+        rendimiento=rendimiento
+    )
+    db.session.add(nuevo_registro)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Rendimiento registrado correctamente",
+        "id_empleado": id_empleado,
+        "rendimiento": rendimiento
+    }), 201
