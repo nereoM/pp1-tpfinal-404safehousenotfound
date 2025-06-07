@@ -6,24 +6,27 @@ import { empleadoService } from "../services/empleadoService";
 export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
   const [empleados, setEmpleados] = useState([]);
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
-  const [modalDesempeñoOpen, setModalDesempeñoOpen] = useState(false);
   const [rendimiento, setRendimiento] = useState("");
+  const [topMessage, setTopMessage] = useState("");
 
   useEffect(() => {
+    setEmpleadoSeleccionado(null)
     if (open) {
-      empleadoService.obtenerEmpleadosMiArea().then((res) => setEmpleados(res.empleados_area));
+      empleadoService
+        .obtenerEmpleadosMiArea()
+        .then((res) => setEmpleados(res.empleados_area));
     }
   }, [open]);
 
   const handleAsignarDesempeño = async () => {
     try {
-      await empleadoService.establecerRendimientoEmpleado({
+      const response = await empleadoService.establecerRendimientoEmpleado({
         id_empleado: empleadoSeleccionado.id,
         rendimiento: parseFloat(rendimiento),
       });
-      setEmpleadoSeleccionado(null);
+      setTopMessage(response.message);
       setRendimiento("");
-      setModalDesempeñoOpen(false);
+      setEmpleadoSeleccionado(null);
     } catch (error) {
       console.error("Error al asignar desempeño al empleado:", error);
       alert("Ocurrió un error al asignar el desempeño.");
@@ -36,6 +39,12 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
         <h2 className="text-2xl font-semibold mb-4 text-center">
           Empleados a cargo
         </h2>
+
+        {topMessage && (
+          <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
+            {topMessage}
+          </div>
+        )}
 
         {empleados.length === 0 ? (
           <div className="flex flex-col gap-4 justify-center items-center text-gray-500">
@@ -66,7 +75,6 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
                     <button
                       onClick={() => {
                         setEmpleadoSeleccionado(emp);
-                        setModalDesempeñoOpen(true);
                       }}
                       className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
                     >
@@ -79,7 +87,7 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
           </table>
         )}
 
-        {modalDesempeñoOpen && empleadoSeleccionado && (
+        {empleadoSeleccionado && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-2xl w-[90%] max-w-lg">
               <h3 className="text-lg font-semibold mb-4 text-center">
@@ -113,7 +121,6 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
                 <button
                   onClick={() => {
                     setEmpleadoSeleccionado(null);
-                    setModalDesempeñoOpen(false);
                     setRendimiento("");
                   }}
                   className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
