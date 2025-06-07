@@ -1241,7 +1241,7 @@ def establecer_rendimiento_empleado():
     # Registrar el rendimiento
     nuevo_registro = HistorialRendimientoEmpleadoManual(
         id_empleado=id_empleado,
-        fecha=datetime.now(),
+        fecha_calculo=datetime.now(),
         rendimiento=rendimiento
     )
     db.session.add(nuevo_registro)
