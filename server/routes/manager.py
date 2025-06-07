@@ -460,13 +460,17 @@ def asignar_analista_a_oferta():
     #    ), 400
     
     # Validar que la oferta NO tenga otro analista asignado
-    analista_existente_oferta = Oferta_analista.query.filter_by(id_oferta=oferta.id).first()
-    if analista_existente_oferta:
-        return jsonify(
-            {"error": "La oferta ya tiene un analista asignado. No se puede asignar otro."}
-        ), 400
+    # analista_existente_oferta = Oferta_analista.query.filter_by(id_oferta=oferta.id).first()
+    # if analista_existente_oferta:
+    #     return jsonify(
+    #         {"error": "La oferta ya tiene un analista asignado. No se puede asignar otro."}
+    #     ), 400
 
-    oferta_analista = Oferta_analista(id_oferta=oferta.id, id_analista=analista.id)
+    oferta_analista = Oferta_analista(
+    id_oferta=oferta.id,
+    id_analista=analista.id,
+    estado='asignada'  # ✅ Estado explícito
+    )
     db.session.add(oferta_analista)
     db.session.commit()
 
@@ -1548,11 +1552,37 @@ def obtener_ofertas_libres_reclutadores():
 
     return jsonify({"ofertas_libres_reclutadores": resultado}), 200
 
+@manager_bp.route('/ofertas-libres', methods=['GET'])
+@role_required(["manager"])
+def obtener_ids_ofertas_libres():
+    id_manager = get_jwt_identity()
+    
+    reclutadores = Usuario.query.filter_by(id_superior=id_manager).all()
+    ids_reclutadores = [r.id for r in reclutadores]
+
+    if not ids_reclutadores:
+        return jsonify({"libres": []})  # ✅ que devuelva lista vacía
+
+    info_ofertas_libres = (
+        Oferta_analista.query
+        .filter_by(estado="libre")
+        .filter(Oferta_analista.id_analista.in_(ids_reclutadores))
+        .all()
+    )
+    ids_ofertas_libres = [oa.id_oferta for oa in info_ofertas_libres]
+
+    return jsonify({"libres": ids_ofertas_libres})
+
+
 @manager_bp.route('/ofertas-asignadas', methods=['GET'])
 @role_required(["manager"])
 def obtener_ofertas_asignadas():
     try:
-        asignaciones = db.session.query(Oferta_analista.id_oferta, Oferta_analista.id_analista).all()
+        asignaciones = db.session.query(
+            Oferta_analista.id_oferta,
+            Oferta_analista.id_analista,
+            Oferta_analista.estado  # ✅ INCLUIMOS EL ESTADO
+        ).all()
         
         # 📦 PRINT DETALLADO PARA DEBUG VISUAL
         print("\n" + "="*50)
@@ -1560,13 +1590,17 @@ def obtener_ofertas_asignadas():
         print("="*50)
         if not asignaciones:
             print("⚠️  No se encontraron asignaciones registradas.")
-        for id_oferta, id_analista in asignaciones:
-            print(f"🟢 Oferta ID: {id_oferta}\n🔵 Analista ID: {id_analista}\n" + "-"*30)
+        for id_oferta, id_analista, estado in asignaciones:
+            print(f"🟢 Oferta ID: {id_oferta}\n🔵 Analista ID: {id_analista}\n📌 Estado: {estado}\n" + "-"*30)
         print("="*50 + "\n")
 
         return jsonify([
-            {"id_oferta": id_oferta, "id_analista": id_analista}
-            for id_oferta, id_analista in asignaciones
+            {
+                "id_oferta": id_oferta,
+                "id_analista": id_analista,
+                "estado": estado  # ✅ LO DEVOLVEMOS AL CLIENTE
+            }
+            for id_oferta, id_analista, estado in asignaciones
         ])
     except Exception as e:
         print("❌ Error al obtener asignaciones:", str(e))

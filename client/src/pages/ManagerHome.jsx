@@ -39,41 +39,45 @@ function Toast({ toasts, removeToast }) {
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: 80, scale: 0.95 }}
             transition={{ duration: 0.25 }}
-            className={`min-w-[260px] max-w-xs px-4 py-3 rounded shadow-lg text-white font-semibold flex items-center gap-2
-              ${toast.type === "success" ? "bg-green-600" : "bg-red-600"}`}
-            onClick={() => removeToast(toast.id)}
             role="alert"
+            className={`relative min-w-[260px] max-w-xs px-4 py-3 rounded shadow-lg text-white font-semibold flex items-start gap-2 ${
+              toast.type === "success" ? "bg-green-600" : "bg-red-600"
+            }`}
           >
-            {toast.type === "success" ? (
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            )}
-            <span>{toast.message}</span>
+            {/* Icono + mensaje */}
+            <div className="flex items-start gap-2 pr-6">
+              {toast.type === "success" ? (
+                <svg
+                  className="w-5 h-5 text-white mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <svg
+                  className="w-5 h-5 text-white mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
+              <span className="whitespace-pre-line">{toast.message}</span>
+            </div>
+
+            {/* Botón de cerrar */}
+            <button
+              onClick={() => removeToast(toast.id)}
+              className="absolute top-2 right-2 text-white hover:text-gray-200"
+              aria-label="Cerrar"
+            >
+              ✖
+            </button>
           </motion.div>
         ))}
       </AnimatePresence>
@@ -130,6 +134,9 @@ export default function ManagerHome() {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [ofertasFiltradas, setOfertasFiltradas] = useState([]);
 
+  
+  const [ofertasLibres, setOfertasLibres] = useState(new Set());
+
   useEffect(() => {
     let filtradas = ofertas;
     if (filtroNombre)
@@ -177,10 +184,21 @@ export default function ManagerHome() {
     const obtenerOfertasAsignadas = async () => {
       try {
         const response = await managerService.obtenerOfertasAsignadas();
-        setOfertasAsignadas(
-          new Set(response.data.map((item) => Number(item.id_oferta)))
+
+        // ✅ Primero vemos qué llegó
+        console.log("🧾 Datos crudos asignaciones:", response.data);
+
+        // ✅ Solo asignadas
+        const asignadas = new Set(
+          response.data
+            .filter((item) => item.estado === "asignada")
+            .map((item) => Number(item.id_oferta))
         );
-        console.log("🟩 Ofertas asignadas:", response.data);
+
+        setOfertasAsignadas(asignadas);
+
+        // ✅ Mostramos qué quedó en el set
+        console.log("🟩 OfertasAsignadas Set:", asignadas);
       } catch (error) {
         console.error("❌ Error al obtener ofertas asignadas:", error);
       }
@@ -191,21 +209,50 @@ export default function ManagerHome() {
     }
   }, [modalVerOfertasOpen]);
 
+
+
+  useEffect(() => {
+    const cargarOfertasLibres = async () => {
+      try {
+        const res = await fetch(`${API_URL}/ofertas-libres`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+
+        // 🔁 Si data.libres es una lista de IDs (números o strings)
+        const libresFiltradas = data.libres
+          .map((id) => Number(id))
+          .filter((id) => !ofertasAsignadas.has(id)); // ✅ excluí las que están asignadas
+
+        setOfertasLibres(new Set(libresFiltradas));
+        console.log("🟨 Ofertas libres (filtradas):", libresFiltradas);
+      } catch (err) {
+        console.error("Error cargando ofertas libres", err);
+      }
+    };
+
+    if (modalVerOfertasOpen) {
+      cargarOfertasLibres();
+    }
+  }, [modalVerOfertasOpen, ofertasAsignadas]); // ✅ importante: depende de ofertasAsignadas
+
+  
   // Toast state
   const [toasts, setToasts] = useState([]);
   const toastIdRef = useRef(0);
 
   // Toast helpers
-  const showToast = useCallback(
-    (message, type = "success", duration = 3500) => {
-      const id = ++toastIdRef.current;
-      setToasts((prev) => [...prev, { id, message, type }]);
+  const showToast = useCallback((message, type = "success") => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, message, type }]);
+
+    if (type === "error") {
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, duration);
-    },
-    []
-  );
+      }, 3000); // 3 segundos
+    }
+  }, []);
+  
   const removeToast = (id) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
 
@@ -512,6 +559,17 @@ export default function ManagerHome() {
 
       if (res.ok) {
         showToast(data.message, "success");
+
+        // ✅ Marcar como asignada
+        setOfertasAsignadas((prev) => new Set(prev).add(ofertaId));
+
+        // ✅ Eliminar de la lista de "libres"
+        setOfertasLibres((prev) => {
+          const nuevo = new Set(prev);
+          nuevo.delete(ofertaId);
+          return nuevo;
+        });
+
 
         //  marcar como asignada
         setOfertasAsignadas((prev) => new Set(prev).add(ofertaId));
@@ -941,13 +999,11 @@ export default function ManagerHome() {
                       </thead>
                       <tbody>
                         {ofertasFiltradas.map((o) => {
-                          const estaAsignada = ofertasAsignadas.has(
-                            Number(o.id_oferta)
-                          ); // 🔁 importante: forzamos a number
-                          const analistaSeleccionado =
-                            selectedAnalistas[o.id_oferta]; // 🧠 analista seleccionado del dropdown
+                          const id = Number(o.id_oferta);
+                          const estaAsignada = ofertasAsignadas.has(id);
+                          const estaLibre = ofertasLibres.has(id); // sigue existiendo pero se chequea después
+                          const analistaSeleccionado = selectedAnalistas[o.id_oferta];
 
-                          // 🎨 Lógica de color e ícono
                           let claseColor = "";
                           let icono = "";
                           let tooltip = "";
@@ -957,13 +1013,16 @@ export default function ManagerHome() {
                             icono = "🛑";
                             tooltip = "Oferta cerrada";
                           } else if (estaAsignada) {
+                            // 🟩 Prioridad: si está asignada, se pinta de verde SIEMPRE
                             claseColor = "bg-green-100 text-green-800";
                             icono = "✅";
                             tooltip = "Analista asignado";
-                          } else if (
-                            analistaSeleccionado &&
-                            analistaSeleccionado !== ""
-                          ) {
+                          } else if (estaLibre) {
+                            // 🟨 Solo si no está asignada
+                            claseColor = "bg-yellow-100 text-yellow-800";
+                            icono = "⚠️";
+                            tooltip = "Oferta libre (sin analista)";
+                          } else if (analistaSeleccionado) {
                             claseColor = "bg-orange-200 text-orange-800";
                             icono = "⏳";
                             tooltip = "Analista seleccionado pero no asignado";
@@ -973,16 +1032,12 @@ export default function ManagerHome() {
                             tooltip = "Sin analista asignado";
                           }
 
-                          // 🧪 DEBUG opcional
                           console.log(
-                            `Oferta ${o.id_oferta}: asignada=${estaAsignada}, seleccion=${analistaSeleccionado}`
+                            `Oferta ${o.id_oferta}: asignada=${estaAsignada}, libre=${estaLibre}, seleccion=${analistaSeleccionado}`
                           );
 
                           return (
-                            <tr
-                              key={o.id_oferta}
-                              className={`border-t ${claseColor}`}
-                            >
+                            <tr key={o.id_oferta} className={`border-t ${claseColor}`}>
                               <td className="px-4 py-2 flex items-center gap-2">
                                 <span title={tooltip}>{icono}</span> {o.nombre}
                               </td>
@@ -991,13 +1046,10 @@ export default function ManagerHome() {
                                 <select
                                   value={selectedAnalistas[o.id_oferta] || ""}
                                   onChange={(e) =>
-                                    handleSelectAnalista(
-                                      o.id_oferta,
-                                      e.target.value
-                                    )
+                                    handleSelectAnalista(o.id_oferta, e.target.value)
                                   }
                                   className="border px-2 py-1 rounded mr-2 text-black"
-                                  disabled={!o.is_active || estaAsignada} // desactivado si cerrada o ya asignada
+                                  disabled={!o.is_active || estaAsignada}
                                 >
                                   <option value="">Seleccione analista</option>
                                   {analistas.map((a) => (
@@ -1013,15 +1065,15 @@ export default function ManagerHome() {
                                 >
                                   Asignar
                                 </button>
-                                {o.is_active !== false && (
+                                {o.is_active && (
                                   <button
                                     onClick={() => cerrarOferta(o.id_oferta)}
-                                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700 transition"
+                                    className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-700"
                                   >
                                     Cerrar
                                   </button>
                                 )}
-                                {o.is_active === false && (
+                                {!o.is_active && (
                                   <span className="ml-2 text-xs text-red-600 font-semibold">
                                     Oferta cerrada
                                   </span>
