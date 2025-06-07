@@ -233,7 +233,12 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                     type="number"
                                                     min={0}
                                                     value={row.horas_capacitacion}
-                                                    onChange={e => handleChange(rows.indexOf(row), "horas_capacitacion", e.target.value)}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        if (val === "" || Number(val) >= 0) {
+                                                            handleChange(rows.indexOf(row), "horas_capacitacion", val);
+                                                        }
+                                                    }}
                                                     className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                                 />
                                             </td>
@@ -242,7 +247,12 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                     type="number"
                                                     min={0}
                                                     value={row.horas_extra_finde}
-                                                    onChange={e => handleChange(rows.indexOf(row), "horas_extra_finde", e.target.value)}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        if (val === "" || Number(val) >= 0) {
+                                                            handleChange(rows.indexOf(row), "horas_extra_finde", val);
+                                                        }
+                                                    }}
                                                     className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                                 />
                                             </td>
@@ -251,7 +261,12 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                     type="number"
                                                     min={0}
                                                     value={row.ausencias_injustificadas}
-                                                    onChange={e => handleChange(rows.indexOf(row), "ausencias_injustificadas", e.target.value)}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        if (val === "" || Number(val) >= 0) {
+                                                            handleChange(rows.indexOf(row), "ausencias_injustificadas", val);
+                                                        }
+                                                    }}
                                                     className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                                 />
                                             </td>
@@ -260,7 +275,12 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                     type="number"
                                                     min={0}
                                                     value={row.llegadas_tarde}
-                                                    onChange={e => handleChange(rows.indexOf(row), "llegadas_tarde", e.target.value)}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        if (val === "" || Number(val) >= 0) {
+                                                            handleChange(rows.indexOf(row), "llegadas_tarde", val);
+                                                        }
+                                                    }}
                                                     className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                                 />
                                             </td>
@@ -269,7 +289,12 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                                                     type="number"
                                                     min={0}
                                                     value={row.salidas_tempranas}
-                                                    onChange={e => handleChange(rows.indexOf(row), "salidas_tempranas", e.target.value)}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        if (val === "" || Number(val) >= 0) {
+                                                            handleChange(rows.indexOf(row), "salidas_tempranas", val);
+                                                        }
+                                                    }}
                                                     className="w-24 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300 transition"
                                                 />
                                             </td>
