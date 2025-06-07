@@ -13,7 +13,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GestionUsuarios from "../components/GestionUsuarios.jsx";
-import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
+import { LicenciasACargoModal } from "../components/LicenciasACargoModal.jsx";
 import ModalOferta from "../components/ModalOferta";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayout";

@@ -10,7 +10,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Acciones } from "../components/Acciones.jsx";
 import GestionUsuarios from "../components/GestionUsuarios";
-import { LicenciasACargoModal } from "../components/LicenciasEmpleadosReclutadoresModal.jsx";
+import { LicenciasACargoModal } from "../components/LicenciasACargoModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayout";

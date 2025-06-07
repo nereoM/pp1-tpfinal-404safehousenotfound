@@ -109,6 +109,6 @@ export function useLicenciasACargo({ service }) {
     licenciaSeleccionada,
     setLicenciaSeleccionada,
     sugerirFechas,
-    setMotivoRechazo
+    setMotivoRechazo,
   };
 }
