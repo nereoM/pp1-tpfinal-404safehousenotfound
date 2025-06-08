@@ -10,7 +10,7 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
   const [topMessage, setTopMessage] = useState("");
 
   useEffect(() => {
-    setEmpleadoSeleccionado(null)
+    setEmpleadoSeleccionado(null);
     if (open) {
       empleadoService
         .obtenerEmpleadosMiArea()
@@ -24,6 +24,13 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
         id_empleado: empleadoSeleccionado.id,
         rendimiento: parseFloat(rendimiento),
       });
+      setEmpleados((prevState) =>
+        prevState.map((empleado) =>
+          empleado.id !== empleadoSeleccionado.id
+            ? empleado
+            : { ...empleado, ultimo_rendimiento: rendimiento }
+        )
+      );
       setTopMessage(response.message);
       setRendimiento("");
       setEmpleadoSeleccionado(null);
@@ -35,7 +42,7 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="text-black w-[95vw] max-w-[1000px]">
+      <DialogContent className="text-black w-[95vw] max-w-[1200px]">
         <h2 className="text-2xl font-semibold mb-4 text-center">
           Empleados a cargo
         </h2>
@@ -60,6 +67,7 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
                 <th className="p-2 border">Correo</th>
                 <th className="p-2 border">Username</th>
                 <th className="p-2 border">Puesto</th>
+                <th className="p-2 border">Ultimo Rendimiento</th>
                 <th className="p-2 border">Acciones</th>
               </tr>
             </thead>
@@ -71,6 +79,9 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
                   <td className="p-2 border">{emp.correo}</td>
                   <td className="p-2 border">{emp.username}</td>
                   <td className="p-2 border">{emp.puesto_trabajo}</td>
+                  <td className="p-2 border text-center">
+                    {emp.ultimo_rendimiento}
+                  </td>
                   <td className="p-2 border text-center">
                     <button
                       onClick={() => {
