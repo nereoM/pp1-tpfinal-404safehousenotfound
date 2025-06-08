@@ -644,7 +644,8 @@ export default function AdminEmpHome() {
           {modalLicenciasOpen && (
             <LicenciasACargoModal
               service={adminEmpService}
-              onClose={() => setModalLicenciasOpen(false)}
+              open={modalLicenciasOpen}
+              onOpenChange={setModalLicenciasOpen}
             />
           )}
 

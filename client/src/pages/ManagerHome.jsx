@@ -29,6 +29,17 @@ import { LicenciasModal } from "../components/LicenciasModal.jsx";
 
 // Toast system
 function Toast({ toasts, removeToast }) {
+
+    // 🔧 useEffect para eliminar solo los que tienen autoClose === true
+  useEffect(() => {
+    const timers = toasts
+      .filter((t) => t.autoClose)
+      .map((toast) =>
+        setTimeout(() => removeToast(toast.id), 3000)
+      );
+    return () => timers.forEach(clearTimeout);
+  }, [toasts]);
+
   return (
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 items-end">
       <AnimatePresence>
@@ -73,7 +84,7 @@ function Toast({ toasts, removeToast }) {
             {/* Botón de cerrar */}
             <button
               onClick={() => removeToast(toast.id)}
-              className="absolute top-2 right-2 text-white hover:text-gray-200"
+              className="absolute top-2 right-2 text-white hover:text-white text-lg font-bold"
               aria-label="Cerrar"
             >
               ✖
@@ -242,14 +253,14 @@ export default function ManagerHome() {
   const toastIdRef = useRef(0);
 
   // Toast helpers
-  const showToast = useCallback((message, type = "success") => {
+  const showToast = useCallback((message, type = "success", autoClose = true) => {
     const id = ++toastIdRef.current;
-    setToasts((prev) => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type, autoClose }]);
 
-    if (type === "error") {
+    if (autoClose) {
       setTimeout(() => {
         setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, 3000); // 3 segundos
+      }, 3000);
     }
   }, []);
   
@@ -405,11 +416,12 @@ export default function ManagerHome() {
       if (res.ok) {
         showToast(
           `Analista creado: ${data.credentials.username}\nContraseña temporal: ${data.credentials.password}`,
-          "success"
+          "success",
+          false // 🔧 Esto evita que se borre solo
         );
         setFormAnalista({ nombre: "", apellido: "", username: "", email: "" });
       } else {
-        showToast(`Error: ${data.error}`, "error");
+        showToast(`Error: ${data.error}`, "error"); // 🔧 Se borra solo por defecto
       }
     } catch (err) {
       showToast("Error al conectar con el servidor", "error");

@@ -763,7 +763,7 @@ export default function ReclutadorHome() {
 
               {/* añadir etiqueta */}
               <div className="mb-4">
-                {nuevasEtiquetas.length < 3 ? (
+                {nuevasEtiquetas.length >  0 ? (
                   <>
                     <label className="block text-sm font-medium mb-1 text-black">
                       Añadir etiqueta
@@ -802,11 +802,7 @@ export default function ReclutadorHome() {
                       </button>
                     </div>
                   </>
-                ) : (
-                  <p className="text-sm text-red-600">
-                    Has alcanzado el máximo de 3 etiquetas.
-                  </p>
-                )}
+                ) : null}
               </div>
 
 
