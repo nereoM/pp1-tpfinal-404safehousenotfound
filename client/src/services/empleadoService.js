@@ -17,7 +17,13 @@ export const empleadoService = {
     const data = await fetcher({ url, options });
     return data;
   },
-  async solicitarLicencia({ tipoLicencia, descripcion, certificadoUrl, fechaInicio, fechaFin }) {
+  async solicitarLicencia({
+    tipoLicencia,
+    descripcion,
+    certificadoUrl,
+    fechaInicio,
+    fechaFin,
+  }) {
     const url = `${API_URL}/api/solicitar-licencia`;
 
     const options = {
@@ -26,7 +32,7 @@ export const empleadoService = {
         description: descripcion,
         certificado_url: certificadoUrl,
         start_date: fechaInicio,
-        end_date: fechaFin
+        end_date: fechaFin,
       }),
       method: "POST",
       headers: {
@@ -222,7 +228,7 @@ export const empleadoService = {
     return data;
   },
   async responderSugerenciaLicencia({ licenciaId, aceptacion }) {
-    const url = `${API_URL}/api/licencia-${licenciaId}/respuesta-sugerencia`
+    const url = `${API_URL}/api/licencia-${licenciaId}/respuesta-sugerencia`;
 
     const options = {
       method: "PUT",
@@ -232,19 +238,8 @@ export const empleadoService = {
       },
     };
 
-    const data = await fetcher({ url, options })
-    return data
-  },
-  async cancelarLicencia({ licenciaId }) {
-    // TODO
-    const url = `${API_URL}/api/licencia-${licenciaId}/cancelar`
-
-    const options = {
-      method: "PUT",
-    };
-
-    const data = await fetcher({ url, options })
-    return data
+    const data = await fetcher({ url, options });
+    return data;
   },
   /**
    * Obtiene los empleados del área del jefe autenticado.
@@ -276,6 +271,16 @@ export const empleadoService = {
       },
     };
 
+    const data = await fetcher({ url, options });
+    return data;
+  },
+  async cancelarLicencia({ idLicencia }) {
+    const url = `${API_URL}/api/licencia-${idLicencia}/cancelar`;
+
+    const options = {
+      method: "PUT",
+    };
+    
     const data = await fetcher({ url, options });
     return data;
   },

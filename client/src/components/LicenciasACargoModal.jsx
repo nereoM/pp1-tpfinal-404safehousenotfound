@@ -42,6 +42,8 @@ export function LicenciasACargoModal({
 
   // Filtrado de licencias
   const licenciasFiltradas = licencias.filter((item) => {
+    if(item.licencia.estado === "cancelada") return false
+
     const licencia = item.licencia;
     const empleado = licencia.empleado;
     const empleadoOk = filtroEmpleado

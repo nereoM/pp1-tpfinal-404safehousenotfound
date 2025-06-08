@@ -91,7 +91,7 @@ export const reclutadorService = {
     estado,
     fechaInicioSugerida,
     fechaFinSugerida,
-    motivo
+    motivo,
   }) {
     const url = `${API_URL}/api/licencia-${idLicencia}-empleado/evaluacion`;
 
@@ -112,7 +112,7 @@ export const reclutadorService = {
     return data;
   },
   async responderSugerenciaLicencia({ licenciaId, aceptacion }) {
-    const url = `${API_URL}/api/licencia-${licenciaId}-reclutador/respuesta-sugerencia`
+    const url = `${API_URL}/api/licencia-${licenciaId}-reclutador/respuesta-sugerencia`;
 
     const options = {
       method: "PUT",
@@ -122,7 +122,17 @@ export const reclutadorService = {
       },
     };
 
-    const data = await fetcher({ url, options })
-    return data
-  }
+    const data = await fetcher({ url, options });
+    return data;
+  },
+  async cancelarLicencia({ idLicencia }) {
+    const url = `${API_URL}/api/licencia-${idLicencia}-reclutador/cancelar`;
+
+    const options = {
+      method: "PUT",
+    };
+
+    const data = await fetcher({ url, options });
+    return data;
+  },
 };

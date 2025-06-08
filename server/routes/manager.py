@@ -2685,3 +2685,49 @@ def eval_licencia(id_licencia):
             "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
         }
     }), 200
+
+@manager_bp.route("/licencia-<int:id_licencia>-manager/cancelar", methods=["PUT"])
+@role_required(["manager"])
+def cancelar_licencia(id_licencia):
+    """
+    Permite a un manager cancelar una solicitud de licencia.
+    La licencia solo puede ser cancelada si su estado actual es 'sugerencia' o 'activa'.
+    No requiere cuerpo de JSON.
+    """
+    id_empleado = get_jwt_identity()
+
+    licencia = Licencia.query.filter_by(id=id_licencia, id_empleado=id_empleado).first()
+
+    if not licencia:
+        return jsonify(
+            {
+                "error": "Solicitud de licencia no encontrada o no pertenece a este empleado."
+            }
+        ), 404
+
+    allowed_states_for_cancellation = ["pendiente", "activa"]
+    if licencia.estado not in allowed_states_for_cancellation:
+        return jsonify(
+            {
+                "error": f"La licencia no puede ser cancelada. Su estado actual es '{licencia.estado}'. Solo se pueden cancelar licencias en estado '{' o '.join(allowed_states_for_cancellation)}'."
+            }
+        ), 400
+
+    # Change the state to "cancelada"
+    licencia.estado = "cancelada"
+    licencia.motivo_rechazo = (
+        "Cancelado por el empleado."  # Optional: Add a default reason
+    )
+
+    try:
+        db.session.commit()
+        return jsonify(
+            {
+                "message": "Solicitud de licencia cancelada exitosamente.",
+                "id_licencia": licencia.id,
+                "nuevo_estado": licencia.estado,
+            }
+        ), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error al cancelar la licencia: {str(e)}"}), 500

@@ -9,17 +9,26 @@ export function LicenciasModal({ service, open, onOpenChange }) {
   const [modalSugerenciaAbierto, setModalSugerenciaAbierto] = useState(false);
   const [motivoExpandido, setMotivoExpandido] = useState(null); // ✅ AGREGADO
   const [descripcionExpandida, setDescripcionExpandida] = useState(null); // ✅ AGREGADO
+  const [topMessage, setTopMessage] = useState("");
 
   useEffect(() => {
-    service.misLicencias().then(setLicencias);
-  }, [service]);
+    setTopMessage("")
+    if(open){
+      service.misLicencias().then(setLicencias);
+    }
+  }, [service, open]);
+
+  const licenciasFiltradas = licencias.filter(licencia => licencia.estado !== "cancelada")
 
   const handleCancelarLicencia = async (idLicencia) => {
     if (confirm("¿Estás seguro que deseas cancelar esta licencia?")) {
       try {
-        await service.cancelarLicencia({ idLicencia });
-        const nuevasLicencias = await service.misLicencias();
-        setLicencias(nuevasLicencias);
+        service
+          .cancelarLicencia({ idLicencia })
+          .then((res) => setTopMessage(res.message));
+        setLicencias((prevState) =>
+          prevState.filter((licencia) => licencia.id_licencia !== idLicencia)
+        );
       } catch (error) {
         console.error("Error al cancelar la licencia:", error);
         alert("Ocurrió un error al cancelar la licencia.");
@@ -61,12 +70,16 @@ export function LicenciasModal({ service, open, onOpenChange }) {
           Mis Licencias
         </h2>
 
-        {licencias.length === 0 ? (
+        {topMessage && (
+          <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
+            {topMessage}
+          </div>
+        )}
+
+        {licenciasFiltradas.length === 0 ? (
           <div className="flex flex-col gap-4 justify-center items-center text-gray-500">
             <FileX2 />
-            <p>
-              No tienes licencias registradas.
-            </p>
+            <p>No tienes licencias registradas.</p>
           </div>
         ) : (
           <table className="w-full table-auto border border-gray-300 mb-4 text-sm">
@@ -82,7 +95,7 @@ export function LicenciasModal({ service, open, onOpenChange }) {
               </tr>
             </thead>
             <tbody>
-              {licencias.map((licencia, idx) => {
+              {licenciasFiltradas.map((licencia, idx) => {
                 const {
                   tipo,
                   descripcion,
@@ -138,7 +151,9 @@ export function LicenciasModal({ service, open, onOpenChange }) {
                     <td className="p-2 border capitalize align-top">
                       <span
                         className={`px-2 py-1 text-xs rounded-full ${
-                          estado === "activa" || estado === "aprobada" || estado === "activa y verificada"
+                          estado === "activa" ||
+                          estado === "aprobada" ||
+                          estado === "activa y verificada"
                             ? "bg-green-100 text-green-800"
                             : estado === "pendiente"
                             ? "bg-yellow-100 text-yellow-800"

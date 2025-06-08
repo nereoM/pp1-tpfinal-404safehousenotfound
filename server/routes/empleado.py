@@ -1,21 +1,31 @@
+import json
+import os
+from datetime import datetime, timezone
+
+from auth.decorators import role_required
+from flasgger import swag_from
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from models.extensions import db
-from models.schemes import Empresa, Licencia, Usuario, Oferta_laboral, CV, Job_Application, Notificacion, HistorialRendimientoEmpleadoManual
-from auth.decorators import role_required
-import os
-from werkzeug.utils import secure_filename
-from datetime import datetime, timezone
-from flasgger import swag_from
-from sqlalchemy import or_, func, desc
-from ml.modelo import modelo_sbert
+from flask_mail import Message
 from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
 from ml.matching_semantico import dividir_cv_en_partes
+from ml.modelo import modelo_sbert
+from models.extensions import db, mail
+from models.schemes import (
+    CV,
+    Empresa,
+    HistorialRendimientoEmpleadoManual,
+    Job_Application,
+    Licencia,
+    Notificacion,
+    Oferta_laboral,
+    Usuario,
+)
 from sklearn.metrics.pairwise import cosine_similarity
-import json
+from sqlalchemy import desc, func, or_
+from werkzeug.utils import secure_filename
+
 from .notificacion import crear_notificacion
-from flask_mail import Message
-from models.extensions import mail
 
 empleado_bp = Blueprint("empleado", __name__)
 
@@ -43,6 +53,7 @@ def allowed_file(filename):
 @role_required(["empleado"])
 def empleado_home():
     return jsonify({"message": "Bienvenido al Inicio de Empleado"}), 200
+
 
 # @swag_from("../docs/empleado/solicitar-licencia.yml")
 # @empleado_bp.route("/solicitar-licencia", methods=["POST"])
@@ -91,7 +102,7 @@ def empleado_home():
 #         }
 #     ), 201
 
-from datetime import datetime, timezone, timedelta
+from datetime import timedelta
 
 # @swag_from("../docs/empleado/solicitar-licencia.yml")
 # @empleado_bp.route("/solicitar-licencia", methods=["POST"])
@@ -214,9 +225,11 @@ ALLOWED_EXTENSIONS = {"pdf"}
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+
 def allowed_image(filename):
     allowed_extensions = {"png", "jpg", "jpeg", "gif"}
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
+
 
 @swag_from("../docs/empleado/subir-certificado.yml")
 @empleado_bp.route("/subir-certificado-emp", methods=["POST"])
@@ -252,7 +265,8 @@ def subir_certificado_generico():
             "certificado_url": file_url,
         }
     ), 200
-    
+
+
 @swag_from("../docs/empleado/ver-ofertas-empresa.yml")
 @empleado_bp.route("/ver-ofertas-empresa", methods=["GET"])
 @role_required(["empleado"])
@@ -323,7 +337,12 @@ def recomendar_ofertas():
             db.session.query(Oferta_laboral)
             .filter(Oferta_laboral.is_active == True)
             .filter(
-                or_(*[Oferta_laboral.palabras_clave.ilike(f"%{palabra}%") for palabra in palabras_clave_cv])
+                or_(
+                    *[
+                        Oferta_laboral.palabras_clave.ilike(f"%{palabra}%")
+                        for palabra in palabras_clave_cv
+                    ]
+                )
             )
             .order_by(func.rand())
             .limit(20)
@@ -341,7 +360,9 @@ def recomendar_ofertas():
             porcentaje_palabras = int((coincidencias / total_palabras) * 100)
 
             if porcentaje_palabras >= 40:
-                print(f"Coincidencias encontradas en texto plano: {porcentaje_palabras}%")
+                print(
+                    f"Coincidencias encontradas en texto plano: {porcentaje_palabras}%"
+                )
 
                 vectores_cv = modelo_sbert.encode(partes_cv)
                 vector_keywords = modelo_sbert.encode(" ".join(palabras_clave))
@@ -366,6 +387,7 @@ def recomendar_ofertas():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @swag_from("../docs/empleado/subir-imagen.yml")
 @empleado_bp.route("/subir-image-empleado", methods=["POST"])
@@ -409,7 +431,8 @@ def upload_image():
         ), 201
 
     return jsonify({"error": "Formato de imagen no permitido"}), 400
-    
+
+
 @swag_from("../docs/empleado/subir-cv.yml")
 @empleado_bp.route("/upload-cv-empleado", methods=["POST"])
 @role_required(["empleado"])
@@ -457,6 +480,7 @@ def upload_cv():
 
     return jsonify({"error": "Formato de archivo no permitido"}), 400
 
+
 @empleado_bp.route("/info-empleado", methods=["GET"])
 @jwt_required()
 @swag_from("../docs/empleado/info-empleado.yml")
@@ -472,6 +496,7 @@ def obtener_nombre_apellido_empleado():
         "username": empleado.username,
         "correo": empleado.correo,
     }
+
 
 @swag_from("../docs/empleado/ofertas-filtradas.yml")
 @empleado_bp.route("/ofertas-filtradas-empleado", methods=["GET"])
@@ -503,8 +528,11 @@ def obtener_ofertas_filtradas():
         print("Error en /ofertas-filtradas:", e)
         return jsonify({"error": str(e)}), 500
 
+
 @swag_from("../docs/empleado/ofertas-por-empresa.yml")
-@empleado_bp.route("/empresas-empleado/<string:nombre_empresa>/ofertas", methods=["GET"])
+@empleado_bp.route(
+    "/empresas-empleado/<string:nombre_empresa>/ofertas", methods=["GET"]
+)
 @role_required(["empleado"])
 def obtener_ofertas_por_nombre_empresa(nombre_empresa):
     # Buscar la empresa por su nombre
@@ -548,7 +576,7 @@ def obtener_ofertas_por_nombre_empresa(nombre_empresa):
     ), 200
 
 
-@swag_from('../docs/empleado/mis-cvs.yml')
+@swag_from("../docs/empleado/mis-cvs.yml")
 @empleado_bp.route("/mis-cvs-empleado", methods=["GET"])
 @role_required(["empleado"])
 def listar_cvs():
@@ -571,7 +599,8 @@ def listar_cvs():
         ]
     ), 200
 
-@swag_from('../docs/empleado/postularme.yml')
+
+@swag_from("../docs/empleado/postularme.yml")
 @empleado_bp.route("/postularme-empleado/<int:id_oferta>", methods=["POST"])
 @role_required(["empleado"])
 def postularme(id_oferta):
@@ -594,10 +623,10 @@ def postularme(id_oferta):
     oferta = Oferta_laboral.query.get(id_oferta)
     if not oferta:
         return jsonify({"error": "Oferta laboral no encontrada"}), 404
-    
+
     if empleado.id_empresa != oferta.id_empresa:
         return jsonify({"error": "No puedes postularte a esta oferta laboral"}), 403
-    
+
     aptitud_cv, porcentaje = predecir_cv(oferta.palabras_clave, cv, id_oferta)
 
     nueva_postulacion = Job_Application(
@@ -607,18 +636,20 @@ def postularme(id_oferta):
         is_apto=aptitud_cv,
         fecha_postulacion=datetime.now(timezone.utc),
         estado_postulacion="pendiente",
-        porcentaje_similitud=porcentaje*100,
+        porcentaje_similitud=porcentaje * 100,
     )
 
     db.session.add(nueva_postulacion)
     db.session.commit()
-    
-    crear_notificacion(id_empleado, f"Postulación realizada en la oferta: {oferta.nombre}")
-    
+
+    crear_notificacion(
+        id_empleado, f"Postulación realizada en la oferta: {oferta.nombre}"
+    )
+
     empresa_nombre = Empresa.query.get(oferta.id_empresa).nombre
-    
+
     mensaje = f"Hola {empleado.nombre}, has realizado una postulación a la oferta: {oferta.nombre}, de la empresa {empresa_nombre}.\n"
-    
+
     enviar_notificacion_empleado_mail(empleado.correo, mensaje)
 
     return jsonify({"message": "Postulación realizada correctamente."}), 201
@@ -666,6 +697,7 @@ def construir_query_con_filtros(filtros, query):
 
     return query
 
+
 @swag_from("../docs/empleado/estado-postulaciones.yml")
 @empleado_bp.route("/estado-postulaciones-empleado", methods=["GET"])
 @role_required(["empleado"])
@@ -678,7 +710,7 @@ def estado_postulaciones():
             Oferta_laboral.id,
             Oferta_laboral.nombre,
             Job_Application.is_apto,
-            Job_Application.fecha_postulacion
+            Job_Application.fecha_postulacion,
         )
         .join(Oferta_laboral, Job_Application.id_oferta == Oferta_laboral.id)
         .filter(Job_Application.id_candidato == id_empleado)
@@ -697,7 +729,9 @@ def estado_postulaciones():
     ]
 
     if not resultado:
-        return jsonify({"message": "No se encontraron postulaciones para este empleado."}), 404
+        return jsonify(
+            {"message": "No se encontraron postulaciones para este empleado."}
+        ), 404
 
     return jsonify(resultado), 200
 
@@ -719,19 +753,22 @@ def obtener_notificaciones_no_leidas():
         notificaciones = query.order_by(Notificacion.fecha_creacion.desc()).all()
 
         if not notificaciones:
-            return jsonify({"message": "No se encontraron notificaciones no leídas"}), 404
+            return jsonify(
+                {"message": "No se encontraron notificaciones no leídas"}
+            ), 404
 
         resultado = [n.to_dict() for n in notificaciones]
 
-        return jsonify({
-            "message": "Notificaciones no leídas recuperadas correctamente",
-            "notificaciones": resultado
-        }), 200
+        return jsonify(
+            {
+                "message": "Notificaciones no leídas recuperadas correctamente",
+                "notificaciones": resultado,
+            }
+        ), 200
 
     except Exception as e:
         print(f"Error al obtener notificaciones no leídas: {e}")
         return jsonify({"error": "Error interno al recuperar las notificaciones"}), 500
-
 
 
 @empleado_bp.route("/leer-notificacion-empleado/<int:id_notificacion>", methods=["PUT"])
@@ -740,25 +777,31 @@ def leer_notificacion(id_notificacion):
     try:
         id_usuario = get_jwt_identity()
 
-        notificacion = Notificacion.query.filter_by(id=id_notificacion, id_usuario=id_usuario).first()
+        notificacion = Notificacion.query.filter_by(
+            id=id_notificacion, id_usuario=id_usuario
+        ).first()
 
         if not notificacion:
-            return jsonify({"error": "Notificación no encontrada o no pertenece al usuario"}), 404
+            return jsonify(
+                {"error": "Notificación no encontrada o no pertenece al usuario"}
+            ), 404
 
         notificacion.leida = True
         db.session.commit()
 
-        return jsonify({
-            "message": "Notificación marcada como leída",
-            "notificacion_id": notificacion.id,
-            "estado": "leída"
-        }), 200
+        return jsonify(
+            {
+                "message": "Notificación marcada como leída",
+                "notificacion_id": notificacion.id,
+                "estado": "leída",
+            }
+        ), 200
 
     except Exception as e:
         db.session.rollback()
         print(f"Error al marcar notificación como leída: {e}")
         return jsonify({"error": "Error interno al actualizar la notificación"}), 500
-    
+
 
 @empleado_bp.route("/notificaciones-empleado-no-leidas-contador", methods=["GET"])
 @role_required(["empleado"])
@@ -766,18 +809,22 @@ def obtener_contador_notificaciones_no_leidas():
     try:
         id_usuario = get_jwt_identity()
 
-        contador = Notificacion.query.filter_by(id_usuario=id_usuario, leida=False).count()
+        contador = Notificacion.query.filter_by(
+            id_usuario=id_usuario, leida=False
+        ).count()
 
-        return jsonify({
-            "message": "Contador de notificaciones no leídas recuperado correctamente",
-            "total_no_leidas": contador
-        }), 200
+        return jsonify(
+            {
+                "message": "Contador de notificaciones no leídas recuperado correctamente",
+                "total_no_leidas": contador,
+            }
+        ), 200
 
     except Exception as e:
         print(f"Error al obtener contador de notificaciones no leídas: {e}")
         return jsonify({"error": "Error interno al recuperar el contador"}), 500
-    
-    
+
+
 def enviar_notificacion_empleado_mail(email_destino, cuerpo):
     try:
         asunto = "Postulación realizada"
@@ -787,6 +834,7 @@ def enviar_notificacion_empleado_mail(email_destino, cuerpo):
         print(f"Correo enviado correctamente a {email_destino}")
     except Exception as e:
         print(f"Error al enviar correo a {email_destino}: {e}")
+
 
 @swag_from("../docs/empleado/solicitar-licencia.yml")
 @empleado_bp.route("/solicitar-licencia-empleado", methods=["POST"])
@@ -818,11 +866,23 @@ def solicitar_licencia():
 
     # Tipos de licencia válidos
     tipos_validos = [
-        "accidente_laboral", "enfermedad", "maternidad", "nacimiento_hijo",
-        "duelo", "matrimonio", "mudanza", "estudios", "vacaciones", "otro"
+        "accidente_laboral",
+        "enfermedad",
+        "maternidad",
+        "nacimiento_hijo",
+        "duelo",
+        "matrimonio",
+        "mudanza",
+        "estudios",
+        "vacaciones",
+        "otro",
     ]
     if tipo_licencia not in tipos_validos:
-        return jsonify({"error": f"Tipo de licencia '{tipo_licencia}' inválido. Tipos permitidos: {', '.join(tipos_validos)}"}), 400
+        return jsonify(
+            {
+                "error": f"Tipo de licencia '{tipo_licencia}' inválido. Tipos permitidos: {', '.join(tipos_validos)}"
+            }
+        ), 400
 
     estado = None
     fecha_inicio_dt = None
@@ -832,9 +892,13 @@ def solicitar_licencia():
     # Accidente laboral
     if tipo_licencia == "accidente_laboral":
         if not certificado_url:
-            return jsonify({"error": "Debe adjuntar un certificado para accidente laboral"}), 400
+            return jsonify(
+                {"error": "Debe adjuntar un certificado para accidente laboral"}
+            ), 400
         if not dias_requeridos:
-            return jsonify({"error": "Debe indicar la cantidad de días requeridos"}), 400
+            return jsonify(
+                {"error": "Debe indicar la cantidad de días requeridos"}
+            ), 400
         try:
             dias_requeridos_val = int(dias_requeridos)
         except ValueError:
@@ -842,15 +906,19 @@ def solicitar_licencia():
         if dias_requeridos_val < 1:
             return jsonify({"error": "La cantidad de días debe ser mayor a 0"}), 400
         fecha_inicio_dt = now
-        fecha_fin_dt = now + timedelta(days=dias_requeridos_val-1)
+        fecha_fin_dt = now + timedelta(days=dias_requeridos_val - 1)
         estado = "activa"
 
     # Médica
     elif tipo_licencia == "enfermedad":
         if not certificado_url:
-            return jsonify({"error": "Debe adjuntar un certificado para licencia médica"}), 400
+            return jsonify(
+                {"error": "Debe adjuntar un certificado para licencia médica"}
+            ), 400
         if not dias_requeridos:
-            return jsonify({"error": "Debe indicar la cantidad de días requeridos"}), 400
+            return jsonify(
+                {"error": "Debe indicar la cantidad de días requeridos"}
+            ), 400
         try:
             dias_requeridos_val = int(dias_requeridos)
         except ValueError:
@@ -858,15 +926,17 @@ def solicitar_licencia():
         if dias_requeridos_val < 1:
             return jsonify({"error": "La cantidad de días debe ser mayor a 0"}), 400
         fecha_inicio_dt = now
-        fecha_fin_dt = now + timedelta(days=dias_requeridos_val-1)
+        fecha_fin_dt = now + timedelta(days=dias_requeridos_val - 1)
         estado = "activa"
 
     # Maternidad
     elif tipo_licencia == "maternidad":
         if not certificado_url:
-            return jsonify({"error": "Debe adjuntar un certificado para maternidad"}), 400
+            return jsonify(
+                {"error": "Debe adjuntar un certificado para maternidad"}
+            ), 400
         fecha_inicio_dt = now
-        fecha_fin_dt = now + timedelta(days=dias_maximos["maternidad"]-1)
+        fecha_fin_dt = now + timedelta(days=dias_maximos["maternidad"] - 1)
         estado = "activa"
 
     # Paternidad
@@ -874,9 +944,11 @@ def solicitar_licencia():
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
         if not certificado_url:
-            return jsonify({"error": "Debe adjuntar un certificado para paternidad"}), 400
+            return jsonify(
+                {"error": "Debe adjuntar un certificado para paternidad"}
+            ), 400
         fecha_inicio_dt = now
-        fecha_fin_dt = now + timedelta(days=dias_maximos["nacimiento_hijo"]-1)
+        fecha_fin_dt = now + timedelta(days=dias_maximos["nacimiento_hijo"] - 1)
         estado = "activa"
 
     # Duelo
@@ -884,20 +956,24 @@ def solicitar_licencia():
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para duelo"}), 400
         fecha_inicio_dt = now
-        fecha_fin_dt = now + timedelta(days=dias_maximos["duelo"]-1)
+        fecha_fin_dt = now + timedelta(days=dias_maximos["duelo"] - 1)
         estado = "activa"
 
     # Matrimonio
     elif tipo_licencia == "matrimonio":
         if not certificado_url:
-            return jsonify({"error": "Debe adjuntar un certificado para matrimonio"}), 400
+            return jsonify(
+                {"error": "Debe adjuntar un certificado para matrimonio"}
+            ), 400
         if not fecha_inicio:
             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
         try:
-            fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(
+                tzinfo=timezone.utc
+            )
         except Exception:
             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
-        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_maximos["matrimonio"]-1)
+        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_maximos["matrimonio"] - 1)
         estado = "aprobada"
 
     # Mudanza
@@ -905,10 +981,12 @@ def solicitar_licencia():
         if not fecha_inicio:
             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
         try:
-            fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(
+                tzinfo=timezone.utc
+            )
         except Exception:
             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
-        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_maximos["mudanza"]-1)
+        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_maximos["mudanza"] - 1)
         estado = "aprobada"
 
     # Estudios
@@ -933,23 +1011,33 @@ def solicitar_licencia():
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
         if not dias_requeridos:
-            return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
+            return jsonify(
+                {"error": "Debe indicar la cantidad de dias requeridos"}
+            ), 400
         try:
             dias_requeridos_val = int(dias_requeridos)
         except ValueError:
             return jsonify({"error": "Cantidad de días inválida"}), 400
         if dias_requeridos_val < 1 or dias_requeridos_val > dias_maximos["estudios"]:
-            return jsonify({"error": f"La cantidad de días para licencia de estudios debe estar entre 1 y {dias_maximos['estudios']}."}), 400
+            return jsonify(
+                {
+                    "error": f"La cantidad de días para licencia de estudios debe estar entre 1 y {dias_maximos['estudios']}."
+                }
+            ), 400
         if not fecha_inicio:
             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
-        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val-1)
+        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(
+            tzinfo=timezone.utc
+        )
+        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val - 1)
         estado = "aprobada"
 
     # Vacaciones
     elif tipo_licencia == "vacaciones":
         if not dias_requeridos:
-            return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
+            return jsonify(
+                {"error": "Debe indicar la cantidad de dias requeridos"}
+            ), 400
         if dias_requeridos < 1:
             return jsonify({"error": "La cantidad de dias debe ser mayor a 0"}), 400
         try:
@@ -958,15 +1046,19 @@ def solicitar_licencia():
             return jsonify({"error": "Cantidad de días inválida"}), 400
         if not fecha_inicio:
             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
-        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val-1)
+        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(
+            tzinfo=timezone.utc
+        )
+        fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val - 1)
         estado = "pendiente"
 
     elif tipo_licencia == "otro":
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
         if not dias_requeridos:
-            return jsonify({"error": "Debe indicar la cantidad de días requeridos"}), 400
+            return jsonify(
+                {"error": "Debe indicar la cantidad de días requeridos"}
+            ), 400
         try:
             dias_requeridos_val = int(dias_requeridos)
         except ValueError:
@@ -974,7 +1066,7 @@ def solicitar_licencia():
         if dias_requeridos_val < 1:
             return jsonify({"error": "La cantidad de días debe ser mayor a 0"}), 400
         fecha_inicio_dt = now
-        fecha_fin_dt = now + timedelta(days=dias_requeridos_val-1)
+        fecha_fin_dt = now + timedelta(days=dias_requeridos_val - 1)
         estado = "pendiente"
 
     nueva_licencia = Licencia(
@@ -1000,8 +1092,12 @@ def solicitar_licencia():
                 "tipo": nueva_licencia.tipo,
                 "descripcion": nueva_licencia.descripcion,
                 "estado": nueva_licencia.estado,
-                "fecha_inicio": nueva_licencia.fecha_inicio.isoformat() if nueva_licencia.fecha_inicio else None,
-                "fecha_fin": nueva_licencia.fecha_fin.isoformat() if nueva_licencia.fecha_fin else None,
+                "fecha_inicio": nueva_licencia.fecha_inicio.isoformat()
+                if nueva_licencia.fecha_inicio
+                else None,
+                "fecha_fin": nueva_licencia.fecha_fin.isoformat()
+                if nueva_licencia.fecha_fin
+                else None,
                 "dias_requeridos": nueva_licencia.dias_requeridos,
                 "empresa": {
                     "id": nueva_licencia.id_empresa,
@@ -1011,6 +1107,7 @@ def solicitar_licencia():
             },
         }
     ), 201
+
 
 @empleado_bp.route("/mis-licencias-empleado", methods=["GET"])
 @role_required(["empleado"])
@@ -1023,34 +1120,55 @@ def ver_mis_licencias():
             "id_licencia": licencia.id,
             "tipo": licencia.tipo,
             "descripcion": licencia.descripcion,
-            "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+            "fecha_inicio": licencia.fecha_inicio.isoformat()
+            if licencia.fecha_inicio
+            else None,
             "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
             "estado": licencia.estado,
-            "estado_sugerencia": licencia.estado_sugerencia if hasattr(licencia, "estado_sugerencia") else None,
-            "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat() if hasattr(licencia, "fecha_inicio_sugerencia") and licencia.fecha_inicio_sugerencia else None,
-            "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat() if hasattr(licencia, "fecha_fin_sugerencia") and licencia.fecha_fin_sugerencia else None,
-            "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
-            "dias_requeridos": licencia.dias_requeridos if hasattr(licencia, "dias_requeridos") else None,
+            "estado_sugerencia": licencia.estado_sugerencia
+            if hasattr(licencia, "estado_sugerencia")
+            else None,
+            "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat()
+            if hasattr(licencia, "fecha_inicio_sugerencia")
+            and licencia.fecha_inicio_sugerencia
+            else None,
+            "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat()
+            if hasattr(licencia, "fecha_fin_sugerencia")
+            and licencia.fecha_fin_sugerencia
+            else None,
+            "motivo_rechazo": licencia.motivo_rechazo
+            if licencia.motivo_rechazo
+            else "-",
+            "dias_requeridos": licencia.dias_requeridos
+            if hasattr(licencia, "dias_requeridos")
+            else None,
             "empresa": {
                 "id": licencia.id_empresa,
                 "nombre": Empresa.query.get(licencia.id_empresa).nombre,
             },
-            "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+            "certificado_url": licencia.certificado_url
+            if licencia.certificado_url
+            else None,
         }
         for licencia in licencias
     ]
 
     return jsonify(resultado), 200
 
+
 @swag_from("../docs/empleado/licencia-detalle.yml")
-@empleado_bp.route("/mi-licencia-<int:id_licencia>-empleado/informacion", methods=["GET"])
+@empleado_bp.route(
+    "/mi-licencia-<int:id_licencia>-empleado/informacion", methods=["GET"]
+)
 @role_required(["empleado"])
 def obtener_detalle_licencia_empleado(id_licencia):
     id_empleado = get_jwt_identity()
     licencia = Licencia.query.filter_by(id=id_licencia, id_empleado=id_empleado).first()
 
     if not licencia:
-        return jsonify({"error": "Licencia no encontrada o no pertenece al empleado"}), 404
+        return jsonify(
+            {"error": "Licencia no encontrada o no pertenece al empleado"}
+        ), 404
 
     empresa = Empresa.query.get(licencia.id_empresa)
 
@@ -1058,22 +1176,31 @@ def obtener_detalle_licencia_empleado(id_licencia):
         "id_licencia": licencia.id,
         "tipo": licencia.tipo,
         "descripcion": licencia.descripcion,
-        "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+        "fecha_inicio": licencia.fecha_inicio.isoformat()
+        if licencia.fecha_inicio
+        else None,
         "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
         "estado": licencia.estado,
         "estado_sugerencia": getattr(licencia, "estado_sugerencia", None),
-        "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat() if getattr(licencia, "fecha_inicio_sugerencia", None) else None,
-        "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat() if getattr(licencia, "fecha_fin_sugerencia", None) else None,
+        "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat()
+        if getattr(licencia, "fecha_inicio_sugerencia", None)
+        else None,
+        "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat()
+        if getattr(licencia, "fecha_fin_sugerencia", None)
+        else None,
         "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
         "dias_requeridos": getattr(licencia, "dias_requeridos", None),
         "empresa": {
             "id": licencia.id_empresa,
             "nombre": empresa.nombre if empresa else None,
         },
-        "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+        "certificado_url": licencia.certificado_url
+        if licencia.certificado_url
+        else None,
     }
 
     return jsonify(detalle), 200
+
 
 @empleado_bp.route("/licencia-<int:id_licencia>/respuesta-sugerencia", methods=["PUT"])
 @role_required(["empleado"])
@@ -1102,11 +1229,13 @@ def responder_sugerencia_licencia(id_licencia):
 
     db.session.commit()
 
-    return jsonify({
-        "message": f"Sugerencia {'aceptada' if aceptacion else 'rechazada'} correctamente",
-        "estado_sugerencia": licencia.estado_sugerencia
-    }), 200
-    
+    return jsonify(
+        {
+            "message": f"Sugerencia {'aceptada' if aceptacion else 'rechazada'} correctamente",
+            "estado_sugerencia": licencia.estado_sugerencia,
+        }
+    ), 200
+
 
 @empleado_bp.route("/empleados-mi-area", methods=["GET"])
 @role_required(["empleado"])
@@ -1114,30 +1243,54 @@ def empleados_mi_area():
     # Mapear jefe a área y puestos del área
     area_puestos = {
         "Jefe de Tecnología y Desarrollo": [
-            "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer",
-            "DevOps Engineer", "Data Engineer", "Ingeniero de Machine Learning",
-            "Analista de Datos", "QA Automation Engineer", "Soporte Técnico",
-            "Administrador de Base de Datos", "Administrador de Redes", "Especialista en Seguridad Informática"
+            "Desarrollador Backend",
+            "Desarrollador Frontend",
+            "Full Stack Developer",
+            "DevOps Engineer",
+            "Data Engineer",
+            "Ingeniero de Machine Learning",
+            "Analista de Datos",
+            "QA Automation Engineer",
+            "Soporte Técnico",
+            "Administrador de Base de Datos",
+            "Administrador de Redes",
+            "Especialista en Seguridad Informática",
         ],
         "Jefe de Administración y Finanzas": [
-            "Analista Contable", "Contador Público", "Analista de Finanzas",
-            "Administrativo/a", "Asistente Contable"
+            "Analista Contable",
+            "Contador Público",
+            "Analista de Finanzas",
+            "Administrativo/a",
+            "Asistente Contable",
         ],
         "Jefe Comercial y de Ventas": [
-            "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial",
-            "Supervisor de Ventas", "Asesor Comercial"
+            "Representante de Ventas",
+            "Ejecutivo de Cuentas",
+            "Vendedor Comercial",
+            "Supervisor de Ventas",
+            "Asesor Comercial",
         ],
         "Jefe de Marketing y Comunicación": [
-            "Especialista en Marketing Digital", "Analista de Marketing",
-            "Community Manager", "Diseñador Gráfico", "Responsable de Comunicación"
+            "Especialista en Marketing Digital",
+            "Analista de Marketing",
+            "Community Manager",
+            "Diseñador Gráfico",
+            "Responsable de Comunicación",
         ],
         "Jefe de Industria y Producción": [
-            "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta",
-            "Ingeniero de Procesos", "Encargado de Logística"
+            "Técnico de Mantenimiento",
+            "Operario de Producción",
+            "Supervisor de Planta",
+            "Ingeniero de Procesos",
+            "Encargado de Logística",
         ],
         "Jefe de Servicios Generales y Gastronomía": [
-            "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza"
-        ]
+            "Mozo/a",
+            "Cocinero/a",
+            "Encargado de Salón",
+            "Recepcionista",
+            "Limpieza",
+        ],
     }
 
     id_usuario = get_jwt_identity()
@@ -1147,12 +1300,14 @@ def empleados_mi_area():
 
     # Verifica que sea jefe de área
     if jefe.puesto_trabajo not in area_puestos:
-        return jsonify({"error": "No tienes permisos para acceder a esta información"}), 403
+        return jsonify(
+            {"error": "No tienes permisos para acceder a esta información"}
+        ), 403
 
     # Busca empleados de la misma empresa y área
     empleados = Usuario.query.filter(
         Usuario.id_empresa == jefe.id_empresa,
-        Usuario.puesto_trabajo.in_(area_puestos[jefe.puesto_trabajo])
+        Usuario.puesto_trabajo.in_(area_puestos[jefe.puesto_trabajo]),
     ).all()
 
     # resultado = [
@@ -1171,25 +1326,27 @@ def empleados_mi_area():
     for e in empleados:
         # Buscar último rendimiento
         ultimo_rend = (
-            HistorialRendimientoEmpleadoManual.query
-            .filter_by(id_empleado=e.id)
+            HistorialRendimientoEmpleadoManual.query.filter_by(id_empleado=e.id)
             .order_by(desc(HistorialRendimientoEmpleadoManual.fecha_calculo))
             .first()
         )
-        resultado.append({
-            "id": e.id,
-            "nombre": e.nombre,
-            "apellido": e.apellido,
-            "correo": e.correo,
-            "username": e.username,
-            "puesto_trabajo": e.puesto_trabajo,
-            "ultimo_rendimiento": ultimo_rend.rendimiento if ultimo_rend else None,
-            "fecha_ultimo_rendimiento": ultimo_rend.fecha_calculo.isoformat() if ultimo_rend else None
-        })
+        resultado.append(
+            {
+                "id": e.id,
+                "nombre": e.nombre,
+                "apellido": e.apellido,
+                "correo": e.correo,
+                "username": e.username,
+                "puesto_trabajo": e.puesto_trabajo,
+                "ultimo_rendimiento": ultimo_rend.rendimiento if ultimo_rend else None,
+                "fecha_ultimo_rendimiento": ultimo_rend.fecha_calculo.isoformat()
+                if ultimo_rend
+                else None,
+            }
+        )
 
     return jsonify({"empleados_area": resultado}), 200
 
-from datetime import datetime
 
 @empleado_bp.route("/establecer-rendimiento-empleado", methods=["POST"])
 @role_required(["empleado"])
@@ -1200,7 +1357,9 @@ def establecer_rendimiento_empleado():
 
     # Validación básica
     if id_empleado is None or rendimiento is None:
-        return jsonify({"error": "Faltan datos requeridos (id_empleado, rendimiento)"}), 400
+        return jsonify(
+            {"error": "Faltan datos requeridos (id_empleado, rendimiento)"}
+        ), 400
 
     try:
         rendimiento = float(rendimiento)
@@ -1216,30 +1375,54 @@ def establecer_rendimiento_empleado():
     # Mapear jefe a área y puestos del área
     area_puestos = {
         "Jefe de Tecnología y Desarrollo": [
-            "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer",
-            "DevOps Engineer", "Data Engineer", "Ingeniero de Machine Learning",
-            "Analista de Datos", "QA Automation Engineer", "Soporte Técnico",
-            "Administrador de Base de Datos", "Administrador de Redes", "Especialista en Seguridad Informática"
+            "Desarrollador Backend",
+            "Desarrollador Frontend",
+            "Full Stack Developer",
+            "DevOps Engineer",
+            "Data Engineer",
+            "Ingeniero de Machine Learning",
+            "Analista de Datos",
+            "QA Automation Engineer",
+            "Soporte Técnico",
+            "Administrador de Base de Datos",
+            "Administrador de Redes",
+            "Especialista en Seguridad Informática",
         ],
         "Jefe de Administración y Finanzas": [
-            "Analista Contable", "Contador Público", "Analista de Finanzas",
-            "Administrativo/a", "Asistente Contable"
+            "Analista Contable",
+            "Contador Público",
+            "Analista de Finanzas",
+            "Administrativo/a",
+            "Asistente Contable",
         ],
         "Jefe Comercial y de Ventas": [
-            "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial",
-            "Supervisor de Ventas", "Asesor Comercial"
+            "Representante de Ventas",
+            "Ejecutivo de Cuentas",
+            "Vendedor Comercial",
+            "Supervisor de Ventas",
+            "Asesor Comercial",
         ],
         "Jefe de Marketing y Comunicación": [
-            "Especialista en Marketing Digital", "Analista de Marketing",
-            "Community Manager", "Diseñador Gráfico", "Responsable de Comunicación"
+            "Especialista en Marketing Digital",
+            "Analista de Marketing",
+            "Community Manager",
+            "Diseñador Gráfico",
+            "Responsable de Comunicación",
         ],
         "Jefe de Industria y Producción": [
-            "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta",
-            "Ingeniero de Procesos", "Encargado de Logística"
+            "Técnico de Mantenimiento",
+            "Operario de Producción",
+            "Supervisor de Planta",
+            "Ingeniero de Procesos",
+            "Encargado de Logística",
         ],
         "Jefe de Servicios Generales y Gastronomía": [
-            "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza"
-        ]
+            "Mozo/a",
+            "Cocinero/a",
+            "Encargado de Salón",
+            "Recepcionista",
+            "Limpieza",
+        ],
     }
 
     id_jefe = get_jwt_identity()
@@ -1255,30 +1438,81 @@ def establecer_rendimiento_empleado():
         return jsonify({"error": "Empleado no encontrado"}), 404
 
     # Validar que el empleado pertenece a la misma empresa y área
-    if empleado.id_empresa != jefe.id_empresa or empleado.puesto_trabajo not in area_puestos[jefe.puesto_trabajo]:
+    if (
+        empleado.id_empresa != jefe.id_empresa
+        or empleado.puesto_trabajo not in area_puestos[jefe.puesto_trabajo]
+    ):
         return jsonify({"error": "No puedes calificar a este empleado"}), 403
 
     # Registrar el rendimiento
     nuevo_registro = HistorialRendimientoEmpleadoManual(
-        id_empleado=id_empleado,
-        fecha_calculo=datetime.now(),
-        rendimiento=rendimiento
+        id_empleado=id_empleado, fecha_calculo=datetime.now(), rendimiento=rendimiento
     )
     db.session.add(nuevo_registro)
     db.session.commit()
 
     # Buscar el último rendimiento registrado (debería ser el recién creado)
     ultimo_rend = (
-        HistorialRendimientoEmpleadoManual.query
-        .filter_by(id_empleado=id_empleado)
+        HistorialRendimientoEmpleadoManual.query.filter_by(id_empleado=id_empleado)
         .order_by(desc(HistorialRendimientoEmpleadoManual.fecha_calculo))
         .first()
     )
 
-    return jsonify({
-        "message": "Rendimiento registrado correctamente",
-        "id_empleado": id_empleado,
-        "rendimiento": rendimiento,
-        "ultimo_rendimiento": ultimo_rend.rendimiento if ultimo_rend else None,
-        "fecha_ultimo_rendimiento": ultimo_rend.fecha_calculo.isoformat() if ultimo_rend else None
-    }), 201
+    return jsonify(
+        {
+            "message": "Rendimiento registrado correctamente",
+            "id_empleado": id_empleado,
+            "rendimiento": rendimiento,
+            "ultimo_rendimiento": ultimo_rend.rendimiento if ultimo_rend else None,
+            "fecha_ultimo_rendimiento": ultimo_rend.fecha_calculo.isoformat()
+            if ultimo_rend
+            else None,
+        }
+    ), 201
+
+
+@empleado_bp.route("/licencia-<int:id_licencia>/cancelar", methods=["PUT"])
+@role_required(["empleado"])
+def cancelar_licencia(id_licencia):
+    """
+    Permite a un empleado cancelar una solicitud de licencia.
+    La licencia solo puede ser cancelada si su estado actual es 'sugerencia'.
+    No requiere cuerpo de JSON.
+    """
+    id_empleado = get_jwt_identity()
+
+    licencia = Licencia.query.filter_by(id=id_licencia, id_empleado=id_empleado).first()
+
+    if not licencia:
+        return jsonify(
+            {
+                "error": "Solicitud de licencia no encontrada o no pertenece a este empleado."
+            }
+        ), 404
+
+    allowed_states_for_cancellation = ["pendiente", "activa"]
+    if licencia.estado not in allowed_states_for_cancellation:
+        return jsonify(
+            {
+                "error": f"La licencia no puede ser cancelada. Su estado actual es '{licencia.estado}'. Solo se pueden cancelar licencias en estado '{' o '.join(allowed_states_for_cancellation)}'."
+            }
+        ), 400
+
+    # Change the state to "cancelada"
+    licencia.estado = "cancelada"
+    licencia.motivo_rechazo = (
+        "Cancelado por el empleado."  # Optional: Add a default reason
+    )
+
+    try:
+        db.session.commit()
+        return jsonify(
+            {
+                "message": "Solicitud de licencia cancelada exitosamente.",
+                "id_licencia": licencia.id,
+                "nuevo_estado": licencia.estado,
+            }
+        ), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error al cancelar la licencia: {str(e)}"}), 500

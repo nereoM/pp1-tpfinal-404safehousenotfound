@@ -4,10 +4,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const managerService = {
   async obtenerLicenciasSolicitadas() {
-    const url = `${API_URL}/api/visualizar-licencias-solicitadas`
+    const url = `${API_URL}/api/visualizar-licencias-solicitadas`;
 
-    const data = await fetcher({ url })
-    return data
+    const data = await fetcher({ url });
+    return data;
   },
   async registrarReclutador({ nombre, apellido, username, email }) {
     const url = `${API_URL}/api/registrar-reclutador`;
@@ -17,7 +17,12 @@ export const managerService = {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ name: nombre, lastname: apellido, username, email }),
+      body: JSON.stringify({
+        name: nombre,
+        lastname: apellido,
+        username,
+        email,
+      }),
     };
 
     const data = await fetcher({ url, options });
@@ -59,8 +64,34 @@ export const managerService = {
     const data = await fetcher({ url, options });
     return data;
   },
-  async crearOfertaLaboral({ nombre, descripcion, location, Argentina, employment_type, etiquetas, workplace_type, salary_min, salary_max, currency, experience_level, fecha_cierre }) {
-    const ofertaData = { nombre, descripcion, location, Argentina, employment_type, etiquetas, workplace_type, salary_min, salary_max, currency, experience_level, fecha_cierre }
+  async crearOfertaLaboral({
+    nombre,
+    descripcion,
+    location,
+    Argentina,
+    employment_type,
+    etiquetas,
+    workplace_type,
+    salary_min,
+    salary_max,
+    currency,
+    experience_level,
+    fecha_cierre,
+  }) {
+    const ofertaData = {
+      nombre,
+      descripcion,
+      location,
+      Argentina,
+      employment_type,
+      etiquetas,
+      workplace_type,
+      salary_min,
+      salary_max,
+      currency,
+      experience_level,
+      fecha_cierre,
+    };
     const url = `${API_URL}/api/crear_oferta_laboral`;
 
     const options = {
@@ -89,7 +120,7 @@ export const managerService = {
     return data;
   },
   async obtenerLicenciasACargo() {
-    const url = `${API_URL}/api/licencias-mis-reclutadores`
+    const url = `${API_URL}/api/licencias-mis-reclutadores`;
     const data = await fetcher({ url });
     return data;
   },
@@ -104,7 +135,7 @@ export const managerService = {
     estado,
     fechaInicioSugerida,
     fechaFinSugerida,
-    motivo
+    motivo,
   }) {
     const url = `${API_URL}/api/licencia-${idLicencia}-reclutador/evaluacion`;
 
@@ -125,7 +156,7 @@ export const managerService = {
     return data;
   },
   async responderSugerenciaLicencia({ licenciaId, aceptacion }) {
-    const url = `${API_URL}/api/licencia-${licenciaId}-manager/respuesta-sugerencia`
+    const url = `${API_URL}/api/licencia-${licenciaId}-manager/respuesta-sugerencia`;
 
     const options = {
       method: "PUT",
@@ -135,7 +166,7 @@ export const managerService = {
       },
     };
 
-    const data = await fetcher({ url, options })
+    const data = await fetcher({ url, options });
     return data;
   },
   async obtenerOfertasAsignadas() {
@@ -152,6 +183,15 @@ export const managerService = {
       asignaciones[id_oferta] = id_analista;
     });
     return asignaciones;
-  }
-}
+  },
+  async cancelarLicencia({ idLicencia }) {
+    const url = `${API_URL}/api/licencia-${idLicencia}-manager/cancelar`;
 
+    const options = {
+      method: "PUT",
+    };
+
+    const data = await fetcher({ url, options });
+    return data;
+  },
+};
