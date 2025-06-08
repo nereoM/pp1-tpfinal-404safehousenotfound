@@ -2450,17 +2450,130 @@ def obtener_detalle_licencia(id_licencia):
         "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
     }), 200
 
+# @manager_bp.route("/licencia-<int:id_licencia>-reclutador/evaluacion", methods=["PUT"])
+# @role_required(["manager"])
+# def eval_licencia(id_licencia):
+#     data = request.get_json()
+#     nuevo_estado = data.get("estado")  # "aprobada" o "rechazada"
+#     motivo = data.get("motivo")
+#     fecha_inicio_sugerida = data.get("fecha_inicio_sugerida")
+#     fecha_fin_sugerida = data.get("fecha_fin_sugerida")
+
+#     if nuevo_estado not in ["aprobada", "rechazada", "sugerencia"]:
+#         return jsonify({"error": "El estado debe ser 'aprobada', 'rechazada' o 'sugerencia'"}), 400
+
+#     id_manager = get_jwt_identity()
+#     manager = Usuario.query.get(id_manager)
+#     licencia = Licencia.query.get(id_licencia)
+#     if not licencia:
+#         return jsonify({"error": "Licencia no encontrada"}), 404
+
+#     empleado = Usuario.query.get(licencia.id_empleado)
+#     if not empleado:
+#         return jsonify({"error": "Empleado no encontrado"}), 404
+    
+#     rol_reclutador = (
+#         db.session.query(Rol)
+#         .join(UsuarioRol, UsuarioRol.id_rol == Rol.id)
+#         .filter(UsuarioRol.id_usuario == empleado.id, Rol.slug == "reclutador")
+#         .first()
+#     )
+
+#     # Permitir aprobar si la licencia está pendiente o si la sugerencia fue aceptada
+#     puede_aprobar = (
+#         (licencia.estado == "pendiente" and licencia.tipo in ["vacaciones"])
+#         or (licencia.estado == "pendiente" and licencia.estado_sugerencia == "sugerencia aceptada")
+#         or (licencia.estado == "sugerencia" and licencia.estado_sugerencia == "sugerencia aceptada")
+#     )
+
+#     # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
+#     # if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
+#     #     return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
+
+#     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
+#     if licencia.id_empresa != manager.id_empresa and not rol_reclutador:
+#         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
+    
+#     message = f"Licencia {nuevo_estado} exitosamente"
+#     if nuevo_estado == "aprobada":
+#         if not puede_aprobar:
+#             return jsonify({"error": "Solo puedes aprobar licencias de vacaciones pendientes o con sugerencia aceptada"}), 403
+#         licencia.estado = nuevo_estado
+#         # Si la sugerencia fue aceptada, actualizar fechas
+#         if licencia.estado_sugerencia == "sugerencia aceptada":
+#             licencia.fecha_inicio = licencia.fecha_inicio_sugerencia
+#             licencia.fecha_fin = licencia.fecha_fin_sugerencia
+#         if motivo:
+#             licencia.motivo_rechazo = motivo
+#     elif nuevo_estado == "sugerencia":
+#         # Guardar sugerencia de fechas y estado_sugerencia
+#         if not fecha_inicio_sugerida or not fecha_fin_sugerida:
+#             return jsonify({"error": "Debes indicar fecha de inicio y fin sugeridas"}), 400
+#         try:
+#             fecha_inicio_dt = datetime.strptime(fecha_inicio_sugerida, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+#             fecha_fin_dt = datetime.strptime(fecha_fin_sugerida, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+#         except Exception:
+#             return jsonify({"error": "Formato de fecha sugerida inválido"}), 400
+
+#         licencia.estado = nuevo_estado
+#         licencia.estado_sugerencia = "sugerencia pendiente"
+#         licencia.fecha_inicio_sugerencia = fecha_inicio_dt
+#         licencia.fecha_fin_sugerencia = fecha_fin_dt
+#         # El estado de la licencia se mantiene pendiente
+#         if motivo:
+#             licencia.motivo_rechazo = motivo
+#         message = "Licencia sugerida exitosamente"
+#     else:
+#         licencia.estado = nuevo_estado
+#         if motivo:
+#             licencia.motivo_rechazo = motivo
+
+#     db.session.commit()
+
+#     empresa = Empresa.query.get(licencia.id_empresa)
+
+#     return jsonify({
+#         "message": message,
+#         # "message": f"Licencia {nuevo_estado} exitosamente",
+#         "licencia": {
+#             "id_licencia": licencia.id,
+#             "empleado": {
+#                 "id": licencia.id_empleado,
+#                 "nombre": empleado.nombre,
+#                 "apellido": empleado.apellido,
+#                 "username": empleado.username,
+#                 "email": empleado.correo,
+#             },
+#             "tipo": licencia.tipo,
+#             "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+#             "descripcion": licencia.descripcion,
+#             "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+#             "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+#             "estado": licencia.estado,
+#             "estado_sugerencia": licencia.estado_sugerencia if licencia.estado_sugerencia else None,
+#             "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat() if licencia.fecha_inicio_sugerencia else None,
+#             "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat() if licencia.fecha_fin_sugerencia else None,
+#             "empresa": {
+#                 "id": licencia.id_empresa,
+#                 "nombre": empresa.nombre if empresa else None,
+#             },
+#             "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+#             "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
+#         }
+#     }), 200
+
 @manager_bp.route("/licencia-<int:id_licencia>-reclutador/evaluacion", methods=["PUT"])
 @role_required(["manager"])
 def eval_licencia(id_licencia):
     data = request.get_json()
-    nuevo_estado = data.get("estado")  # "aprobada" o "rechazada"
+    nuevo_estado = data.get("estado")  # "aprobada", "rechazada", "sugerencia", "activa y verificada", "invalidada"
     motivo = data.get("motivo")
     fecha_inicio_sugerida = data.get("fecha_inicio_sugerida")
     fecha_fin_sugerida = data.get("fecha_fin_sugerida")
 
-    if nuevo_estado not in ["aprobada", "rechazada", "sugerencia"]:
-        return jsonify({"error": "El estado debe ser 'aprobada', 'rechazada' o 'sugerencia'"}), 400
+    estados_validos = ["aprobada", "rechazada", "sugerencia", "activa y verificada", "invalidada"]
+    if nuevo_estado not in estados_validos:
+        return jsonify({"error": f"El estado debe ser uno de {', '.join(estados_validos)}"}), 400
 
     id_manager = get_jwt_identity()
     manager = Usuario.query.get(id_manager)
@@ -2472,7 +2585,8 @@ def eval_licencia(id_licencia):
     if not empleado:
         return jsonify({"error": "Empleado no encontrado"}), 404
     
-    rol_reclutador = (
+    # Verificar que el usuario tiene rol "reclutador"
+    tiene_rol_reclutador = (
         db.session.query(Rol)
         .join(UsuarioRol, UsuarioRol.id_rol == Rol.id)
         .filter(UsuarioRol.id_usuario == empleado.id, Rol.slug == "reclutador")
@@ -2486,15 +2600,12 @@ def eval_licencia(id_licencia):
         or (licencia.estado == "sugerencia" and licencia.estado_sugerencia == "sugerencia aceptada")
     )
 
-    # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
-    # if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
-    #     return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
-
     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
-    if licencia.id_empresa != manager.id_empresa and not rol_reclutador:
+    if licencia.id_empresa != manager.id_empresa and not tiene_rol_reclutador:
         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
     
     message = f"Licencia {nuevo_estado} exitosamente"
+
     if nuevo_estado == "aprobada":
         if not puede_aprobar:
             return jsonify({"error": "Solo puedes aprobar licencias de vacaciones pendientes o con sugerencia aceptada"}), 403
@@ -2523,6 +2634,20 @@ def eval_licencia(id_licencia):
         if motivo:
             licencia.motivo_rechazo = motivo
         message = "Licencia sugerida exitosamente"
+    elif nuevo_estado == "activa y verificada":
+        # Solo se puede verificar si está activa
+        if licencia.estado != "activa":
+            return jsonify({"error": "Solo puedes verificar licencias en estado 'activa'"}), 403
+        licencia.estado = "activa y verificada"
+        message = "Licencia verificada exitosamente"
+    elif nuevo_estado == "invalidada":
+        # Solo se puede invalidar si está activa
+        if licencia.estado != "activa":
+            return jsonify({"error": "Solo puedes invalidar licencias en estado 'activa'"}), 403
+        licencia.estado = "invalidada"
+        if motivo:
+            licencia.motivo_rechazo = motivo
+        message = "Licencia invalidada exitosamente"
     else:
         licencia.estado = nuevo_estado
         if motivo:
@@ -2534,7 +2659,6 @@ def eval_licencia(id_licencia):
 
     return jsonify({
         "message": message,
-        # "message": f"Licencia {nuevo_estado} exitosamente",
         "licencia": {
             "id_licencia": licencia.id,
             "empleado": {

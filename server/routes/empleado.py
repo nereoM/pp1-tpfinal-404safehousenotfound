@@ -7,7 +7,7 @@ import os
 from werkzeug.utils import secure_filename
 from datetime import datetime, timezone
 from flasgger import swag_from
-from sqlalchemy import or_, func
+from sqlalchemy import or_, func, desc
 from ml.modelo import modelo_sbert
 from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
 from ml.matching_semantico import dividir_cv_en_partes
@@ -1155,17 +1155,37 @@ def empleados_mi_area():
         Usuario.puesto_trabajo.in_(area_puestos[jefe.puesto_trabajo])
     ).all()
 
-    resultado = [
-        {
+    # resultado = [
+    #     {
+    #         "id": e.id,
+    #         "nombre": e.nombre,
+    #         "apellido": e.apellido,
+    #         "correo": e.correo,
+    #         "username": e.username,
+    #         "puesto_trabajo": e.puesto_trabajo
+    #     }
+    #     for e in empleados
+    # ]
+
+    resultado = []
+    for e in empleados:
+        # Buscar último rendimiento
+        ultimo_rend = (
+            HistorialRendimientoEmpleadoManual.query
+            .filter_by(id_empleado=e.id)
+            .order_by(desc(HistorialRendimientoEmpleadoManual.fecha_calculo))
+            .first()
+        )
+        resultado.append({
             "id": e.id,
             "nombre": e.nombre,
             "apellido": e.apellido,
             "correo": e.correo,
             "username": e.username,
-            "puesto_trabajo": e.puesto_trabajo
-        }
-        for e in empleados
-    ]
+            "puesto_trabajo": e.puesto_trabajo,
+            "ultimo_rendimiento": ultimo_rend.rendimiento if ultimo_rend else None,
+            "fecha_ultimo_rendimiento": ultimo_rend.fecha_calculo.isoformat() if ultimo_rend else None
+        })
 
     return jsonify({"empleados_area": resultado}), 200
 
@@ -1247,8 +1267,18 @@ def establecer_rendimiento_empleado():
     db.session.add(nuevo_registro)
     db.session.commit()
 
+    # Buscar el último rendimiento registrado (debería ser el recién creado)
+    ultimo_rend = (
+        HistorialRendimientoEmpleadoManual.query
+        .filter_by(id_empleado=id_empleado)
+        .order_by(desc(HistorialRendimientoEmpleadoManual.fecha_calculo))
+        .first()
+    )
+
     return jsonify({
         "message": "Rendimiento registrado correctamente",
         "id_empleado": id_empleado,
-        "rendimiento": rendimiento
+        "rendimiento": rendimiento,
+        "ultimo_rendimiento": ultimo_rend.rendimiento if ultimo_rend else None,
+        "fecha_ultimo_rendimiento": ultimo_rend.fecha_calculo.isoformat() if ultimo_rend else None
     }), 201
