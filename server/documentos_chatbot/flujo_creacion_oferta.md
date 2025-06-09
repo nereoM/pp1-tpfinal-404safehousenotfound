@@ -4,20 +4,19 @@
 Este proceso permite que un manager cree una nueva oferta laboral y la asigne a un reclutador dentro de su empresa. Un reclutador/analista puede tener varias ofertas laborales asignadas, pero una oferta laboral solo puede estar asignada a un reclutador/analista al mismo tiempo.
 
 ## Pasos detallados
-1. El manager ingresa al panel y hace clic en "Crear Oferta".
+1. El manager ingresa al panel y hace clic en "Crear Oferta Laboral".
 2. Completa los campos obligatorios: nombre, salario, modalidad, tipo de trabajo (Remoto, presencial, híbrido).
 3. El manager puede elegir el umbral de evaluación de los CVs.
 4. El manager puede seleccionar varias etiquetas para el procesado automático de CVs de un banco de etiquetas ya predefinido.
 5. La oferta se publica y queda disponible para los candidatos y empleados.
 
 ## Errores comunes
-- No tener rol de manager
 - No seleccionar modalidad laboral.
 - Ingresar salario en formato incorrecto o que el salario mínimo sea mayor al salario máximo.
 - Selección incorrecta de fecha de cierre.
 
 ## Requisitos previos
-- El usuario debe tener rol manager y tener sesión iniciada.
+- El usuario DEBE tener rol manager y tener sesión iniciada.
 - El usuario SI O SI DEBE tener rol manager. MANAGER
 - El backend debe tener conectividad con la base de datos activa.
 

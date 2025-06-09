@@ -2759,3 +2759,38 @@ def enviar_mail_analista_licencia(email_destino, cuerpo):
         print(f"Correo enviado correctamente a {email_destino}")
     except Exception as e:
         print(f"Error al enviar correo a {email_destino}: {e}")
+
+
+@manager_bp.route("/subir-certificado-manager", methods=["POST"])
+@role_required(["manager"])
+def subir_certificado_generico():
+    # Verificar si se envió un archivo
+    if "file" not in request.files:
+        return jsonify({"error": "No se encontró ningún archivo"}), 400
+
+    file = request.files["file"]
+
+    if file.filename == "" or not allowed_file(file.filename):
+        return jsonify(
+            {"error": "Formato de archivo no permitido. Solo se aceptan archivos PDF"}
+        ), 400
+
+    # Generar nombre único con timestamp
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    filename = secure_filename(file.filename.rsplit(".", 1)[0])
+    ext = file.filename.rsplit(".", 1)[1].lower()
+    nombre_final = f"{filename}_{timestamp}.{ext}"
+
+    # Guardar archivo
+    filepath = os.path.join(UPLOAD_FOLDER, nombre_final)
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    file.save(filepath)
+
+    file_url = f"/{UPLOAD_FOLDER}/{nombre_final}"
+
+    return jsonify(
+        {
+            "message": "Certificado subido exitosamente",
+            "certificado_url": file_url,
+        }
+    ), 200

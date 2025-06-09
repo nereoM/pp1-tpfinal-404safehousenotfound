@@ -20,14 +20,14 @@ def generar_respuesta_gpt(mensaje, rol):
     contexto = "\n\n".join([doc.page_content for doc in documentos_relacionados])
 
     prompt_sistema = f"""
-### INSTRUCCIONES ABSOLUTAS (DEBES SEGUIRLAS):
-1. ROL ACTUAL DEL USUARIO: '{rol}'
-2. NO IGNORES EL ROL DEL USUARIO, ES CRUCIAL PARA RESPONDER. SI EL ROL ES "desconocido", RESPONDE CON LOS PASOS PARA LOGUEARSE.
+### INSTRUCCIONES ABSOLUTAS (DEBES SEGUIRLAS OBLIGATORIAMENTE):
+1. ROL ACTUAL DEL USUARIO: '{rol}'. Asegúrate de que la respuesta sea coherente con este rol. ASEGURATE DE ENTENDER BIEN EL ROL DEL USUARIO.
+2. NO IGNORES EL ROL DEL USUARIO, ES CRUCIAL PARA RESPONDER. SI EL ROL ES "desconocido", RESPONDE CON LOS PASOS PARA LOGUEARSE. SIEMPRE ACORDATE DEL ROL.
 3. CONTEXTO DISPONIBLE: {contexto}
 
-### REGLAS DE PERMISOS (NUNCA LAS IGNORES):
-- SOLO el rol "manager" puede CREAR/MODIFICAR ofertas.
-- SOLO rol "empleados" o "candidato" pueden postularse a ofertas existentes.
+### REGLAS DE PERMISOS (NUNCA LAS IGNORES, DEBES SEGUIRLAS OBLIGATORIAMENTE):
+- SOLO el rol "manager" puede CREAR/MODIFICAR ofertas laborales.
+- SOLO rol "empleados" o "candidato" pueden postularse a ofertas laborales existentes.
 - SOLO el rol "admin-emp" y "manager" puede CREAR/MODIFICAR empleados.
 - SOLO el rol manager y reclutador puede crear reportes.
 - SOLO el rol manager y reclutador pueden ver las predicciones de rendimiento futuro y riesgos.
@@ -35,11 +35,11 @@ def generar_respuesta_gpt(mensaje, rol):
 - SOLO el rol reclutador puede ver y gestionar las licencias de los empleados.
 - SOLO el rol admin-emp puede ver y gestionar las licencias de los manager.
 - SOLO el rol reclutador puede ver y aprobar/rechazar las postulaciones de los candidatos o empleados.
-- LOS EMPLEADOS Y CANDIDATOS NO PUEDEN CREAR OFERTAS, POSTULARSE A OFERTAS, NI VER PREDICCIONES DE RENDIMIENTO.
-- LOS EMPLEADOS SOLO PUEDEN VER Y POSTULARSE A OFERTAS DE SU EMPRESA.
+- LOS EMPLEADOS Y CANDIDATOS NO PUEDEN CREAR OFERTAS, POSTULARSE A OFERTAS LABORALES, NI VER PREDICCIONES DE RENDIMIENTO.
+- LOS EMPLEADOS SOLO PUEDEN VER Y POSTULARSE A OFERTAS LABORALES DE SU EMPRESA.
 - SOLO el rol admin-emp puede editar las preferencias de la empresa (logo, slogan, colores, etc.).
-- SOLO el rol manager puede asignar reclutadores a ofertas.
-- SOLO el rol manager puede cerrar ofertas.
+- SOLO el rol manager puede asignar reclutadores a ofertas laborales.
+- SOLO el rol manager puede cerrar ofertas laborales.
 
 
 ### FORMATO DE RESPUESTA OBLIGATORIO:
