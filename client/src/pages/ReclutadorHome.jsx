@@ -540,12 +540,6 @@ export default function ReclutadorHome() {
           "Identificá patrones que podrían anticipar despidos, renuncias o rotación de empleados.",
         onClick: () => navigate("/reclutador/empleados-riesgo"),
       },
-      {
-        icon: FileText,
-        titulo: "Visualizar Reportes",
-        descripcion: "Revisa los KPIs del sistema.",
-        onClick: () => alert("Funcionalidad en desarrollo"),
-      },
     ],
   };
   

@@ -6,8 +6,11 @@ import { Download } from "lucide-react";
 import { Image as ImageIcon } from "lucide-react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 export default function RiesgosAnalistasConTabla() {
+    const navigate = useNavigate();
     const [empleados, setEmpleados] = useState([]);
     const [resumen, setResumen] = useState({
         rendimiento: { alto: 0, medio: 0, bajo: 0 },
@@ -200,7 +203,7 @@ export default function RiesgosAnalistasConTabla() {
             return true;
         });
     }, [empleados, searchTerm, filtroRendimiento, filtroRotacion, filtroDespido, filtroRenuncia, filtroRotacionIntencional]);
-    
+
     const exportarTablaExcel = () => {
         const datos = empleadosFiltrados.map(emp => ({
             Nombre: emp.nombre,
@@ -234,6 +237,17 @@ export default function RiesgosAnalistasConTabla() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
         >
+
+            {/* Flecha para volver */}
+            <button
+                onClick={() => navigate(-1)}
+                className="mb-4 flex items-center gap-2 px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition text-sm"
+                title="Volver"
+            >
+                <ArrowLeft className="w-5 h-5" />
+                Volver
+            </button>
+
             <h2 className="text-3xl font-extrabold text-center text-blue-900 mb-8">
                 Predicción de Riesgos y Rendimiento de Analistas y Empleados
             </h2>
