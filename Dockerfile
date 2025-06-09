@@ -10,7 +10,8 @@ COPY client/vite.config.js ./vite.config.js
 COPY client/index.html ./index.html
 COPY client/src ./src
 COPY client/public ./public
-COPY client/dist ./dist
+COPY client/eslint.config.js ./eslint.config.js
+COPY client/bun.lock ./bun.lock
 
 RUN npm install && npm run build
 

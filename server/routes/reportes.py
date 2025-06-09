@@ -722,7 +722,9 @@ def reporte_riesgos():
             Rol.nombre.label("rol"),
             RendimientoEmpleado.riesgo_despido_predicho,
             RendimientoEmpleado.riesgo_renuncia_predicho,
-            RendimientoEmpleado.riesgo_rotacion_predicho
+            RendimientoEmpleado.riesgo_rotacion_predicho,
+            RendimientoEmpleado.riesgo_rotacion_intencional,
+            RendimientoEmpleado.clasificacion_rendimiento
         ).join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)\
         .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)\
         .join(Rol, UsuarioRol.id_rol == Rol.id)\
@@ -734,6 +736,8 @@ def reporte_riesgos():
     resumen_despido = {}
     resumen_renuncia = {}
     resumen_rotacion = {}
+    resumen_rotacion_intencional = {}
+    clasificacion_rendimiento = {}
     tabla_completa = []
 
     def agrupar(dic, clave):
@@ -746,11 +750,13 @@ def reporte_riesgos():
             "rol": r.rol,
             "riesgo_despido": r.riesgo_despido_predicho,
             "riesgo_renuncia": r.riesgo_renuncia_predicho,
-            "riesgo_rotacion": r.riesgo_rotacion_predicho
+            "riesgo_rotacion": r.riesgo_rotacion_predicho,
+            "riesgo_rotacion_intencional": r.riesgo_rotacion_intencional if r.riesgo_rotacion_intencional is not None else "Sin datos"
         })
         agrupar(resumen_despido, r.riesgo_despido_predicho)
         agrupar(resumen_renuncia, r.riesgo_renuncia_predicho)
         agrupar(resumen_rotacion, r.riesgo_rotacion_predicho)
+        agrupar(resumen_rotacion_intencional, r.riesgo_rotacion_intencional if r.riesgo_rotacion_intencional is not None else "Sin datos")
 
     def generar_grafico(dic, titulo, nombre_archivo):
         fig, ax = plt.subplots()
@@ -796,6 +802,7 @@ def reporte_riesgos():
             resumen_despido=resumen_despido,
             resumen_renuncia=resumen_renuncia,
             resumen_rotacion=resumen_rotacion,
+            resumen_rotacion_intencional=resumen_rotacion_intencional,
             grafico_despido_base64=img_to_base64(path_despido),
             grafico_renuncia_base64=img_to_base64(path_renuncia),
             grafico_rotacion_base64=img_to_base64(path_rotacion),
@@ -834,7 +841,7 @@ def reporte_riesgos():
                 pass
 
         ws.append([""])
-        ws.append(["Usuario", "Puesto", "Rol", "Riesgo Despido", "Riesgo Renuncia", "Riesgo Rotación"])
+        ws.append(["Usuario", "Puesto", "Rol", "Riesgo Despido", "Riesgo Renuncia", "Riesgo Rotación Empresarial", "Riesgo Rotación Intencional"])
         for cell in ws[ws.max_row]:
             cell.font = Font(bold=True, color="FFFFFF")
             cell.fill = PatternFill(start_color=color_excel, end_color=color_excel, fill_type="solid")
@@ -846,7 +853,8 @@ def reporte_riesgos():
                 fila["rol"],
                 fila["riesgo_despido"],
                 fila["riesgo_renuncia"],
-                fila["riesgo_rotacion"]
+                fila["riesgo_rotacion"],
+                fila["riesgo_rotacion_intencional"] if fila["riesgo_rotacion_intencional"] is not None else "Sin datos"
             ])
 
         for col in ws.columns:
