@@ -1275,10 +1275,10 @@ def obtener_empleados_riesgo_futuro():
                 ultimo_rendimiento_manual = historial[0].rendimiento
                 desempeno_real_guardado = rendimiento.riesgo_rotacion_intencional
                 if (desempeno_real_guardado is None or desempeno_real_guardado != ultimo_rendimiento_manual):
-                    empleado_data.append({
+                    empleado_data = {
                         "cantidad_postulaciones": cantidad_postulaciones,
                         "desempeno_previo": ultimo_rendimiento_manual
-                    })
+                    }
                     riesgo_rotacion_intencional = predecir_rot_post_individual(empleado_data)
                     rendimiento.riesgo_rotacion_intencional = riesgo_rotacion_intencional
                     db.session.commit()
