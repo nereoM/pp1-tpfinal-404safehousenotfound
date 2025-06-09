@@ -385,8 +385,8 @@ def obtener_datos_empresa(nombre_empresa):
     return jsonify(
         {
             "nombre": empresa.nombre,
-            "icon_url": prefs.icon_url or "",
-            "image_url": prefs.image_url or "",
+            "icon_url": prefs.icon_url if prefs else "",
+            "image_url": prefs.image_url if prefs else "",
         }
     ), 200
 

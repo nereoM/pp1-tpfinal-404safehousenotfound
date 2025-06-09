@@ -1,9 +1,10 @@
 from main import app
-from models.schemes import db, Usuario, Rol, Empresa, Oferta_laboral, Oferta_analista
+from models.schemes import db, Usuario, Rol, Empresa, Oferta_laboral, Oferta_analista, Preferencias_empresa
 from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 import json
 import random
+from sqlalchemy import text
 
 def asignar_rol(usuario, slug_rol):
     rol = Rol.query.filter_by(slug=slug_rol).first()
@@ -303,6 +304,50 @@ def crear_estructura_empresas_y_ofertas():
 
         empresa = Empresa(nombre=nombre_empresa, id_admin_emp=admin_emp.id)
         db.session.add(empresa)
+        db.session.commit()
+
+        # Crear preferencias personalizadas según la empresa
+        if nombre_empresa.lower() == "globant":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#00B86B",  # Verde
+                color_secundario="#FFFFFF",  # Blanco
+                color_texto="#000000",      # Negro
+                slogan="Bienvenido a Globant",
+                icon_url="https://openqube.io/wp-content/uploads/2015/06/Short-Original-501x330.png",
+                image_url="https://statics.globant.com/production/public/2022-02/branded-photos-07.png"
+            )
+        elif nombre_empresa.lower() == "techint":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#E10600",  # Rojo
+                color_secundario="#FFFFFF",  # Blanco
+                color_texto="#000000",      # Negro
+                slogan="Bienvenido a Techint",
+                icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Techint_Logo.svg/800px-Techint_Logo.svg.png",
+                image_url="https://limpronacional.com/wp-content/uploads/2013/08/TECHINT.png"
+            )
+        elif nombre_empresa.lower() == "mercado libre":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#FFE600",  # Amarillo
+                color_secundario="#FFFFFF",  # Blanco
+                color_texto="#000000",      # Negro
+                slogan="Bienvenido a MercadoLibre",
+                icon_url="https://cdn2.downdetector.com/static/uploads/logo/MercadoLibre_BmN6sLa.png",
+                image_url="https://caracol.com.co/resizer/v2/SXVGMHUEI5A2DBHZIAPZST577E.jpg?auth=96bd13f5fdc196d1dcd923a34e217edaf06b3d52d420eb51f9ad38efd34d4759&width=650&height=488&quality=70&smart=true"
+            )
+        else:
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#3B82F6",
+                color_secundario="#E0E7FF",
+                color_texto="#111827",
+                slogan=f"Bienvenido a {nombre_empresa}",
+                icon_url="",
+                image_url=""
+            )
+        db.session.add(preferencias)
         db.session.commit()
 
         admin_emp.id_empresa = empresa.id

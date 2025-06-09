@@ -8,7 +8,7 @@ export default function DomainLogin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const nombreEmpresa = empresa.trim().toLowerCase().replace(/\s+/g, "-");
+    const nombreEmpresa = empresa.trim().toLowerCase();
 
     if (!nombreEmpresa) {
       setError("El nombre de empresa no puede estar vacío.");
