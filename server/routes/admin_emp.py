@@ -1991,3 +1991,31 @@ def eval_licencia(id_licencia):
             "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
         }
     }), 200
+
+
+@admin_emp_bp.route("/notificaciones-admin-emp-todas", methods=["GET"])
+@role_required(["admin-emp"])
+def obtener_notificaciones_todas():
+    try:
+        id_usuario = get_jwt_identity()
+
+        # Leer el parámetro ?todas=true
+        mostrar_todas = request.args.get("todas", "false").lower() == "true"
+
+        query = Notificacion.query.filter_by(id_usuario=id_usuario)
+
+        notificaciones = query.order_by(Notificacion.fecha_creacion.desc()).all()
+
+        if not notificaciones:
+            return jsonify({"message": "No se encontraron notificaciones"}), 404
+
+        resultado = [n.to_dict() for n in notificaciones]
+
+        return jsonify({
+            "message": "Notificaciones recuperadas correctamente",
+            "notificaciones": resultado
+        }), 200
+
+    except Exception as e:
+        print(f"Error al obtener notificaciones: {e}")
+        return jsonify({"error": "Error interno al recuperar las notificaciones"}), 500
