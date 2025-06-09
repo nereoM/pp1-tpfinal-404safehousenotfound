@@ -23,6 +23,7 @@ export default function EmpleadosRiesgo() {
     const [filtroRotacion, setFiltroRotacion] = useState("");
     const [filtroDespido, setFiltroDespido] = useState("");
     const [filtroRenuncia, setFiltroRenuncia] = useState("");
+    const [filtroRotacionIntencional, setFiltroRotacionIntencional] = useState("");
 
     const opcionesFiltro = ["", "Alto", "Medio", "Bajo"];
 
@@ -191,10 +192,14 @@ export default function EmpleadosRiesgo() {
                 filtroRenuncia &&
                 normaliza(emp.riesgo_renuncia_predicho) !== normaliza(filtroRenuncia)
             ) return false;
+            if (
+                filtroRotacionIntencional &&
+                normaliza(emp.riesgo_rotacion_intencional) !== normaliza(filtroRotacionIntencional)
+            ) return false;
 
             return true;
         });
-    }, [empleados, searchTerm, filtroRendimiento, filtroRotacion, filtroDespido, filtroRenuncia]);
+    }, [empleados, searchTerm, filtroRendimiento, filtroRotacion, filtroDespido, filtroRenuncia, filtroRotacionIntencional]);
 
     const exportarTablaExcel = () => {
         const datos = empleadosFiltrados.map(emp => ({
@@ -358,6 +363,20 @@ export default function EmpleadosRiesgo() {
                                     ))}
                                 </select>
                             </div>
+
+                            <div>
+                                <label className="mr-2 font-semibold">Rotación Intencional:</label>
+                                <select
+                                    className="border border-gray-300 rounded-md p-2"
+                                    value={filtroRotacionIntencional}
+                                    onChange={e => setFiltroRotacionIntencional(e.target.value)}
+                                >
+                                    {opcionesFiltro.map((opt, i) => (
+                                        <option key={i} value={opt}>{opt || "Todos"}</option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div className="mt-2 text-xs text-gray-500 text-center">
                                 <b>Nota:</b> Todos los datos y predicciones mostrados en este panel son <b>hipotéticos</b> y generados automáticamente por modelos de predicción. No representan evaluaciones reales ni decisiones efectivas de RRHH.
                             </div>
@@ -428,7 +447,10 @@ export default function EmpleadosRiesgo() {
                                             "Rendimiento",
                                             "Rotación",
                                             "Despido",
-                                            "Renuncia"
+                                            "Renuncia",
+                                            "Rotación Intencional",
+                                            "Último Rend. Manual",
+                                            "Postulaciones"
                                         ].map((col, i) => (
                                             <th key={i} className="p-3 border border-gray-300">{col}</th>
                                         ))}
@@ -452,10 +474,17 @@ export default function EmpleadosRiesgo() {
                                             <td className={`p-2 border ${colorRiesgo[emp.riesgo_rotacion_predicho] || ""}`}>{emp.riesgo_rotacion_predicho}</td>
                                             <td className={`p-2 border ${colorRiesgo[emp.riesgo_despido_predicho] || ""}`}>{emp.riesgo_despido_predicho}</td>
                                             <td className={`p-2 border ${colorRiesgo[emp.riesgo_renuncia_predicho] || ""}`}>{emp.riesgo_renuncia_predicho}</td>
+                                            <td className={`p-2 border ${colorRiesgo[String(emp.riesgo_rotacion_intencional).toLowerCase()] || ""}`}>
+                                                {emp.riesgo_rotacion_intencional !== undefined && emp.riesgo_rotacion_intencional !== null
+                                                    ? String(emp.riesgo_rotacion_intencional).toLowerCase()
+                                                    : "-"}
+                                            </td>
+                                            <td className="p-2 border">{emp.ultimo_rendimiento_manual !== undefined && emp.ultimo_rendimiento_manual !== null ? emp.ultimo_rendimiento_manual : "-"}</td>
+                                            <td className="p-2 border">{emp.cantidad_postulaciones !== undefined && emp.cantidad_postulaciones !== null ? emp.cantidad_postulaciones : "-"}</td>
                                         </tr>
                                     )) : (
                                         <tr>
-                                            <td colSpan={15} className="text-center p-4 text-gray-500">
+                                            <td colSpan={18} className="text-center p-4 text-gray-500">
                                                 No se encontraron empleados con esos criterios.
                                             </td>
                                         </tr>
