@@ -2634,12 +2634,14 @@ def eval_licencia(id_licencia):
         if motivo:
             licencia.motivo_rechazo = motivo
         message = "Licencia sugerida exitosamente"
+        crear_notificacion(empleado.id, mensaje=f"Tu licencia ha sido rechada.")
     elif nuevo_estado == "activa y verificada":
         # Solo se puede verificar si está activa
         if licencia.estado != "activa":
             return jsonify({"error": "Solo puedes verificar licencias en estado 'activa'"}), 403
         licencia.estado = "activa y verificada"
         message = "Licencia verificada exitosamente"
+        crear_notificacion(empleado.id, mensaje=f"Tu licencia ha sido verificada y está activa.")
     elif nuevo_estado == "invalidada":
         # Solo se puede invalidar si está activa
         if licencia.estado != "activa":
@@ -2648,10 +2650,12 @@ def eval_licencia(id_licencia):
         if motivo:
             licencia.motivo_rechazo = motivo
         message = "Licencia invalidada exitosamente"
+        crear_notificacion(empleado.id, mensaje=f"Tu licencia ha sido invalidada. Motivo: {motivo}" if motivo else "Tu licencia ha sido invalidada.")
     else:
         licencia.estado = nuevo_estado
         if motivo:
             licencia.motivo_rechazo = motivo
+        crear_notificacion(empleado.id, mensaje=f"Tu licencia ha sido {nuevo_estado}. Motivo: {motivo}" if motivo else f"Tu licencia ha sido {nuevo_estado}.")
 
     db.session.commit()
 
@@ -2721,6 +2725,10 @@ def cancelar_licencia(id_licencia):
 
     try:
         db.session.commit()
+        crear_notificacion(
+            licencia.id_empleado,
+            mensaje=f"Tu solicitud de licencia con ID {licencia.id} ha sido cancelada por el manager."
+        )
         return jsonify(
             {
                 "message": "Solicitud de licencia cancelada exitosamente.",
