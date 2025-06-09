@@ -1406,9 +1406,11 @@ def responder_sugerencia_licencia(id_licencia):
 
     if aceptacion:
         licencia.estado_sugerencia = "sugerencia aceptada"
+        crear_notificacion_uso_especifico(licencia.id_empleado, f"Tu sugerencia de licencia ha sido aceptada. Nueva fecha de inicio: {licencia.fecha_inicio_sugerencia.isoformat() if licencia.fecha_inicio_sugerencia else 'No definida'}, Nueva fecha de fin: {licencia.fecha_fin_sugerencia.isoformat() if licencia.fecha_fin_sugerencia else 'No definida'}")
     else:
         licencia.estado = "rechazada"
         licencia.estado_sugerencia = "sugerencia rechazada"
+        crear_notificacion_uso_especifico(licencia.id_empleado, f"Tu sugerencia de licencia ha sido rechazada. Motivo: {licencia.motivo_rechazo if licencia.motivo_rechazo else 'No especificado'}")
 
     db.session.commit()
 
@@ -1586,6 +1588,8 @@ def eval_licencia(id_licencia):
             licencia.fecha_fin = licencia.fecha_fin_sugerencia
         if motivo:
             licencia.motivo_rechazo = motivo
+            crear_notificacion_uso_especifico(empleado.id, "Tu licencia ha sido aprobada.")
+        enviar_mail_empleado_licencia(empleado.correo, "Tu licencia ha sido aprobada.")
     elif nuevo_estado == "sugerencia":
         # Guardar sugerencia de fechas y estado_sugerencia
         if not fecha_inicio_sugerida or not fecha_fin_sugerida:
@@ -1604,12 +1608,16 @@ def eval_licencia(id_licencia):
         if motivo:
             licencia.motivo_rechazo = motivo
         message = "Licencia sugerida exitosamente"
+        crear_notificacion_uso_especifico(empleado.id, "Tu licencia ha sido sugerida y está pendiente de aprobación.")
+        enviar_mail_empleado_licencia(empleado.correo, "Tu licencia ha sido sugerida y está pendiente de aprobación.")
     elif nuevo_estado == "activa y verificada":
         # Solo se puede verificar si está activa
         if licencia.estado != "activa":
             return jsonify({"error": "Solo puedes verificar licencias en estado 'activa'"}), 403
         licencia.estado = "activa y verificada"
         message = "Licencia verificada exitosamente"
+        crear_notificacion_uso_especifico(empleado.id, "Tu licencia ha sido verificada y está activa.")
+        enviar_mail_empleado_licencia(empleado.correo, "Tu licencia ha sido verificada y está activa.")
     elif nuevo_estado == "invalidada":
         # Solo se puede invalidar si está activa
         if licencia.estado != "activa":
@@ -1618,6 +1626,8 @@ def eval_licencia(id_licencia):
         if motivo:
             licencia.motivo_rechazo = motivo
         message = "Licencia invalidada exitosamente"
+        crear_notificacion_uso_especifico(empleado.id, "Tu licencia ha sido invalidada.")
+        enviar_mail_empleado_licencia(empleado.correo, "Tu licencia ha sido invalidada.")
     else:
         licencia.estado = nuevo_estado
         if motivo:
@@ -1701,3 +1711,22 @@ def cancelar_licencia(id_licencia):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Error al cancelar la licencia: {str(e)}"}), 500
+    
+
+def enviar_mail_empleado_licencia(email_destino, cuerpo):
+    try:
+        asunto = "Estado de licencia"
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
+
+
+def crear_notificacion_uso_especifico(id_usuario, mensaje):
+    notificacion = Notificacion(
+        id_usuario=id_usuario,
+        mensaje=mensaje,
+    )
+    db.session.add(notificacion)

@@ -2324,9 +2324,11 @@ def responder_sugerencia_licencia(id_licencia):
 
     if aceptacion:
         licencia.estado_sugerencia = "sugerencia aceptada"
+        crear_notificacion_uso_especifico(licencia.id_empleado, f"Tu sugerencia de licencia ha sido aceptada. Fecha de inicio: {licencia.fecha_inicio_sugerencia.isoformat() if licencia.fecha_inicio_sugerencia else 'No definida'}, Fecha de fin: {licencia.fecha_fin_sugerencia.isoformat() if licencia.fecha_fin_sugerencia else 'No definida'}")
     else:
         licencia.estado = "rechazada"
         licencia.estado_sugerencia = "sugerencia rechazada"
+        crear_notificacion_uso_especifico(licencia.id_empleado, f"Tu sugerencia de licencia ha sido rechazada. Motivo: {licencia.motivo_rechazo if licencia.motivo_rechazo else 'No especificado'}")
 
     db.session.commit()
 
@@ -2616,6 +2618,8 @@ def eval_licencia(id_licencia):
             licencia.fecha_fin = licencia.fecha_fin_sugerencia
         if motivo:
             licencia.motivo_rechazo = motivo
+        crear_notificacion_uso_especifico(empleado.id, mensaje=f"Tu licencia ha sido aprobada.")
+        enviar_mail_analista_licencia(empleado.correo, cuerpo=f"Tu licencia ha sido aprobada por el manager {manager.nombre} {manager.apellido}.")
     elif nuevo_estado == "sugerencia":
         # Guardar sugerencia de fechas y estado_sugerencia
         if not fecha_inicio_sugerida or not fecha_fin_sugerida:
@@ -2634,7 +2638,8 @@ def eval_licencia(id_licencia):
         if motivo:
             licencia.motivo_rechazo = motivo
         message = "Licencia sugerida exitosamente"
-        crear_notificacion(empleado.id, mensaje=f"Tu licencia ha sido rechada.")
+        crear_notificacion_uso_especifico(empleado.id, mensaje=f"Tu licencia ha recibido una sugerencia de cambio de dias.")
+        enviar_mail_analista_licencia(empleado.correo, cuerpo=f"Tu licencia ha recibido una sugerencia de cambio de días por parte del manager {manager.nombre} {manager.apellido}.")
     elif nuevo_estado == "activa y verificada":
         # Solo se puede verificar si está activa
         if licencia.estado != "activa":
@@ -2642,6 +2647,7 @@ def eval_licencia(id_licencia):
         licencia.estado = "activa y verificada"
         message = "Licencia verificada exitosamente"
         crear_notificacion(empleado.id, mensaje=f"Tu licencia ha sido verificada y está activa.")
+        enviar_mail_analista_licencia(empleado.correo, cuerpo=f"Tu licencia ha sido verificada y está activa por el manager {manager.nombre} {manager.apellido}.")
     elif nuevo_estado == "invalidada":
         # Solo se puede invalidar si está activa
         if licencia.estado != "activa":
@@ -2650,12 +2656,14 @@ def eval_licencia(id_licencia):
         if motivo:
             licencia.motivo_rechazo = motivo
         message = "Licencia invalidada exitosamente"
-        crear_notificacion(empleado.id, mensaje=f"Tu licencia ha sido invalidada. Motivo: {motivo}" if motivo else "Tu licencia ha sido invalidada.")
+        crear_notificacion_uso_especifico(empleado.id, mensaje=f"Tu licencia ha sido invalidada. Motivo: {motivo}" if motivo else "Tu licencia ha sido invalidada.")
+        enviar_mail_analista_licencia(empleado.correo, cuerpo=f"Tu licencia ha sido invalidada por el manager {manager.nombre} {manager.apellido}. Motivo: {motivo}" if motivo else f"Tu licencia ha sido invalidada por el manager {manager.nombre} {manager.apellido}.")
     else:
         licencia.estado = nuevo_estado
         if motivo:
             licencia.motivo_rechazo = motivo
-        crear_notificacion(empleado.id, mensaje=f"Tu licencia ha sido {nuevo_estado}. Motivo: {motivo}" if motivo else f"Tu licencia ha sido {nuevo_estado}.")
+        crear_notificacion_uso_especifico(empleado.id, mensaje=f"Tu licencia ha sido {nuevo_estado}. Motivo: {motivo}" if motivo else f"Tu licencia ha sido {nuevo_estado}.")
+        enviar_mail_analista_licencia(empleado.correo, cuerpo=f"Tu licencia ha sido {nuevo_estado} por el manager {manager.nombre} {manager.apellido}. Motivo: {motivo}" if motivo else f"Tu licencia ha sido {nuevo_estado} por el manager {manager.nombre} {manager.apellido}.")
 
     db.session.commit()
 
@@ -2724,11 +2732,11 @@ def cancelar_licencia(id_licencia):
     )
 
     try:
-        db.session.commit()
-        crear_notificacion(
+        crear_notificacion_uso_especifico(
             licencia.id_empleado,
             mensaje=f"Tu solicitud de licencia con ID {licencia.id} ha sido cancelada por el manager."
         )
+        db.session.commit()
         return jsonify(
             {
                 "message": "Solicitud de licencia cancelada exitosamente.",
@@ -2739,3 +2747,15 @@ def cancelar_licencia(id_licencia):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Error al cancelar la licencia: {str(e)}"}), 500
+    
+
+
+def enviar_mail_analista_licencia(email_destino, cuerpo):
+    try:
+        asunto = "Estado de licencia"
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
