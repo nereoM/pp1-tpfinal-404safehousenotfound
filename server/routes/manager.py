@@ -2760,6 +2760,12 @@ def enviar_mail_analista_licencia(email_destino, cuerpo):
     except Exception as e:
         print(f"Error al enviar correo a {email_destino}: {e}")
 
+def allowed_file(filename):
+    return (
+        "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_CV_EXTENSIONS
+    )
+
+ALLOWED_CV_EXTENSIONS = {"pdf", "doc", "docx"}
 
 @manager_bp.route("/subir-certificado-manager", methods=["POST"])
 @role_required(["manager"])
