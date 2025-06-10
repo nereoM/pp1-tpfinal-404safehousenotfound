@@ -1316,6 +1316,10 @@ def solicitar_licencia():
     )
 
     db.session.add(nueva_licencia)
+
+    crear_notificacion_uso_especifico(id_reclutador, f"Has solicitado una licencia del tipo {tipo_licencia}")
+    enviar_mail_empleado_licencia_cuerpo(reclutador.correo, "Solicitud de Licencia", f"Has solicitado una licencia del tipo {tipo_licencia}.")
+
     db.session.commit()
 
      # Si el estado de la licencia es activa, colocar al reclutador como inactivo
@@ -1728,6 +1732,10 @@ def cancelar_licencia(id_licencia):
     )
 
     try:
+        empleado = Usuario.query.get(id_empleado)
+        crear_notificacion_uso_especifico(id_empleado, f"La licencia {id_licencia} ha sido cancelada exitosamente.")
+        enviar_mail_empleado_licencia_cuerpo(empleado.correo, "Licencia Cancelada",
+            f"Hola {empleado.nombre},\n\nTu solicitud de licencia con ID {id_licencia} ha sido cancelada exitosamente.\n\nSaludos,\nEquipo de Recursos Humanos")
         db.session.commit()
         return jsonify(
             {
@@ -1744,6 +1752,15 @@ def cancelar_licencia(id_licencia):
 def enviar_mail_empleado_licencia(email_destino, cuerpo):
     try:
         asunto = "Estado de licencia"
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
+
+def enviar_mail_empleado_licencia_cuerpo(email_destino, asunto, cuerpo):
+    try:
         msg = Message(asunto, recipients=[email_destino])
         msg.body = cuerpo
         mail.send(msg)

@@ -2219,6 +2219,10 @@ def solicitar_licencia():
     )
 
     db.session.add(nueva_licencia)
+
+    crear_notificacion_uso_especifico(id_manager, f"Has solicitado una licencia de tipo '{tipo_licencia}'. Tu solicitud está en estado '{estado}'.")
+    enviar_mail_manager_licencia_cuerpo(manager.correo, "Solicitud de licencia", f"Has solicitado una licencia de tipo '{tipo_licencia}'. Tu solicitud está en estado '{estado}'.")
+
     db.session.commit()
 
     return jsonify(
@@ -2753,6 +2757,15 @@ def cancelar_licencia(id_licencia):
 def enviar_mail_analista_licencia(email_destino, cuerpo):
     try:
         asunto = "Estado de licencia"
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
+
+def enviar_mail_manager_licencia_cuerpo(email_destino, asunto, cuerpo):
+    try:
         msg = Message(asunto, recipients=[email_destino])
         msg.body = cuerpo
         mail.send(msg)

@@ -1082,6 +1082,10 @@ def solicitar_licencia():
     )
 
     db.session.add(nueva_licencia)
+
+    crear_notificacion_uso_especifico(id_empleado, f"Has solicitado una licencia del tipo {tipo_licencia}.")
+    enviar_mail_empleado_licencia_cuerpo(empleado.correo, "Solicitud de licencia", f"Hola {empleado.nombre}, has solicitado una licencia del tipo {tipo_licencia}.")
+
     db.session.commit()
 
     return jsonify(
@@ -1220,12 +1224,19 @@ def responder_sugerencia_licencia(id_licencia):
 
     if not licencia:
         return jsonify({"error": "Licencia no encontrada"}), 404
+    
+    empleado = Usuario.query.get(id_empleado)
+    superior = Usuario.query.get(empleado.id_superior)
 
     if aceptacion:
         licencia.estado_sugerencia = "sugerencia aceptada"
+        if superior:
+            crear_notificacion_uso_especifico(superior.id, f"El empleado {empleado.nombre} {empleado.apellido} ha aceptado la sugerencia de licencia.")
     else:
         licencia.estado = "rechazada"
         licencia.estado_sugerencia = "sugerencia rechazada"
+        if superior:
+            crear_notificacion_uso_especifico(superior.id, f"El empleado {empleado.nombre} {empleado.apellido} ha rechazado la sugerencia de licencia.")
 
     db.session.commit()
 
@@ -1505,6 +1516,10 @@ def cancelar_licencia(id_licencia):
     )
 
     try:
+        empleado = Usuario.query.get(id_empleado)
+        crear_notificacion_uso_especifico(id_empleado, f"La licencia {id_licencia} ha sido cancelada exitosamente.")
+        enviar_mail_empleado_licencia(empleado.correo, "Licencia Cancelada",
+            f"Hola {empleado.nombre},\n\nTu solicitud de licencia con ID {id_licencia} ha sido cancelada exitosamente.\n\nSaludos,\nEquipo de Recursos Humanos")
         db.session.commit()
         return jsonify(
             {
@@ -1544,3 +1559,30 @@ def obtener_notificaciones_todas():
     except Exception as e:
         print(f"Error al obtener notificaciones: {e}")
         return jsonify({"error": "Error interno al recuperar las notificaciones"}), 500
+    
+
+def enviar_mail_empleado_licencia(email_destino, asunto, cuerpo):
+    try:
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
+
+
+def crear_notificacion_uso_especifico(id_usuario, mensaje):
+    notificacion = Notificacion(
+        id_usuario=id_usuario,
+        mensaje=mensaje,
+    )
+    db.session.add(notificacion)
+
+def enviar_mail_empleado_licencia_cuerpo(email_destino, asunto, cuerpo):
+    try:
+        msg = Message(asunto, recipients=[email_destino])
+        msg.body = cuerpo
+        mail.send(msg)
+        print(f"Correo enviado correctamente a {email_destino}")
+    except Exception as e:
+        print(f"Error al enviar correo a {email_destino}: {e}")
