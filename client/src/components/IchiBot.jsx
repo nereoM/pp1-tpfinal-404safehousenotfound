@@ -32,17 +32,16 @@ export default function IchiChatBot({ estado = "neutral" }) {
   const chatRef = useRef(null);
 
   // parpadeo en minimizado (solo ojo abierto/cerrado)
-  useEffect(() => {
-    if (!open) {
-      let i = 0;
-      const frames = ["neutral", "neutral2", "neutral"];
-      const interval = setInterval(() => {
-        setMiniExpresion(frames[i % frames.length]);
-        i++;
-      }, 1800);
-      return () => clearInterval(interval);
-    }
-  }, [open]);
+useEffect(() => {
+  if (!open) {
+    const interval = setInterval(() => {
+      setMiniExpresion("neutral2"); // cerrar el ojo
+      setTimeout(() => setMiniExpresion("neutral"), 500); // abrir después de 100ms
+    }, 3000); // cada 5 segundos
+    return () => clearInterval(interval);
+  }
+}, [open]);
+
 
   // parpadeo normal cuando está abierto
   useEffect(() => {
