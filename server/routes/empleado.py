@@ -336,6 +336,7 @@ def recomendar_ofertas():
         ofertas = (
             db.session.query(Oferta_laboral)
             .filter(Oferta_laboral.is_active == True)
+            .filter(Oferta_laboral.id_empresa == empleado.id_empresa)
             .filter(
                 or_(
                     *[
@@ -1084,8 +1085,9 @@ def solicitar_licencia():
     db.session.add(nueva_licencia)
 
     crear_notificacion_uso_especifico(id_empleado, f"Has solicitado una licencia del tipo {tipo_licencia}.")
+    crear_notificacion_uso_especifico(empleado.id_superior, f"El empleado {empleado.nombre} ha solicitado una licencia del tipo {tipo_licencia}.")
     enviar_mail_empleado_licencia_cuerpo(empleado.correo, "Solicitud de licencia", f"Hola {empleado.nombre}, has solicitado una licencia del tipo {tipo_licencia}.")
-
+    
     db.session.commit()
 
     return jsonify(

@@ -81,9 +81,10 @@
             </tr>
         </thead>
         <tbody>
-            {% for key in resumen_despido.keys() %}
+            {% set traducciones = {"alto": "Alto", "medio": "Medio", "bajo": "Bajo"} %}
+            {% for key in traducciones.keys() %}
             <tr>
-                <td>{{ key }}</td>
+                <td>{{ traducciones[key] }}</td>
                 <td>{{ resumen_despido[key] }}</td>
                 <td>{{ resumen_renuncia[key] }}</td>
                 <td>{{ resumen_rotacion[key] }}</td>

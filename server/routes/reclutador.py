@@ -1318,6 +1318,7 @@ def solicitar_licencia():
     db.session.add(nueva_licencia)
 
     crear_notificacion_uso_especifico(id_reclutador, f"Has solicitado una licencia del tipo {tipo_licencia}")
+    crear_notificacion_uso_especifico(reclutador.id_superior, f"El empleado {reclutador.nombre} ha solicitado una licencia del tipo {tipo_licencia}.")
     enviar_mail_empleado_licencia_cuerpo(reclutador.correo, "Solicitud de Licencia", f"Has solicitado una licencia del tipo {tipo_licencia}.")
 
     db.session.commit()

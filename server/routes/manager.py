@@ -2226,6 +2226,7 @@ def solicitar_licencia():
     db.session.add(nueva_licencia)
 
     crear_notificacion_uso_especifico(id_manager, f"Has solicitado una licencia de tipo '{tipo_licencia}'. Tu solicitud está en estado '{estado}'.")
+    crear_notificacion_uso_especifico(manager.id_superior, f"El empleado {manager.nombre} ha solicitado una licencia del tipo {tipo_licencia}.")
     enviar_mail_manager_licencia_cuerpo(manager.correo, "Solicitud de licencia", f"Has solicitado una licencia de tipo '{tipo_licencia}'. Tu solicitud está en estado '{estado}'.")
 
     db.session.commit()
