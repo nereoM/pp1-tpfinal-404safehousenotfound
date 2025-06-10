@@ -1,4 +1,4 @@
-import { differenceInDays, parseISO } from "date-fns";
+import { useMemo } from "react";
 import {
   Calendar,
   CheckCheck,
@@ -22,24 +22,36 @@ export function NotificationsList({
   const { estilos } = useEstiloEmpresa();
   const primary = estilos?.color_principal ?? "#2563eb";
 
-  const grouped = {
-    recientes: [],
-    esteMes: [],
-    viejas: [],
-  };
+  // ✅ Lógica funcional basada en fechas absolutas
+  const ahora = useMemo(() => new Date(), []);
+  const hace7Dias = useMemo(
+    () => new Date(ahora.getTime() - 7 * 24 * 60 * 60 * 1000),
+    [ahora]
+  );
+  const hace30Dias = useMemo(
+    () => new Date(ahora.getTime() - 30 * 24 * 60 * 60 * 1000),
+    [ahora]
+  );
 
-  notificaciones.forEach((notif) => {
-    const diff = differenceInDays(new Date(), parseISO(notif.fecha_creacion));
-    if (diff <= 7) {
-      grouped.recientes.push(notif);
-    } else if (diff <= 30) {
-      grouped.esteMes.push(notif);
+  const ultimos7 = [];
+  const ultimoMes = [];
+  const masAntiguas = [];
+
+  notificaciones.forEach((n) => {
+    const fecha = new Date(n.fecha_creacion);
+    if (isNaN(fecha)) return;
+
+    if (fecha >= hace7Dias) {
+      ultimos7.push(n);
+    } else if (fecha >= hace30Dias) {
+      ultimoMes.push(n);
     } else {
-      grouped.viejas.push(notif);
+      masAntiguas.push(n);
     }
   });
 
-  const renderGroup = (items) =>
+  // ✅ Render de grupo con estilos visuales
+  const renderGrupo = (items) =>
     items.length === 0 ? (
       <p className="text-sm text-gray-400 px-4 py-2">Sin notificaciones</p>
     ) : (
@@ -48,8 +60,8 @@ export function NotificationsList({
           <li
             key={notif.id}
             onClick={() => onSelect(notif.id)}
-            className={`p-4 border-b cursor-pointer hover:bg-gray-100 ${
-              notif.id === notificacionActivaId ? "bg-gray-200" : ""
+            className={`p-4 border-b cursor-pointer hover:bg-gray-100 transition-colors duration-100 ${
+              notif.id === notificacionActivaId ? "bg-blue-100" : ""
             }`}
           >
             <div className="flex items-center justify-between">
@@ -83,26 +95,26 @@ export function NotificationsList({
       >
         <AccordionItem value="recientes">
           <AccordionTrigger className="px-4">
-            <Clock style={{ color: primary }} className="size-5 custom" />{" "}
+            <Clock style={{ color: primary }} className="size-5" />
             Últimos 7 días
           </AccordionTrigger>
-          <AccordionContent>{renderGroup(grouped.recientes)}</AccordionContent>
+          <AccordionContent>{renderGrupo(ultimos7)}</AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="esteMes">
           <AccordionTrigger className="px-4">
-            <Calendar style={{ color: primary }} className="size-5 custom" />{" "}
+            <Calendar style={{ color: primary }} className="size-5" />
             Último mes
           </AccordionTrigger>
-          <AccordionContent>{renderGroup(grouped.esteMes)}</AccordionContent>
+          <AccordionContent>{renderGrupo(ultimoMes)}</AccordionContent>
         </AccordionItem>
 
         <AccordionItem value="viejas">
           <AccordionTrigger className="px-4">
-            <FolderOpen style={{ color: primary }} className="size-5 custom" />{" "}
+            <FolderOpen style={{ color: primary }} className="size-5" />
             Más antiguas
           </AccordionTrigger>
-          <AccordionContent>{renderGroup(grouped.viejas)}</AccordionContent>
+          <AccordionContent>{renderGrupo(masAntiguas)}</AccordionContent>
         </AccordionItem>
       </Accordion>
     </aside>

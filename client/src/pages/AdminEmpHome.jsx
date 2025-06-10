@@ -165,12 +165,19 @@ export default function AdminEmpHome() {
     );
   }
 
-  const obtenerLicencias = async () => {
-    adminEmpService
-      .obtenerLicenciasSolicitadas()
-      .then(setLicencias)
-      .catch(() => showToast("Error al cargar las licencias.", "error"));
-  };
+const obtenerLicencias = async () => {
+  try {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/licencias-mis-managers`, {
+      credentials: "include",
+    });
+    if (!res.ok) throw new Error();
+    const json = await res.json();
+    setLicencias(json.licencias);
+  } catch (error) {
+    showToast("Error al cargar las licencias.", "error");
+  }
+};
+
 
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
     try {

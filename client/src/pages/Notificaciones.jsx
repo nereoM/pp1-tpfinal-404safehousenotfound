@@ -1,62 +1,8 @@
 import { useEffect, useState } from "react";
 import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
-import { NotificationActive } from "../components/notifications/NotificationActive";
 import { NotificationsList } from "../components/notifications/NotificationsList";
-
-const initialNotificaciones = [
-  {
-    id: "1",
-    titulo: "Nueva oferta publicada",
-    contenido: "Se ha publicado una nueva oferta laboral para el área de IT.",
-    opened: false,
-    fecha_creacion: "2025-05-30T10:00:00Z",
-  },
-  {
-    id: "2",
-    titulo: "Licencia aprobada",
-    contenido:
-      "Tu solicitud de licencia ha sido aprobada por Recursos Humanos.",
-    opened: true,
-    fecha_creacion: "2025-05-27T14:30:00Z",
-  },
-  {
-    id: "3",
-    titulo: "Actualización de métricas",
-    contenido: "Las métricas del equipo han sido actualizadas con éxito.",
-    opened: false,
-    fecha_creacion: "2025-05-15T09:15:00Z",
-  },
-  {
-    id: "4",
-    titulo: "Recordatorio de reunión",
-    contenido: "No olvides la reunión semanal con el equipo de analistas.",
-    opened: true,
-    fecha_creacion: "2025-04-25T12:00:00Z",
-  },
-  {
-    id: "5",
-    titulo: "Nuevo mensaje del administrador",
-    contenido:
-      "Revisá el mensaje urgente enviado por el administrador del sistema.",
-    opened: false,
-    fecha_creacion: "2025-05-01T08:00:00Z",
-  },
-  {
-    id: "6",
-    titulo: "Cambio en políticas de RRHH",
-    contenido: "Las políticas de trabajo remoto han sido actualizadas.",
-    opened: true,
-    fecha_creacion: "2025-05-20T16:45:00Z",
-  },
-  {
-    id: "7",
-    titulo: "Actualización del sistema",
-    contenido: "El sistema se actualizará el próximo fin de semana.",
-    opened: false,
-    fecha_creacion: "2025-06-01T10:00:00Z",
-  },
-];
+import { format } from "date-fns";
 
 function mapNotificacionApiToFrontend(n) {
   return {
@@ -74,22 +20,19 @@ export default function NotificacionesPage() {
 
   const rol = localStorage.getItem("rol") || "reclutador";
 
-  const endpointBase =
-    {
-      candidato: "candidato",
-      manager: "manager",
-      "admin-emp": "admin-emp",
-      reclutador: "reclutador",
-      empleado: "empleado",
-    }[rol] || "reclutadores";
+  const endpointBase = {
+    candidato: "candidato",
+    manager: "manager",
+    "admin-emp": "admin-emp",
+    reclutador: "reclutador",
+    empleado: "empleado",
+  }[rol] || "reclutadores";
 
   useEffect(() => {
     const fetchNotificaciones = async () => {
       try {
         const res1 = await fetch(
-          `${
-            import.meta.env.VITE_API_URL
-          }/api/notificaciones-${endpointBase}-no-leidas?todas=true`,
+          `${import.meta.env.VITE_API_URL}/api/notificaciones-${endpointBase}-todas`,
           { credentials: "include" }
         );
         const json = await res1.json();
@@ -133,5 +76,35 @@ export default function NotificacionesPage() {
         </div>
       </PageLayout>
     </section>
+  );
+}
+
+function NotificationActive({ notificacionActiva }) {
+  if (!notificacionActiva) {
+    return (
+      <div className="flex-1 p-6 bg-gray-50 text-gray-500 text-sm flex items-center justify-center">
+        Seleccioná una notificación para ver el detalle
+      </div>
+    );
+  }
+
+  let fechaFormateada = "Fecha no disponible";
+  if (notificacionActiva?.fecha_creacion) {
+    try {
+      const fecha = new Date(notificacionActiva.fecha_creacion);
+      if (!isNaN(fecha)) {
+        fechaFormateada = format(fecha, "PPpp");
+      }
+    } catch (e) {
+      console.warn("Fecha inválida:", notificacionActiva.fecha_creacion);
+    }
+  }
+
+  return (
+    <div className="flex-1 p-6 bg-white border-l">
+      <h2 className="text-xl font-semibold mb-2">{notificacionActiva.titulo}</h2>
+      <p className="text-sm text-gray-500 mb-4">{fechaFormateada}</p>
+      <p className="text-gray-700">{notificacionActiva.contenido}</p>
+    </div>
   );
 }
