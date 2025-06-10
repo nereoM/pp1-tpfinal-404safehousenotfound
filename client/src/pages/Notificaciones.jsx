@@ -64,6 +64,7 @@ export default function NotificacionesPage() {
         <TopBar
           username={`Usuario prueba`}
           style={{ backgroundColor: "#dddddd" }}
+          showBell={false}
         />
 
         <div className="flex h-[calc(100vh-60px)]">
