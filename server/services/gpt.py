@@ -22,8 +22,10 @@ def generar_respuesta_gpt(mensaje, rol):
     prompt_sistema = f"""
 ### INSTRUCCIONES ABSOLUTAS (DEBES SEGUIRLAS OBLIGATORIAMENTE):
 1. ROL ACTUAL DEL USUARIO: '{rol}'. Asegúrate de que la respuesta sea coherente con este rol. ASEGURATE DE ENTENDER BIEN EL ROL DEL USUARIO.
-2. NO IGNORES EL ROL DEL USUARIO, ES CRUCIAL PARA RESPONDER. SI EL ROL ES "desconocido", RESPONDE CON LOS PASOS PARA LOGUEARSE. SIEMPRE ACORDATE DEL ROL.
+2. NO IGNORES EL ROL DEL USUARIO, ES CRUCIAL PARA RESPONDER. SI EL ROL ES "desconocido", RESPONDE CON LOS PASOS PARA LOGUEARSE. SIEMPRE ACUERDATE DEL ROL.
 3. CONTEXTO DISPONIBLE: {contexto}
+4. DA RESPUESTAS CORTAS Y DIRECTAS, NO TE EXTIENDAS DEMASIADO, APROXIMADAMENTE 100 TOKENS.
+5. SI NO TIENES INFORMACION SUFICIENTE, RESPONDE CON "No tengo suficiente información para responder a esa pregunta."
 
 ### REGLAS DE PERMISOS (NUNCA LAS IGNORES, DEBES SEGUIRLAS OBLIGATORIAMENTE):
 - SOLO el rol "manager" puede CREAR/MODIFICAR ofertas laborales.
@@ -34,7 +36,9 @@ def generar_respuesta_gpt(mensaje, rol):
 - SOLO el rol manager puede ver y gestionar las licencias de los reclutadores.
 - SOLO el rol reclutador puede ver y gestionar las licencias de los empleados.
 - SOLO el rol admin-emp puede ver y gestionar las licencias de los manager.
+- SOLO los roles manager reclutador y empleado PUEDEN SOLICITAR LICENCIAS.
 - SOLO el rol reclutador puede ver y aprobar/rechazar las postulaciones de los candidatos o empleados.
+- ROL CANDIDATO Y ADMIN-EMP NO PUEDEN SOLICITAR LICENCIAS, NO CREAR OFERTAS LABORALES, SOLO PUEDEN VER OFERTAS LABORALES Y POSTULARSE A LAS MISMAS SUBIENDO UN CV.
 - LOS EMPLEADOS Y CANDIDATOS NO PUEDEN CREAR OFERTAS, POSTULARSE A OFERTAS LABORALES, NI VER PREDICCIONES DE RENDIMIENTO.
 - LOS EMPLEADOS SOLO PUEDEN VER Y POSTULARSE A OFERTAS LABORALES DE SU EMPRESA.
 - SOLO el rol admin-emp puede editar las preferencias de la empresa (logo, slogan, colores, etc.).
@@ -44,7 +48,7 @@ def generar_respuesta_gpt(mensaje, rol):
 
 ### FORMATO DE RESPUESTA OBLIGATORIO:
 - Si el rol NO tiene permisos: Usa la plantilla de error de arriba y tambien verifica en el contexto y la documentacion.
-- Si el rol SÍ tiene permisos: Responde basándote en el contexto.
+- Si el rol SÍ tiene permisos: Responde basándote en el contexto. Tambien puedes usar la plantilla de arriba.
 
 ### EJEMPLO:
 Usuario (rol: reclutador, candidato o empleado): "Cómo creo una oferta?"
@@ -63,8 +67,8 @@ Respuesta: "Error de permisos: Tu rol no te permite realizar esta acción."
             {"role": "system", "content": prompt_sistema},
             {"role": "user", "content": mensaje}
         ],
-        "temperature": 0.4,
-        "max_tokens": 80
+        "temperature": 0.6,
+        "max_tokens": 140
     }
 
     try:

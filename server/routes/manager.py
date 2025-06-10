@@ -55,15 +55,20 @@ def manager_home():
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def allowed_file_certificados(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS_CERTIFICADOS
+
 UPLOAD_FOLDER_IMG = os.path.join(os.getcwd(), "uploads", "fotos")
 ALLOWED_IMG_EXTENSIONS = {"jpg", "jpeg", "png", "gif"}
 manager_bp.image_upload_folder = UPLOAD_FOLDER_IMG
 os.makedirs(UPLOAD_FOLDER_IMG, exist_ok=True)
 
 UPLOAD_FOLDER = os.path.join(os.getcwd(), "uploads", "info_laboral")
-ALLOWED_EXTENSIONS = {"csv"}
+ALLOWED_EXTENSIONS = {"csv", "pdf", "doc", "docx"}
+ALLOWED_EXTENSIONS_CERTIFICADOS = {"pdf"}
 manager_bp.upload_folder = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 
 @manager_bp.route("/subir-image-manager", methods=["POST"])
 @role_required(["manager"])
@@ -2773,13 +2778,6 @@ def enviar_mail_manager_licencia_cuerpo(email_destino, asunto, cuerpo):
     except Exception as e:
         print(f"Error al enviar correo a {email_destino}: {e}")
 
-def allowed_file(filename):
-    return (
-        "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_CV_EXTENSIONS
-    )
-
-ALLOWED_CV_EXTENSIONS = {"pdf", "doc", "docx"}
-
 @manager_bp.route("/subir-certificado-manager", methods=["POST"])
 @role_required(["manager"])
 def subir_certificado_generico():
@@ -2789,7 +2787,7 @@ def subir_certificado_generico():
 
     file = request.files["file"]
 
-    if file.filename == "" or not allowed_file(file.filename):
+    if file.filename == "" or not allowed_file_certificados(file.filename):
         return jsonify(
             {"error": "Formato de archivo no permitido. Solo se aceptan archivos PDF"}
         ), 400

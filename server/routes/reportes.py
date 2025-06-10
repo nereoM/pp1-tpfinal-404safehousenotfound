@@ -533,8 +533,8 @@ def reporte_licencias_manager():
     ids_str = request.args.get("ids")
     ids_filtrados = list(map(int, ids_str.split(","))) if ids_str else None
     
-    if not ids_filtrados:
-        return {"error": "Debe especificar al menos un ID de licencia para generar el reporte."}, 400
+    #if not ids_filtrados:
+    #    return {"error": "Debe especificar al menos un ID de licencia para generar el reporte."}, 400
 
     
     licencias_filtradas = Licencia.query.filter(Licencia.id.in_(ids_filtrados)).all() if ids_filtrados else []
