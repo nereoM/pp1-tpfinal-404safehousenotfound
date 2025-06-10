@@ -355,22 +355,19 @@ def crear_estructura_empresas_y_ofertas():
         asignar_rol(admin_emp, "admin-emp")
 
         # Crear managers
-        manager_objs = []
-        for i in range(1, 3):
-            manager = Usuario(
-                nombre=f"Manager{i}_{nombre_empresa}",
-                apellido="Gómez",
-                username=f"manager{i}_{nombre_empresa.lower()}",
-                correo=f"manager{i}@{nombre_empresa.lower().replace(' ', '')}.com",
-                contrasena="Manager123!",
-                confirmado=True,
-                id_empresa=empresa.id,
-                id_superior=admin_emp.id,
-            )
-            db.session.add(manager)
-            db.session.commit()
-            asignar_rol(manager, "manager")
-            manager_objs.append(manager)
+        manager = Usuario(
+            nombre=f"Manager_{nombre_empresa}",
+            apellido="Gómez",
+            username=f"manager_{nombre_empresa.lower()}",
+            correo=f"manager@{nombre_empresa.lower().replace(' ', '')}.com",
+            contrasena="Manager123!",
+            confirmado=True,
+            id_empresa=empresa.id,
+            id_superior=admin_emp.id,
+        )
+        db.session.add(manager)
+        db.session.commit()
+        asignar_rol(manager, "manager")
 
         # Crear reclutadores (analistas) y asignar rol
         reclutador_objs = []
@@ -404,7 +401,7 @@ def crear_estructura_empresas_y_ofertas():
                 currency=o["currency"],
                 experience_level=o["experience_level"],
                 is_active=True,
-                id_creador=random.choice(manager_objs).id,
+                id_creador=manager.id,
                 palabras_clave=json.dumps(o["palabras_clave"]),
                 fecha_publicacion=datetime.utcnow(),
                 fecha_cierre=datetime.utcnow() + timedelta(days=30),
