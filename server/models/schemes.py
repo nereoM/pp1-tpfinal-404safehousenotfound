@@ -271,6 +271,35 @@ class HistorialRendimientoEmpleadoManual(db.Model):
 
     empleado = db.relationship('Usuario', backref='historial_rendimiento_manual')
 
+class EncuestaSatisfaccion(db.Model):
+    __tablename__ = "encuestas_satisfaccion"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    titulo = db.Column(db.String(200), nullable=False)
+    descripcion = db.Column(db.Text, nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    activa = db.Column(db.Boolean, default=True)
+
+    preguntas = db.relationship("PreguntaEncuesta", backref="encuesta", cascade="all, delete-orphan")
+
+class PreguntaEncuesta(db.Model):
+    __tablename__ = "preguntas_encuesta"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_encuesta = db.Column(db.Integer, db.ForeignKey("encuestas_satisfaccion.id"), nullable=False)
+    texto = db.Column(db.String(500), nullable=False)
+    tipo = db.Column(db.String(50), nullable=False)  # Ej: 'opcion_multiple', 'texto_libre'
+
+    respuestas = db.relationship("RespuestaEncuesta", backref="pregunta", cascade="all, delete-orphan")
+
+class RespuestaEncuesta(db.Model):
+    __tablename__ = "respuestas_encuesta"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_pregunta = db.Column(db.Integer, db.ForeignKey("preguntas_encuesta.id"), nullable=False)
+    id_usuario = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=True)
+    respuesta = db.Column(db.Text, nullable=False)
+    fecha_respuesta = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    usuario = db.relationship("Usuario", backref="respuestas_encuesta")
+
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)
 
