@@ -1,6 +1,6 @@
 import Header from "../components/Header";
 import { useNavigate } from "react-router-dom";
-import { Package } from "lucide-react"; 
+import { Package } from "lucide-react";
 
 export default function Precios() {
   const navigate = useNavigate();
@@ -11,7 +11,7 @@ export default function Precios() {
       <Header />
 
       {/* Main */}
-      <main className="px-8 py-16">
+      <main className="mt-8 px-8 py-16">
         <h1 className="text-4xl font-bold mb-6 text-indigo-700 text-center">Plan de Suscripción</h1>
 
         <div className="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105 text-center">
@@ -26,19 +26,19 @@ export default function Precios() {
 
           {/* Botones de acción */}
           <div className="flex flex-col sm:flex-row justify-center gap-4 mt-8">
-  <button
-    onClick={() => navigate("/login?redirect=pagos")}
-    className="bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 transition"
-  >
-    ¿Ya tienes cuenta? Inicia sesión
-  </button>
-  <button
-    onClick={() => navigate("/login?redirect=pagos&form=register")}
-    className="bg-white text-indigo-500 border border-indigo-500 px-6 py-3 rounded-lg hover:bg-indigo-100 transition"
-  >
-    ¿No tienes cuenta? Registrate
-  </button>
-</div>
+            <button
+              onClick={() => navigate("/login?redirect=pagos")}
+              className="bg-indigo-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 transition"
+            >
+              ¿Ya tienes cuenta? Inicia sesión
+            </button>
+            <button
+              onClick={() => navigate("/login?redirect=pagos&form=register")}
+              className="bg-white text-indigo-500 border border-indigo-500 px-6 py-3 rounded-lg hover:bg-indigo-100 transition"
+            >
+              ¿No tienes cuenta? Registrate
+            </button>
+          </div>
 
         </div>
       </main>

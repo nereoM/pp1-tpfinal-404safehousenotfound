@@ -11,7 +11,7 @@ export default function Productos() {
             <Header />
 
             {/* Main */}
-            <main className="px-8 py-16">
+            <main className="mt-8 px-8 py-16">
                 <h1 className="text-4xl font-bold mb-10 text-indigo-700 text-center">Nuestros Productos</h1>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -1,13 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showLoginMenu, setShowLoginMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const menuRef = useRef(null);
 
-  
   useEffect(() => {
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -19,14 +20,14 @@ export default function Header() {
   }, []);
 
   const navItems = [
-    { label: "Inicio",    path: "/" },
+    { label: "Inicio", path: "/" },
     { label: "Productos", path: "/productos" },
-    { label: "Precios",   path: "/precios" },
-    { label: "Clientes",  path: "/clientes" },
+    { label: "Precios", path: "/precios" },
+    { label: "Clientes", path: "/clientes" },
   ];
 
   return (
- <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-8 py-4 shadow-sm bg-white/80 backdrop-blur-sm">
+    <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-4 md:px-8 py-4 shadow-sm bg-white">
       {/* Logo */}
       <button
         onClick={() => navigate("/")}
@@ -35,28 +36,27 @@ export default function Header() {
         SIGRH+
       </button>
 
-      {/* Navegación principal */}
-      <nav className="flex-1 flex justify-center space-x-6 text-center">
+      {/* Navegación principal (desktop) */}
+      <nav className="hidden md:flex flex-1 justify-center space-x-6 text-center">
         {navItems.map(({ label, path }) => (
           <button
             key={path}
             onClick={() => navigate(path)}
-            className={`transition-all duration-300 transform hover:scale-105 ${
-              location.pathname === path
-                ? "text-indigo-600 font-semibold"
-                : "hover:text-indigo-500"
-            }`}
+            className={`transition-all duration-300 transform hover:scale-105 ${location.pathname === path
+              ? "text-indigo-600 font-semibold"
+              : "hover:text-indigo-500"
+              }`}
           >
             {label}
           </button>
         ))}
       </nav>
 
-      {/* Split button de Login */}
+      {/* Split button de Login (desktop) */}
       <div className="relative inline-block text-left" ref={menuRef}>
         <button
-          onClick={() => setShowLoginMenu(prev => !prev)}
-          className="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition-all duration-300 transform hover:scale-105 focus:outline-none"
+          onClick={() => setShowLoginMenu((prev) => !prev)}
+          className="hidden md:inline-block bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600 transition-all duration-300 transform hover:scale-105 focus:outline-none"
         >
           Iniciar sesión
         </button>
@@ -86,6 +86,71 @@ export default function Header() {
           </div>
         )}
       </div>
+
+      {/* Botón menú hamburguesa (solo móvil, bien a la derecha) */}
+      <button
+        className="md:hidden ml-2 text-indigo-600 hover:text-indigo-800 focus:outline-none"
+        onClick={() => setShowMobileMenu((prev) => !prev)}
+        aria-label="Abrir menú"
+        style={{ order: 9999 }} // fuerza el botón a la derecha en mobile
+      >
+        {showMobileMenu ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+      </button>
+
+      {/* Menú móvil */}
+      {showMobileMenu && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex">
+          <div className="bg-white w-64 h-full shadow-lg flex flex-col p-6 space-y-4">
+            <button
+              className="self-end mb-4 text-indigo-600 hover:text-indigo-800"
+              onClick={() => setShowMobileMenu(false)}
+              aria-label="Cerrar menú"
+            >
+              <X className="w-7 h-7" />
+            </button>
+            {navItems.map(({ label, path }) => (
+              <button
+                key={path}
+                onClick={() => {
+                  setShowMobileMenu(false);
+                  navigate(path);
+                }}
+                className={`text-lg text-left py-2 px-2 rounded transition ${location.pathname === path
+                  ? "text-indigo-600 font-semibold"
+                  : "hover:bg-indigo-50"
+                  }`}
+              >
+                {label}
+              </button>
+            ))}
+            <hr />
+            <button
+              onClick={() => {
+                setShowMobileMenu(false);
+                navigate("/login");
+              }}
+              className="w-full text-left px-2 py-2 text-indigo-600 hover:bg-indigo-50 rounded"
+            >
+              Iniciar Sesion Candidato
+            </button>
+            <button
+              onClick={() => {
+                setShowMobileMenu(false);
+                navigate("/empresa");
+              }}
+              className="w-full text-left px-2 py-2 text-indigo-600 hover:bg-indigo-50 rounded"
+            >
+              Iniciar Sesion Empresa
+            </button>
+          </div>
+          {/* Clic fuera del menú cierra el menú */}
+          <div
+            className="flex-1"
+            onClick={() => setShowMobileMenu(false)}
+            tabIndex={-1}
+          />
+        </div>
+      )}
     </header>
   );
 }
