@@ -300,6 +300,34 @@ class RespuestaEncuesta(db.Model):
 
     usuario = db.relationship("Usuario", backref="respuestas_encuesta")
 
+# BOSQUEJO PERIODO, orientado a modificable por empresa
+    # horas_capacitacion deberia de ser menor a max_horas_capacitacion
+    # horas_extras deberia de ser menor a max_horas_extras
+    # ausencias, tardes y tempranas menor a dias_duracion
+    # Para ser coherentes como dijo el profe
+
+# Los que necesitan calcularse, se puede hacer a traves de los endpoints antes de registrarlos en la db o usando metodos hibridos aca mismo para calcularlos automaticamente
+class Periodo(db.Model):
+    __tablename__ = "periodos"
+    id_periodo = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), nullable=False)
+    fecha_inicio = db.Column(db.Date, nullable=False)
+    fecha_fin = db.Column(db.Date, nullable=False)
+    dias_duracion = db.Column(db.Integer, nullable=False)
+    horas_duracion = db.Column(db.Integer, nullable=True)
+    estado = db.Column(db.String(20), nullable=False)  # 'actual' o 'pasado'
+    cantidad_findes = db.Column(db.Integer, nullable=False)
+    horas_laborales_por_dia = db.Column(db.Integer, default=8, nullable=False) # (jornada laboral estandar de 8hs diarias)
+    dias_laborales_en_periodo = db.Column(db.Integer, nullable=False) # (dias_duracion menos cantidad_findes)
+    horas_trabajo_totales_en_periodo = db.Column(db.Integer, nullable=False) # (dias_laborales_en_periodo por horas_laborales_por_dia)
+    porcentaje_tiempo_laboral_a_capacitacion = db.Column(db.Float, nullable=False) 
+    max_horas_capacitacion = db.Column(db.Float, nullable=False) # (horas_trabajo_totales_en_periodo por porcentaje_tiempo_laboral_a_capacitacion)
+    cantidad_dias_findes_laborales = db.Column(db.Float, nullable=False)
+    horas_por_dia_finde = db.Column(db.Integer, nullable=False)
+    max_horas_extras = db.Column(db.Float, nullable=False) # (cant_dias_findes_laborales x horas_por_dia_finde)
+
+    empresa = db.relationship("Empresa", backref="periodos")
+
 def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
     oferta = Oferta_laboral.query.get(id_oferta)
 
