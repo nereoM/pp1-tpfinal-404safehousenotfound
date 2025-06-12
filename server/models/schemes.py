@@ -271,13 +271,20 @@ class HistorialRendimientoEmpleadoManual(db.Model):
 
     empleado = db.relationship('Usuario', backref='historial_rendimiento_manual')
 
-class EncuestaSatisfaccion(db.Model):
-    __tablename__ = "encuestas_satisfaccion"
+class Encuesta(db.Model):
+    __tablename__ = "encuestas"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    tipo = db.Column(db.String(50), nullable=False)  # Ej: 'satisfaccion', 'clima_laboral'
     titulo = db.Column(db.String(200), nullable=False)
     descripcion = db.Column(db.Text, nullable=True)
     fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     activa = db.Column(db.Boolean, default=True)
+    creador_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
+    periodo_id = db.Column(db.Integer, db.ForeignKey("periodos.id"), nullable=True)
+    es_anonima = db.Column(db.Boolean, default=False)
+    fecha_inicio = db.Column(db.DateTime, nullable=True)
+    fecha_fin = db.Column(db.DateTime, nullable=True)
+    estado = db.Column(db.String(50), default="pendiente")  # Ej: 'pendiente', 'activa', 'cerrada'
 
     preguntas = db.relationship("PreguntaEncuesta", backref="encuesta", cascade="all, delete-orphan")
 
@@ -287,6 +294,8 @@ class PreguntaEncuesta(db.Model):
     id_encuesta = db.Column(db.Integer, db.ForeignKey("encuestas_satisfaccion.id"), nullable=False)
     texto = db.Column(db.String(500), nullable=False)
     tipo = db.Column(db.String(50), nullable=False)  # Ej: 'opcion_multiple', 'texto_libre'
+    opciones = db.Column(db.Text, nullable=True)  # Opciones en formato JSON si es de opción múltiple
+    es_requerida = db.Column(db.Boolean, default=True)
 
     respuestas = db.relationship("RespuestaEncuesta", backref="pregunta", cascade="all, delete-orphan")
 
@@ -299,6 +308,20 @@ class RespuestaEncuesta(db.Model):
     fecha_respuesta = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
     usuario = db.relationship("Usuario", backref="respuestas_encuesta")
+
+class EncuestaAsignacion(db.Model):
+    __tablename__ = "encuestas_asignacion"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_encuesta = db.Column(db.Integer, db.ForeignKey("encuestas.id"), nullable=False)
+    id_usuario = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=True) 
+    area = db.Column(db.String(100), nullable=True)  # Área o departamento al que se asigna la encuesta
+    puesto_trabajo = db.Column(db.String(100), nullable=True)  # Aquellos usuarios con el puesto de trabajo especifico
+
+    # Puedes agregar campos extra si lo necesitas, como fecha de asignación, etc.
+
+    encuesta = db.relationship("Encuesta", backref="asignaciones")
+    usuario = db.relationship("Usuario", backref="encuestas_asignadas")
+    rol = db.relationship("Rol", backref="encuestas_asignadas")
 
 # BOSQUEJO PERIODO, orientado a modificable por empresa
     # horas_capacitacion deberia de ser menor a max_horas_capacitacion

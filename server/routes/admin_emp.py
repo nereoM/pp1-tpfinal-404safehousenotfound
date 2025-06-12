@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request, send_file
 from auth.decorators import role_required
-from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa, Licencia, RendimientoEmpleado, UsuarioRol, RendimientoEmpleado, Notificacion, EncuestaSatisfaccion, PreguntaEncuesta, RespuestaEncuesta
+from models.schemes import Usuario, Rol, Empresa, Preferencias_empresa, Licencia, RendimientoEmpleado, UsuarioRol, RendimientoEmpleado, Notificacion, Encuesta, PreguntaEncuesta, RespuestaEncuesta
 from models.extensions import db
 import secrets
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -2053,7 +2053,7 @@ def crear_notificacion_uso_especifico(id_usuario, mensaje):
 @admin_emp_bp.route('/encuestas/crear', methods=['POST'])
 def crear_encuesta():
     data = request.json
-    encuesta = EncuestaSatisfaccion(
+    encuesta = Encuesta(
         titulo=data['titulo'],
         descripcion=data.get('descripcion')
     )
@@ -2077,7 +2077,7 @@ def agregar_pregunta(id_encuesta):
 # Obtener encuestas activas
 @admin_emp_bp.route('/encuestas/activas', methods=['GET'])
 def obtener_encuestas_activas():
-    encuestas = EncuestaSatisfaccion.query.filter_by(activa=True).all()
+    encuestas = Encuesta.query.filter_by(activa=True).all()
     result = []
     for e in encuestas:
         preguntas = [
@@ -2095,7 +2095,7 @@ def obtener_encuestas_activas():
 # Obtener resultados de una encuesta (solo para admin)
 @admin_emp_bp.route('/encuestas/<int:id_encuesta>/resultados', methods=['GET'])
 def resultados_encuesta(id_encuesta):
-    encuesta = EncuestaSatisfaccion.query.get_or_404(id_encuesta)
+    encuesta = Encuesta.query.get_or_404(id_encuesta)
     resultados = []
     for pregunta in encuesta.preguntas:
         respuestas = [r.respuesta for r in pregunta.respuestas]
