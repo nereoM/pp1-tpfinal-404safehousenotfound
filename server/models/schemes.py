@@ -311,20 +311,13 @@ class Periodo(db.Model):
     __tablename__ = "periodos"
     id_periodo = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_empresa = db.Column(db.Integer, db.ForeignKey("empresas.id"), nullable=False)
+    nombre_periodo = db.Column(db.String(100), nullable=False)
     fecha_inicio = db.Column(db.Date, nullable=False)
     fecha_fin = db.Column(db.Date, nullable=False)
-    dias_duracion = db.Column(db.Integer, nullable=False)
-    horas_duracion = db.Column(db.Integer, nullable=True)
-    estado = db.Column(db.String(20), nullable=False)  # 'actual' o 'pasado'
+    estado = db.Column(db.String(20), nullable=False) # activo, cerrado
     cantidad_findes = db.Column(db.Integer, nullable=False)
-    horas_laborales_por_dia = db.Column(db.Integer, default=8, nullable=False) # (jornada laboral estandar de 8hs diarias)
-    dias_laborales_en_periodo = db.Column(db.Integer, nullable=False) # (dias_duracion menos cantidad_findes)
-    horas_trabajo_totales_en_periodo = db.Column(db.Integer, nullable=False) # (dias_laborales_en_periodo por horas_laborales_por_dia)
-    porcentaje_tiempo_laboral_a_capacitacion = db.Column(db.Float, nullable=False) 
-    max_horas_capacitacion = db.Column(db.Float, nullable=False) # (horas_trabajo_totales_en_periodo por porcentaje_tiempo_laboral_a_capacitacion)
-    cantidad_dias_findes_laborales = db.Column(db.Float, nullable=False)
-    horas_por_dia_finde = db.Column(db.Integer, nullable=False)
-    max_horas_extras = db.Column(db.Float, nullable=False) # (cant_dias_findes_laborales x horas_por_dia_finde)
+    horas_laborales_por_dia = db.Column(db.Integer, default=8, nullable=False)
+    dias_laborales_en_periodo = db.Column(db.Integer, nullable=False)
 
     empresa = db.relationship("Empresa", backref="periodos")
 

@@ -31,6 +31,7 @@ from models.schemes import (
     Job_Application,
     Preferencias_empresa,
     HistorialRendimientoEmpleadoManual,
+    Periodo,
 )
 from ml.desempeno_desarrollo.predictions import predecir_rend_futuro_individual, predecir_riesgo_despido_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_renuncia_individual, predecir_rot_post_individual
 
@@ -1077,39 +1078,96 @@ def calcular_antiguedad(fecha_ingreso):
 @manager_bp.route("/cargar-rendimientos-empleados", methods=["POST"])
 @role_required(["manager"])
 def cargar_rendimientos_empleados_y_generar_csv():
-    try:
-        datos = request.get_json()
-        empleados = datos.get("empleados", [])
-        registros = []
+    datos = request.get_json()
+    empleados = datos.get("empleados", [])
 
-        for row in empleados:
-            nuevo = {
-                "id_empleado": row["id_empleado"],
-                "horas_extras": row.get("horas_extras"),
-                "horas_capacitacion": row.get("horas_capacitacion"),
-                "ausencias_injustificadas": row.get("ausencias_injustificadas"),
-                "llegadas_tarde": row.get("llegadas_tarde"),
-                "salidas_tempranas": row.get("salidas_tempranas")
-            }
-            registros.append(nuevo)
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    if not manager or not manager.id_empresa:
+        return jsonify({"error": "no tienes una empresa asociada"}), 404
 
-        df = pd.DataFrame(registros)
-        csv_dir = os.path.join(os.getcwd(), "uploads", "info_laboral")
-        os.makedirs(csv_dir, exist_ok=True)
-        path_csv = os.path.join(csv_dir, "rendimientos_empleados.csv")
-        df.to_csv(path_csv, index=False)
+    hoy = date.today()
+    periodo = Periodo.query.filter(
+        Periodo.id_empresa == manager.id_empresa,
+        Periodo.fecha_inicio <= hoy,
+        Periodo.fecha_fin   >= hoy
+    ).first()
+    if not periodo:
+        return jsonify({"error": "no hay periodo activo para tu empresa"}), 400
 
-        resultado = registrar_info_laboral_empleados_tabla(path_csv)
-        print("Resultado función registrar info laboral:", resultado)
-        if "error" in resultado:
-            return jsonify(resultado), 400
+    errores = []
+    registros = []
 
-        return jsonify(resultado), 200
+    max_aus = periodo.dias_laborales_en_periodo
+    max_ext = (periodo.horas_laborales_por_dia * periodo.dias_laborales_en_periodo) + ((periodo.cantidad_findes * 2) * periodo.horas_laborales_por_dia)
+    max_cap = max_ext // 2
+    max_lt  = periodo.dias_laborales_en_periodo
+    max_st  = periodo.dias_laborales_en_periodo
 
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error al guardar rendimientos: {e}")
-        return jsonify({"error": "No se pudo guardar los rendimientos"}), 500
+    for row in empleados:
+        ie = row.get("id_empleado")
+        ai = row.get("ausencias_injustificadas", 0) or 0
+        hc = row.get("horas_capacitacion", 0) or 0
+        he = row.get("horas_extras", 0) or 0
+        lt = row.get("llegadas_tarde", 0) or 0
+        st = row.get("salidas_tempranas", 0) or 0
+
+        if ai > max_aus:
+            errores.append({
+                "id_empleado": ie,
+                "campo": "ausencias_injustificadas",
+                "valor": ai,
+                "maximo": max_aus
+            })
+        if hc > max_cap:
+            errores.append({
+                "id_empleado": ie,
+                "campo": "horas_capacitacion",
+                "valor": hc,
+                "maximo": max_cap
+            })
+        if he > max_ext:
+            errores.append({
+                "id_empleado": ie,
+                "campo": "horas_extras",
+                "valor": he,
+                "maximo": max_ext
+            })
+        if lt > max_lt:
+            errores.append({
+                "id_empleado": ie,
+                "campo": "llegadas_tarde",
+                "valor": lt,
+                "maximo": max_lt
+            })
+        if st > max_st:
+            errores.append({
+                "id_empleado": ie,
+                "campo": "salidas_tempranas",
+                "valor": st,
+                "maximo": max_st
+            })
+
+        registros.append({
+            "id_empleado": ie,
+            "horas_extras": he,
+            "horas_capacitacion": hc,
+            "ausencias_injustificadas": ai,
+            "llegadas_tarde": lt,
+            "salidas_tempranas": st
+        })
+
+    if errores:
+        return jsonify({"errores": errores}), 400
+
+    df = pd.DataFrame(registros)
+    csv_dir = os.path.join(os.getcwd(), "uploads", "info_laboral")
+    os.makedirs(csv_dir, exist_ok=True)
+    path_csv = os.path.join(csv_dir, "rendimientos_empleados.csv")
+    df.to_csv(path_csv, index=False)
+    registrar_info_laboral_empleados_tabla(path_csv)
+
+    return jsonify({"csv": path_csv, "status": "generado"}), 200
 
 
 @manager_bp.route("/empleados-datos-rendimiento-manager", methods=["GET"])
