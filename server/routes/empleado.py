@@ -1665,9 +1665,9 @@ def crear_encuesta():
         }
     }), 201
 
-@empleado_bp.route("/asignar-encuesta", methods=["POST"])
+@empleado_bp.route("/asignar-encuesta-<int:id_encuesta>", methods=["POST"])
 @role_required(["empleado"])
-def asignar_encuesta():
+def asignar_encuesta(id_encuesta):
     """
     Asigna una encuesta a un empleado, a un área o a un puesto de trabajo específico.
     Recibe:
@@ -1729,7 +1729,7 @@ def asignar_encuesta():
     }
 
     data = request.get_json()
-    id_encuesta = data.get("id_encuesta")
+    # id_encuesta = data.get("id_encuesta")
     email = data.get("email")
     area = data.get("area")
     puesto_trabajo = data.get("puesto_trabajo")

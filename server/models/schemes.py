@@ -291,7 +291,7 @@ class Encuesta(db.Model):
 class PreguntaEncuesta(db.Model):
     __tablename__ = "preguntas_encuesta"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_encuesta = db.Column(db.Integer, db.ForeignKey("encuestas_satisfaccion.id"), nullable=False)
+    id_encuesta = db.Column(db.Integer, db.ForeignKey("encuestas.id"), nullable=False)
     texto = db.Column(db.String(500), nullable=False)
     tipo = db.Column(db.String(50), nullable=False)  # Ej: 'opcion_multiple', 'texto_libre'
     opciones = db.Column(db.Text, nullable=True)  # Opciones en formato JSON si es de opción múltiple
