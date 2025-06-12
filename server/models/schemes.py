@@ -280,7 +280,6 @@ class Encuesta(db.Model):
     fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     activa = db.Column(db.Boolean, default=True)
     creador_id = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
-    periodo_id = db.Column(db.Integer, db.ForeignKey("periodos.id"), nullable=True)
     es_anonima = db.Column(db.Boolean, default=False)
     fecha_inicio = db.Column(db.DateTime, nullable=True)
     fecha_fin = db.Column(db.DateTime, nullable=True)
@@ -321,7 +320,6 @@ class EncuestaAsignacion(db.Model):
 
     encuesta = db.relationship("Encuesta", backref="asignaciones")
     usuario = db.relationship("Usuario", backref="encuestas_asignadas")
-    rol = db.relationship("Rol", backref="encuestas_asignadas")
 
 # BOSQUEJO PERIODO, orientado a modificable por empresa
     # horas_capacitacion deberia de ser menor a max_horas_capacitacion
