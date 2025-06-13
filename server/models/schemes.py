@@ -284,6 +284,7 @@ class Encuesta(db.Model):
     fecha_inicio = db.Column(db.DateTime, nullable=True)
     fecha_fin = db.Column(db.DateTime, nullable=True)
     estado = db.Column(db.String(50), default="pendiente")  # Ej: 'pendiente', 'activa', 'cerrada'
+    limpia = db.Column(db.Boolean, default=False)
 
     preguntas = db.relationship("PreguntaEncuesta", backref="encuesta", cascade="all, delete-orphan")
 
@@ -312,9 +313,14 @@ class EncuestaAsignacion(db.Model):
     __tablename__ = "encuestas_asignacion"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_encuesta = db.Column(db.Integer, db.ForeignKey("encuestas.id"), nullable=False)
-    id_usuario = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=True) 
+    id_asignador = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)  # Usuario que asigna la encuesta
+    
+    id_usuario = db.Column(db.Integer, nullable=True) 
     area = db.Column(db.String(100), nullable=True)  # Área o departamento al que se asigna la encuesta
     puesto_trabajo = db.Column(db.String(100), nullable=True)  # Aquellos usuarios con el puesto de trabajo especifico
+    tipo_asignacion = db.Column(db.String(50), nullable=False)  # Ej: 'individual', 'grupo', 'area'
+
+    limpia = db.Column(db.Boolean, default=False)  # Indica si la asignación ha sido limpiada o no
 
     # Puedes agregar campos extra si lo necesitas, como fecha de asignación, etc.
 
