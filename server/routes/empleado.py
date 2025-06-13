@@ -2194,3 +2194,102 @@ def limpiar_asignacion(id_asignacion):
             "puesto_trabajo": asignacion.puesto_trabajo
         }
     }), 200
+
+@empleado_bp.route("/pregunta-encuesta/<int:id_pregunta>/modificar", methods=["PUT"])
+@role_required(["empleado"])
+def modificar_pregunta_encuesta(id_pregunta):
+    """
+    Permite a un jefe modificar una pregunta de una encuesta.
+    Recibe:
+      - texto (str, requerido)
+      - tipo (str, requerido): 'opcion_multiple', 'unica_opcion', 'texto_libre'
+      - opciones (list de str, opcional): requerido si tipo es opción
+      - es_requerida (bool, requerido)
+    """
+    area_jefes = [
+        "Jefe de Tecnología y Desarrollo",
+        "Jefe de Administración y Finanzas",
+        "Jefe Comercial y de Ventas",
+        "Jefe de Marketing y Comunicación",
+        "Jefe de Industria y Producción",
+        "Jefe de Servicios Generales y Gastronomía",
+    ]
+    data = request.get_json()
+    texto = data.get("texto")
+    tipo = data.get("tipo")
+    opciones = data.get("opciones")
+    es_requerida = data.get("es_requerida")
+
+    if not all([texto, tipo, es_requerida is not None]):
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe or jefe.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para modificar preguntas"}), 403
+
+    pregunta = PreguntaEncuesta.query.get(id_pregunta)
+    if not pregunta:
+        return jsonify({"error": "Pregunta no encontrada"}), 404
+
+    encuesta = Encuesta.query.get(pregunta.id_encuesta)
+    if not encuesta or encuesta.creador_id != jefe.id:
+        return jsonify({"error": "No tienes permisos sobre esta encuesta"}), 403
+
+    if tipo in ["opcion_multiple", "unica_opcion"]:
+        if not opciones or not isinstance(opciones, list) or not all(isinstance(o, str) for o in opciones):
+            return jsonify({"error": "Debes enviar una lista de opciones de respuesta"}), 400
+        opciones_json = json.dumps(opciones)
+    else:
+        opciones_json = None
+
+    pregunta.texto = texto
+    pregunta.tipo = tipo
+    pregunta.opciones = opciones_json
+    pregunta.es_requerida = bool(es_requerida)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Pregunta modificada exitosamente",
+        "pregunta": {
+            "id": pregunta.id,
+            "texto": pregunta.texto,
+            "tipo": pregunta.tipo,
+            "opciones": opciones if opciones_json else None,
+            "es_requerida": pregunta.es_requerida
+        }
+    }), 200
+
+@empleado_bp.route("/pregunta-encuesta/<int:id_pregunta>/eliminar", methods=["DELETE"])
+@role_required(["empleado"])
+def eliminar_pregunta_encuesta(id_pregunta):
+    """
+    Permite a un jefe eliminar una pregunta de una encuesta.
+    """
+    area_jefes = [
+        "Jefe de Tecnología y Desarrollo",
+        "Jefe de Administración y Finanzas",
+        "Jefe Comercial y de Ventas",
+        "Jefe de Marketing y Comunicación",
+        "Jefe de Industria y Producción",
+        "Jefe de Servicios Generales y Gastronomía",
+    ]
+
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe or jefe.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para eliminar preguntas"}), 403
+
+    pregunta = PreguntaEncuesta.query.get(id_pregunta)
+    if not pregunta:
+        return jsonify({"error": "Pregunta no encontrada"}), 404
+
+    encuesta = Encuesta.query.get(pregunta.id_encuesta)
+    if not encuesta or encuesta.creador_id != jefe.id:
+        return jsonify({"error": "No tienes permisos sobre esta encuesta"}), 403
+
+    db.session.delete(pregunta)
+    db.session.commit()
+
+    return jsonify({"message": "Pregunta eliminada exitosamente"}), 200
