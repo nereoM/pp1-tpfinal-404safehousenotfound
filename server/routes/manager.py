@@ -1080,24 +1080,28 @@ def calcular_antiguedad(fecha_ingreso):
 def cargar_rendimientos_empleados_y_generar_csv():
     datos = request.get_json()
     empleados = datos.get("empleados", [])
+    id_periodo = datos.get("id_periodo")
 
     id_manager = get_jwt_identity()
     manager = Usuario.query.get(id_manager)
+
     if not manager or not manager.id_empresa:
         return jsonify({"error": "no tienes una empresa asociada"}), 404
 
-    hoy = date.today()
-    periodo = Periodo.query.filter(
-        Periodo.id_empresa == manager.id_empresa,
-        Periodo.fecha_inicio <= hoy,
-        Periodo.fecha_fin   >= hoy
-    ).first()
+    if not id_periodo:
+        return jsonify({"error": "debes enviar el id del periodo"}), 400
+
+    periodo = Periodo.query.filter_by(id_periodo=id_periodo, id_empresa=manager.id_empresa).first()
     if not periodo:
-        return jsonify({"error": "no hay periodo activo para tu empresa"}), 400
+        return jsonify({"error": "no se encontró el periodo o no pertenece a tu empresa"}), 404
+    
+    if periodo.estado != "activo":
+        return jsonify({"error": "El periodo no esta activo"}), 400
 
     errores = []
     registros = []
 
+    # límites
     max_aus = periodo.dias_laborales_en_periodo
     max_ext = (periodo.horas_laborales_por_dia * periodo.dias_laborales_en_periodo) + ((periodo.cantidad_findes * 2) * periodo.horas_laborales_por_dia)
     max_cap = max_ext // 2
@@ -1168,6 +1172,145 @@ def cargar_rendimientos_empleados_y_generar_csv():
     registrar_info_laboral_empleados_tabla(path_csv)
 
     return jsonify({"csv": path_csv, "status": "generado"}), 200
+
+
+@manager_bp.route("/estado-periodo-seleccionado/<int:id_periodo>")
+@role_required(["manager"])
+def estado_periodo(id_periodo):
+    try:
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.get(user_id)
+
+        if not usuario or not usuario.id_empresa:
+            return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+        periodo = Periodo.query.filter_by(id_periodo=id_periodo, id_empresa=usuario.id_empresa).first()
+
+        if not periodo:
+            return jsonify({"error": "Periodo no encontrado"}), 404
+
+        return jsonify({
+            "id_periodo": periodo.id_periodo,
+            "nombre_periodo": periodo.nombre_periodo,
+            "estado": periodo.estado
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+@manager_bp.route("/cerrar-periodo/<int:id_periodo>", methods=["PUT"])
+@role_required(["manager"])
+def cerrar_periodo(id_periodo):
+    try:
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.get(user_id)
+
+        if not usuario or not usuario.id_empresa:
+            return jsonify({"error": "El usuario no tiene una empresa asociada"}), 404
+
+        periodo = Periodo.query.filter_by(id_periodo=id_periodo, id_empresa=usuario.id_empresa).first()
+
+        if not periodo:
+            return jsonify({"error": "Periodo no encontrado"}), 404
+
+        if periodo.estado == "cerrado":
+            return jsonify({"mensaje": "El periodo ya está cerrado"}), 200
+
+        periodo.estado = "cerrado"
+        db.session.commit()
+
+        return jsonify({"mensaje": f"Periodo '{periodo.nombre_periodo}' cerrado correctamente"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+@manager_bp.route("/listar-periodos", methods=["GET"])
+@role_required(["manager"])
+def listar_periodos():
+    try:
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.get(user_id)
+
+        if not usuario or not usuario.id_empresa:
+            return jsonify({"error": "El usuario no tiene una empresa asociada"}), 404
+
+        periodos = Periodo.query.filter_by(id_empresa=usuario.id_empresa).order_by(Periodo.fecha_inicio.desc()).all()
+
+        resultado = [
+            {
+                "id_periodo": p.id_periodo,
+                "nombre_periodo": p.nombre_periodo,
+                "fecha_inicio": p.fecha_inicio.strftime("%Y-%m-%d"),
+                "fecha_fin": p.fecha_fin.strftime("%Y-%m-%d"),
+                "estado": p.estado
+            }
+            for p in periodos
+        ]
+
+        return jsonify(resultado), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@manager_bp.route("/configurar-periodo", methods=["POST"])
+@role_required(["manager"])
+def configurar_periodo():
+    try:
+        data = request.get_json()
+        nombre = data.get("nombre_periodo")
+        fecha_inicio_str = data.get("fecha_inicio")
+        fecha_fin_str = data.get("fecha_fin")
+        horas_por_dia = data.get("horas_laborales_por_dia", 8)
+
+        if not nombre or not fecha_inicio_str or not fecha_fin_str:
+            return jsonify({"error": "Faltan campos obligatorios"}), 400
+
+        fecha_inicio = datetime.strptime(fecha_inicio_str, "%Y-%m-%d").date()
+        fecha_fin = datetime.strptime(fecha_fin_str, "%Y-%m-%d").date()
+
+        if fecha_fin <= fecha_inicio:
+            return jsonify({"error": "La fecha de fin debe ser posterior a la fecha de inicio"}), 400
+
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.get(user_id)
+
+        if not usuario or not usuario.id_empresa:
+            return jsonify({"error": "El usuario no tiene una empresa asociada"}), 404
+
+        periodo_activo = Periodo.query.filter_by(id_empresa=usuario.id_empresa, estado="activo").first()
+        if periodo_activo:
+            return jsonify({"error": "Ya existe un periodo activo. Debes cerrarlo antes de crear uno nuevo."}), 400
+
+        cantidad_findes = sum(
+            1 for i in range((fecha_fin - fecha_inicio).days + 1)
+            if (fecha_inicio + timedelta(days=i)).weekday() >= 5
+        )
+
+        dias_total = (fecha_fin - fecha_inicio).days + 1
+        dias_laborales = dias_total - cantidad_findes
+
+        nuevo_periodo = Periodo(
+            id_empresa=usuario.id_empresa,
+            nombre_periodo=nombre,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            estado="activo",  # por defecto nuevo periodo comienza activo
+            cantidad_findes=cantidad_findes,
+            horas_laborales_por_dia=horas_por_dia,
+            dias_laborales_en_periodo=dias_laborales
+        )
+
+        db.session.add(nuevo_periodo)
+        db.session.commit()
+
+        return jsonify({"mensaje": "Periodo creado correctamente"}), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 
 @manager_bp.route("/empleados-datos-rendimiento-manager", methods=["GET"])
