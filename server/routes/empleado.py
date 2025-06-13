@@ -1810,3 +1810,68 @@ def asignar_encuesta(id_encuesta):
         "message": "Encuesta asignada correctamente",
         "asignados": asignaciones
     }), 201
+
+@empleado_bp.route("/encuesta/<int:id_encuesta>/agregar-pregunta", methods=["POST"])
+@role_required(["empleado"])
+def agregar_pregunta_encuesta(id_encuesta):
+    """
+    Permite a un jefe agregar una pregunta a una encuesta.
+    Recibe:
+      - texto (str, requerido)
+      - tipo (str, requerido): 'opcion_multiple', 'unica_opcion', 'texto_libre'
+      - opciones (list de str, opcional): requerido si tipo es opción
+      - es_requerida (bool, requerido)
+    """
+    area_jefes = [
+        "Jefe de Tecnología y Desarrollo",
+        "Jefe de Administración y Finanzas",
+        "Jefe Comercial y de Ventas",
+        "Jefe de Marketing y Comunicación",
+        "Jefe de Industria y Producción",
+        "Jefe de Servicios Generales y Gastronomía",
+    ]
+    data = request.get_json()
+    texto = data.get("texto")
+    tipo = data.get("tipo")
+    opciones = data.get("opciones")
+    es_requerida = data.get("es_requerida")
+
+    if not all([texto, tipo, es_requerida is not None]):
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe or jefe.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para agregar preguntas"}), 403
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta or encuesta.creador_id != jefe.id:
+        return jsonify({"error": "Encuesta no encontrada o no tienes permisos"}), 404
+
+    if tipo in ["opcion_multiple", "unica_opcion"]:
+        if not opciones or not isinstance(opciones, list) or not all(isinstance(o, str) for o in opciones):
+            return jsonify({"error": "Debes enviar una lista de opciones de respuesta"}), 400
+        opciones_json = json.dumps(opciones)
+    else:
+        opciones_json = None
+
+    pregunta = PreguntaEncuesta(
+        id_encuesta=id_encuesta,
+        texto=texto,
+        tipo=tipo,
+        opciones=opciones_json,
+        es_requerida=bool(es_requerida)
+    )
+    db.session.add(pregunta)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Pregunta agregada exitosamente",
+        "pregunta": {
+            "id": pregunta.id,
+            "texto": pregunta.texto,
+            "tipo": pregunta.tipo,
+            "opciones": opciones if opciones_json else None,
+            "es_requerida": pregunta.es_requerida
+        }
+    }), 201
