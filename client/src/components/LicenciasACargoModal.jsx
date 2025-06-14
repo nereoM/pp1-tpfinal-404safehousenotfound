@@ -165,7 +165,7 @@ export function LicenciasACargoModal({
               <option value="rechazada">Rechazada</option>
               <option value="sugerencia">Sugerencia</option>
               <option value="activa">Activa</option>
-              <option value="activa_y_verificada">Activa y Verificada</option>
+              <option value="activa y verificada">Activa y Verificada</option>
               <option value="invalidada">Invalidada</option>
             </select>
           </div>
