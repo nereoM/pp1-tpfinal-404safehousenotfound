@@ -23,7 +23,8 @@ from models.schemes import (
     Encuesta,
     EncuestaAsignacion,
     RespuestaEncuesta,
-    PreguntaEncuesta
+    PreguntaEncuesta,
+    Periodo
 )
 from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy import desc, func, or_
@@ -1365,12 +1366,67 @@ def empleados_mi_area():
     return jsonify({"empleados_area": resultado}), 200
 
 
+@empleado_bp.route("/estado-periodo-seleccionado-empleado/<int:id_periodo>")
+@role_required(["empleado"])
+def estado_periodo(id_periodo):
+    try:
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.get(user_id)
+
+        if not usuario or not usuario.id_empresa:
+            return jsonify({"error": "No tienes una empresa asociada"}), 404
+
+        periodo = Periodo.query.filter_by(id_periodo=id_periodo, id_empresa=usuario.id_empresa).first()
+
+        if not periodo:
+            return jsonify({"error": "Periodo no encontrado"}), 404
+
+        return jsonify({
+            "id_periodo": periodo.id_periodo,
+            "nombre_periodo": periodo.nombre_periodo,
+            "estado": periodo.estado
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@empleado_bp.route("/obtener-periodos-todos")
+@role_required(["empleado"])
+def obtener_periodos_todos():
+    try:
+        user_id = get_jwt_identity()
+        usuario = Usuario.query.get(user_id)
+
+        if not usuario or not usuario.id_empresa:
+            return jsonify({"error": "El usuario no tiene una empresa asociada"}), 404
+
+        periodos = Periodo.query.filter_by(id_empresa=usuario.id_empresa).order_by(Periodo.fecha_inicio.desc()).all()
+
+        resultado = [
+            {
+                "id_periodo": p.id_periodo,
+                "nombre_periodo": p.nombre_periodo,
+                "fecha_inicio": p.fecha_inicio.strftime("%Y-%m-%d"),
+                "fecha_fin": p.fecha_fin.strftime("%Y-%m-%d"),
+                "estado": p.estado
+            }
+            for p in periodos
+        ]
+
+        return jsonify(resultado), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @empleado_bp.route("/establecer-rendimiento-empleado", methods=["POST"])
 @role_required(["empleado"])
 def establecer_rendimiento_empleado():
     data = request.get_json()
     id_empleado = data.get("id_empleado")
     rendimiento = data.get("rendimiento")
+    id_periodo = data.get("id_periodo")
 
     # Validación básica
     if id_empleado is None or rendimiento is None:
@@ -1460,17 +1516,25 @@ def establecer_rendimiento_empleado():
         or empleado.puesto_trabajo not in area_puestos[jefe.puesto_trabajo]
     ):
         return jsonify({"error": "No puedes calificar a este empleado"}), 403
+    
+    cantidad = HistorialRendimientoEmpleadoManual.query.filter_by(
+        id_empleado=id_empleado,
+        id_periodo=id_periodo
+    ).count()
 
-    # Registrar el rendimiento
+    if cantidad >= 2:
+        return jsonify({"error": f"Ya existen 2 registros para este empleado en el periodo {id_periodo}"}), 400
+
     nuevo_registro = HistorialRendimientoEmpleadoManual(
-        id_empleado=id_empleado, fecha_calculo=datetime.now(), rendimiento=rendimiento
+        id_empleado=id_empleado,
+        id_periodo=id_periodo,
+        rendimiento=rendimiento
     )
     db.session.add(nuevo_registro)
     db.session.commit()
 
-    # Buscar el último rendimiento registrado (debería ser el recién creado)
     ultimo_rend = (
-        HistorialRendimientoEmpleadoManual.query.filter_by(id_empleado=id_empleado)
+        HistorialRendimientoEmpleadoManual.query.filter_by(id_empleado=id_empleado, id_periodo=id_periodo)
         .order_by(desc(HistorialRendimientoEmpleadoManual.fecha_calculo))
         .first()
     )

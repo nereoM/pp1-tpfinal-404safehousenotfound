@@ -203,6 +203,8 @@ class RendimientoEmpleado(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     id_usuario = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False, index=True)
+    id_periodo = db.Column(db.Integer, db.ForeignKey('periodos.id_periodo'), nullable=False, index=True)
+
     desempeno_previo = db.Column(db.Float, nullable=True)
     cantidad_proyectos = db.Column(db.Integer, nullable=True)
     tamano_equipo = db.Column(db.Integer, nullable=True)
@@ -221,8 +223,12 @@ class RendimientoEmpleado(db.Model):
     desempeno_real = db.Column(db.Float, nullable=True)
     fecha_calculo_rendimiento = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
 
-    # Relación con Usuario
     usuario = db.relationship('Usuario', backref='rendimiento')
+    periodo = db.relationship('Periodo', backref='rendimientos')
+
+    __table_args__ = (
+        db.UniqueConstraint('id_usuario', 'id_periodo', name='uq_usuario_periodo'),
+    )
     
     def actualizar_rendimiento(self, data):
         self.desempeno_previo = data.get('desempeno_previo', self.desempeno_previo)
@@ -258,18 +264,32 @@ class HistorialRendimientoEmpleado(db.Model):
 
     id_empleado = db.Column(db.Integer, db.ForeignKey('usuarios.id'), primary_key=True, index=True)
     fecha_calculo = db.Column(db.DateTime, primary_key=True, default=datetime.utcnow)
+    id_periodo = db.Column(db.Integer, db.ForeignKey('periodos.id_periodo'), nullable=False)
+
     rendimiento = db.Column(db.Float, nullable=False)
 
     empleado = db.relationship('Usuario', backref='historial_rendimiento')
+    periodo = db.relationship('Periodo', backref='historial_rendimiento_empleado')
+
+    __table_args__ = (
+        db.UniqueConstraint('id_empleado', 'id_periodo', 'fecha_calculo', name='uq_empleado_periodo_fecha'),
+    )
 
 class HistorialRendimientoEmpleadoManual(db.Model):
     __tablename__ = 'historial_rendimiento_empleados_manual'
 
     id_empleado = db.Column(db.Integer, db.ForeignKey('usuarios.id'), primary_key=True, index=True)
     fecha_calculo = db.Column(db.DateTime, primary_key=True, default=datetime.utcnow)
+    id_periodo = db.Column(db.Integer, db.ForeignKey('periodos.id_periodo'), nullable=False)
+
     rendimiento = db.Column(db.Float, nullable=False)
 
     empleado = db.relationship('Usuario', backref='historial_rendimiento_manual')
+    periodo = db.relationship('Periodo', backref='historial_rendimiento_empleado_manual')
+
+    __table_args__ = (
+        db.UniqueConstraint('id_empleado', 'id_periodo', 'fecha_calculo', name='uq_empleado_periodo_manual_fecha'),
+    )
 
 class Encuesta(db.Model):
     __tablename__ = "encuestas"

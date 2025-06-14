@@ -834,7 +834,7 @@ def registrar_info_laboral_empleados(file_path):
         return resultado
     
 
-def registrar_info_laboral_empleados_tabla(file_path):
+def registrar_info_laboral_empleados_tabla(file_path, id_periodo):
     import csv
     from flask_jwt_extended import get_jwt_identity
 
@@ -909,6 +909,7 @@ def registrar_info_laboral_empleados_tabla(file_path):
             else:
                 rendimiento = RendimientoEmpleado(
                     id_usuario=id_empleado,
+                    id_periodo=id_periodo,
                     desempeno_previo=ultimo_rendimiento,
                     horas_extras=horas_extras,
                     antiguedad=calcular_antiguedad(antiguedad),
@@ -939,6 +940,7 @@ def registrar_info_laboral_empleados_tabla(file_path):
                     rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
                     existe_historial = HistorialRendimientoEmpleado.query.filter_by(
                         id_empleado=id_empleado,
+                        id_periodo=id_periodo,
                         fecha_calculo=fecha_actual
                     ).first()
 
@@ -948,6 +950,7 @@ def registrar_info_laboral_empleados_tabla(file_path):
                     if not existe_historial:
                         nuevo_historial = HistorialRendimientoEmpleado(
                             id_empleado=id_empleado,
+                            id_periodo=id_periodo,
                             fecha_calculo=fecha_actual,
                             rendimiento=rendimiento.rendimiento_futuro_predicho
                         )
@@ -1169,7 +1172,7 @@ def cargar_rendimientos_empleados_y_generar_csv():
     os.makedirs(csv_dir, exist_ok=True)
     path_csv = os.path.join(csv_dir, "rendimientos_empleados.csv")
     df.to_csv(path_csv, index=False)
-    registrar_info_laboral_empleados_tabla(path_csv)
+    registrar_info_laboral_empleados_tabla(path_csv, id_periodo)
 
     return jsonify({"csv": path_csv, "status": "generado"}), 200
 
