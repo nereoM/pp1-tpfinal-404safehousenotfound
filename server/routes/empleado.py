@@ -1978,3 +1978,47 @@ def obtener_encuestas_asignadas():
             })
 
     return jsonify(resultado), 200
+
+@empleado_bp.route("/encuesta-asignada/<int:id_encuesta>", methods=["GET"])
+@role_required(["empleado"])
+def obtener_encuesta_asignada_detalle(id_encuesta):
+    """
+    Devuelve toda la información de una encuesta asignada al empleado autenticado, incluyendo preguntas y detalles de asignación.
+    """
+    id_empleado = get_jwt_identity()
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_empleado).first()
+    if not asignacion:
+        return jsonify({"error": "No tienes esta encuesta asignada"}), 404
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_info = [
+        {
+            "id": p.id,
+            "texto": p.texto,
+            "tipo": p.tipo,
+            "opciones": json.loads(p.opciones) if p.opciones else None,
+            "es_requerida": p.es_requerida
+        }
+        for p in preguntas
+    ]
+
+    return jsonify({
+        "id_encuesta": encuesta.id,
+        "titulo": encuesta.titulo,
+        "descripcion": encuesta.descripcion,
+        "tipo": encuesta.tipo,
+        "anonima": encuesta.es_anonima,
+        "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+        "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+        "estado": encuesta.estado,
+        "asignacion": {
+            "tipo_asignacion": asignacion.tipo_asignacion,
+            "area": asignacion.area,
+            "puesto_trabajo": asignacion.puesto_trabajo
+        },
+        "preguntas": preguntas_info
+    }), 200
