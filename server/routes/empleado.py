@@ -1889,3 +1889,58 @@ def obtener_info_area_jefe():
         "puestos_area": puestos_area,
         "empleados_area": empleados_info
     }), 200
+
+@empleado_bp.route("/obtener-encuestas-creadas", methods=["GET"])
+@role_required(["empleado"])
+def obtener_encuestas_jefe():
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    # Solo jefes pueden acceder
+    area_jefes = [
+        "Jefe de Tecnología y Desarrollo",
+        "Jefe de Administración y Finanzas",
+        "Jefe Comercial y de Ventas",
+        "Jefe de Marketing y Comunicación",
+        "Jefe de Industria y Producción",
+        "Jefe de Servicios Generales y Gastronomía",
+    ]
+    if jefe.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para ver encuestas de jefe"}), 403
+
+    encuestas = Encuesta.query.filter_by(creador_id=id_jefe).order_by(Encuesta.fecha_inicio.desc()).all()
+    resultado = []
+    for encuesta in encuestas:
+        # Obtener asignaciones y preguntas
+        asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=encuesta.id).all()
+        preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=encuesta.id).all()
+        resultado.append({
+            "id": encuesta.id,
+            "tipo": encuesta.tipo,
+            "titulo": encuesta.titulo,
+            "descripcion": encuesta.descripcion,
+            "anonima": encuesta.es_anonima,
+            "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+            "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+            "estado": encuesta.estado,
+            "asignaciones": [
+                {
+                    "id_usuario": a.id_usuario,
+                    "area": a.area,
+                    "puesto_trabajo": a.puesto_trabajo,
+                    "tipo_asignacion": a.tipo_asignacion
+                } for a in asignaciones
+            ],
+            "preguntas": [
+                {
+                    "id": p.id,
+                    "texto": p.texto,
+                    "tipo": p.tipo,
+                    "opciones": json.loads(p.opciones) if p.opciones else None,
+                    "es_requerida": p.es_requerida
+                } for p in preguntas
+            ]
+        })
+    return jsonify(resultado), 200
