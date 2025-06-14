@@ -1944,3 +1944,37 @@ def obtener_encuestas_jefe():
             ]
         })
     return jsonify(resultado), 200
+
+@empleado_bp.route("/obtener-encuestas-asignadas", methods=["GET"])
+@role_required(["empleado"])
+def obtener_encuestas_asignadas():
+    """
+    Devuelve todas las encuestas asignadas al empleado autenticado.
+    """
+    id_empleado = get_jwt_identity()
+    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_empleado).all()
+
+    if not asignaciones:
+        return jsonify({"message": "No tienes encuestas asignadas"}), 404
+
+    resultado = []
+    for asignacion in asignaciones:
+        encuesta = Encuesta.query.get(asignacion.id_encuesta)
+        if encuesta:
+            resultado.append({
+                "id_encuesta": encuesta.id,
+                "titulo": encuesta.titulo,
+                "descripcion": encuesta.descripcion,
+                "tipo": encuesta.tipo,
+                "anonima": encuesta.es_anonima,
+                "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+                "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+                "estado": encuesta.estado,
+                "asignacion": {
+                    "tipo_asignacion": asignacion.tipo_asignacion,
+                    "area": asignacion.area,
+                    "puesto_trabajo": asignacion.puesto_trabajo
+                }
+            })
+
+    return jsonify(resultado), 200
