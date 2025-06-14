@@ -2,18 +2,18 @@ import { useState } from "react";
 
 export default function Pagos() {
   const API_URL = import.meta.env.VITE_API_URL;
-  const [username, setUsername]       = useState("");
-  const [email, setEmail]             = useState(""); // Nuevo estado para email
-  const [cardName, setCardName]       = useState("");
-  const [cardNumber, setCardNumber]   = useState("");
-  const [cardCVV, setCardCVV]         = useState("");
-  const [cardType, setCardType]       = useState("");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardCVV, setCardCVV] = useState("");
+  const [cardType, setCardType] = useState("");
   const [companyName, setCompanyName] = useState("");
-  const [iconFile, setIconFile]       = useState(null);
-  const [coverFile, setCoverFile]     = useState(null);
+  const [iconFile, setIconFile] = useState(null);
+  const [coverFile, setCoverFile] = useState(null);
 
   const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const validCharacters = /^[a-zA-Z0-9 ]+$/;
@@ -21,8 +21,8 @@ export default function Pagos() {
     !validCharacters.test(campo) ? "Ningún campo debe contener caracteres especiales." : null;
 
   const validarCampos = () => {
-    const cardRegex    = /^\d{13,19}$/;
-    const cvvRegex     = /^\d{3}$/;
+    const cardRegex = /^\d{13,19}$/;
+    const cvvRegex = /^\d{3}$/;
     const tiposValidos = ["visa", "mastercard", "amex", "naranja", "cabal"];
 
     // Permitir que username o email esté presente, pero al menos uno
@@ -36,7 +36,7 @@ export default function Pagos() {
     if (companyName && validarCampo(companyName)) return validarCampo(companyName);
 
     if (!cardRegex.test(cardNumber)) return "Número de tarjeta inválido.";
-    if (!cvvRegex.test(cardCVV))       return "El CVV debe tener 3 dígitos.";
+    if (!cvvRegex.test(cardCVV)) return "El CVV debe tener 3 dígitos.";
     if (!tiposValidos.includes(cardType.trim().toLowerCase()))
       return "Tipo de tarjeta no válido. Ej: Visa, Mastercard...";
 
@@ -66,12 +66,12 @@ export default function Pagos() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          username: username || undefined,
+          username: email || undefined,
           email: email || undefined,
-          card_name:    cardName,
-          card_number:  cardNumber,
-          card_cvv:     cardCVV,
-          card_type:    cardType,
+          card_name: cardName,
+          card_number: cardNumber,
+          card_cvv: cardCVV,
+          card_type: cardType,
           company_name: companyName,
         }),
       });
@@ -83,15 +83,15 @@ export default function Pagos() {
 
       // 2) Subida archivos
       const formData = new FormData();
-      formData.append("icono",   iconFile);
+      formData.append("icono", iconFile);
       formData.append("portada", coverFile);
 
       const up = await fetch(
         `${API_URL}/auth/empresa/${encodeURIComponent(companyName)}/preferencias/upload`,
         {
-          method:      "POST",
+          method: "POST",
           credentials: "include",
-          body:        formData,
+          body: formData,
         }
       );
       const upData = await up.json();
@@ -121,7 +121,11 @@ export default function Pagos() {
         className="absolute top-4 left-4 md:top-8 md:left-8"
         aria-label="Volver"
       >
-        <img src="/icono.png" alt="Volver" className="w-8 h-8 object-contain" />
+        <img
+          src="/icono.png"
+          alt="Volver"
+          className="w-16 h-16 md:w-30 md:h-30 object-contain drop-shadow-lg"
+        />
       </button>
 
       <div className="max-w-6xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-start px-6 py-12">
@@ -150,26 +154,18 @@ export default function Pagos() {
           <h2 className="text-2xl font-semibold text-indigo-700 mb-4 text-center">
             Datos de suscripción
           </h2>
-          {error   && <p className="text-red-500 text-center">{error}</p>}
+          {error && <p className="text-red-500 text-center">{error}</p>}
           {success && <p className="text-green-500 text-center">{success}</p>}
 
           <form className="space-y-5" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Nombre de usuario (opcional)"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-              <input
-                type="email"
-                placeholder="Correo electrónico (opcional)"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              />
-            </div>
+            <input
+              type="email"
+              placeholder="Correo electrónico (obligatorio)"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border p-3 rounded-lg bg-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              required
+            />
             <input
               type="text"
               placeholder="Empresa"
