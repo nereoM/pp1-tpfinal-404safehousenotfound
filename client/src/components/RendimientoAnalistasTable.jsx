@@ -6,6 +6,8 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
     const [mensaje, setMensaje] = useState("");
     const [tipoMensaje, setTipoMensaje] = useState("success");
     const [saving, setSaving] = useState(false);
+    const [periodos, setPeriodos] = useState([]);
+    const [idPeriodo, setIdPeriodo] = useState("");
 
     // Filtros
     const [busqueda, setBusqueda] = useState("");
@@ -27,6 +29,13 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                 setTipoMensaje("error");
             })
             .finally(() => setLoading(false));
+    }, []);
+
+    useEffect(() => {
+        fetch(`${import.meta.env.VITE_API_URL}/api/listar-periodos`, { credentials: "include" })
+            .then(res => res.json())
+            .then(data => setPeriodos(data.filter(p => p.estado === "activo")))
+            .catch(() => setPeriodos([]));
     }, []);
 
     // Obtener lista de puestos únicos para el filtro
@@ -81,6 +90,14 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
             "salidas_tempranas"
         ];
 
+        if (!idPeriodo) {
+            setTipoMensaje("error");
+            setMensaje("Debes seleccionar un periodo activo.");
+            setSaving(false);
+            setTimeout(() => setMensaje(""), 5000);
+            return;
+        }
+
         // Empleados con todos los campos completos y válidos
         const empleadosValidos = rows.filter(row =>
             campos.every(key =>
@@ -134,7 +151,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ empleados: payload }),
+                body: JSON.stringify({ empleados: payload, id_periodo: idPeriodo }),
             });
 
             const contentType = res.headers.get("content-type") || "";
@@ -169,27 +186,46 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
     return (
         <div className="bg-white p-8 rounded-2xl shadow-xl w-full" style={{ maxWidth: "none" }}>
             <h2 className="text-2xl font-extrabold mb-6 text-blue-900 flex items-center gap-2">
-                Editar Métricas de Analistas
+                Editar Métricas de Analistas y Empleados
             </h2>
-            {/* Filtros */}
-            <div className="flex flex-wrap gap-4 mb-4">
-                <input
-                    type="text"
-                    placeholder="Buscar por nombre o apellido"
-                    value={busqueda}
-                    onChange={e => setBusqueda(e.target.value)}
-                    className="border px-3 py-2 rounded text-xs w-64" // <-- más ancho
-                />
+            {/* Selector de periodo */}
+            <div className="mb-4">
+                <label className="block text-sm font-semibold mb-1">Periodo activo</label>
                 <select
-                    value={filtroPuesto}
-                    onChange={e => setFiltroPuesto(e.target.value)}
-                    className="border px-3 py-2 rounded text-xs w-64" // <-- más ancho
+                    value={idPeriodo}
+                    onChange={e => setIdPeriodo(e.target.value)}
+                    className="border px-3 py-2 rounded text-xs w-64"
                 >
-                    <option value="">Todos los puestos</option>
-                    {puestosUnicos.map(p => (
-                        <option key={p} value={p}>{p}</option>
+                    <option value="">Selecciona un periodo</option>
+                    {periodos.map(p => (
+                        <option key={p.id_periodo} value={p.id_periodo}>
+                            {p.nombre_periodo} ({p.fecha_inicio} a {p.fecha_fin})
+                        </option>
                     ))}
                 </select>
+            </div>
+            {/* Filtros */}
+            <div className="mb-4">
+                <label className="block text-sm font-semibold mb-1">Filtros de búsqueda</label>
+                <div className="flex flex-wrap gap-4 mt-1">
+                    <input
+                        type="text"
+                        placeholder="Buscar por nombre o apellido"
+                        value={busqueda}
+                        onChange={e => setBusqueda(e.target.value)}
+                        className="border px-3 py-2 rounded text-xs w-64"
+                    />
+                    <select
+                        value={filtroPuesto}
+                        onChange={e => setFiltroPuesto(e.target.value)}
+                        className="border px-3 py-2 rounded text-xs w-64"
+                    >
+                        <option value="">Todos los puestos</option>
+                        {puestosUnicos.map(p => (
+                            <option key={p} value={p}>{p}</option>
+                        ))}
+                    </select>
+                </div>
             </div>
             {loading ? (
                 <div className="flex items-center justify-center h-40 text-gray-500 text-lg">

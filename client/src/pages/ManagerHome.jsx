@@ -26,6 +26,7 @@ import { managerService } from "../services/managerService.js";
 
 import { Acciones } from "../components/Acciones.jsx";
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
+import PeriodosEmpresaModal from "../components/PeriodosEmpresaModal";
 
 // Toast system
 function Toast({ toasts, removeToast }) {
@@ -136,6 +137,7 @@ export default function ManagerHome() {
   const [modalSolicitarLicencia, setModalSolicitarLicencia] = useState(false);
   const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false);
   const [modalLicenciasOpen, setModalLicenciasOpen] = useState(false);
+  const [modalPeriodosOpen, setModalPeriodosOpen] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL;
 
@@ -727,8 +729,14 @@ export default function ManagerHome() {
         onClick: () => setModalAnalistaOpen(true),
       },
       {
+        icon: FileText,
+        titulo: "Gestionar Periodos",
+        descripcion: "Ver, cerrar o crear periodos de desempeño.",
+        onClick: () => setModalPeriodosOpen(true),
+      },
+      {
         icon: BarChart2,
-        titulo: "Subir Métricas de Analistas",
+        titulo: "Subir Métricas de Analistas y Empleados",
         descripcion:
           "Carga un archivo CSV con métricas de desempeño y rotación de analistas.",
         onClick: () => setModalSubirMetricas(true),
@@ -802,6 +810,13 @@ export default function ManagerHome() {
 
           <Acciones acciones={accionesPorSeccion} estilos={estilos} />
 
+          <PeriodosEmpresaModal
+            open={modalPeriodosOpen}
+            onClose={() => setModalPeriodosOpen(false)}
+            apiUrl={import.meta.env.VITE_API_URL}
+            showToast={showToast}
+          />
+          
           <ModalOferta
             modalOfertaOpen={modalOfertaOpen}
             setModalOfertaOpen={setModalOfertaOpen}
