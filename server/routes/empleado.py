@@ -1510,7 +1510,6 @@ def establecer_rendimiento_empleado():
     if not empleado:
         return jsonify({"error": "Empleado no encontrado"}), 404
 
-    # Validar que el empleado pertenece a la misma empresa y área
     if (
         empleado.id_empresa != jefe.id_empresa
         or empleado.puesto_trabajo not in area_puestos[jefe.puesto_trabajo]
