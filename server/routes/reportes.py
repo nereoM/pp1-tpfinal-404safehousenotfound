@@ -527,7 +527,7 @@ def reporte_desempeno():
 
 
 @reportes_bp.route("/reportes-licencias", methods=["GET"])
-@role_required(["manager", "reclutador"])
+@role_required(["admin-emp", "manager", "reclutador"])
 def reporte_licencias_manager():
     formato = request.args.get("formato", "pdf")
     ids_str = request.args.get("ids")
@@ -536,7 +536,6 @@ def reporte_licencias_manager():
     #if not ids_filtrados:
     #    return {"error": "Debe especificar al menos un ID de licencia para generar el reporte."}, 400
 
-    
     licencias_filtradas = Licencia.query.filter(Licencia.id.in_(ids_filtrados)).all() if ids_filtrados else []
 
     id_manager = get_jwt_identity()

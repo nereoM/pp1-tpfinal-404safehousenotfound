@@ -1,0 +1,44 @@
+nombre,apellido,email,username,contrasena,puesto
+Lucas,Gonzalez,lgonzalez@empresa.com,lgonzalez,Pass123!,Jefe de Tecnología y Desarrollo
+Ana,Martinez,amartinez@empresa.com,amartinez,Qwerty1!,Desarrollador Backend
+Carlos,Sanchez,csanchez@empresa.com,csanchez,Abcd123!,Desarrollador Frontend
+Elena,Ruiz,eruiz@empresa.com,eruiz,Zxcv123!,Full Stack Developer
+David,Torres,dtorres@empresa.com,dtorres,Mnbv123!,DevOps Engineer
+Laura,Jimenez,ljimenez@empresa.com,ljimenez,Qaz123ws!,Data Engineer
+Javier,Diaz,jdiaz@empresa.com,jdiaz,Wsx123ed!,Ingeniero de Machine Learning
+Sofia,Hernandez,shernandez@empresa.com,shernandez,Edc123rf!,Analista de Datos
+Roberto,Vargas,rvargas@empresa.com,rvargas,Rfv123tg!,QA Automation Engineer
+Patricia,Castro,pcastro@empresa.com,pcastro,Tgb123yh!,Soporte Técnico
+Miguel,Ortega,mortega@empresa.com,mortega,Yhn123uj!,Administrador de Base de Datos
+Andrea,Mendoza,amendoza@empresa.com,amendoza,Ujm123ik!,Administrador de Redes
+Fernando,Rios,frios@empresa.com,frios,Ikn123ol!,Especialista en Seguridad Informática
+Mariana,Gomez,mgomez@empresa.com,mgomez,Olp123az!,Jefe de Administración y Finanzas
+Juan,Silva,jsilva@empresa.com,jsilva,Azx123sw!,Analista Contable
+Carmen,Lopez,clopez@empresa.com,clopez,Swq123de!,Contador Público
+Oscar,Perez,operez@empresa.com,operez,Dev123rt!,Analista de Finanzas
+Natalia,Gutierrez,ngutierrez@empresa.com,ngutierrez,Rty123fg!,Administrativo/a
+Ricardo,Morales,rmorales@empresa.com,rmorales,Fgh123vb!,Asistente Contable
+Alejandro,Flores,aflores@empresa.com,aflores,Vbn123nm!,Jefe Comercial y de Ventas
+Beatriz,Rojas,brojas@empresa.com,brojas,Nmj123kl!,Representante de Ventas
+Hector,Medina,hmedina@empresa.com,hmedina,Kli123op!,Ejecutivo de Cuentas
+Daniela,Cordero,dcordero@empresa.com,dcordero,Opi123qw!,Vendedor Comercial
+Arturo,Guerrero,aguerrero@empresa.com,aguerrero,Qwe123as!,Supervisor de Ventas
+Veronica,Paredes,vparedes@empresa.com,vparedes,Asd123zx!,Asesor Comercial
+Raul,Santos,rsantos@empresa.com,rsantos,Zxc123cv!,Jefe de Marketing y Comunicación
+Isabel,Vega,ivega@empresa.com,ivega,Cvb123bn!,Especialista en Marketing Digital
+Francisco,Nunez,fnunez@empresa.com,fnunez,Bnm123mj!,Analista de Marketing
+Gabriela,Salazar,gsalazar@empresa.com,gsalazar,Mjk123ki!,Community Manager
+Eduardo,Leon,eleon@empresa.com,eleon,Kil123lo!,Diseñador Gráfico
+Monica,Espinoza,mespinoza@empresa.com,mespinoza,Lop123pi!,Responsable de Comunicación
+Rodrigo,Campos,rcampos@empresa.com,rcampos,Piu123uy!,Jefe de Industria y Producción
+Teresa,Aguilar,taguilar@empresa.com,taguilar,Uyt123tr!,Técnico de Mantenimiento
+Felipe,Miranda,fmiranda@empresa.com,fmiranda,Tre123ew!,Operario de Producción
+Adriana,Reyes,areyes@empresa.com,areyes,Ewr123rq!,Supervisor de Planta
+Hugo,Carrasco,hcarrasco@empresa.com,hcarrasco,Rqt123ty!,Ingeniero de Procesos
+Silvia,Moreno,smoreno@empresa.com,smoreno,Tyu123ui!,Encargado de Logística
+Marcos,Orellana,morellana@empresa.com,morellana,Jef123e!,Jefe de Servicios Generales y Gastronomía
+Rosa,Valdez,rvaldez@empresa.com,rvaldez,Uio123op!,Mozo/a
+Enrique,Zambrano,ezambrano@empresa.com,ezambrano,Opas123!,Cocinero/a
+Lucia,Figueroa,lfigueroa@empresa.com,lfigueroa,Sdf123gh!,Encargado de Salón
+Pablo,Mejia,pmejia@empresa.com,pmejia,Hjk123kl!,Recepcionista
+Irene,Rosales,irosales@empresa.com,irosales,Kly123yu!,Limpieza

@@ -13,6 +13,7 @@ import GestionUsuarios from "../components/GestionUsuarios";
 import { LicenciasACargoModal } from "../components/LicenciasACargoModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+import { ModalEncuesta } from "../components/ModalEncuesta";
 import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
 import SubirEmpleados from "../components/RegistrarEmpleados";
@@ -29,6 +30,7 @@ export default function AdminEmpHome() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalUsuarios, setModalUsuarios] = useState(false);
   const [modalPreferencias, setModalPreferencias] = useState(false);
+  const [modalEncuesta, setModalEncuesta] = useState(false);
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
@@ -425,6 +427,14 @@ const obtenerLicencias = async () => {
         onClick: () => setModalSubirMetricas(true),
       },
     ],
+    encuestas: [
+      {
+        icon: FileLock,
+        titulo: "Crear Encuesta",
+        descripcion: "Diseñá encuestas para obtener feedback del personal.",
+        onClick: () => setModalEncuesta(true),
+      },
+    ],
   };
 
   return (
@@ -474,6 +484,10 @@ const obtenerLicencias = async () => {
               estilosEmpresa={estilosSafe}
               onActualizar={handleActualizarEstilos}
             />
+          )}
+
+          {modalEncuesta && (
+            <ModalEncuesta open={modalEncuesta} onOpenChange={setModalEncuesta} />
           )}
 
           {modalOpen && (

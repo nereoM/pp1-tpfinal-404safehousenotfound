@@ -20,6 +20,10 @@ from models.schemes import (
     Notificacion,
     Oferta_laboral,
     Usuario,
+    Encuesta,
+    EncuestaAsignacion,
+    RespuestaEncuesta,
+    PreguntaEncuesta
 )
 from sklearn.metrics.pairwise import cosine_similarity
 from sqlalchemy import desc, func, or_
@@ -1588,3 +1592,704 @@ def enviar_mail_empleado_licencia_cuerpo(email_destino, asunto, cuerpo):
         print(f"Correo enviado correctamente a {email_destino}")
     except Exception as e:
         print(f"Error al enviar correo a {email_destino}: {e}")
+
+from datetime import date
+
+@empleado_bp.route("/crear-encuesta", methods=["POST"])
+@role_required(["empleado"])
+def crear_encuesta():
+    area_jefes = [
+        "Jefe de Tecnología y Desarrollo",
+        "Jefe de Administración y Finanzas",
+        "Jefe Comercial y de Ventas",
+        "Jefe de Marketing y Comunicación",
+        "Jefe de Industria y Producción",
+        "Jefe de Servicios Generales y Gastronomía",
+    ]
+    data = request.get_json()
+    tipo = data.get("tipo")
+    titulo = data.get("titulo")
+    descripcion = data.get("descripcion")
+    anonima = data.get("anonima")
+    fecha_inicio = data.get("fecha_inicio")
+    fecha_fin = data.get("fecha_fin")
+
+    # Validaciones de campos requeridos
+    if not all([tipo, titulo, anonima is not None, fecha_inicio, fecha_fin]):
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+
+    id_creador = get_jwt_identity()
+    creador = Usuario.query.get(id_creador)
+    if not creador or creador.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para crear o modificar encuestas"}), 403
+
+    # Validar fechas
+    try:
+        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+    except Exception:
+        return jsonify({"error": "Formato de fecha inválido (YYYY-MM-DD)"}), 400
+
+    hoy = date.today()
+    if fecha_inicio_dt < hoy or fecha_fin_dt < hoy:
+        return jsonify({"error": "No se pueden elegir fechas pasadas"}), 400
+    if fecha_fin_dt < fecha_inicio_dt:
+        return jsonify({"error": "La fecha de fin no puede ser anterior a la de inicio"}), 400
+
+    estado = "activa" if fecha_inicio_dt == hoy else "pendiente"
+
+    # Obtener la primer encuesta con limpia = True
+    encuesta_limpia = Encuesta.query.filter_by(
+        creador_id=id_creador, limpia=True
+    ).first()
+    if encuesta_limpia:
+        # Si existe una encuesta con limpia=True, la modificamos
+        encuesta_limpia.tipo = tipo
+        encuesta_limpia.titulo = titulo
+        encuesta_limpia.descripcion = descripcion
+        encuesta_limpia.anonima = bool(anonima)
+        encuesta_limpia.fecha_inicio = fecha_inicio_dt
+        encuesta_limpia.fecha_fin = fecha_fin_dt
+        encuesta_limpia.estado = estado
+        encuesta_limpia.limpia = False
+
+        db.session.commit()
+
+        return jsonify({
+            "message": "Encuesta modificada exitosamente",
+            "encuesta": {
+                "id": encuesta_limpia.id,
+                "tipo": encuesta_limpia.tipo,
+                "titulo": encuesta_limpia.titulo,
+                "descripcion": encuesta_limpia.descripcion,
+                "anonima": encuesta_limpia.anonima,
+                "fecha_inicio": encuesta_limpia.fecha_inicio.isoformat(),
+                "fecha_fin": encuesta_limpia.fecha_fin.isoformat(),
+                "estado": encuesta_limpia.estado,
+            }
+        })
+    else:
+        nueva_encuesta = Encuesta(
+        tipo=tipo,
+        titulo=titulo,
+        descripcion=descripcion,
+        anonima=bool(anonima),
+        fecha_inicio=fecha_inicio_dt,
+        fecha_fin=fecha_fin_dt,
+        creador_id=id_creador,
+        estado=estado,
+        )
+        db.session.add(nueva_encuesta)
+        db.session.commit()
+
+        return jsonify({
+            "message": "Encuesta creada exitosamente",
+            "encuesta": {
+                "id": nueva_encuesta.id,
+                "tipo": nueva_encuesta.tipo,
+                "titulo": nueva_encuesta.titulo,
+                "descripcion": nueva_encuesta.descripcion,
+                "anonima": nueva_encuesta.anonima,
+                "fecha_inicio": nueva_encuesta.fecha_inicio.isoformat(),
+                "fecha_fin": nueva_encuesta.fecha_fin.isoformat(),
+                "estado": nueva_encuesta.estado,
+            }
+        }), 201
+
+# @empleado_bp.route("/asignar-encuesta-<int:id_encuesta>", methods=["POST"])
+# @role_required(["empleado"])
+# def asignar_encuesta(id_encuesta):
+#     """
+#     Asigna una encuesta a un empleado, a un área o a un puesto de trabajo específico.
+#     Recibe:
+#       - id_encuesta (int, requerido)
+#       - email (str, opcional)
+#       - area (str, opcional)
+#       - puesto_trabajo (str, opcional)
+#     """
+#     area_jefes = {
+#         "Jefe de Tecnología y Desarrollo": [
+#             "Desarrollador Backend",
+#             "Desarrollador Frontend",
+#             "Full Stack Developer",
+#             "DevOps Engineer",
+#             "Data Engineer",
+#             "Ingeniero de Machine Learning",
+#             "Analista de Datos",
+#             "QA Automation Engineer",
+#             "Soporte Técnico",
+#             "Administrador de Base de Datos",
+#             "Administrador de Redes",
+#             "Especialista en Seguridad Informática",
+#         ],
+#         "Jefe de Administración y Finanzas": [
+#             "Analista Contable",
+#             "Contador Público",
+#             "Analista de Finanzas",
+#             "Administrativo/a",
+#             "Asistente Contable",
+#         ],
+#         "Jefe Comercial y de Ventas": [
+#             "Representante de Ventas",
+#             "Ejecutivo de Cuentas",
+#             "Vendedor Comercial",
+#             "Supervisor de Ventas",
+#             "Asesor Comercial",
+#         ],
+#         "Jefe de Marketing y Comunicación": [
+#             "Especialista en Marketing Digital",
+#             "Analista de Marketing",
+#             "Community Manager",
+#             "Diseñador Gráfico",
+#             "Responsable de Comunicación",
+#         ],
+#         "Jefe de Industria y Producción": [
+#             "Técnico de Mantenimiento",
+#             "Operario de Producción",
+#             "Supervisor de Planta",
+#             "Ingeniero de Procesos",
+#             "Encargado de Logística",
+#         ],
+#         "Jefe de Servicios Generales y Gastronomía": [
+#             "Mozo/a",
+#             "Cocinero/a",
+#             "Encargado de Salón",
+#             "Recepcionista",
+#             "Limpieza",
+#         ],
+#     }
+
+#     data = request.get_json()
+#     # id_encuesta = data.get("id_encuesta")
+#     email = data.get("email")
+#     area = data.get("area")
+#     puesto_trabajo = data.get("puesto_trabajo")
+
+#     if not id_encuesta:
+#         return jsonify({"error": "id_encuesta es requerido"}), 400
+
+#     id_jefe = get_jwt_identity()
+#     jefe = Usuario.query.get(id_jefe)
+#     if not jefe or jefe.puesto_trabajo not in area_jefes:
+#         return jsonify({"error": "No tienes permisos para asignar encuestas"}), 403
+
+#     encuesta = Encuesta.query.get(id_encuesta)
+#     if not encuesta or encuesta.creador_id != jefe.id:
+#         return jsonify({"error": "Encuesta no encontrada o no tienes permisos"}), 404
+    
+#     # Obtener asignacion limpia
+#     asignacion_limpia = EncuestaAsignacion.query.filter_by(
+#         id_encuesta=id_encuesta, id_asignador=jefe.id, limpia=True
+#     ).first()
+
+#     asignaciones = []
+
+#     # Asignar a un empleado específico
+#     if email:
+#         empleado = Usuario.query.filter_by(correo=email).first()
+#         if not empleado:
+#             return jsonify({"error": "Empleado no encontrado"}), 404
+#         if empleado.id_empresa != jefe.id_empresa:
+#             return jsonify({"error": "El empleado no pertenece a tu empresa"}), 403
+#         if empleado.puesto_trabajo not in area_jefes[jefe.puesto_trabajo]:
+#             return jsonify({"error": "El empleado no pertenece a tu área"}), 403
+
+#         asignacion = EncuestaAsignacion(
+#             id_encuesta=id_encuesta,
+#             id_asignador=jefe.id,
+#             id_usuario=empleado.id,
+#             area=None,
+#             puesto_trabajo=None,
+#             tipo_asignacion="email",
+#         )
+#         db.session.add(asignacion)
+#         asignaciones.append(empleado.correo)
+
+#     # Asignar a toda el área
+#     elif area:
+#         if area != jefe.puesto_trabajo:
+#             return jsonify({"error": "Solo puedes asignar a tu propia área"}), 403
+#         empleados = Usuario.query.filter(
+#             Usuario.id_empresa == jefe.id_empresa,
+#             Usuario.puesto_trabajo.in_(area_jefes[jefe.puesto_trabajo])
+#         ).all()
+#         for emp in empleados:
+#             asignacion = EncuestaAsignacion(
+#                 id_encuesta=id_encuesta,
+#                 id_asignador=jefe.id,
+#                 id_usuario=emp.id,
+#                 area=area,
+#                 puesto_trabajo=None,
+#                 tipo_asignacion="area",
+#             )
+#             db.session.add(asignacion)
+#             asignaciones.append(emp.correo)
+
+#     # Asignar a un puesto_trabajo específico
+#     elif puesto_trabajo:
+#         if puesto_trabajo not in area_jefes[jefe.puesto_trabajo]:
+#             return jsonify({"error": "El puesto no pertenece a tu área"}), 403
+#         empleados = Usuario.query.filter(
+#             Usuario.id_empresa == jefe.id_empresa,
+#             Usuario.puesto_trabajo == puesto_trabajo
+#         ).all()
+#         for emp in empleados:
+#             asignacion = EncuestaAsignacion(
+#                 id_encuesta=id_encuesta,
+#                 id_asignador=jefe.id,
+#                 id_usuario=emp.id,
+#                 area=None,
+#                 puesto_trabajo=puesto_trabajo,
+#                 tipo_asignacion="puesto_trabajo",
+#             )
+#             db.session.add(asignacion)
+#             asignaciones.append(emp.correo)
+#     else:
+#         return jsonify({"error": "Debes indicar email, area o puesto_trabajo"}), 400
+
+#     db.session.commit()
+#     return jsonify({
+#         "message": "Encuesta asignada correctamente",
+#         "asignados": asignaciones
+#     }), 201
+
+@empleado_bp.route("/asignar-encuesta-<int:id_encuesta>", methods=["POST"])
+@role_required(["empleado"])
+def asignar_encuesta(id_encuesta):
+    area_jefes = {
+        "Jefe de Tecnología y Desarrollo": [
+            "Desarrollador Backend",
+            "Desarrollador Frontend",
+            "Full Stack Developer",
+            "DevOps Engineer",
+            "Data Engineer",
+            "Ingeniero de Machine Learning",
+            "Analista de Datos",
+            "QA Automation Engineer",
+            "Soporte Técnico",
+            "Administrador de Base de Datos",
+            "Administrador de Redes",
+            "Especialista en Seguridad Informática",
+        ],
+        "Jefe de Administración y Finanzas": [
+            "Analista Contable",
+            "Contador Público",
+            "Analista de Finanzas",
+            "Administrativo/a",
+            "Asistente Contable",
+        ],
+        "Jefe Comercial y de Ventas": [
+            "Representante de Ventas",
+            "Ejecutivo de Cuentas",
+            "Vendedor Comercial",
+            "Supervisor de Ventas",
+            "Asesor Comercial",
+        ],
+        "Jefe de Marketing y Comunicación": [
+            "Especialista en Marketing Digital",
+            "Analista de Marketing",
+            "Community Manager",
+            "Diseñador Gráfico",
+            "Responsable de Comunicación",
+        ],
+        "Jefe de Industria y Producción": [
+            "Técnico de Mantenimiento",
+            "Operario de Producción",
+            "Supervisor de Planta",
+            "Ingeniero de Procesos",
+            "Encargado de Logística",
+        ],
+        "Jefe de Servicios Generales y Gastronomía": [
+            "Mozo/a",
+            "Cocinero/a",
+            "Encargado de Salón",
+            "Recepcionista",
+            "Limpieza",
+        ],
+    }
+
+    data = request.get_json()
+    # id_encuesta = data.get("id_encuesta")
+    email = data.get("email")
+    area = data.get("area")
+    puesto_trabajo = data.get("puesto_trabajo")
+
+    if not id_encuesta:
+        return jsonify({"error": "id_encuesta es requerido"}), 400
+
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe or jefe.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para asignar encuestas"}), 403
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta or encuesta.creador_id != jefe.id:
+        return jsonify({"error": "Encuesta no encontrada o no tienes permisos"}), 404
+
+    asignaciones = []
+
+    # Asignar a un empleado específico
+    if email:
+        empleado = Usuario.query.filter_by(correo=email).first()
+        if not empleado:
+            return jsonify({"error": "Empleado no encontrado"}), 404
+        if empleado.id_empresa != jefe.id_empresa:
+            return jsonify({"error": "El empleado no pertenece a tu empresa"}), 403
+        if empleado.puesto_trabajo not in area_jefes[jefe.puesto_trabajo]:
+            return jsonify({"error": "El empleado no pertenece a tu área"}), 403
+
+        # Buscar asignación limpia
+        asignacion = EncuestaAsignacion.query.filter_by(
+            id_encuesta=id_encuesta,
+            limpia=True,
+            id_asignador=id_jefe,
+            # id_usuario=None,
+            # area=None,
+            # puesto_trabajo=None
+        ).first()
+        if asignacion:
+            asignacion.id_usuario = empleado.id
+            asignacion.area = None
+            asignacion.puesto_trabajo = None
+            asignacion.limpia = False
+            asignacion.tipo_asignacion = "email"
+            
+            db.session.commit()
+        else:
+            asignacion = EncuestaAsignacion(
+                id_encuesta=id_encuesta,
+                id_usuario=empleado.id,
+                area=None,
+                puesto_trabajo=None,
+                tipo_asignacion="email",
+                id_asignador=id_jefe,
+                limpia=False
+            )
+            db.session.add(asignacion)
+        asignaciones.append(empleado.correo)
+
+    # Asignar a toda el área
+    elif area:
+        if area != jefe.puesto_trabajo:
+            return jsonify({"error": "Solo puedes asignar a tu propia área"}), 403
+        empleados = Usuario.query.filter(
+            Usuario.id_empresa == jefe.id_empresa,
+            Usuario.puesto_trabajo.in_(area_jefes[jefe.puesto_trabajo])
+        ).all()
+        for emp in empleados:
+            asignacion = EncuestaAsignacion.query.filter_by(
+                id_encuesta=id_encuesta,
+                limpia=True,
+                id_asignador=id_jefe,
+                # id_usuario=None,
+                # area=None,
+                # puesto_trabajo=None
+            ).first()
+            if asignacion:
+                asignacion.id_usuario = emp.id
+                asignacion.area = area
+                asignacion.puesto_trabajo = None
+                asignacion.limpia = False
+                asignacion.tipo_asignacion = "area"
+
+                db.session.commit()
+            else:
+                asignacion = EncuestaAsignacion(
+                    id_encuesta=id_encuesta,
+                    id_usuario=emp.id,
+                    area=area,
+                    puesto_trabajo=None,
+                    tipo_asignacion="area",
+                    id_asignador=id_jefe,
+                    limpia=False
+                )
+                db.session.add(asignacion)
+            asignaciones.append(emp.correo)
+
+    # Asignar a un puesto_trabajo específico
+    elif puesto_trabajo:
+        if puesto_trabajo not in area_jefes[jefe.puesto_trabajo]:
+            return jsonify({"error": "El puesto no pertenece a tu área"}), 403
+        empleados = Usuario.query.filter(
+            Usuario.id_empresa == jefe.id_empresa,
+            Usuario.puesto_trabajo == puesto_trabajo
+        ).all()
+        for emp in empleados:
+            asignacion = EncuestaAsignacion.query.filter_by(
+                id_encuesta=id_encuesta,
+                limpia=True,
+                id_asignador=id_jefe,
+                # id_usuario=None,
+                # area=None,
+                # puesto_trabajo=None
+            ).first()
+            if asignacion:
+                asignacion.id_usuario = emp.id
+                asignacion.area = None
+                asignacion.puesto_trabajo = puesto_trabajo
+                asignacion.limpia = False
+                asignacion.tipo_asignacion = "puesto_trabajo"
+
+                db.session.commit()
+            else:
+                asignacion = EncuestaAsignacion(
+                    id_encuesta=id_encuesta,
+                    id_usuario=emp.id,
+                    area=None,
+                    puesto_trabajo=puesto_trabajo,
+                    tipo_asignacion="puesto_trabajo",
+                    id_asignador=id_jefe,
+                    limpia=False
+                )
+                db.session.add(asignacion)
+            asignaciones.append(emp.correo)
+    else:
+        return jsonify({"error": "Debes indicar email, area o puesto_trabajo"}), 400
+
+    db.session.commit()
+    return jsonify({
+        "message": "Encuesta asignada correctamente",
+        "asignados": asignaciones
+    }),
+
+@empleado_bp.route("/encuesta/<int:id_encuesta>/agregar-pregunta", methods=["POST"])
+@role_required(["empleado"])
+def agregar_pregunta_encuesta(id_encuesta):
+    """
+    Permite a un jefe agregar una pregunta a una encuesta.
+    Recibe:
+      - texto (str, requerido)
+      - tipo (str, requerido): 'opcion_multiple', 'unica_opcion', 'texto_libre'
+      - opciones (list de str, opcional): requerido si tipo es opción
+      - es_requerida (bool, requerido)
+    """
+    area_jefes = [
+        "Jefe de Tecnología y Desarrollo",
+        "Jefe de Administración y Finanzas",
+        "Jefe Comercial y de Ventas",
+        "Jefe de Marketing y Comunicación",
+        "Jefe de Industria y Producción",
+        "Jefe de Servicios Generales y Gastronomía",
+    ]
+    data = request.get_json()
+    texto = data.get("texto")
+    tipo = data.get("tipo")
+    opciones = data.get("opciones")
+    es_requerida = data.get("es_requerida")
+
+    if not all([texto, tipo, es_requerida is not None]):
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe or jefe.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para agregar preguntas"}), 403
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta or encuesta.creador_id != jefe.id:
+        return jsonify({"error": "Encuesta no encontrada o no tienes permisos"}), 404
+
+    if tipo in ["opcion_multiple", "unica_opcion"]:
+        if not opciones or not isinstance(opciones, list) or not all(isinstance(o, str) for o in opciones):
+            return jsonify({"error": "Debes enviar una lista de opciones de respuesta"}), 400
+        opciones_json = json.dumps(opciones)
+    else:
+        opciones_json = None
+
+    pregunta = PreguntaEncuesta(
+        id_encuesta=id_encuesta,
+        texto=texto,
+        tipo=tipo,
+        opciones=opciones_json,
+        es_requerida=bool(es_requerida)
+    )
+    db.session.add(pregunta)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Pregunta agregada exitosamente",
+        "pregunta": {
+            "id": pregunta.id,
+            "texto": pregunta.texto,
+            "tipo": pregunta.tipo,
+            "opciones": opciones if opciones_json else None,
+            "es_requerida": pregunta.es_requerida
+        }
+    }), 201
+
+@empleado_bp.route("/encuesta/<int:id_encuesta>/limpiar", methods=["PUT"])
+@role_required(["empleado"])
+def limpiar_encuesta(id_encuesta):
+    """
+    Permite limpiar los campos principales de una encuesta y actualizar la fecha de creación.
+    """
+    id_jefe = get_jwt_identity()
+    encuesta = Encuesta.query.get(id_encuesta)
+
+    # Verificar existencia de la encuesta
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+    
+    # Verificar permisos (solo el creador puede limpiar)
+    if encuesta.creador_id != id_jefe:
+        return jsonify({"error": "No tienes permisos para limpiar esta encuesta"}), 403
+
+    # Limpiar campos
+    encuesta.tipo = None
+    encuesta.titulo = None
+    encuesta.descripcion = None
+    encuesta.es_anonima = None
+    encuesta.fecha_inicio = None
+    encuesta.fecha_fin = None
+    encuesta.fecha_creacion = None
+    encuesta.limpia = True
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Encuesta limpiada correctamente",
+        "encuesta": {
+            "id": encuesta.id,
+            "tipo": encuesta.tipo,
+            "titulo": encuesta.titulo,
+            "descripcion": encuesta.descripcion,
+            "anonima": encuesta.es_anonima,
+            "fecha_inicio": encuesta.fecha_inicio,
+            "fecha_fin": encuesta.fecha_fin,
+            "fecha_creacion": encuesta.fecha_creacion.isoformat()
+        }
+    }), 200
+
+@empleado_bp.route("/encuesta-asignacion/<int:id_asignacion>/limpiar", methods=["PUT"])
+@role_required(["empleado"])
+def limpiar_asignacion(id_asignacion):
+    """
+    Permite limpiar los campos id_usuario, area y puesto_trabajo de una EncuestaAsignacion.
+    """
+    id_jefe = get_jwt_identity()
+    
+    asignacion = EncuestaAsignacion.query.get(id_asignacion)
+
+    if not asignacion:
+        return jsonify({"error": "Asignación no encontrada"}), 404
+
+    # Verificar permisos (solo el asignador puede limpiar)
+    if asignacion.id_asignador != id_jefe:
+        return jsonify({"error": "No tienes permisos para limpiar esta asignación"}), 403
+
+    asignacion.id_usuario = None
+    asignacion.area = None
+    asignacion.puesto_trabajo = None
+    asignacion.tipo_asignacion = None
+    asignacion.limpia = True
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Asignación limpiada correctamente",
+        "asignacion": {
+            "id": asignacion.id,
+            "id_usuario": asignacion.id_usuario,
+            "area": asignacion.area,
+            "puesto_trabajo": asignacion.puesto_trabajo
+        }
+    }), 200
+
+@empleado_bp.route("/pregunta-encuesta/<int:id_pregunta>/modificar", methods=["PUT"])
+@role_required(["empleado"])
+def modificar_pregunta_encuesta(id_pregunta):
+    """
+    Permite a un jefe modificar una pregunta de una encuesta.
+    Recibe:
+      - texto (str, requerido)
+      - tipo (str, requerido): 'opcion_multiple', 'unica_opcion', 'texto_libre'
+      - opciones (list de str, opcional): requerido si tipo es opción
+      - es_requerida (bool, requerido)
+    """
+    area_jefes = [
+        "Jefe de Tecnología y Desarrollo",
+        "Jefe de Administración y Finanzas",
+        "Jefe Comercial y de Ventas",
+        "Jefe de Marketing y Comunicación",
+        "Jefe de Industria y Producción",
+        "Jefe de Servicios Generales y Gastronomía",
+    ]
+    data = request.get_json()
+    texto = data.get("texto")
+    tipo = data.get("tipo")
+    opciones = data.get("opciones")
+    es_requerida = data.get("es_requerida")
+
+    if not all([texto, tipo, es_requerida is not None]):
+        return jsonify({"error": "Faltan campos requeridos"}), 400
+
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe or jefe.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para modificar preguntas"}), 403
+
+    pregunta = PreguntaEncuesta.query.get(id_pregunta)
+    if not pregunta:
+        return jsonify({"error": "Pregunta no encontrada"}), 404
+
+    encuesta = Encuesta.query.get(pregunta.id_encuesta)
+    if not encuesta or encuesta.creador_id != jefe.id:
+        return jsonify({"error": "No tienes permisos sobre esta encuesta"}), 403
+
+    if tipo in ["opcion_multiple", "unica_opcion"]:
+        if not opciones or not isinstance(opciones, list) or not all(isinstance(o, str) for o in opciones):
+            return jsonify({"error": "Debes enviar una lista de opciones de respuesta"}), 400
+        opciones_json = json.dumps(opciones)
+    else:
+        opciones_json = None
+
+    pregunta.texto = texto
+    pregunta.tipo = tipo
+    pregunta.opciones = opciones_json
+    pregunta.es_requerida = bool(es_requerida)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Pregunta modificada exitosamente",
+        "pregunta": {
+            "id": pregunta.id,
+            "texto": pregunta.texto,
+            "tipo": pregunta.tipo,
+            "opciones": opciones if opciones_json else None,
+            "es_requerida": pregunta.es_requerida
+        }
+    }), 200
+
+@empleado_bp.route("/pregunta-encuesta/<int:id_pregunta>/eliminar", methods=["DELETE"])
+@role_required(["empleado"])
+def eliminar_pregunta_encuesta(id_pregunta):
+    """
+    Permite a un jefe eliminar una pregunta de una encuesta.
+    """
+    area_jefes = [
+        "Jefe de Tecnología y Desarrollo",
+        "Jefe de Administración y Finanzas",
+        "Jefe Comercial y de Ventas",
+        "Jefe de Marketing y Comunicación",
+        "Jefe de Industria y Producción",
+        "Jefe de Servicios Generales y Gastronomía",
+    ]
+
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe or jefe.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para eliminar preguntas"}), 403
+
+    pregunta = PreguntaEncuesta.query.get(id_pregunta)
+    if not pregunta:
+        return jsonify({"error": "Pregunta no encontrada"}), 404
+
+    encuesta = Encuesta.query.get(pregunta.id_encuesta)
+    if not encuesta or encuesta.creador_id != jefe.id:
+        return jsonify({"error": "No tienes permisos sobre esta encuesta"}), 403
+
+    db.session.delete(pregunta)
+    db.session.commit()
+
+    return jsonify({"message": "Pregunta eliminada exitosamente"}), 200
