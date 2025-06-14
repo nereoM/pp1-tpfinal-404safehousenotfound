@@ -333,3 +333,13 @@ def guardar_modelo_en_oferta(id_oferta, modelo, vectorizador, palabras_clave):
 
     db.session.commit()
     return True
+
+class UsuarioTelegram(db.Model):
+    __tablename__ = "usuarios_telegram"
+
+    id = db.Column(db.Integer, primary_key=True)
+    id_usuario = db.Column(db.Integer, db.ForeignKey("usuarios.id"), unique=True, nullable=False)
+    chat_id = db.Column(db.BigInteger, unique=True, nullable=False)
+    nombre = db.Column(db.String(100))
+
+    usuario = db.relationship("Usuario", backref=db.backref("telegram", uselist=False))

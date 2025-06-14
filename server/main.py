@@ -14,6 +14,7 @@ from routes.empleado import empleado_bp
 from routes.imagenes import imagenes_bp
 from routes.reportes import reportes_bp
 from routes.chatbot import chatbot_bp
+from routes.notificacion import notificacion_bp
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from models.schemes import Licencia
@@ -60,6 +61,7 @@ app.register_blueprint(empleado_bp,   url_prefix="/api")
 app.register_blueprint(imagenes_bp, url_prefix="/api")
 app.register_blueprint(reportes_bp, url_prefix="/api")
 app.register_blueprint(chatbot_bp, url_prefix="/api")
+app.register_blueprint(notificacion_bp, url_prefix="/api")
 
 #### AGREGADO PARA VER CERTIFICADOS ####
 from flask import send_from_directory

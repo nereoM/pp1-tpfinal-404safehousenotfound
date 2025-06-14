@@ -22,6 +22,8 @@ class Config:
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
     EMBEDDINGS_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+    TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+    DOMINIO_PUBLICO = os.getenv("DOMINIO_PUBLICO")
     
     JWT_TOKEN_LOCATION = ["cookies"]
     JWT_COOKIE_SECURE = False
