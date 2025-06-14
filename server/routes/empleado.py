@@ -1772,6 +1772,7 @@ def crear_encuesta_completa():
                 es_requerida=bool(es_requerida)
             )
             db.session.add(pregunta_obj)
+            db.session.flush()
             preguntas_creadas.append({
                 "id": pregunta_obj.id,
                 "texto": texto,
