@@ -1596,7 +1596,7 @@ def enviar_mail_empleado_licencia_cuerpo(email_destino, asunto, cuerpo):
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta, date, timezone
 
-@empleado_bp.route("/crear-encuesta-completa", methods=["POST"])
+@empleado_bp.route("/crear-encuesta", methods=["POST"])
 @role_required(["empleado"])
 def crear_encuesta_completa():
     """
