@@ -1,15 +1,33 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/dist/style.css";
 
 export default function PeriodosEmpresaModal({ open, onClose, apiUrl, showToast }) {
     const [periodos, setPeriodos] = useState([]);
     const [loading, setLoading] = useState(false);
     const [nuevoPeriodo, setNuevoPeriodo] = useState({
         nombre_periodo: "",
-        fecha_inicio: "",
-        fecha_fin: "",
         horas_laborales_por_dia: 8,
     });
     const [creando, setCreando] = useState(false);
+    const [rangoFechas, setRangoFechas] = useState({ from: undefined, to: undefined });
+    const [showCalendar, setShowCalendar] = useState(false);
+    const calendarRef = useRef(null);
+
+    // Cerrar el calendario al hacer click fuera
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+                setShowCalendar(false);
+            }
+        }
+        if (showCalendar) {
+            document.addEventListener("mousedown", handleClickOutside);
+        } else {
+            document.removeEventListener("mousedown", handleClickOutside);
+        }
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showCalendar]);
 
     // Cargar periodos al abrir el modal
     useEffect(() => {
@@ -34,7 +52,6 @@ export default function PeriodosEmpresaModal({ open, onClose, apiUrl, showToast 
     };
 
     const cerrarPeriodo = async (id_periodo) => {
-        if (!window.confirm("¿Seguro que deseas cerrar este periodo?")) return;
         try {
             const res = await fetch(`${apiUrl}/api/cerrar-periodo/${id_periodo}`, {
                 method: "PUT",
@@ -60,17 +77,20 @@ export default function PeriodosEmpresaModal({ open, onClose, apiUrl, showToast 
                 method: "POST",
                 credentials: "include",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(nuevoPeriodo),
+                body: JSON.stringify({
+                    ...nuevoPeriodo,
+                    fecha_inicio: rangoFechas.from ? rangoFechas.from.toISOString().slice(0, 10) : "",
+                    fecha_fin: rangoFechas.to ? rangoFechas.to.toISOString().slice(0, 10) : "",
+                }),
             });
             const data = await res.json();
             if (res.ok) {
                 showToast(data.mensaje || "Periodo creado correctamente", "success");
                 setNuevoPeriodo({
                     nombre_periodo: "",
-                    fecha_inicio: "",
-                    fecha_fin: "",
                     horas_laborales_por_dia: 8,
                 });
+                setRangoFechas({ from: undefined, to: undefined });
                 fetchPeriodos();
             } else {
                 showToast(data.error || "Error al crear el periodo", "error");
@@ -169,34 +189,25 @@ export default function PeriodosEmpresaModal({ open, onClose, apiUrl, showToast 
                             className="w-full border px-2 py-1 rounded"
                         />
                     </div>
-                    <div>
-                        <label className="block text-xs font-semibold mb-1">Fecha de inicio</label>
-                        <input
-                            type="date"
-                            required
-                            value={nuevoPeriodo.fecha_inicio}
-                            onChange={(e) =>
-                                setNuevoPeriodo((prev) => ({ ...prev, fecha_inicio: e.target.value }))
-                            }
-                            className="w-full border px-2 py-1 rounded"
+                    <div className="sm:col-span-2 mb-4 flex flex-col items-center justify-center">
+                        <label className="block text-xs font-semibold mb-1 self-start">Rango de fechas</label>
+                        <DayPicker
+                            mode="range"
+                            selected={rangoFechas}
+                            onSelect={setRangoFechas}
+                            showOutsideDays
+                            className="bg-white rounded p-4 mx-auto"
                         />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-semibold mb-1">Fecha de fin</label>
-                        <input
-                            type="date"
-                            required
-                            value={nuevoPeriodo.fecha_fin}
-                            onChange={(e) =>
-                                setNuevoPeriodo((prev) => ({ ...prev, fecha_fin: e.target.value }))
-                            }
-                            className="w-full border px-2 py-1 rounded"
-                        />
+                        <div className="mt-2 text-sm text-gray-700">
+                            {rangoFechas.from && rangoFechas.to
+                                ? `${rangoFechas.from.toLocaleDateString()} - ${rangoFechas.to.toLocaleDateString()}`
+                                : "Selecciona un rango de fechas"}
+                        </div>
                     </div>
                     <div className="sm:col-span-2 flex justify-end mt-2">
                         <button
                             type="submit"
-                            disabled={creando}
+                            disabled={creando || !rangoFechas.from || !rangoFechas.to}
                             className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
                         >
                             {creando ? "Creando..." : "Crear periodo"}
