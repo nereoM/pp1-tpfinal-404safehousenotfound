@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import isLightColor from "../components/isLightColor";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
+import { SiTelegram } from "react-icons/si";
+
 
 export function TopBar({ username, user, onEditPerfil, onPostulacion, showBell = true }) {
   const { estilos } = useEstiloEmpresa();
@@ -256,6 +258,21 @@ export function TopBar({ username, user, onEditPerfil, onPostulacion, showBell =
               >
                 <LogOut size={16} /> Cerrar sesión
               </button>
+
+              <button
+              onClick={() => {
+                window.location.href = "/enviar-telegram"; // o podés usar navigate si preferís
+              }}
+              className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded"
+              style={{
+                backgroundColor: "#229ED9", // color oficial de Telegram
+                color: "#fff",
+                width: "100%",
+              }}
+            >
+              <SiTelegram size={16} /> Enviar notificación Telegram
+            </button>
+
             </div>
           </div>
         )}
