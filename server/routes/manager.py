@@ -1320,9 +1320,9 @@ def configurar_periodo():
 @role_required(["manager"])
 def obtener_datos_rendimiento():
     try:
+        id_manager = get_jwt_identity()
         datos = request.get_json()
         id_periodo = datos.get("id_periodo")
-        id_manager = get_jwt_identity()
 
         manager = Usuario.query.get(id_manager)
 
