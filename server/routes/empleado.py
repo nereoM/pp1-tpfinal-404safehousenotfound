@@ -2086,3 +2086,73 @@ def obtener_encuesta_asignada_detalle(id_encuesta):
         },
         "preguntas": preguntas_info
     }), 200
+
+@empleado_bp.route("/responder-encuesta/<int:id_encuesta>", methods=["POST"])
+@role_required(["empleado"])
+def responder_encuesta(id_encuesta):
+    """
+    Permite a un empleado responder una encuesta asignada.
+    Espera un JSON con {"respuestas": [{"id_pregunta": int, "respuesta": ...}, ...]}
+    """
+    id_empleado = get_jwt_identity()
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_empleado).first()
+    if not asignacion:
+        return jsonify({"error": "No tienes esta encuesta asignada"}), 403
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    if encuesta.estado not in ["activa"]:
+        return jsonify({"error": "La encuesta no está activa"}), 400
+
+    data = request.get_json()
+    respuestas = data.get("respuestas")
+    if not respuestas or not isinstance(respuestas, list):
+        return jsonify({"error": "Debes enviar una lista de respuestas"}), 400
+
+    preguntas = {p.id: p for p in PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()}
+    preguntas_requeridas = {p.id for p in preguntas.values() if p.es_requerida}
+
+    respondidas = set()
+    for r in respuestas:
+        id_pregunta = r.get("id_pregunta")
+        respuesta = r.get("respuesta")
+        if id_pregunta not in preguntas:
+            return jsonify({"error": f"Pregunta {id_pregunta} inválida"}), 400
+        if preguntas[id_pregunta].es_requerida and (respuesta is None or respuesta == ""):
+            return jsonify({"error": f"La pregunta {id_pregunta} es requerida"}), 400
+        # Validar opciones si corresponde
+        if preguntas[id_pregunta].tipo in ["opcion_multiple", "unica_opcion"]:
+            opciones = json.loads(preguntas[id_pregunta].opciones or "[]")
+            if isinstance(respuesta, list):
+                if not all(opt in opciones for opt in respuesta):
+                    return jsonify({"error": f"Respuesta inválida para la pregunta {id_pregunta}"}), 400
+            else:
+                if respuesta not in opciones:
+                    return jsonify({"error": f"Respuesta inválida para la pregunta {id_pregunta}"}), 400
+        respondidas.add(id_pregunta)
+
+    # Verificar que todas las requeridas estén respondidas
+    if not preguntas_requeridas.issubset(respondidas):
+        return jsonify({"error": "Debes responder todas las preguntas requeridas"}), 400
+
+    # Guardar respuestas
+    for r in respuestas:
+        id_pregunta = r["id_pregunta"]
+        respuesta = r["respuesta"]
+        # Si la respuesta es lista, guardar como JSON string
+        if isinstance(respuesta, list):
+            respuesta_db = json.dumps(respuesta)
+        else:
+            respuesta_db = str(respuesta)
+        nueva_respuesta = RespuestaEncuesta(
+            id_pregunta=id_pregunta,
+            id_usuario=id_empleado,
+            respuesta=respuesta_db,
+            fecha_respuesta=datetime.now(timezone.utc)
+        )
+        db.session.add(nueva_respuesta)
+
+    db.session.commit()
+    return jsonify({"message": "Respuestas guardadas correctamente"}), 201
