@@ -1320,6 +1320,8 @@ def configurar_periodo():
 @role_required(["manager"])
 def obtener_datos_rendimiento():
     try:
+        datos = request.get_json()
+        id_periodo = datos.get("id_periodo")
         id_manager = get_jwt_identity()
 
         manager = Usuario.query.get(id_manager)
@@ -1342,7 +1344,7 @@ def obtener_datos_rendimiento():
         datos_empleados = []
 
         for usuario in usuarios:
-            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=usuario.id).first()
+            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=usuario.id, id_periodo=id_periodo).first()
 
             datos_empleados.append({
                 "id_usuario": usuario.id,
