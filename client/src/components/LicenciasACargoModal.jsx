@@ -1,9 +1,10 @@
 import { Download } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DayPicker } from "react-day-picker";
 import { useLicenciasACargo } from "../services/useLicenciasACargo";
 import MensajeAlerta from "./MensajeAlerta";
 import { Dialog, DialogContent, DialogTitle } from "./shadcn/Dialog";
+import { AnimatePresence, motion } from "framer-motion";
 
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
@@ -13,6 +14,7 @@ export function LicenciasACargoModal({
   extraContent,
   open,
   onOpenChange,
+  showToast, // Nuevo prop para feedback visual
 }) {
   const {
     error,
@@ -43,6 +45,22 @@ export function LicenciasACargoModal({
   // Estado para licencias seleccionadas
   const [licenciasSeleccionadas, setLicenciasSeleccionadas] = useState([]);
   const [openDropdown, setOpenDropdown] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Cerrar dropdown al hacer click fuera
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdown(false);
+      }
+    }
+    if (openDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openDropdown]);
 
   // Filtrado de licencias
   const licenciasFiltradas = licencias.filter((item) => {
@@ -91,9 +109,9 @@ export function LicenciasACargoModal({
     );
   }
 
+  // Descargar reportes con feedback toast
   const descargarReporteLicenciasFiltradas = async (formato = "excel") => {
     const ids = licenciasFiltradas.map(item => item.licencia.id_licencia).join(",");
-    console.log("IDs de licencias filtradas enviados al backend:", ids); // 👈 DEBUG
     try {
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/reportes-licencias?formato=${formato}&ids=${ids}`,
@@ -112,15 +130,15 @@ export function LicenciasACargoModal({
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      showToast && showToast("Reporte de licencias descargado correctamente.", "success");
     } catch (err) {
-      alert("Error al descargar el reporte de licencias");
+      showToast ? showToast("Error al descargar el reporte de licencias", "error") : alert("Error al descargar el reporte de licencias");
     }
   };
 
-  // Descargar solo seleccionadas
   const descargarReporteLicenciasSeleccionadas = async (formato = "excel") => {
     if (licenciasSeleccionadas.length === 0) {
-      alert("Selecciona al menos una licencia para descargar el reporte.");
+      showToast ? showToast("Selecciona al menos una licencia para descargar el reporte.", "error") : alert("Selecciona al menos una licencia para descargar el reporte.");
       return;
     }
     const ids = licenciasSeleccionadas.join(",");
@@ -142,8 +160,9 @@ export function LicenciasACargoModal({
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      showToast && showToast("Reporte de licencias descargado correctamente.", "success");
     } catch (err) {
-      alert("Error al descargar el reporte de licencias seleccionadas");
+      showToast ? showToast("Error al descargar el reporte de licencias seleccionadas", "error") : alert("Error al descargar el reporte de licencias seleccionadas");
     }
   };
 
@@ -217,49 +236,64 @@ export function LicenciasACargoModal({
 
         {/* Botón de descarga con dropdown */}
         <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2 relative">
-          <button
-            onClick={() => setOpenDropdown((v) => !v)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow relative"
-            title="Descargar reporte de licencias"
-            aria-haspopup="menu"
-            aria-expanded={openDropdown}
-          >
-            <Download className="w-5 h-5" />
-            Descargar Reportes
-            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-          </button>
-          {openDropdown && (
-            <div className="absolute right-0 top-full mt-1 bg-white border rounded shadow-lg z-10 min-w-[220px] animate-fade-in">
-              <div className="px-3 py-2 text-xs text-gray-500 font-semibold">Filtradas</div>
-              <button
-                onClick={() => { setOpenDropdown(false); descargarReporteLicenciasFiltradas("excel"); }}
-                className="w-full text-left px-4 py-2 hover:bg-blue-50"
-              >
-                Reporte Excel (todas filtradas)
-              </button>
-              <button
-                onClick={() => { setOpenDropdown(false); descargarReporteLicenciasFiltradas("pdf"); }}
-                className="w-full text-left px-4 py-2 hover:bg-blue-50"
-              >
-                Reporte PDF (todas filtradas)
-              </button>
-              <div className="px-3 py-2 text-xs text-gray-500 font-semibold border-t mt-1">Seleccionadas (Ctrl + Click)</div>
-              <button
-                onClick={() => { setOpenDropdown(false); descargarReporteLicenciasSeleccionadas("excel"); }}
-                className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${licenciasSeleccionadas.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={licenciasSeleccionadas.length === 0}
-              >
-                Reporte Excel (seleccionadas)
-              </button>
-              <button
-                onClick={() => { setOpenDropdown(false); descargarReporteLicenciasSeleccionadas("pdf"); }}
-                className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${licenciasSeleccionadas.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                disabled={licenciasSeleccionadas.length === 0}
-              >
-                Reporte PDF (seleccionadas)
-              </button>
-            </div>
-          )}
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setOpenDropdown((v) => !v)}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-700 text-white rounded hover:bg-indigo-900 transition font-semibold shadow"
+              title="Descargar reportes"
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={openDropdown}
+            >
+              <Download className="w-5 h-5" />
+              Descargar reportes
+              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <AnimatePresence>
+              {openDropdown && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
+                  transition={{ duration: 0.18 }}
+                  className="absolute right-0 mt-2 w-64 bg-white border rounded shadow-lg z-50"
+                >
+                  <div className="py-2">
+                    <div className="px-4 py-1 text-xs text-gray-500 font-semibold">Filtradas</div>
+                    <button
+                      onClick={() => { setOpenDropdown(false); descargarReporteLicenciasFiltradas("excel"); }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-blue-50 text-blue-700"
+                    >
+                      <Download className="w-4 h-4" /> Descargar Excel
+                    </button>
+                    <button
+                      onClick={() => { setOpenDropdown(false); descargarReporteLicenciasFiltradas("pdf"); }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-red-50 text-red-700"
+                    >
+                      <Download className="w-4 h-4" /> Descargar PDF
+                    </button>
+                    <div className="px-4 py-1 mt-2 text-xs text-gray-500 font-semibold border-t">Seleccionadas (Ctrl+Click)</div>
+                    <button
+                      onClick={() => { setOpenDropdown(false); descargarReporteLicenciasSeleccionadas("excel"); }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-blue-50 text-blue-700 ${licenciasSeleccionadas.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={licenciasSeleccionadas.length === 0}
+                    >
+                      <Download className="w-4 h-4" /> Descargar Excel
+                    </button>
+                    <button
+                      onClick={() => { setOpenDropdown(false); descargarReporteLicenciasSeleccionadas("pdf"); }}
+                      className={`w-full flex items-center gap-2 px-4 py-2 text-left hover:bg-red-50 text-red-700 ${licenciasSeleccionadas.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={licenciasSeleccionadas.length === 0}
+                    >
+                      <Download className="w-4 h-4" /> Descargar PDF
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         {mensajeEvaluacion && (
