@@ -40,9 +40,13 @@ export function LicenciasACargoModal({
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroDescripcion, setFiltroDescripcion] = useState("");
 
+  // Estado para licencias seleccionadas
+  const [licenciasSeleccionadas, setLicenciasSeleccionadas] = useState([]);
+  const [openDropdown, setOpenDropdown] = useState(false);
+
   // Filtrado de licencias
   const licenciasFiltradas = licencias.filter((item) => {
-    if(item.licencia.estado === "cancelada") return false
+    if (item.licencia.estado === "cancelada") return false
 
     const licencia = item.licencia;
     const empleado = licencia.empleado;
@@ -113,6 +117,36 @@ export function LicenciasACargoModal({
     }
   };
 
+  // Descargar solo seleccionadas
+  const descargarReporteLicenciasSeleccionadas = async (formato = "excel") => {
+    if (licenciasSeleccionadas.length === 0) {
+      alert("Selecciona al menos una licencia para descargar el reporte.");
+      return;
+    }
+    const ids = licenciasSeleccionadas.join(",");
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/reportes-licencias?formato=${formato}&ids=${ids}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo descargar el reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = formato === "pdf" ? "reporte_licencias.pdf" : "reporte_licencias.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error al descargar el reporte de licencias seleccionadas");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="text-black max-w-none w-[95vw] max-h-[90vh] overflow-auto">
@@ -143,7 +177,7 @@ export function LicenciasACargoModal({
               <option value="">Todos</option>
               <option value="vacaciones">Vacaciones</option>
               <option value="enfermedad">Enfermedad</option>
-              <option value="accidente laboral">Accidente laboral</option>
+              <option value="accidente_laboral">Accidente laboral</option>
               <option value="nacimiento_hijo">Nacimiento de hijo/a</option>
               <option value="duelo">Duelo</option>
               <option value="estudios">Estudios</option>
@@ -181,24 +215,51 @@ export function LicenciasACargoModal({
           </div>
         </div>
 
-        {/* Botones de descarga */}
-        <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2">
+        {/* Botón de descarga con dropdown */}
+        <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2 relative">
           <button
-            onClick={() => descargarReporteLicenciasFiltradas("excel")}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
-            title="Descargar reporte de licencias en Excel"
+            onClick={() => setOpenDropdown((v) => !v)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow relative"
+            title="Descargar reporte de licencias"
+            aria-haspopup="menu"
+            aria-expanded={openDropdown}
           >
             <Download className="w-5 h-5" />
-            Descargar Licencias Excel
+            Descargar Reportes
+            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
           </button>
-          <button
-            onClick={() => descargarReporteLicenciasFiltradas("pdf")}
-            className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
-            title="Descargar reporte de licencias en PDF"
-          >
-            <Download className="w-5 h-5" />
-            Descargar Licencias PDF
-          </button>
+          {openDropdown && (
+            <div className="absolute right-0 top-full mt-1 bg-white border rounded shadow-lg z-10 min-w-[220px] animate-fade-in">
+              <div className="px-3 py-2 text-xs text-gray-500 font-semibold">Filtradas</div>
+              <button
+                onClick={() => { setOpenDropdown(false); descargarReporteLicenciasFiltradas("excel"); }}
+                className="w-full text-left px-4 py-2 hover:bg-blue-50"
+              >
+                Reporte Excel (todas filtradas)
+              </button>
+              <button
+                onClick={() => { setOpenDropdown(false); descargarReporteLicenciasFiltradas("pdf"); }}
+                className="w-full text-left px-4 py-2 hover:bg-blue-50"
+              >
+                Reporte PDF (todas filtradas)
+              </button>
+              <div className="px-3 py-2 text-xs text-gray-500 font-semibold border-t mt-1">Seleccionadas (Ctrl + Click)</div>
+              <button
+                onClick={() => { setOpenDropdown(false); descargarReporteLicenciasSeleccionadas("excel"); }}
+                className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${licenciasSeleccionadas.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={licenciasSeleccionadas.length === 0}
+              >
+                Reporte Excel (seleccionadas)
+              </button>
+              <button
+                onClick={() => { setOpenDropdown(false); descargarReporteLicenciasSeleccionadas("pdf"); }}
+                className={`w-full text-left px-4 py-2 hover:bg-blue-50 ${licenciasSeleccionadas.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={licenciasSeleccionadas.length === 0}
+              >
+                Reporte PDF (seleccionadas)
+              </button>
+            </div>
+          )}
         </div>
 
         {mensajeEvaluacion && (
@@ -207,6 +268,7 @@ export function LicenciasACargoModal({
           </div>
         )}
 
+        {/* Tabla con selección múltiple por fila */}
         <table className="table-auto w-full border-collapse border border-gray-300 text-sm">
           <thead className="bg-gray-100">
             <tr>
@@ -225,8 +287,49 @@ export function LicenciasACargoModal({
             {licenciasFiltradas.map((item, index) => {
               const licencia = item.licencia;
               const empleado = licencia.empleado;
+              const isSelected = licenciasSeleccionadas.includes(licencia.id_licencia);
               return (
-                <tr key={index}>
+                <tr
+                  key={index}
+                  tabIndex={0}
+                  aria-selected={isSelected}
+                  className={`cursor-pointer transition-colors ${isSelected ? "bg-blue-100 ring-2 ring-blue-400" : "hover:bg-blue-50"}`}
+                  onClick={e => {
+                    if (e.ctrlKey || e.metaKey) {
+                      setLicenciasSeleccionadas(sel =>
+                        sel.includes(licencia.id_licencia)
+                          ? sel.filter(id => id !== licencia.id_licencia)
+                          : [...sel, licencia.id_licencia]
+                      );
+                    } else if (e.shiftKey && licenciasSeleccionadas.length > 0) {
+                      const lastIndex = licenciasFiltradas.findIndex(item => licenciasSeleccionadas[licenciasSeleccionadas.length - 1] === item.licencia.id_licencia);
+                      const thisIndex = index;
+                      const [start, end] = [lastIndex, thisIndex].sort((a, b) => a - b);
+                      const idsInRange = licenciasFiltradas.slice(start, end + 1).map(item => item.licencia.id_licencia);
+                      setLicenciasSeleccionadas(sel => Array.from(new Set([...sel, ...idsInRange])));
+                    } else {
+                      setLicenciasSeleccionadas(sel =>
+                        sel.length === 1 && sel[0] === licencia.id_licencia ? [] : [licencia.id_licencia]
+                      );
+                    }
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === " " || e.key === "Enter") {
+                      e.preventDefault();
+                      if (e.ctrlKey || e.metaKey) {
+                        setLicenciasSeleccionadas(sel =>
+                          sel.includes(licencia.id_licencia)
+                            ? sel.filter(id => id !== licencia.id_licencia)
+                            : [...sel, licencia.id_licencia]
+                        );
+                      } else {
+                        setLicenciasSeleccionadas(sel =>
+                          sel.length === 1 && sel[0] === licencia.id_licencia ? [] : [licencia.id_licencia]
+                        );
+                      }
+                    }
+                  }}
+                >
                   <td className="px-4 py-2 border align-top">
                     {empleado.nombre} {empleado.apellido}
                   </td>
@@ -238,7 +341,7 @@ export function LicenciasACargoModal({
                       <div className="max-h-32 overflow-y-auto pr-1">
                         {licencia.descripcion}
                         <button
-                          onClick={() => setDescripcionExpandida(null)}
+                          onClick={e => { e.stopPropagation(); setDescripcionExpandida(null); }}
                           className="ml-2 text-blue-600 underline text-xs hover:text-white hover:bg-blue-600 px-2 py-0.5 rounded"
                         >
                           mostrar menos
@@ -248,9 +351,7 @@ export function LicenciasACargoModal({
                       <>
                         {licencia.descripcion.slice(0, 50)}...
                         <button
-                          onClick={() =>
-                            setDescripcionExpandida(licencia.id_licencia)
-                          }
+                          onClick={e => { e.stopPropagation(); setDescripcionExpandida(licencia.id_licencia); }}
                           className="ml-2 text-blue-600 underline text-xs hover:text-white hover:bg-blue-600 px-2 py-0.5 rounded"
                         >
                           ver completo
@@ -290,7 +391,7 @@ export function LicenciasACargoModal({
                       <div className="max-h-32 overflow-y-auto pr-1">
                         {licencia.motivo_rechazo}
                         <button
-                          onClick={() => setMotivoExpandido(null)}
+                          onClick={e => { e.stopPropagation(); setMotivoExpandido(null); }}
                           className="ml-2 text-blue-600 underline text-xs hover:text-white hover:bg-blue-600 px-2 py-0.5 rounded"
                         >
                           mostrar menos
@@ -300,9 +401,7 @@ export function LicenciasACargoModal({
                       <>
                         {licencia.motivo_rechazo.slice(0, 30)}...
                         <button
-                          onClick={() =>
-                            setMotivoExpandido(licencia.id_licencia)
-                          }
+                          onClick={e => { e.stopPropagation(); setMotivoExpandido(licencia.id_licencia); }}
                           className="ml-2 text-blue-600 underline text-xs hover:text-white hover:bg-blue-600 px-2 py-0.5 rounded"
                         >
                           ver completo
@@ -315,11 +414,11 @@ export function LicenciasACargoModal({
                   <td className="px-4 py-2 border align-top">
                     {licencia.certificado_url ? (
                       <a
-                        href={`${import.meta.env.VITE_API_URL}/${licencia.certificado_url
-                          }`}
+                        href={`${import.meta.env.VITE_API_URL}/${licencia.certificado_url}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-indigo-600 underline"
+                        onClick={e => e.stopPropagation()}
                       >
                         Ver certificado
                       </a>
@@ -331,27 +430,19 @@ export function LicenciasACargoModal({
                     {licencia.estado === "pendiente" && (
                       <div className="flex flex-col gap-1">
                         <button
-                          onClick={() =>
-                            evaluarLicencia({
-                              idLicencia: licencia.id_licencia,
-                              estado: "aprobada",
-                            })
-                          }
+                          onClick={e => { e.stopPropagation(); evaluarLicencia({ idLicencia: licencia.id_licencia, estado: "aprobada" }); }}
                           className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                         >
                           Aprobar
                         </button>
                         <button
-                          onClick={() => abrirModalRechazo(licencia)}
+                          onClick={e => { e.stopPropagation(); abrirModalRechazo(licencia); }}
                           className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                         >
                           Rechazar
                         </button>
                         <button
-                          onClick={() => {
-                            setLicenciaSeleccionada(licencia);
-                            setModalNegociacionFecha(true);
-                          }}
+                          onClick={e => { e.stopPropagation(); setLicenciaSeleccionada(licencia); setModalNegociacionFecha(true); }}
                           className="px-2 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600"
                         >
                           Modificar fechas
@@ -361,21 +452,13 @@ export function LicenciasACargoModal({
                     {licencia.estado === "activa" && (
                       <div className="flex flex-col gap-1">
                         <button
-                          onClick={() =>
-                            evaluarLicencia({
-                              idLicencia: licencia.id_licencia,
-                              estado: "activa y verificada",
-                            })
-                          }
+                          onClick={e => { e.stopPropagation(); evaluarLicencia({ idLicencia: licencia.id_licencia, estado: "activa y verificada" }); }}
                           className="px-2 py-1 bg-green-500 text-white rounded hover:bg-green-600"
                         >
                           Verificar
                         </button>
                         <button
-                          onClick={() => {
-                            setLicenciaSeleccionada(licencia);
-                            setModalInvalidacionOpen(true);
-                          }}
+                          onClick={e => { e.stopPropagation(); setLicenciaSeleccionada(licencia); setModalInvalidacionOpen(true); }}
                           className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                         >
                           Invalidar
