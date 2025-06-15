@@ -31,6 +31,7 @@ export function SolicitarLicenciaModal({ open, onOpenChange }) {
     dias_requeridos: "",
   });
   const [subiendo, setSubiendo] = useState(false);
+  const [bloqueado, setBloqueado] = useState(false); // Nuevo estado para bloquear modal
 
   const updateTipoLicencia = (tipo) =>
     setFormState((f) => ({ ...f, tipoLicencia: tipo }));
@@ -71,10 +72,12 @@ export function SolicitarLicenciaModal({ open, onOpenChange }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setBloqueado(true); // Bloquea el modal al enviar
 
     // Validar fechas
     if (!esFechaValida()) {
       toast.error("Selecciona fechas validas.");
+      setBloqueado(false);
       return;
     }
 
@@ -131,6 +134,7 @@ export function SolicitarLicenciaModal({ open, onOpenChange }) {
       } catch (err) {
         toast.error(err.message);
         setSubiendo(false);
+        setBloqueado(false);
         return;
       }
       setSubiendo(false);
@@ -186,6 +190,8 @@ export function SolicitarLicenciaModal({ open, onOpenChange }) {
       onOpenChange(false);
     } catch (err) {
       toast.error(err.message);
+    } finally {
+      setBloqueado(false); // Desbloquea el modal al terminar
     }
   };
 
@@ -195,7 +201,7 @@ export function SolicitarLicenciaModal({ open, onOpenChange }) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="text-black max-w-md w-[95vw] max-h-[90vh] overflow-auto">
+      <DialogContent className={`text-black max-w-md w-[95vw] max-h-[90vh] overflow-auto ${bloqueado ? 'pointer-events-none opacity-60' : ''}`}>
         <h2 className="text-xl font-semibold">Solicitud de Licencia</h2>
         <form onSubmit={handleSubmit}>
           <div className="space-y-2">
@@ -321,16 +327,16 @@ export function SolicitarLicenciaModal({ open, onOpenChange }) {
               onClick={() => onOpenChange(false)}
               className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
               type="button"
-              disabled={subiendo}
+              disabled={subiendo || bloqueado}
             >
               Cancelar
             </button>
             <button
               className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
               type="submit"
-              disabled={subiendo}
+              disabled={subiendo || bloqueado}
             >
-              {subiendo ? "Subiendo..." : "Enviar"}
+              {subiendo || bloqueado ? "Procesando..." : "Enviar"}
             </button>
           </div>
         </form>
