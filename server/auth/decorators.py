@@ -24,17 +24,19 @@ from .utils import get_current_user
 
 def role_required(required_roles):
     def wrapper(fn):
+        @wraps(fn)
         def decorator(*args, **kwargs):
-            verify_jwt_in_request()  # Verifica que el token JWT sea válido
+            verify_jwt_in_request()  # Valida token
             user, error, status_code = get_current_user()
+
             if error:
-                return jsonify(error), status_code
+                return jsonify(error), status_code  # Ya es JSON
 
             user_roles = [r.slug for r in user.roles]
             if not any(role in user_roles for role in required_roles):
                 return jsonify({"error": "Acceso denegado: rol no autorizado"}), 403
 
             return fn(*args, **kwargs)
-        decorator.__name__ = fn.__name__
+
         return decorator
     return wrapper
