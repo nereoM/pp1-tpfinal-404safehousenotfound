@@ -21,6 +21,9 @@ export function TopBar({ username, user, onEditPerfil, onPostulacion, showBell =
   const profileRef = useRef(null);
   const navigate = useNavigate();
 
+const [telegramLink, setTelegramLink] = useState(null);
+const [mostrarBotonTelegram, setMostrarBotonTelegram] = useState(false);
+
   const rol = localStorage.getItem("rol") || "reclutador";
   const endpointBase = {
     candidato: "candidato",
@@ -101,6 +104,31 @@ export function TopBar({ username, user, onEditPerfil, onPostulacion, showBell =
       alert("Error de conexión al subir CV");
     }
   };
+
+
+useEffect(() => {
+  const obtenerLinkTelegram = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/telegram/link`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setTelegramLink(data.link);
+      }
+    } catch (error) {
+      console.error("Error al obtener el link de Telegram:", error);
+    }
+  };
+
+  // Mostrar solo si el rol es válido
+  const rolesPermitidos = ["manager", "reclutador", "empleado"];
+  if (rolesPermitidos.includes(rol)) {
+    setMostrarBotonTelegram(true);
+    obtenerLinkTelegram();
+  }
+}, [rol]);
+
 
   return (
     <header
@@ -218,64 +246,65 @@ export function TopBar({ username, user, onEditPerfil, onPostulacion, showBell =
           />
 
         {/* dropdown de perfil */}
-        {profileVisible && (
-          <div
-            ref={profileRef}
-            className="absolute right-0 top-12 w-72 bg-white border shadow-lg rounded-lg z-50 p-4"
-            style={{
-              borderColor: primary,
-              backgroundColor: estilos?.color_secundario ?? "#fff",
-              color: textColor,
-            }}
-          >
-            <div className="text-center">
-              <img
-                src={imgSrc}
-                className="w-16 h-16 rounded-full mx-auto border"
-                style={{ borderColor: primary }}
-              />
-              <p className="font-semibold mt-2">{user?.nombre} {user?.apellido}</p>
-              <p className="text-sm text-gray-500">{user?.correo}</p>
-              <p className="text-xs text-gray-400">{rol}</p>
-            </div>
+{profileVisible && (
+  <div
+    ref={profileRef}
+    className="absolute right-0 top-12 w-72 bg-white border shadow-lg rounded-xl z-50 p-4 flex flex-col gap-3 items-center"
+    style={{
+      borderColor: primary,
+      backgroundColor: estilos && estilos.color_secundario ? estilos.color_secundario : "#fff",
+      color: textColor,
+    }}
+  >
+    <img
+      src={imgSrc}
+      className="w-20 h-20 rounded-full border shadow"
+      style={{ borderColor: primary }}
+    />
+    <div className="text-center">
+      <p className="font-bold text-lg">{user?.nombre} {user?.apellido}</p>
+      <p className="text-sm text-gray-500">{user?.correo}</p>
+      <p className="text-xs text-gray-400 italic">{rol}</p>
+    </div>
 
-            <div className="mt-4 space-y-2">
-              {/* Elimina Ver CV, Subir nuevo CV, Ver postulaciones y Suscribirse */}
-              <button
-                onClick={onEditPerfil}
-                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded"
-                style={{
-                  backgroundColor: primary,
-                  color: isLightColor(primary) ? "#000" : "#fff",
-                  width: "100%",
-                }}
-              >
-                <Edit size={16} /> Editar perfil
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 w-full"
-              >
-                <LogOut size={16} /> Cerrar sesión
-              </button>
+    <div className="w-full flex flex-col gap-2 mt-2">
+      <button
+        onClick={onEditPerfil}
+        className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg cursor-pointer"
+        style={{
+          backgroundColor: primary,
+          color: isLightColor(primary) ? "#000" : "#fff",
+        }}
+      >
+        <Edit size={16} /> Editar perfil
+      </button>
 
-              <button
-              onClick={() => {
-                window.location.href = "/enviar-telegram"; // o podés usar navigate si preferís
-              }}
-              className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded"
-              style={{
-                backgroundColor: "#229ED9", // color oficial de Telegram
-                color: "#fff",
-                width: "100%",
-              }}
-            >
-              <SiTelegram size={16} /> Enviar notificación Telegram
-            </button>
+      {mostrarBotonTelegram && telegramLink && (
+        <a
+          href={telegramLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg cursor-pointer"
+          style={{
+            backgroundColor: "#229ED9",
+            color: "#fff",
+          }}
+        >
+          <SiTelegram size={16} /> Activar notificaciones Telegram
+        </a>
+      )}
 
-            </div>
-          </div>
-        )}
+      <button
+        onClick={handleLogout}
+        className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg bg-red-600 text-white shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg cursor-pointer"
+      >
+        <LogOut size={16} /> Cerrar sesión
+      </button>
+    </div>
+  </div>
+)}
+
+
       </div>
     </header>
   );
