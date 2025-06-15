@@ -2156,3 +2156,66 @@ def responder_encuesta(id_encuesta):
 
     db.session.commit()
     return jsonify({"message": "Respuestas guardadas correctamente"}), 201
+
+@empleado_bp.route("/encuesta/<int:id_encuesta>/respuestas-info", methods=["GET"])
+@role_required(["empleado"])
+def estado_respuestas_encuesta(id_encuesta):
+    """
+    Devuelve para una encuesta creada por el jefe:
+    - Si es anónima: solo totales y lista de no respondieron (sin lista de respondieron)
+    - Si NO es anónima: totales y listas completas
+    """
+    id_jefe = get_jwt_identity()
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+    if encuesta.creador_id != id_jefe:
+        return jsonify({"error": "No tienes permisos para ver esta información"}), 403
+
+    asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_ids = [p.id for p in preguntas]
+    respuestas = (
+        RespuestaEncuesta.query
+        .filter(RespuestaEncuesta.id_pregunta.in_(preguntas_ids))
+        .with_entities(RespuestaEncuesta.id_usuario)
+        .distinct()
+        .all()
+    )
+    respondieron_ids = {r.id_usuario for r in respuestas}
+
+    respondieron = []
+    no_respondieron = []
+    for asignacion in asignaciones:
+        usuario = Usuario.query.get(asignacion.id_usuario)
+        if not usuario:
+            continue
+        info = {
+            "id": usuario.id,
+            "nombre": usuario.nombre,
+            "apellido": usuario.apellido,
+            "correo": usuario.correo,
+            "puesto_trabajo": usuario.puesto_trabajo
+        }
+        if usuario.id in respondieron_ids:
+            respondieron.append(info)
+        else:
+            no_respondieron.append(info)
+
+    if encuesta.es_anonima:
+        # No mostrar la lista de respondieron
+        return jsonify({
+            "total_asignados": len(asignaciones),
+            "total_respondieron": len(respondieron),
+            "total_no_respondieron": len(no_respondieron),
+            "no_respondieron": no_respondieron
+        }), 200
+    else:
+        # Mostrar ambas listas
+        return jsonify({
+            "total_asignados": len(asignaciones),
+            "total_respondieron": len(respondieron),
+            "total_no_respondieron": len(no_respondieron),
+            "respondieron": respondieron,
+            "no_respondieron": no_respondieron
+        }), 200
