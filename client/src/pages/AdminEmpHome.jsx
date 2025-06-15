@@ -13,7 +13,15 @@ import GestionUsuarios from "../components/GestionUsuarios";
 import { LicenciasACargoModal } from "../components/LicenciasACargoModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+
 import { ModalEncuesta } from "../components/ModalEncuesta";
+import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
+
+import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
+
+import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
+
+
 import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
 import SubirEmpleados from "../components/RegistrarEmpleados";
@@ -21,6 +29,7 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { adminEmpService } from "../services/adminEmpService";
+import {FileText, FileSearchIcon } from "lucide-react";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminEmpHome() {
@@ -31,6 +40,61 @@ export default function AdminEmpHome() {
   const [modalUsuarios, setModalUsuarios] = useState(false);
   const [modalPreferencias, setModalPreferencias] = useState(false);
   const [modalEncuesta, setModalEncuesta] = useState(false);
+  const [modalGestionEncuestas, setModalGestionEncuestas] = useState(false);
+
+  const [modalVerEncuesta, setModalVerEncuesta] = useState(false);
+  const [encuestaSeleccionada, setEncuestaSeleccionada] = useState(null);
+
+  const [modalEncuestasPendientes, setModalEncuestasPendientes] = useState(false);
+
+  const [modalEncuestasRespondidas, setModalEncuestasRespondidas] = useState(false);
+
+  const [encuestasRespondidas, setEncuestasRespondidas] = useState([
+    {
+      id: 1,
+      titulo: "Encuesta de Clima Laboral",
+      descripcion: "Queremos conocer cómo te sentís en tu lugar de trabajo.",
+      respuestas: [
+        {
+          pregunta: "¿Cómo evaluás el ambiente laboral?",
+          respuesta: "Bueno",
+          comentario: "A veces hay tensión en el equipo.",
+        },
+        {
+          pregunta: "¿Qué mejorarías?",
+          respuesta: "La comunicación entre áreas.",
+        },
+        {
+          pregunta: "¿Qué áreas te gustaría fortalecer?",
+          respuesta: ["Trabajo en equipo", "Motivación"],
+        },
+      ],
+    },
+    {
+      id: 2,
+      titulo: "Satisfacción con Capacitación",
+      descripcion: "Tu opinión sobre las oportunidades de aprendizaje.",
+      respuestas: [
+        {
+          pregunta: "¿Cómo fue la última capacitación?",
+          respuesta: "Muy buena",
+          comentario: "Me gustó que fue interactiva.",
+        },
+      ],
+    },
+    {
+      id: 3,
+      titulo: "Evaluación de Herramientas de Trabajo",
+      descripcion: "Queremos conocer tu experiencia con las herramientas digitales.",
+      respuestas: [
+        {
+          pregunta: "¿Las herramientas son suficientes?",
+          respuesta: "Sí",
+        },
+      ],
+    },
+  ]);
+
   const [formData, setFormData] = useState({
     nombre: "",
     apellido: "",
@@ -434,6 +498,24 @@ const obtenerLicencias = async () => {
         descripcion: "Diseñá encuestas para obtener feedback del personal.",
         onClick: () => setModalEncuesta(true),
       },
+      {
+        icon: FileText,
+        titulo: "Gestionar Encuestas",
+        descripcion: "Administrá las encuestas creadas y sus resultados.",
+        onClick: () => setModalGestionEncuestas(true),
+      },
+      {
+        icon: FileSearchIcon,
+        titulo: "Encuestas Pendientes",
+        descripcion: "Consultá encuestas que aún no fueron respondidas.",
+        onClick: () => setModalEncuestasPendientes(true),
+      },
+      {
+        icon: FileText,
+        titulo: "Encuestas Respondidas",
+        descripcion: "Revisá las respuestas de encuestas completadas.",
+        onClick: () => setModalEncuestasRespondidas(true),
+      },
     ],
   };
 
@@ -489,6 +571,22 @@ const obtenerLicencias = async () => {
           {modalEncuesta && (
             <ModalEncuesta open={modalEncuesta} onOpenChange={setModalEncuesta} />
           )}
+
+          <GestionarEncuestasModal
+            open={modalGestionEncuestas}
+            onOpenChange={setModalGestionEncuestas}
+          />
+
+          <EncuestasPendientesModal
+            open={modalEncuestasPendientes}
+            onOpenChange={setModalEncuestasPendientes}
+          />
+
+          <EncuestasRespondidasModal
+            open={modalEncuestasRespondidas}
+            onOpenChange={setModalEncuestasRespondidas}
+            encuestas={encuestasRespondidas}
+          />
 
           {modalOpen && (
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
