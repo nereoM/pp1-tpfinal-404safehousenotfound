@@ -5,6 +5,8 @@ import {
   Search,
   SquareChartGanttIcon,
   Upload,
+  FileLock,
+  FileText
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +26,14 @@ import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { useOfertasRecomendadas } from "../hooks/useOfertasRecomendadas";
 import { authService } from "../services/authService";
 import { empleadoService } from "../services/empleadoService";
+
+import { ModalEncuesta } from "../components/ModalEncuesta";
+import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
+
+import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
+
+import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
+
 
 const jefeRoles = [
   "Jefe de Tecnología y Desarrollo",
@@ -45,6 +55,16 @@ export default function EmpleadoHome() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [toasts, setToasts] = useState([]);
+
+  const [modalEncuesta, setModalEncuesta] = useState(false);
+  const [modalGestionEncuestas, setModalGestionEncuestas] = useState(false);
+
+  const [modalVerEncuesta, setModalVerEncuesta] = useState(false);
+  const [encuestaSeleccionada, setEncuestaSeleccionada] = useState(null);
+  const [modalEncuestasRespondidas, setModalEncuestasRespondidas] = useState(false);
+  const [encuestasRespondidas, setEncuestasRespondidas] = useState([]);
+
+  const [modalEncuestasPendientes, setModalEncuestasPendientes] = useState(false);
 
   // Estados typeados porque son asíncronos
   /** @type {[Usuario]} */
@@ -131,28 +151,53 @@ export default function EmpleadoHome() {
     {
       icon: FileUp,
       titulo: "Solicitar Licencia",
-      descripcion: "Solicituar una nueva licencia.",
+      descripcion: "Solicitá una nueva licencia.",
       onClick: () => setmodalSolicitarLicencia(true),
     },
     {
       icon: FileSearchIcon,
       titulo: "Ver Mis Licencias",
-      descripcion: "Accede al listado tus licencias.",
+      descripcion: "Accedé al listado de tus licencias.",
       onClick: () => setModalLicencias(true),
     },
     {
       icon: SquareChartGanttIcon,
       titulo: "Ver estado de mis postulaciones",
-      descripcion: "Accede al listado de tus postulaciones.",
+      descripcion: "Accedé al listado de tus postulaciones.",
       onClick: () => setModalPostulaciones(true),
     },
-     jefeRoles.includes(user.puesto_trabajo) && {
+    jefeRoles.includes(user.puesto_trabajo) && {
       icon: SquareChartGanttIcon,
       titulo: "Asignar desempeño",
-      descripcion: "Gestiona el desempeño de los empleados de tu área",
+      descripcion: "Gestioná el desempeño de los empleados de tu área.",
       onClick: () => setModalGestionarDesempeño(true),
     },
+    {
+      icon: FileLock,
+      titulo: "Crear Encuesta",
+      descripcion: "Diseñá encuestas para obtener feedback del personal.",
+      onClick: () => setModalEncuesta(true),
+    },
+    {
+      icon: FileText,
+      titulo: "Gestionar Encuestas",
+      descripcion: "Administrá las encuestas creadas y sus resultados.",
+      onClick: () => setModalGestionEncuestas(true),
+    },
+    {
+      icon: FileSearchIcon,
+      titulo: "Encuestas Pendientes",
+      descripcion: "Consultá encuestas que aún no fueron respondidas.",
+      onClick: () => setModalEncuestasPendientes(true),
+    },
+    {
+      icon: FileText,
+      titulo: "Encuestas Respondidas",
+      descripcion: "Revisá las respuestas de encuestas completadas.",
+      onClick: () => setModalEncuestasRespondidas(true),
+    },
   ].filter(Boolean);
+
 
   const handleUploadCv = () => {
     empleadoService
@@ -400,6 +445,25 @@ export default function EmpleadoHome() {
               if (modalImageFile) handleImageUpload(modalImageFile);
             }}
             onFileSelect={setModalImageFile}
+          />
+          {modalEncuesta && (
+            <ModalEncuesta open={modalEncuesta} onOpenChange={setModalEncuesta} />
+          )}
+
+          <GestionarEncuestasModal
+            open={modalGestionEncuestas}
+            onOpenChange={setModalGestionEncuestas}
+          />
+
+          <EncuestasPendientesModal
+            open={modalEncuestasPendientes}
+            onOpenChange={setModalEncuestasPendientes}
+          />
+
+          <EncuestasRespondidasModal
+            open={modalEncuestasRespondidas}
+            onOpenChange={setModalEncuestasRespondidas}
+            encuestas={encuestasRespondidas}
           />
         </PageLayout>
       </motion.div>

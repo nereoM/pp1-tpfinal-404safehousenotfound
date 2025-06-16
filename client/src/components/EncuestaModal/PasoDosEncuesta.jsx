@@ -1,22 +1,66 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+const mapeoArea = {
+  "Tecnología y Desarrollo": "Jefe de Tecnología y Desarrollo",
+  "Administración y Finanzas": "Jefe de Administración y Finanzas",
+  "Comercio y Ventas": "Jefe Comercial y de Ventas",
+  "Marketing y Comunicación": "Jefe de Marketing y Comunicación",
+  "Industria y Producción": "Jefe de Industria y Producción",
+  "Servicios Generales y Gastronomía": "Jefe de Servicios Generales y Gastronomía",
+};
 
 export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack, onCancel }) {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [areaJefe, setAreaJefe] = useState(null);
+  const [puestosAsignados, setPuestosAsignados] = useState([]);
 
   const handleChange = (campo, valor) => {
     setFormData({ ...formData, [campo]: valor });
   };
 
-  const opcionesArea = [
-  "Tecnología y Desarrollo",
-  "Administración y Finanzas",
-  "Comercio y Ventas",
-  "Marketing y Comunicación",
-  "Industria y Producción",
-  "Servicios Generales y Gastronomía",
-];
-  const opcionesPuesto = ["Desarrollador", "Diseñador", "Analista", "Líder de Proyecto"];
+  console.log("Intentando fetch con cookies:", document.cookie);
+
+  useEffect(() => {
+    fetch("/api/area/info", { credentials: "include" })
+      .then(async (res) => {
+        console.log("🔁 Status:", res.status);
+        const text = await res.text();
+        console.log("🔍 Response texto:", text);
+
+        if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
+          throw new Error("Respuesta no válida del servidor");
+        }
+
+        return JSON.parse(text);
+      })
+      .then((data) => {
+        setAreaJefe(data.mi_puesto_trabajo);
+        setPuestosAsignados(data.puestos_area || []);
+      })
+      .catch((err) => {
+        console.error("🔥 Error al obtener el área del jefe:", err);
+        setAreaJefe("Error");
+      });
+  }, []);
+
+  const opcionesArea = Object.keys(mapeoArea);
+
+  const puedeContinuar =
+    (formData.destinatario === "empleado" && formData.correo?.trim()) ||
+    (formData.destinatario === "area" && formData.area) ||
+    (formData.destinatario === "puesto" && formData.puesto);
+
+  if (areaJefe === null) {
+    return <div className="text-center text-gray-600 mt-6">Cargando área del jefe...</div>;
+  }
+
+  if (areaJefe === "Error") {
+    return (
+      <div className="text-center text-red-600 mt-6">
+        ❌ No se pudo obtener la información del área. Verificá tus permisos o conexión.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 relative">
@@ -92,10 +136,15 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
             value={formData.puesto || ""}
             onChange={(e) => handleChange("puesto", e.target.value)}
             className="w-full border p-2 rounded text-black"
+            disabled={puestosAsignados.length === 0}
           >
-            <option value="" disabled>Elegí un puesto</option>
-            {opcionesPuesto.map((puesto) => (
-              <option key={puesto} value={puesto}>{puesto}</option>
+            <option value="" disabled>
+              {puestosAsignados.length === 0 ? "Cargando puestos..." : "Elegí un puesto"}
+            </option>
+            {puestosAsignados.map((puesto) => (
+              <option key={puesto} value={puesto}>
+                {puesto}
+              </option>
             ))}
           </select>
         </div>
@@ -116,8 +165,16 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
             Atrás
           </button>
           <button
-            onClick={onNext}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            onClick={() => {
+              const nuevaData = { ...formData };
+              if (nuevaData.destinatario === "area") {
+                nuevaData.area = mapeoArea[nuevaData.area] || nuevaData.area;
+              }
+              setFormData(nuevaData);
+              onNext();
+            }}
+            disabled={!puedeContinuar}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
           >
             Siguiente
           </button>
@@ -139,7 +196,7 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
               <button
                 onClick={() => {
                   setMostrarConfirmacion(false);
-                  onCancel(); // Cierra la encuesta desde el padre
+                  onCancel();
                 }}
                 className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
               >
