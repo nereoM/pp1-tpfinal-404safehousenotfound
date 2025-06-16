@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 import {
+  FileLock,
   FileSearchIcon,
+  FileText,
   FileUp,
   Search,
   SquareChartGanttIcon,
   Upload,
-  FileLock,
-  FileText
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -27,13 +27,12 @@ import { useOfertasRecomendadas } from "../hooks/useOfertasRecomendadas";
 import { authService } from "../services/authService";
 import { empleadoService } from "../services/empleadoService";
 
-import { ModalEncuesta } from "../components/ModalEncuesta";
 import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
+import { ModalEncuesta } from "../components/ModalEncuesta";
 
 import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
 
 import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
-
 
 const jefeRoles = [
   "Jefe de Tecnología y Desarrollo",
@@ -41,7 +40,7 @@ const jefeRoles = [
   "Jefe Comercial y de Ventas",
   "Jefe de Marketing y Comunicación",
   "Jefe de Industria y Producción",
-  "Jefe de Servicios Generales y Gastronomía"
+  "Jefe de Servicios Generales y Gastronomía",
 ];
 
 export default function EmpleadoHome() {
@@ -61,10 +60,12 @@ export default function EmpleadoHome() {
 
   const [modalVerEncuesta, setModalVerEncuesta] = useState(false);
   const [encuestaSeleccionada, setEncuestaSeleccionada] = useState(null);
-  const [modalEncuestasRespondidas, setModalEncuestasRespondidas] = useState(false);
+  const [modalEncuestasRespondidas, setModalEncuestasRespondidas] =
+    useState(false);
   const [encuestasRespondidas, setEncuestasRespondidas] = useState([]);
 
-  const [modalEncuestasPendientes, setModalEncuestasPendientes] = useState(false);
+  const [modalEncuestasPendientes, setModalEncuestasPendientes] =
+    useState(false);
 
   // Estados typeados porque son asíncronos
   /** @type {[Usuario]} */
@@ -198,7 +199,6 @@ export default function EmpleadoHome() {
     },
   ].filter(Boolean);
 
-
   const handleUploadCv = () => {
     empleadoService
       .subirCV({ file: cvFile })
@@ -304,21 +304,25 @@ export default function EmpleadoHome() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 px-4">
             <div>
               <div className="mt-3">
-                <label className="block mb-2 text-sm text-gray-600">
-                  Seleccionar CV
-                </label>
-                <select
-                  className="w-full p-2 border border-gray-300 rounded"
-                  value={cvSeleccionado}
-                  onChange={(e) => setCvSeleccionado(e.target.value)}
-                >
-                  {cvs.map((cv) => (
-                    <option key={cv.id} value={cv.id}>
-                      {cv.nombre_archivo ||
-                        new Date(cv.fecha_subida).toLocaleDateString()}
-                    </option>
-                  ))}
-                </select>
+                {cvs.length > 0 && (
+                  <div>
+                    <label className="block mb-2 text-sm text-gray-600">
+                      Seleccionar CV
+                    </label>
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded"
+                      value={cvSeleccionado}
+                      onChange={(e) => setCvSeleccionado(e.target.value)}
+                    >
+                      {cvs.map((cv) => (
+                        <option key={cv.id} value={cv.id}>
+                          {cv.nombre_archivo ||
+                            new Date(cv.fecha_subida).toLocaleDateString()}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div
                   className="flex flex-col gap-2 mt-4"
                   style={{
@@ -331,7 +335,7 @@ export default function EmpleadoHome() {
                     htmlFor="cv-upload"
                     className="flex items-center justify-center gap-2 p-2 border border-dashed rounded cursor-pointer hover:bg-indigo-100 transition"
                   >
-                    <FileUp className="w-4 h-4" /> Seleccionar archivo
+                    <FileUp className="w-4 h-4" /> Subir Currículum Vitae
                   </label>
                   <input
                     id="cv-upload"
@@ -447,7 +451,10 @@ export default function EmpleadoHome() {
             onFileSelect={setModalImageFile}
           />
           {modalEncuesta && (
-            <ModalEncuesta open={modalEncuesta} onOpenChange={setModalEncuesta} />
+            <ModalEncuesta
+              open={modalEncuesta}
+              onOpenChange={setModalEncuesta}
+            />
           )}
 
           <GestionarEncuestasModal
