@@ -93,6 +93,12 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
               Desde {selectedPeriodo?.fecha_inicio} - Hasta{" "}
               {selectedPeriodo?.fecha_fin}
             </p>
+            {
+              selectedPeriodo?.estado === "activo" &&
+            <p className="opacity-80 text-yellow-600">
+              No se pueden asignar desempeños durante un período que no esté activo
+            </p>
+            }
           </div>
           <Select
             value={selectedPeriodo ? selectedPeriodo.id_periodo : ""}
@@ -116,6 +122,7 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
             </SelectContent>
           </Select>
         </div>
+
 
         {topMessage && (
           <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">
@@ -153,14 +160,16 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
                     {emp.ultimo_rendimiento}
                   </td>
                   <td className="p-2 border text-center">
-                    <button
-                      onClick={() => {
-                        setEmpleadoSeleccionado(emp);
-                      }}
-                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      Asignar desempeño
-                    </button>
+                    {selectedPeriodo?.estado === "activo" && (
+                      <button
+                        onClick={() => {
+                          setEmpleadoSeleccionado(emp);
+                        }}
+                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        Asignar desempeño
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
