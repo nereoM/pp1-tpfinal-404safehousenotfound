@@ -83,15 +83,15 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
             <p className="text-sm">
               Estado del período:{" "}
               <span
-                data-ok={selectedPeriodo.estado === "activo" ? "" : null}
+                data-ok={selectedPeriodo?.estado === "activo" ? "" : null}
                 className="uppercase px-2 py-1 rounded-md text-yellow-300 bg-yellow-700 data-ok:text-green-300 data-ok:bg-green-700"
               >
-                {selectedPeriodo.estado}
+                {selectedPeriodo?.estado}
               </span>
             </p>
             <p className="opacity-50">
-              Desde {selectedPeriodo.fecha_inicio} - Hasta{" "}
-              {selectedPeriodo.fecha_fin}
+              Desde {selectedPeriodo?.fecha_inicio} - Hasta{" "}
+              {selectedPeriodo?.fecha_fin}
             </p>
           </div>
           <Select
