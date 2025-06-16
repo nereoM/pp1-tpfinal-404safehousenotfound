@@ -2049,17 +2049,31 @@ def crear_notificacion_uso_especifico(id_usuario, mensaje):
     )
     db.session.add(notificacion)
 
-# Crear una encuesta
 @admin_emp_bp.route('/encuestas/crear', methods=['POST'])
+@jwt_required()
 def crear_encuesta():
     data = request.json
+    user_id = get_jwt_identity()
+
     encuesta = Encuesta(
-        titulo=data['titulo'],
-        descripcion=data.get('descripcion')
+        tipo=data.get("tipo", "general"),
+        titulo=data.get("titulo", "Sin título"),
+        descripcion=data.get("descripcion"),
+        fecha_creacion=datetime.utcnow(),
+        activa=True,
+        es_anonima=data.get("anonima", False),
+        fecha_inicio=data.get("fecha_inicio"),
+        fecha_fin=data.get("fecha_fin"),
+        estado="pendiente",
+        limpia=False,
+        creador_id=user_id  # este campo debe existir en el modelo
     )
+
     db.session.add(encuesta)
     db.session.commit()
-    return jsonify({'id': encuesta.id}), 201
+
+    return jsonify({"id": encuesta.id}), 201
+
 
 # Agregar pregunta a una encuesta
 @admin_emp_bp.route('/encuestas/<int:id_encuesta>/agregar-pregunta', methods=['POST'])

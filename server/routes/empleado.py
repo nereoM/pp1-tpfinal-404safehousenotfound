@@ -1660,6 +1660,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta, date, timezone
 
 @empleado_bp.route("/crear-encuesta", methods=["POST"])
+@jwt_required()
 @role_required(["empleado"])
 def crear_encuesta_completa():
     """
