@@ -260,12 +260,12 @@ export const empleadoService = {
    *
    * @returns {Promise<Object>} Confirmación de registro de rendimiento.
    */
-  async establecerRendimientoEmpleado({ id_empleado, rendimiento }) {
+  async establecerRendimientoEmpleado({ id_empleado, rendimiento, id_periodo }) {
     const url = `${API_URL}/api/establecer-rendimiento-empleado`;
 
     const options = {
       method: "POST",
-      body: JSON.stringify({ id_empleado, rendimiento }),
+      body: JSON.stringify({ id_empleado, rendimiento, id_periodo }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -282,6 +282,18 @@ export const empleadoService = {
     };
     
     const data = await fetcher({ url, options });
+    return data;
+  },
+  async obtenerPeriodo({idPeriodo}) {
+    const url = `${API_URL}/api/estado-periodo-seleccionado-empleado/${idPeriodo}`;
+
+    const data = await fetcher({ url });
+    return data;
+  },
+  async obtenerPeriodos() {
+    const url = `${API_URL}/api/obtener-periodos-todos`;
+
+    const data = await fetcher({ url });
     return data;
   },
 };

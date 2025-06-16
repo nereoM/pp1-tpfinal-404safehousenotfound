@@ -1,6 +1,19 @@
 import { FileX2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent } from "../components/shadcn/Dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from "../components/shadcn/Dialog";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../components/shadcn/Select";
 import { empleadoService } from "../services/empleadoService";
 
 export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
@@ -8,13 +21,27 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
   const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
   const [rendimiento, setRendimiento] = useState("");
   const [topMessage, setTopMessage] = useState("");
+  const [periodos, setPeriodos] = useState([]);
+  const [selectedPeriodo, setSelectedPeriodo] = useState(null);
 
   useEffect(() => {
     setEmpleadoSeleccionado(null);
+    setTopMessage(null);
     if (open) {
       empleadoService
         .obtenerEmpleadosMiArea()
         .then((res) => setEmpleados(res.empleados_area));
+
+      empleadoService.obtenerPeriodos().then((res) => {
+        const primerPeriodoActivo = res.find(
+          (periodo) => periodo.estado === "activo"
+        );
+        if (primerPeriodoActivo) {
+          console.log({ primerPeriodoActivo });
+          setSelectedPeriodo(primerPeriodoActivo);
+        }
+        setPeriodos(res);
+      });
     }
   }, [open]);
 
@@ -23,6 +50,7 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
       const response = await empleadoService.establecerRendimientoEmpleado({
         id_empleado: empleadoSeleccionado.id,
         rendimiento: parseFloat(rendimiento),
+        id_periodo: selectedPeriodo.id_periodo,
       });
       setEmpleados((prevState) =>
         prevState.map((empleado) =>
@@ -40,12 +68,54 @@ export function GestionarDesempeñoEmpleadosModal({ open, onOpenChange }) {
     }
   };
 
+  const handlePeriodoChange = (periodoId) => {
+    const selected = periodos.find((p) => p.id_periodo === periodoId);
+    setSelectedPeriodo(selected);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="text-black w-[95vw] max-w-[1200px]">
-        <h2 className="text-2xl font-semibold mb-4 text-center">
-          Empleados a cargo
-        </h2>
+      <DialogContent className="text-black w-[95vw] overflow-x-auto max-w-[1200px]">
+        <DialogTitle>Empleados a cargo</DialogTitle>
+
+        <div className="flex flex-row justify-between items-center gap-4">
+          <div className="flex flex-col gap-2">
+            <p className="text-sm">
+              Estado del período:{" "}
+              <span
+                data-ok={selectedPeriodo.estado === "activo" ? "" : null}
+                className="uppercase px-2 py-1 rounded-md text-yellow-300 bg-yellow-700 data-ok:text-green-300 data-ok:bg-green-700"
+              >
+                {selectedPeriodo.estado}
+              </span>
+            </p>
+            <p className="opacity-50">
+              Desde {selectedPeriodo.fecha_inicio} - Hasta{" "}
+              {selectedPeriodo.fecha_fin}
+            </p>
+          </div>
+          <Select
+            value={selectedPeriodo ? selectedPeriodo.id_periodo : ""}
+            onValueChange={handlePeriodoChange}
+          >
+            <SelectTrigger className="w-[280px]">
+              <SelectValue placeholder="Selecciona un periodo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Periodos</SelectLabel>
+                {periodos.map((periodo) => (
+                  <SelectItem
+                    key={periodo.id_periodo}
+                    value={periodo.id_periodo}
+                  >
+                    {periodo.nombre_periodo}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
 
         {topMessage && (
           <div className="mb-4 text-center text-indigo-700 font-semibold bg-indigo-100 p-2 rounded">

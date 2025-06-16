@@ -52,8 +52,6 @@ export default function EmpleadoHome() {
   /** @type {[CV[]]} */
   const [cvs, setCvs] = useState([]);
 
-  console.log({ user });
-
   // Modales
   const [modalPostulaciones, setModalPostulaciones] = useState(false);
   const [modalSolicitarLicencia, setmodalSolicitarLicencia] = useState(false);

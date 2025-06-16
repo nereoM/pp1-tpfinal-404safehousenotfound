@@ -278,7 +278,7 @@ export default function Login() {
   {
     puesto: "Manager",
     callback: async () => {
-        setLoginUsername("manager1_globant")
+        setLoginUsername("manager_globant")
         setLoginPassword("Manager123!")
         await handleSubmitLogin({preventDefault: () => {}})
       }
