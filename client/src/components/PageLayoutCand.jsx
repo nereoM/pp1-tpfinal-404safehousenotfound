@@ -7,7 +7,7 @@ export default function PageLayout({ children }) {
         color: "#000000" // Texto negro para contraste básico
       }}
     >
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 pb-6">
         {children}
       </div>
     </div>

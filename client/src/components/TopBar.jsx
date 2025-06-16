@@ -1,9 +1,9 @@
 import { Bell, Edit, LogOut } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SiTelegram } from "react-icons/si";
 import { Link, useNavigate } from "react-router-dom";
 import isLightColor from "../components/isLightColor";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
-import { SiTelegram } from "react-icons/si";
 
 
 export function TopBar({ username, user, onEditPerfil, onPostulacion, showBell = true }) {
@@ -132,8 +132,8 @@ useEffect(() => {
 
   return (
     <header
-      className="flex justify-between items-center py-1 px-6 border-b"
-      style={{ borderColor: primary, color: textColor }}
+      className="sticky top-0 flex justify-between items-center py-4 px-6 border-b z-50"
+      style={{ borderColor: primary, color: textColor, backgroundColor : estilos?.color_secundario  }}
     >
       <div className="flex items-center gap-4">
         {logoUrl ? (
