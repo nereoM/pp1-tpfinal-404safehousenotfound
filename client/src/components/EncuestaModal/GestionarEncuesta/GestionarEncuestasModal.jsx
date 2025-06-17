@@ -9,31 +9,36 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
 
   useEffect(() => {
     if (open) {
-      setEncuestas([
-        {
-          id: 1,
-          titulo: "Clima Laboral - Q2",
-          descripcion: "Encuesta para evaluar el ambiente laboral del segundo trimestre.",
-          fecha_inicio: "2025-06-01",
-          fecha_fin: "2025-06-20",
-          respuestas: 4,
-          total: 15,
-        },
-        {
-          id: 2,
-          titulo: "Uso de la Plataforma",
-          descripcion: "Evaluación de la experiencia de los usuarios con la app.",
-          fecha_inicio: "2025-06-05",
-          fecha_fin: "2025-06-30",
-          respuestas: 9,
-          total: 15,
-        },
-      ]);
+      fetch("/api/obtener-encuestas-creadas", {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Error al obtener encuestas");
+          return res.json();
+        })
+        .then((data) => {
+          setEncuestas(data);
+        })
+        .catch((error) => {
+          console.error(error);
+          setEncuestas([]);
+        });
     }
   }, [open]);
 
   const handleCerrarEncuesta = (id) => {
     setEncuestas((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const formatFecha = (iso) => {
+    if (!iso) return "Sin fecha";
+    const fecha = new Date(iso);
+    return fecha.toLocaleDateString("es-AR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   return (
@@ -51,7 +56,10 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
                 <h3 className="text-lg font-semibold text-black">{encuesta.titulo}</h3>
                 <p className="text-sm text-gray-700">{encuesta.descripcion}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Publicación: {encuesta.fecha_inicio} | Cierre: {encuesta.fecha_fin}
+                  Publicación: {formatFecha(encuesta.fecha_inicio)} | Cierre: {formatFecha(encuesta.fecha_fin)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1 italic">
+                  Tipo: {encuesta.tipo} | Anónima: {encuesta.anonima ? "Sí" : "No"} | Preguntas: {encuesta.preguntas.length}
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
