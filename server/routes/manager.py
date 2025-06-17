@@ -875,10 +875,10 @@ def registrar_info_laboral_empleados_tabla(file_path, id_periodo):
             except Exception:
                 return {"error": f"Datos numéricos inválidos para el empleado {id_empleado}"}
 
-            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
+            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado, id_periodo=id_periodo).first()
             ultimo_rend = (
                 HistorialRendimientoEmpleado.query
-                .filter_by(id_empleado=id_empleado)
+                .filter_by(id_empleado=id_empleado, id_periodo=id_periodo)
                 .order_by(HistorialRendimientoEmpleado.fecha_calculo.desc())
                 .first()
             )
@@ -1377,6 +1377,7 @@ def crear_notificacion_uso_especifico(id_usuario, mensaje):
 @role_required(["manager"])
 def obtener_empleados_rendimiento_futuro():
     try:
+        id_periodo = request.args.get("periodo")
         id_manager = get_jwt_identity()
 
         manager = Usuario.query.get(id_manager)
@@ -1386,7 +1387,7 @@ def obtener_empleados_rendimiento_futuro():
 
         empleados = (
             db.session.query(Usuario, RendimientoEmpleado)
-            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario, RendimientoEmpleado.id_periodo == id_periodo)
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
@@ -1445,6 +1446,7 @@ def obtener_empleados_rendimiento_futuro():
 @role_required(["manager"])
 def obtener_empleados_riesgo_futuro():
     try:
+        id_periodo = request.args.get("periodo")
         id_manager = get_jwt_identity()
 
         manager = Usuario.query.get(id_manager)
@@ -1454,7 +1456,7 @@ def obtener_empleados_riesgo_futuro():
 
         empleados = (
             db.session.query(Usuario, RendimientoEmpleado)
-            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario, RendimientoEmpleado.id_periodo == id_periodo)
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
@@ -1478,13 +1480,20 @@ def obtener_empleados_riesgo_futuro():
         datos_empleados = []
 
         for empleado, rendimiento in empleados:
-            historial = sorted(empleado.historial_rendimiento_manual, key=lambda x: x.fecha_calculo, reverse=True)
+            historial = sorted(
+                [h for h in empleado.historial_rendimiento_manual if h.id_periodo == id_periodo],
+                key=lambda x: x.fecha_calculo,
+                reverse=True
+            )
+
             empleado_data = []
             cantidad_postulaciones = obtener_cantidad_postulaciones(empleado.id)
+
             if historial:
                 ultimo_rendimiento_manual = historial[0].rendimiento
                 desempeno_real_guardado = rendimiento.riesgo_rotacion_intencional
-                if (desempeno_real_guardado is None or desempeno_real_guardado != ultimo_rendimiento_manual):
+
+                if desempeno_real_guardado is None or desempeno_real_guardado != ultimo_rendimiento_manual:
                     empleado_data = {
                         "cantidad_postulaciones": cantidad_postulaciones,
                         "desempeno_previo": ultimo_rendimiento_manual
@@ -1492,7 +1501,6 @@ def obtener_empleados_riesgo_futuro():
                     riesgo_rotacion_intencional = predecir_rot_post_individual(empleado_data)
                     rendimiento.riesgo_rotacion_intencional = riesgo_rotacion_intencional
                     db.session.commit()
-                    
                 else:
                     riesgo_rotacion_intencional = desempeno_real_guardado
             else:
