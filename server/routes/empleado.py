@@ -2158,6 +2158,69 @@ def responder_encuesta(id_encuesta):
     db.session.commit()
     return jsonify({"message": "Respuestas guardadas correctamente"}), 201
 
+# @empleado_bp.route("/encuesta/<int:id_encuesta>/respuestas-info", methods=["GET"])
+# @role_required(["empleado"])
+# def estado_respuestas_encuesta(id_encuesta):
+#     """
+#     Devuelve para una encuesta creada por el jefe:
+#     - Si es anónima: solo totales y lista de no respondieron (sin lista de respondieron)
+#     - Si NO es anónima: totales y listas completas
+#     """
+#     id_jefe = get_jwt_identity()
+#     encuesta = Encuesta.query.get(id_encuesta)
+#     if not encuesta:
+#         return jsonify({"error": "Encuesta no encontrada"}), 404
+#     if encuesta.creador_id != id_jefe:
+#         return jsonify({"error": "No tienes permisos para ver esta información"}), 403
+
+#     asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta).all()
+#     preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+#     preguntas_ids = [p.id for p in preguntas]
+#     respuestas = (
+#         RespuestaEncuesta.query
+#         .filter(RespuestaEncuesta.id_pregunta.in_(preguntas_ids))
+#         .with_entities(RespuestaEncuesta.id_usuario)
+#         .distinct()
+#         .all()
+#     )
+#     respondieron_ids = {r.id_usuario for r in respuestas}
+
+#     respondieron = []
+#     no_respondieron = []
+#     for asignacion in asignaciones:
+#         usuario = Usuario.query.get(asignacion.id_usuario)
+#         if not usuario:
+#             continue
+#         info = {
+#             "id": usuario.id,
+#             "nombre": usuario.nombre,
+#             "apellido": usuario.apellido,
+#             "correo": usuario.correo,
+#             "puesto_trabajo": usuario.puesto_trabajo
+#         }
+#         if usuario.id in respondieron_ids:
+#             respondieron.append(info)
+#         else:
+#             no_respondieron.append(info)
+
+#     if encuesta.es_anonima:
+#         # No mostrar la lista de respondieron
+#         return jsonify({
+#             "total_asignados": len(asignaciones),
+#             "total_respondieron": len(respondieron),
+#             "total_no_respondieron": len(no_respondieron),
+#             "no_respondieron": no_respondieron
+#         }), 200
+#     else:
+#         # Mostrar ambas listas
+#         return jsonify({
+#             "total_asignados": len(asignaciones),
+#             "total_respondieron": len(respondieron),
+#             "total_no_respondieron": len(no_respondieron),
+#             "respondieron": respondieron,
+#             "no_respondieron": no_respondieron
+#         }), 200
+    
 @empleado_bp.route("/encuesta/<int:id_encuesta>/respuestas-info", methods=["GET"])
 @role_required(["empleado"])
 def estado_respuestas_encuesta(id_encuesta):
@@ -2191,28 +2254,29 @@ def estado_respuestas_encuesta(id_encuesta):
         usuario = Usuario.query.get(asignacion.id_usuario)
         if not usuario:
             continue
-        info = {
-            "id": usuario.id,
-            "nombre": usuario.nombre,
-            "apellido": usuario.apellido,
-            "correo": usuario.correo,
-            "puesto_trabajo": usuario.puesto_trabajo
-        }
+        if encuesta.es_anonima:
+            info = {
+                "id": usuario.id,
+                "nombre": "Empleado Anónimo",
+                "apellido": "",
+                "correo": None,
+                "puesto_trabajo": usuario.puesto_trabajo
+            }
+        else:
+            info = {
+                "id": usuario.id,
+                "nombre": usuario.nombre,
+                "apellido": usuario.apellido,
+                "correo": usuario.correo,
+                "puesto_trabajo": usuario.puesto_trabajo
+            }
         if usuario.id in respondieron_ids:
             respondieron.append(info)
         else:
             no_respondieron.append(info)
 
     if encuesta.es_anonima:
-        # No mostrar la lista de respondieron
-        return jsonify({
-            "total_asignados": len(asignaciones),
-            "total_respondieron": len(respondieron),
-            "total_no_respondieron": len(no_respondieron),
-            "no_respondieron": no_respondieron
-        }), 200
-    else:
-        # Mostrar ambas listas
+        # Mostrar ambas listas pero con nombres anónimos
         return jsonify({
             "total_asignados": len(asignaciones),
             "total_respondieron": len(respondieron),
@@ -2220,3 +2284,77 @@ def estado_respuestas_encuesta(id_encuesta):
             "respondieron": respondieron,
             "no_respondieron": no_respondieron
         }), 200
+    else:
+        # Mostrar ambas listas con datos reales
+        return jsonify({
+            "total_asignados": len(asignaciones),
+            "total_respondieron": len(respondieron),
+            "total_no_respondieron": len(no_respondieron),
+            "respondieron": respondieron,
+            "no_respondieron": no_respondieron
+        }), 200
+    
+@empleado_bp.route("/encuesta/<int:id_encuesta>/respuestas-empleado/<int:id_empleado>", methods=["GET"])
+@role_required(["empleado"])
+def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
+    """
+    Permite al jefe ver las respuestas de un empleado a una encuesta, 
+    mostrando datos reales solo si la encuesta no es anónima.
+    """
+    id_jefe = get_jwt_identity()
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+    if encuesta.creador_id != id_jefe:
+        return jsonify({"error": "No tienes permisos para ver esta información"}), 403
+
+    # Verificar que el empleado esté asignado a la encuesta
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_empleado).first()
+    if not asignacion:
+        return jsonify({"error": "El empleado no está asignado a esta encuesta"}), 404
+
+    usuario = Usuario.query.get(id_empleado)
+    if not usuario:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_dict = {p.id: p for p in preguntas}
+
+    respuestas = (
+        RespuestaEncuesta.query
+        .filter_by(id_usuario=id_empleado)
+        .filter(RespuestaEncuesta.id_pregunta.in_([p.id for p in preguntas]))
+        .all()
+    )
+
+    respuestas_info = []
+    for r in respuestas:
+        pregunta = preguntas_dict.get(r.id_pregunta)
+        respuestas_info.append({
+            "id_pregunta": r.id_pregunta,
+            "pregunta": pregunta.texto if pregunta else None,
+            "respuesta": r.respuesta,
+            "fecha_respuesta": r.fecha_respuesta.isoformat() if r.fecha_respuesta else None
+        })
+
+    if encuesta.es_anonima:
+        empleado_info = {
+            "id": usuario.id,
+            "nombre": "Empleado Anónimo",
+            "apellido": "",
+            "correo": None,
+            "puesto_trabajo": usuario.puesto_trabajo
+        }
+    else:
+        empleado_info = {
+            "id": usuario.id,
+            "nombre": usuario.nombre,
+            "apellido": usuario.apellido,
+            "correo": usuario.correo,
+            "puesto_trabajo": usuario.puesto_trabajo
+        }
+
+    return jsonify({
+        "empleado": empleado_info,
+        "respuestas": respuestas_info
+    }), 200
