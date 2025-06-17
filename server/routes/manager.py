@@ -1232,7 +1232,7 @@ def cerrar_periodo(id_periodo):
         return jsonify({"error": str(e)}), 500
 
 @manager_bp.route("/listar-periodos", methods=["GET"])
-@role_required(["manager"])
+@role_required(["manager", "reclutador"])
 def listar_periodos():
     try:
         user_id = get_jwt_identity()
