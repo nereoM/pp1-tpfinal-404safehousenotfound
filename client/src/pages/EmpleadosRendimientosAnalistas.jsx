@@ -17,7 +17,7 @@ export default function RendimientoAnalistas() {
   const [tipoMensaje, setTipoMensaje] = useState("success");
   const [notificandoId, setNotificandoId] = useState(null);
 
-// Estados para periodos
+  // Estados para periodos
   const [periodos, setPeriodos] = useState([]);
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("");
 
@@ -203,9 +203,9 @@ export default function RendimientoAnalistas() {
   const descargarReporteDesempeno = async (formato = "excel") => {
     try {
       const ids = empleadosFiltrados.map(e => e.id_usuario).join(",");
-      console.log(`Descargando reporte de desempeño para IDs: ${ids} en formato ${formato}`);
+      console.log(`Descargando reporte de desempeño para IDs: ${ids} en formato ${formato} y periodo ${periodoSeleccionado}`);
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL}/api/reportes-desempeno?formato=${formato}&ids=${ids}`,
+        `${import.meta.env.VITE_API_URL}/api/reportes-desempeno?formato=${formato}&ids=${ids}&periodo=${periodoSeleccionado}`,
         {
           method: "GET",
           credentials: "include",

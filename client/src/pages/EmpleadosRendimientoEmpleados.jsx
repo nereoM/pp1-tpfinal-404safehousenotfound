@@ -155,7 +155,7 @@ export default function EmpleadosRendimiento() {
             const ids = empleadosFiltrados.map(e => e.id_usuario).join(",");
             console.log(`Descargando reporte de desempeño para IDs: ${ids} en formato ${formato}`);
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/reportes-desempeno?formato=${formato}&ids=${ids}`,
+                `${import.meta.env.VITE_API_URL}/api/reportes-desempeno?formato=${formato}&ids=${ids}&periodo=${periodoSeleccionado}`,
                 {
                     method: "GET",
                     credentials: "include",

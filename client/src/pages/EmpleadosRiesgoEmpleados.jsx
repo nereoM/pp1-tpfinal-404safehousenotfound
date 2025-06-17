@@ -150,9 +150,9 @@ export default function EmpleadosRiesgo() {
     const descargarReporteRiesgos = async (formato) => {
         try {
             const ids = empleadosFiltrados.map(e => e.id_usuario).join(",");
-            console.log(`Descargando reporte de riesgos para IDs: ${ids} en formato ${formato}`);
+            console.log(`Descargando reporte de riesgos para IDs: ${ids} en formato ${formato} y periodo ${periodoSeleccionado}`);
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/reportes-riesgos?formato=${formato}&ids=${ids}`,
+                `${import.meta.env.VITE_API_URL}/api/reportes-riesgos?formato=${formato}&ids=${ids}&periodo=${periodoSeleccionado}`,
                 {
                     method: "GET",
                     credentials: "include",
