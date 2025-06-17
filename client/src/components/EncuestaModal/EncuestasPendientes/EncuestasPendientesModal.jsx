@@ -9,100 +9,32 @@ export function EncuestasPendientesModal({ open, onOpenChange }) {
 
   useEffect(() => {
     if (open) {
-      // Mock con preguntas completas
-      setEncuestas([
-        {
-          id: 101,
-          titulo: "Encuesta de Clima Laboral",
-          descripcion: "Queremos conocer cómo te sentís en tu lugar de trabajo.",
-          preguntas: [
-            {
-              texto: "¿Cómo evaluás el ambiente laboral?",
-              tipo: "radio",
-              opciones: ["Excelente", "Bueno", "Regular", "Malo"],
-              obligatoria: true,
-              comentario: true,
-            },
-            {
-              texto: "¿Qué mejorarías?",
-              tipo: "texto",
-              obligatoria: false,
-              comentario: false,
-            },
-            {
-              texto: "¿Qué áreas te gustaría fortalecer?",
-              tipo: "checkbox",
-              opciones: ["Comunicación", "Trabajo en equipo", "Liderazgo", "Motivación"],
-              obligatoria: true,
-              comentario: false,
-            },
-            {
-              texto: "¿Con qué frecuencia recibís feedback de tus superiores?",
-              tipo: "radio",
-              opciones: ["Semanalmente", "Mensualmente", "Rara vez", "Nunca"],
-              obligatoria: true,
-              comentario: false,
-            },
-            {
-              texto: "¿Recomendarías esta empresa como un buen lugar para trabajar?",
-              tipo: "radio",
-              opciones: ["Sí", "No"],
-              obligatoria: true,
-              comentario: true,
-            },
-          ],
-        },
-        {
-          id: 102,
-          titulo: "Satisfacción con Capacitación",
-          descripcion: "Tu opinión sobre las oportunidades de aprendizaje.",
-          preguntas: [
-            {
-              texto: "¿Participaste en alguna capacitación este trimestre?",
-              tipo: "radio",
-              opciones: ["Sí", "No"],
-              obligatoria: true,
-              comentario: false,
-            },
-            {
-              texto: "¿Qué temas te gustaría que se incluyan en próximas capacitaciones?",
-              tipo: "texto",
-              obligatoria: false,
-              comentario: false,
-            },
-          ],
-        },
-        {
-          id: 103,
-          titulo: "Evaluación de Herramientas de Trabajo",
-          descripcion: "Queremos conocer tu experiencia con las herramientas digitales.",
-          preguntas: [
-            {
-              texto: "¿Qué tan satisfecho estás con las herramientas actuales?",
-              tipo: "radio",
-              opciones: ["Muy satisfecho", "Satisfecho", "Insatisfecho"],
-              obligatoria: true,
-              comentario: false,
-            },
-            {
-              texto: "¿Qué herramienta mejorarías o cambiarías?",
-              tipo: "texto",
-              obligatoria: false,
-              comentario: false,
-            },
-          ],
-        },
-      ]);
+      fetch("http://localhost:5000/api/obtener-encuestas-asignadas", {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Error al obtener encuestas asignadas");
+          return res.json();
+        })
+        .then((lista) => {
+          setEncuestas(lista);
+        })
+        .catch((err) => {
+          console.error("Error al cargar encuestas asignadas", err);
+          setEncuestas([]);
+        });
     }
   }, [open]);
 
   const quitarEncuestaRespondida = (idRespondida) => {
-    setEncuestas((prev) => prev.filter((e) => e.id !== idRespondida));
+    setEncuestas((prev) => prev.filter((e) => e.id_encuesta !== idRespondida));
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl space-y-4">
+      <DialogContent className="max-w-3xl space-y-4" aria-describedby="desc">
+        <p id="desc" className="sr-only">Lista de encuestas pendientes asignadas al empleado.</p>
         <DialogTitle className="text-xl font-bold text-black">
           Encuestas Pendientes
         </DialogTitle>
@@ -115,7 +47,7 @@ export function EncuestasPendientesModal({ open, onOpenChange }) {
           <div className="space-y-4 max-h-[60vh] overflow-auto">
             {encuestas.map((encuesta) => (
               <div
-                key={encuesta.id}
+                key={encuesta.id_encuesta}
                 className="border rounded-lg p-4 shadow flex justify-between items-start gap-4"
               >
                 <div>

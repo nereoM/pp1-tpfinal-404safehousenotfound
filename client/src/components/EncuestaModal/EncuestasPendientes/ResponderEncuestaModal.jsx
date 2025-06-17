@@ -1,5 +1,5 @@
 // ✅ ResponderEncuestaModal.jsx
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
 
 export default function ResponderEncuestaModal({
@@ -11,8 +11,25 @@ export default function ResponderEncuestaModal({
   const [preguntaIndex, setPreguntaIndex] = useState(0);
   const [respuestas, setRespuestas] = useState({});
   const [error, setError] = useState(null);
+  const [preguntas, setPreguntas] = useState([]);
 
-  const preguntas = encuesta?.preguntas || [];
+  useEffect(() => {
+    if (open && encuesta?.id_encuesta) {
+      fetch(`http://localhost:5000/api/encuesta-asignada/${encuesta.id_encuesta}`, {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setPreguntas(data.preguntas || []);
+        })
+        .catch((err) => {
+          console.error("Error al cargar preguntas de la encuesta", err);
+          setPreguntas([]);
+        });
+    }
+  }, [open, encuesta?.id_encuesta]);
+
   const preguntaActual = preguntas[preguntaIndex];
   const esUltima = preguntaIndex === preguntas.length - 1;
 
@@ -60,24 +77,59 @@ export default function ResponderEncuestaModal({
     else setPreguntaIndex((prev) => prev + 1);
   };
 
-  const handleFinalizar = () => {
-    alert("Respuestas enviadas:\n" + JSON.stringify(respuestas, null, 2));
-    if (onResponderFinalizada && encuesta?.id) {
-      onResponderFinalizada(encuesta.id);
+  const handleFinalizar = async () => {
+    const respuestasFormateadas = Object.entries(respuestas)
+      .filter(([k]) => !k.endsWith("_comentario"))
+      .map(([preguntaTexto, respuesta]) => {
+        const pregunta = preguntas.find((p) => p.texto === preguntaTexto);
+        return {
+          id_pregunta: pregunta?.id,
+          respuesta,
+          comentario: respuestas[`${preguntaTexto}_comentario`] ?? null
+        };
+      });
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/responder-encuesta/${encuesta.id_encuesta}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ respuestas: respuestasFormateadas }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        setError(errorData.error || "Error al enviar respuestas");
+        return;
+      }
+
+      if (onResponderFinalizada) {
+        onResponderFinalizada(encuesta.id_encuesta);
+      }
+      handleClose();
+    } catch (err) {
+      console.error("Error al enviar respuestas:", err);
+      setError("Error de conexión al enviar respuestas");
     }
-    handleClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="space-y-6 max-w-3xl max-h-[90vh] overflow-auto text-black">
+      <DialogContent
+        className="space-y-6 max-w-3xl max-h-[90vh] overflow-auto text-black"
+        aria-describedby="descripcion-responder-encuesta"
+      >
+        <p id="descripcion-responder-encuesta" className="sr-only">
+          Formulario de respuesta para encuesta asignada.
+        </p>
+
         <DialogTitle className="text-xl font-bold">
           {encuesta?.titulo || "Responder Encuesta"}
         </DialogTitle>
 
         {preguntaActual && (
           <div className="space-y-4">
-            <h2 className="text-md font-semibold">
+            <h2 className="text-md font-semibold mb-2">
               {preguntaActual.texto}
               {preguntaActual.obligatoria && <span className="text-red-600"> *</span>}
             </h2>
@@ -89,16 +141,19 @@ export default function ResponderEncuestaModal({
                 onChange={(e) => handleRespuesta(e.target.value)}
               />
             ) : (
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {preguntaActual.tipo === "checkbox" && (
-                  <p className="text-sm text-gray-500 italic">(Podés seleccionar más de una opción)</p>
+                  <div className="col-span-2 text-sm text-gray-500 italic">
+                    (Podés seleccionar más de una opción)
+                  </div>
                 )}
                 {preguntaActual.opciones.map((op, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
+                  <label key={idx} className="flex items-center gap-2 border rounded px-3 py-2 shadow-sm cursor-pointer hover:bg-gray-50">
                     <input
                       type={preguntaActual.tipo}
                       name="opcion"
                       value={op}
+                      className="accent-blue-600"
                       checked={
                         preguntaActual.tipo === "checkbox"
                           ? respuestas[preguntaActual.texto]?.includes(op)
@@ -110,8 +165,8 @@ export default function ResponderEncuestaModal({
                           : handleRespuesta(op)
                       }
                     />
-                    <label>{op}</label>
-                  </div>
+                    <span>{op}</span>
+                  </label>
                 ))}
               </div>
             )}
