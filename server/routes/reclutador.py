@@ -879,6 +879,7 @@ def calcular_antiguedad(fecha_ingreso):
 @role_required(["reclutador"])
 def obtener_empleados_rendimiento_futuro():
     try:
+        id_periodo = request.args.get("periodo")
         id_manager = get_jwt_identity()
 
         manager = Usuario.query.get(id_manager)
@@ -888,7 +889,10 @@ def obtener_empleados_rendimiento_futuro():
 
         empleados = (
             db.session.query(Usuario, RendimientoEmpleado)
-            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(RendimientoEmpleado, and_(
+                Usuario.id == RendimientoEmpleado.id_usuario,
+                RendimientoEmpleado.id_periodo == id_periodo
+            ))
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
@@ -947,6 +951,7 @@ def obtener_empleados_rendimiento_futuro():
 @role_required(["reclutador"])
 def obtener_empleados_riesgo_futuro():
     try:
+        id_periodo = request.args.get("periodo")
         id_manager = get_jwt_identity()
 
         manager = Usuario.query.get(id_manager)
@@ -956,7 +961,10 @@ def obtener_empleados_riesgo_futuro():
 
         empleados = (
             db.session.query(Usuario, RendimientoEmpleado)
-            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario)
+            .join(RendimientoEmpleado, and_(
+                Usuario.id == RendimientoEmpleado.id_usuario,
+                RendimientoEmpleado.id_periodo == id_periodo
+            ))
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)

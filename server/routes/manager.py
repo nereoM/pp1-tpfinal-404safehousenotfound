@@ -11,6 +11,7 @@ from models.extensions import db
 from flasgger import swag_from
 from sqlalchemy.sql import func
 from sqlalchemy.orm import aliased
+from sqlalchemy import and_
 from datetime import datetime, timezone, date
 from .notificacion import crear_notificacion
 from flask_mail import Message
@@ -1387,7 +1388,10 @@ def obtener_empleados_rendimiento_futuro():
 
         empleados = (
             db.session.query(Usuario, RendimientoEmpleado)
-            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario, RendimientoEmpleado.id_periodo == id_periodo)
+            .join(RendimientoEmpleado, and_(
+                Usuario.id == RendimientoEmpleado.id_usuario,
+                RendimientoEmpleado.id_periodo == id_periodo
+            ))
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
@@ -1456,7 +1460,10 @@ def obtener_empleados_riesgo_futuro():
 
         empleados = (
             db.session.query(Usuario, RendimientoEmpleado)
-            .join(RendimientoEmpleado, Usuario.id == RendimientoEmpleado.id_usuario, RendimientoEmpleado.id_periodo == id_periodo)
+            .join(RendimientoEmpleado, and_(
+                Usuario.id == RendimientoEmpleado.id_usuario,
+                RendimientoEmpleado.id_periodo == id_periodo
+            ))
             .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
             .join(Rol, UsuarioRol.id_rol == Rol.id)
             .filter(Usuario.id_empresa == manager.id_empresa)
