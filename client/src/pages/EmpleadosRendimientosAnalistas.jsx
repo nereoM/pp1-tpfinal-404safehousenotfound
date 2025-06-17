@@ -17,6 +17,10 @@ export default function RendimientoAnalistas() {
   const [tipoMensaje, setTipoMensaje] = useState("success");
   const [notificandoId, setNotificandoId] = useState(null);
 
+// Estados para periodos
+  const [periodos, setPeriodos] = useState([]);
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("");
+
   // Filtros y búsqueda
   const [searchTerm, setSearchTerm] = useState("");
   const [filtroClasificacion, setFiltroClasificacion] = useState("");
@@ -32,42 +36,55 @@ export default function RendimientoAnalistas() {
   };
 
   useEffect(() => {
+    const fetchPeriodos = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listar-periodos`, {
+          credentials: "include",
+        });
+        const data = await res.json();
+        setPeriodos(data);
+        if (data.length > 0) setPeriodoSeleccionado(data[0].id_periodo);
+      } catch {
+        setPeriodos([]);
+      }
+    };
+    fetchPeriodos();
+  }, []);
+
+  useEffect(() => {
+    if (!periodoSeleccionado) return;
+    setLoading(true);
     const fetchData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/empleados-rendimiento-analistas`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/empleados-rendimiento-analistas?periodo=${periodoSeleccionado}`,
+          {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
         if (!response.ok) {
           setEmpleados([]);
           setResumen({ alto: 0, medio: 0, bajo: 0 });
           setLoading(false);
           return;
         }
-
         const data = await response.json();
-
         if (data && data.empleados) {
           setEmpleados(data.empleados);
-
           const calcularPromedio = (filtro) => {
             const filtrados = data.empleados.filter((e) => e.clasificacion_rendimiento === filtro);
             if (filtrados.length === 0) return 0;
             const suma = filtrados.reduce((acc, cur) => acc + cur.rendimiento_futuro_predicho, 0);
             return (suma / filtrados.length).toFixed(2);
           };
-
           setResumen({
             alto: calcularPromedio('Alto Rendimiento'),
             medio: calcularPromedio('Medio Rendimiento'),
             bajo: calcularPromedio('Bajo Rendimiento'),
           });
         }
-
         setLoading(false);
       } catch (error) {
         setEmpleados([]);
@@ -75,9 +92,8 @@ export default function RendimientoAnalistas() {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, []);
+  }, [periodoSeleccionado]);
 
   useExportarGraficos(
     [
@@ -244,6 +260,22 @@ export default function RendimientoAnalistas() {
       <h2 className="text-3xl font-extrabold text-center text-blue-900 mb-8">
         Rendimiento Futuro de Analistas y Empleados
       </h2>
+
+      <div className="text-black mb-6 flex flex-col items-center">
+        <label className="font-semibold mb-1">Seleccionar periodo:</label>
+        <select
+          className="border border-gray-300 rounded-md p-2 w-64"
+          value={periodoSeleccionado}
+          onChange={e => setPeriodoSeleccionado(e.target.value)}
+          disabled={periodos.length === 0}
+        >
+          {periodos.map(p => (
+            <option key={p.id_periodo} value={p.id_periodo}>
+              {p.nombre_periodo} ({p.fecha_inicio} a {p.fecha_fin})
+            </option>
+          ))}
+        </select>
+      </div>
 
       {loading ? (
         <p className="text-center text-lg text-gray-500">Cargando datos de predicción...</p>
