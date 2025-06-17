@@ -1284,6 +1284,16 @@ def configurar_periodo():
         if not usuario or not usuario.id_empresa:
             return jsonify({"error": "El usuario no tiene una empresa asociada"}), 404
 
+        # VALIDACIÓN: nombre único por empresa
+        if Periodo.query.filter_by(id_empresa=usuario.id_empresa, nombre_periodo=nombre).first():
+            return jsonify({"error": "Ya existe un periodo con ese nombre en la empresa"}), 400
+
+        # VALIDACIÓN: fechas no se superponen
+        periodos_existentes = Periodo.query.filter_by(id_empresa=usuario.id_empresa).all()
+        for p in periodos_existentes:
+            if not (fecha_fin < p.fecha_inicio or fecha_inicio > p.fecha_fin):
+                return jsonify({"error": f"Las fechas se superponen con el periodo '{p.nombre_periodo}' ({p.fecha_inicio} a {p.fecha_fin})"}), 400
+
         periodo_activo = Periodo.query.filter_by(id_empresa=usuario.id_empresa, estado="activo").first()
         if periodo_activo:
             return jsonify({"error": "Ya existe un periodo activo. Debes cerrarlo antes de crear uno nuevo."}), 400
