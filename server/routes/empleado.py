@@ -1700,6 +1700,7 @@ def crear_encuesta_completa():
     fecha_fin = data.get("fecha_fin")
     # 2. Asignación
     email = data.get("email")
+    emails = data.get("emails")  # lista de correos
     area = data.get("area")
     puesto_trabajo = data.get("puesto_trabajo")
     # 3. Preguntas
@@ -1746,7 +1747,30 @@ def crear_encuesta_completa():
 
         asignaciones = []
         # Asignación
-        if email:
+        if emails and isinstance(emails, list):
+            for correo in emails:
+                empleado = Usuario.query.filter_by(correo=correo).first()
+                if not empleado:
+                    db.session.rollback()
+                    return jsonify({"error": f"Empleado no encontrado: {correo}"}), 404
+                if empleado.id_empresa != jefe.id_empresa:
+                    db.session.rollback()
+                    return jsonify({"error": f"El empleado {correo} no pertenece a tu empresa"}), 403
+                if empleado.puesto_trabajo not in area_jefes[jefe.puesto_trabajo]:
+                    db.session.rollback()
+                    return jsonify({"error": f"El empleado {correo} no pertenece a tu área"}), 403
+                asignacion = EncuestaAsignacion(
+                    id_encuesta=encuesta.id,
+                    id_usuario=empleado.id,
+                    area=None,
+                    puesto_trabajo=None,
+                    tipo_asignacion="email",
+                    id_asignador=id_jefe,
+                    limpia=False
+                )
+                db.session.add(asignacion)
+                asignaciones.append(empleado.correo)
+        elif email:
             empleado = Usuario.query.filter_by(correo=email).first()
             if not empleado:
                 db.session.rollback()
@@ -1810,7 +1834,7 @@ def crear_encuesta_completa():
                 asignaciones.append(emp.correo)
         else:
             db.session.rollback()
-            return jsonify({"error": "Debes indicar email, area o puesto_trabajo para la asignación"}), 400
+            return jsonify({"error": "Debes indicar emails,email, area o puesto_trabajo para la asignación"}), 400
 
         # Preguntas
         preguntas_creadas = []
