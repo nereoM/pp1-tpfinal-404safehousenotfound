@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { BarChart2, Download, FileLock, FilePlus, FileSearchIcon, Users } from "lucide-react";
+import { BarChart2, Download, FileLock, FilePlus, FileSearchIcon, FileText ,Users } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Acciones } from "../components/Acciones.jsx";
