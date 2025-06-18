@@ -2230,10 +2230,13 @@ def estado_respuestas_encuesta(id_encuesta):
     - Si NO es anónima: totales y listas completas
     """
     id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe:
+        return jsonify({"error": "Usuario no encontrado"}), 404
     encuesta = Encuesta.query.get(id_encuesta)
     if not encuesta:
         return jsonify({"error": "Encuesta no encontrada"}), 404
-    if encuesta.creador_id != id_jefe:
+    if encuesta.creador_id != jefe.id:
         return jsonify({"error": "No tienes permisos para ver esta información"}), 403
 
     asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta).all()
