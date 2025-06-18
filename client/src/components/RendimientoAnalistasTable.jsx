@@ -268,7 +268,7 @@ export default function RendimientoAnalistasTable({ onSuccess }) {
                     }
                 } catch { }
                 setTipoMensaje("error");
-                setMensaje("Error al guardar los datos: Los datos no fueron modificados, intente nuevamente.");
+                setMensaje("Error:" + errorMsg);
             }
         } catch {
             setTipoMensaje("error");

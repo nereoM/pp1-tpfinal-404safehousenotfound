@@ -17,6 +17,9 @@ export default function EmpleadosRendimiento() {
     const [tipoMensaje, setTipoMensaje] = useState("success");
     const [notificandoId, setNotificandoId] = useState(null);
 
+    const [periodos, setPeriodos] = useState([]);
+    const [periodoSeleccionado, setPeriodoSeleccionado] = useState("");
+
     // Filtros y búsqueda
     const [searchTerm, setSearchTerm] = useState("");
     const [filtroClasificacion, setFiltroClasificacion] = useState("");
@@ -32,15 +35,36 @@ export default function EmpleadosRendimiento() {
     };
 
     useEffect(() => {
+        const fetchPeriodos = async () => {
+            try {
+                const res = await fetch(`${import.meta.env.VITE_API_URL}/api/listar-periodos`, {
+                    credentials: "include",
+                });
+                const data = await res.json();
+                setPeriodos(data);
+                if (data.length > 0) setPeriodoSeleccionado(data[0].id_periodo);
+            } catch {
+                setPeriodos([]);
+            }
+        };
+        fetchPeriodos();
+    }, []);
+
+    useEffect(() => {
+        if (!periodoSeleccionado) return;
+        setLoading(true);
         const fetchData = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}/api/empleados-rendimiento-reclutador`, {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_URL}/api/empleados-rendimiento-reclutador?periodo=${periodoSeleccionado}`,
+                    {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    }
+                );
 
                 if (!response.ok) {
                     setEmpleados([]);
@@ -66,6 +90,9 @@ export default function EmpleadosRendimiento() {
                         medio: calcularPromedio('Medio Rendimiento'),
                         bajo: calcularPromedio('Bajo Rendimiento'),
                     });
+                } else {
+                    setEmpleados([]);
+                    setResumen({ alto: 0, medio: 0, bajo: 0 });
                 }
 
                 setLoading(false);
@@ -77,7 +104,7 @@ export default function EmpleadosRendimiento() {
         };
 
         fetchData();
-    }, []);
+    }, [periodoSeleccionado]);
 
     useExportarGraficos(
         [
@@ -128,7 +155,7 @@ export default function EmpleadosRendimiento() {
             const ids = empleadosFiltrados.map(e => e.id_usuario).join(",");
             console.log(`Descargando reporte de desempeño para IDs: ${ids} en formato ${formato}`);
             const res = await fetch(
-                `${import.meta.env.VITE_API_URL}/api/reportes-desempeno?formato=${formato}&ids=${ids}`,
+                `${import.meta.env.VITE_API_URL}/api/reportes-desempeno?formato=${formato}&ids=${ids}&periodo=${periodoSeleccionado}`,
                 {
                     method: "GET",
                     credentials: "include",
@@ -245,6 +272,22 @@ export default function EmpleadosRendimiento() {
             <h2 className="text-3xl font-extrabold text-center text-blue-900 mb-8">
                 Rendimiento Futuro de Empleados
             </h2>
+
+            <div className="text-black mb-6 flex flex-col items-center">
+                <label className="font-semibold mb-1">Seleccionar periodo:</label>
+                <select
+                    className="border border-gray-300 rounded-md p-2 w-64"
+                    value={periodoSeleccionado}
+                    onChange={e => setPeriodoSeleccionado(e.target.value)}
+                    disabled={periodos.length === 0}
+                >
+                    {periodos.map(p => (
+                        <option key={p.id_periodo} value={p.id_periodo}>
+                            {p.nombre_periodo} ({p.fecha_inicio} a {p.fecha_fin})
+                        </option>
+                    ))}
+                </select>
+            </div>
 
             {loading ? (
                 <p className="text-center text-lg text-gray-500">Cargando datos de predicción...</p>
