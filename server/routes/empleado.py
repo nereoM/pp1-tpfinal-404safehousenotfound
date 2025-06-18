@@ -2306,10 +2306,13 @@ def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
     mostrando datos reales solo si la encuesta no es anónima.
     """
     id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe:
+        return jsonify({"error": "Usuario no encontrado"}), 404
     encuesta = Encuesta.query.get(id_encuesta)
     if not encuesta:
         return jsonify({"error": "Encuesta no encontrada"}), 404
-    if encuesta.creador_id != id_jefe:
+    if encuesta.creador_id != jefe.id:
         return jsonify({"error": "No tienes permisos para ver esta información"}), 403
 
     # Verificar que el empleado esté asignado a la encuesta
