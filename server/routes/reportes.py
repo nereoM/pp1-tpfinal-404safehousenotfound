@@ -16,7 +16,7 @@ from io import BytesIO
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
-from models.schemes import Usuario, Empresa, Preferencias_empresa, Oferta_laboral, Job_Application, RendimientoEmpleado, Licencia, Rol, UsuarioRol, Oferta_analista
+from models.schemes import Usuario, Empresa, Preferencias_empresa, Oferta_laboral, Job_Application, RendimientoEmpleado, Licencia, Rol, UsuarioRol, Oferta_analista, Periodo
 from auth.decorators import role_required
 from .manager import manager_bp
 from models.extensions import db
@@ -700,6 +700,7 @@ def reporte_licencias_manager():
 def reporte_riesgos():
     formato = request.args.get("formato", "pdf")
     ids_str = request.args.get("ids")
+    id_periodo = request.args.get("periodoSeleccionado")
     ids_filtrados = list(map(int, ids_str.split(","))) if ids_str else None
     print(ids_filtrados)
 
@@ -707,6 +708,7 @@ def reporte_riesgos():
     manager = Usuario.query.get(id_manager)
     empresa = Empresa.query.get(manager.id_empresa)
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
+    periodo = Periodo.query.get(id_periodo)
 
     color_excel = (preferencia.color_principal if preferencia and preferencia.color_principal else "#2E86C1").lstrip("#")
     color_mpl = "#" + color_excel    
@@ -808,6 +810,7 @@ def reporte_riesgos():
             imagen_despido=imagen_despido,
             imagen_rotacion=imagen_rotacion,
             imagen_renuncia=imagen_renuncia,
+            nombre_periodo=periodo.nombre_periodo,
             now=datetime.now()
         )
 
