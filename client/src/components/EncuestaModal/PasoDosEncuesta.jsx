@@ -14,9 +14,8 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [areaJefe, setAreaJefe] = useState(null);
   const [puestosAsignados, setPuestosAsignados] = useState([]);
+  const [empleadosArea, setEmpleadosArea] = useState([]);
   const [mensajeAlerta, setMensajeAlerta] = useState(null);
-  const [modalEncuesta, setModalEncuesta] = useState(false);
-
 
   const handleChange = (campo, valor) => {
     setFormData({ ...formData, [campo]: valor });
@@ -34,6 +33,7 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
       .then((data) => {
         setAreaJefe(data.mi_puesto_trabajo);
         setPuestosAsignados(data.puestos_area || []);
+        setEmpleadosArea(data.empleados_area || []);
         setFormData((prev) => ({ ...prev, area: data.mi_puesto_trabajo }));
       })
       .catch((err) => {
@@ -93,15 +93,34 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
       {formData.destinatario === "empleado" && (
         <div>
           <label className="block text-sm font-medium text-black">
-            Ingresá el correo del empleado
+            Seleccioná los empleados
           </label>
-          <input
-            type="email"
-            value={formData.correo || ""}
-            onChange={(e) => handleChange("correo", e.target.value)}
-            className="w-full border p-2 rounded text-black"
-            placeholder="correo@empresa.com"
-          />
+          <div className="border p-2 rounded max-h-60 overflow-y-auto bg-gray-50">
+            {empleadosArea.length === 0 ? (
+              <p className="text-sm text-gray-500">No hay empleados disponibles.</p>
+            ) : (
+              empleadosArea.map((emp) => (
+                <label key={emp.id} className="flex items-center gap-2 text-black">
+                  <input
+                    type="checkbox"
+                    value={emp.id}
+                    checked={formData.empleadosSeleccionados?.includes(emp.id)}
+                    onChange={(e) => {
+                      const id = emp.id;
+                      let seleccionados = formData.empleadosSeleccionados || [];
+                      if (e.target.checked) {
+                        seleccionados = [...seleccionados, id];
+                      } else {
+                        seleccionados = seleccionados.filter((eid) => eid !== id);
+                      }
+                      setFormData({ ...formData, empleadosSeleccionados: seleccionados });
+                    }}
+                  />
+                  {emp.nombre} {emp.apellido} - {emp.puesto_trabajo}
+                </label>
+              ))
+            )}
+          </div>
         </div>
       )}
 
@@ -150,8 +169,11 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
           </button>
           <button
             onClick={() => {
-              if (formData.destinatario === "empleado" && !formData.correo?.trim()) {
-                setMensajeAlerta("Por favor ingresá el correo del empleado.");
+              if (
+                formData.destinatario === "empleado" &&
+                (!formData.empleadosSeleccionados || formData.empleadosSeleccionados.length === 0)
+              ) {
+                setMensajeAlerta("Seleccioná al menos un empleado.");
                 return;
               }
               if (formData.destinatario === "area" && !formData.area) {
