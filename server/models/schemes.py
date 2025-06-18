@@ -390,3 +390,17 @@ class UsuarioTelegram(db.Model):
     nombre = db.Column(db.String(100))
 
     usuario = db.relationship("Usuario", backref=db.backref("telegram", uselist=False))
+
+class Tarea(db.Model):
+    __tablename__ = "tareas"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_usuario = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
+    titulo = db.Column(db.String(200), nullable=False)
+    descripcion = db.Column(db.Text, nullable=True)
+    fecha_creacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    fecha_vencimiento = db.Column(db.DateTime, nullable=True)
+    estado = db.Column(db.String(50), default="pendiente")  # Ej: 'pendiente', 'en_progreso', 'completada'
+    tipo = db.Column(db.String(50), nullable=False)  # Ej: 'personal', 'licencias', 'postulaciones', 'encuestas'
+    prioridad = db.Column(db.String(50), nullable=True)  # Ej: 'alta', 'media', 'baja'
+    
+    usuario = db.relationship("Usuario", backref="tareas")

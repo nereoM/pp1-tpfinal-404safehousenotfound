@@ -33,6 +33,7 @@ from models.schemes import (
     Preferencias_empresa,
     HistorialRendimientoEmpleadoManual,
     Periodo,
+    Tarea
 )
 from ml.desempeno_desarrollo.predictions import predecir_rend_futuro_individual, predecir_riesgo_despido_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_renuncia_individual, predecir_rot_post_individual
 
@@ -3070,3 +3071,143 @@ def obtener_notificaciones_todas():
     except Exception as e:
         print(f"Error al obtener notificaciones: {e}")
         return jsonify({"error": "Error interno al recuperar las notificaciones"}), 500
+
+@manager_bp.route("/mis-tareas-manager", methods=["GET"])
+@role_required(["manager"])
+def obtener_tareas():
+    id_manager = get_jwt_identity()
+    tareas = Tarea.query.filter_by(id_usuario=id_manager).all()
+    
+    resultado = [
+        {
+            "id": tarea.id,
+            "titulo": tarea.titulo,
+            "descripcion": tarea.descripcion,
+            "fecha_creacion": tarea.fecha_creacion.isoformat(),
+            "fecha_vencimiento": tarea.fecha_vencimiento.isoformat() if tarea.fecha_vencimiento else None,
+            "estado": tarea.estado,
+            "tipo": tarea.tipo,
+            "prioridad": tarea.prioridad,
+        }
+        for tarea in tareas
+    ]
+    
+    return jsonify(resultado), 200
+
+@manager_bp.route("/crear-tarea-manager", methods=["POST"])
+@role_required(["manager"])
+def crear_tarea():
+    data = request.get_json()
+    id_usuario = get_jwt_identity()
+
+    # Verificar campos obligatorios
+    if not data.get("titulo"):
+        return jsonify({"error": "Título es obligatorio"}), 400
+    
+    # Validar prioridad
+    if "prioridad" in data and data["prioridad"] not in ["alta", "media", "baja"]:
+        return jsonify({"error": "Prioridad inválida"}), 400
+    
+     # Validar fecha de vencimiento si existe
+    fecha_vencimiento = data.get("fecha_vencimiento")
+    if fecha_vencimiento:
+        try:
+            datetime.fromisoformat(fecha_vencimiento)
+        except Exception:
+            return jsonify({"error": "Formato de fecha_vencimiento inválido"}), 400
+
+    nueva_tarea = Tarea(
+        id_usuario=id_usuario,
+        titulo=data.get("titulo"),
+        descripcion=data.get("descripcion"),
+        fecha_vencimiento=fecha_vencimiento,
+        estado="pendiente",
+        tipo="personal",
+        prioridad=data.get("prioridad")
+    )
+    
+    db.session.add(nueva_tarea)
+    db.session.commit()
+    
+    return jsonify({"id": nueva_tarea.id}), 201
+
+@manager_bp.route("/tarea/<int:id_tarea>/manager", methods=["GET"])
+@role_required(["manager"])
+def obtener_tarea(id_tarea):
+    id_usuario = get_jwt_identity()
+    manager = Usuario.query.get_or_404(id_usuario)
+    tarea = Tarea.query.get_or_404(id_tarea)
+
+    # Verificar que la tarea pertenezca al usuario
+    if tarea.id_usuario != manager.id:
+        return jsonify({"error": "No tienes permiso para ver esta tarea"}), 403
+
+    return jsonify({
+        "id": tarea.id,
+        "titulo": tarea.titulo,
+        "descripcion": tarea.descripcion,
+        "fecha_creacion": tarea.fecha_creacion.isoformat(),
+        "fecha_vencimiento": tarea.fecha_vencimiento.isoformat() if tarea.fecha_vencimiento else None,
+        "estado": tarea.estado,
+        "tipo": tarea.tipo,
+        "prioridad": tarea.prioridad
+    }), 200
+
+@manager_bp.route("/tarea/<int:id_tarea>/manager", methods=["PUT"])
+@role_required(["manager"])
+def actualizar_tarea(id_tarea):
+    id_usuario = get_jwt_identity()
+    manager = Usuario.query.get_or_404(id_usuario)
+    tarea = Tarea.query.get_or_404(id_tarea)
+
+    # Verificar que la tarea pertenezca al usuario
+    if tarea.id_usuario != manager.id:
+        return jsonify({"error": "No tienes permiso para modificar esta tarea"}), 403
+    
+    # Verificar que la tarea sea de tipo personal
+    if tarea.tipo != "personal":
+        return jsonify({"error": "Solo puedes modificar tareas de tipo personal"}), 403
+
+    data = request.get_json()
+
+    # Validar estado y prioridad si se envían
+    if "estado" in data and data["estado"] not in ["pendiente", "en progreso", "completada"]:
+        return jsonify({"error": "Estado inválido"}), 400
+    if "prioridad" in data and data["prioridad"] not in ["alta", "media", "baja"]:
+        return jsonify({"error": "Prioridad inválida"}), 400
+    if "fecha_vencimiento" in data and data["fecha_vencimiento"]:
+        try:
+            datetime.fromisoformat(data["fecha_vencimiento"])
+        except Exception:
+            return jsonify({"error": "Formato de fecha_vencimiento inválido"}), 400
+    
+    tarea.titulo = data.get("titulo", tarea.titulo)
+    tarea.descripcion = data.get("descripcion", tarea.descripcion)
+    tarea.fecha_vencimiento = data.get("fecha_vencimiento", tarea.fecha_vencimiento)
+    tarea.estado = data.get("estado", tarea.estado)
+    # tarea.tipo = data.get("tipo", tarea.tipo)
+    tarea.prioridad = data.get("prioridad", tarea.prioridad)
+    
+    db.session.commit()
+    
+    return jsonify({"message": "Tarea actualizada exitosamente"}), 200
+
+@manager_bp.route("/tarea/<int:id_tarea>/manager", methods=["DELETE"])
+@role_required(["manager"])
+def eliminar_tarea(id_tarea):
+    id_usuario = get_jwt_identity()
+    manager = Usuario.query.get_or_404(id_usuario)
+    tarea = Tarea.query.get_or_404(id_tarea)
+
+    # Verificar que la tarea pertenezca al usuario
+    if tarea.id_usuario != manager.id:
+        return jsonify({"error": "No tienes permiso para eliminar esta tarea"}), 403
+
+    # solo la puede eliminir si es de tipo personal
+    if tarea.tipo != "personal":
+        return jsonify({"error": "Solo puedes eliminar tareas de tipo personal"}), 403
+    
+    db.session.delete(tarea)
+    db.session.commit()
+    
+    return jsonify({"message": "Tarea eliminada exitosamente"}), 200
