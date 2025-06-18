@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import MensajeAlerta from "../MensajeAlerta";
 
 const mapeoArea = {
   "Tecnología y Desarrollo": "Jefe de Tecnología y Desarrollo",
@@ -13,42 +14,33 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
   const [areaJefe, setAreaJefe] = useState(null);
   const [puestosAsignados, setPuestosAsignados] = useState([]);
+  const [mensajeAlerta, setMensajeAlerta] = useState(null);
+  const [modalEncuesta, setModalEncuesta] = useState(false);
+
 
   const handleChange = (campo, valor) => {
     setFormData({ ...formData, [campo]: valor });
   };
 
-  console.log("Intentando fetch con cookies:", document.cookie);
-
   useEffect(() => {
     fetch("/api/area/info", { credentials: "include" })
       .then(async (res) => {
-        console.log("🔁 Status:", res.status);
         const text = await res.text();
-        console.log("🔍 Response texto:", text);
-
         if (!res.ok || !res.headers.get("content-type")?.includes("application/json")) {
           throw new Error("Respuesta no válida del servidor");
         }
-
         return JSON.parse(text);
       })
       .then((data) => {
         setAreaJefe(data.mi_puesto_trabajo);
         setPuestosAsignados(data.puestos_area || []);
+        setFormData((prev) => ({ ...prev, area: data.mi_puesto_trabajo }));
       })
       .catch((err) => {
         console.error("🔥 Error al obtener el área del jefe:", err);
         setAreaJefe("Error");
       });
   }, []);
-
-  const opcionesArea = Object.keys(mapeoArea);
-
-  const puedeContinuar =
-    (formData.destinatario === "empleado" && formData.correo?.trim()) ||
-    (formData.destinatario === "area" && formData.area) ||
-    (formData.destinatario === "puesto" && formData.puesto);
 
   if (areaJefe === null) {
     return <div className="text-center text-gray-600 mt-6">Cargando área del jefe...</div>;
@@ -115,17 +107,9 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
 
       {formData.destinatario === "area" && (
         <div>
-          <label className="block text-sm font-medium text-black">Seleccioná el área</label>
-          <select
-            value={formData.area || ""}
-            onChange={(e) => handleChange("area", e.target.value)}
-            className="w-full border p-2 rounded text-black"
-          >
-            <option value="" disabled>Elegí una área</option>
-            {opcionesArea.map((area) => (
-              <option key={area} value={area}>{area}</option>
-            ))}
-          </select>
+          <label className="block text-sm font-medium text-black">Área de trabajo</label>
+          <p className="text-black p-2 border rounded bg-gray-100">{areaJefe}</p>
+          <input type="hidden" value={areaJefe} name="area" />
         </div>
       )}
 
@@ -166,6 +150,19 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
           </button>
           <button
             onClick={() => {
+              if (formData.destinatario === "empleado" && !formData.correo?.trim()) {
+                setMensajeAlerta("Por favor ingresá el correo del empleado.");
+                return;
+              }
+              if (formData.destinatario === "area" && !formData.area) {
+                setMensajeAlerta("No se pudo obtener el área de trabajo. Verificá tu conexión.");
+                return;
+              }
+              if (formData.destinatario === "puesto" && !formData.puesto) {
+                setMensajeAlerta("Por favor seleccioná un puesto.");
+                return;
+              }
+
               const nuevaData = { ...formData };
               if (nuevaData.destinatario === "area") {
                 nuevaData.area = mapeoArea[nuevaData.area] || nuevaData.area;
@@ -173,8 +170,7 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
               setFormData(nuevaData);
               onNext();
             }}
-            disabled={!puedeContinuar}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Siguiente
           </button>
@@ -205,6 +201,14 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
             </div>
           </div>
         </div>
+      )}
+
+      {mensajeAlerta && (
+        <MensajeAlerta
+          mensaje={mensajeAlerta}
+          tipo="error"
+          onClose={() => setMensajeAlerta(null)}
+        />
       )}
     </div>
   );

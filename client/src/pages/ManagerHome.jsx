@@ -28,6 +28,9 @@ import { Acciones } from "../components/Acciones.jsx";
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import PeriodosEmpresaModal from "../components/PeriodosEmpresaModal";
 
+import { ModalEncuesta } from "../components/ModalEncuesta";
+
+
 // Toast system
 function Toast({ toasts, removeToast }) {
 
@@ -149,6 +152,8 @@ export default function ManagerHome() {
 
   
   const [ofertasLibres, setOfertasLibres] = useState(new Set());
+  
+  const [modalEncuesta, setModalEncuesta] = useState(false);
 
   useEffect(() => {
     let filtradas = ofertas;
@@ -762,6 +767,32 @@ export default function ManagerHome() {
         onClick: () => navigate("/manager/analistas-riesgo"),
       },
     ],
+    encuestas: [
+      {
+        icon: FileLock,
+        titulo: "Crear Encuesta",
+        descripcion: "Diseñá encuestas para obtener feedback del personal.",
+        onClick: () => setModalEncuesta(true),
+      },
+      {
+        icon: FileText,
+        titulo: "Gestionar Encuestas",
+        descripcion: "Administrá las encuestas creadas y sus resultados.",
+        onClick: () => setModalGestionEncuestas(true),
+      },
+      {
+        icon: FileSearchIcon,
+        titulo: "Encuestas Pendientes",
+        descripcion: "Consultá encuestas que aún no fueron respondidas.",
+        onClick: () => setModalEncuestasPendientes(true),
+      },
+      {
+        icon: FileText,
+        titulo: "Encuestas Respondidas",
+        descripcion: "Revisá las respuestas de encuestas completadas.",
+        onClick: () => setModalEncuestasRespondidas(true),
+      },
+    ],
   };
 
   if (loadingUser)
@@ -1327,6 +1358,12 @@ export default function ManagerHome() {
               service={managerService}
               onClose={() => setModalGestionEquipo(false)}
               textColor={estilos.color_texto}
+            />
+          )}
+          {modalEncuesta && (
+            <ModalEncuesta
+              open={modalEncuesta}
+              onOpenChange={setModalEncuesta}
             />
           )}
         </PageLayout>

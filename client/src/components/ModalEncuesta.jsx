@@ -4,6 +4,7 @@ import { authService } from "../services/authService";
 import {
   PasoUnoEncuesta,
   PasoDosEncuesta,
+  PasoDosEncuestaManager,
   PasoTresEncuesta,
   PasoCuatroEncuesta,
 } from "./EncuestaModal";
@@ -36,6 +37,8 @@ export function ModalEncuesta({ open, onOpenChange }) {
           area: "",
           puesto: "",
           preguntas: [],
+          envioATodos: true,
+          correosAnalistas: [],
         });
       })
       .catch(err => {
@@ -71,6 +74,19 @@ export function ModalEncuesta({ open, onOpenChange }) {
         payload = {
           titulo: formData.titulo,
           descripcion: formData.descripcion || undefined,
+          envioATodos: formData.envioATodos,
+          correosAnalistas: formData.envioATodos ? [] : formData.correosAnalistas,
+          preguntas: (formData.preguntas || []).map((p) => ({
+            texto: p.texto,
+            tipo:
+              p.tipo === "opcion unica"
+                ? "unica_opcion"
+                : p.tipo === "opcion multiple"
+                ? "opcion_multiple"
+                : "respuesta_libre",
+            opciones: p.opciones || [],
+            es_requerida: !!p.obligatoria,
+          })),
         };
       } else {
         endpoint = "/api/crear-encuesta";
@@ -139,13 +155,25 @@ export function ModalEncuesta({ open, onOpenChange }) {
             )}
 
             {step === 2 && (
-              <PasoDosEncuesta
-                formData={formData}
-                setFormData={setFormData}
-                onNext={() => setStep(3)}
-                onBack={() => setStep(1)}
-                onCancel={handleClose}
-              />
+              <>
+                {roles.includes("manager") ? (
+                  <PasoDosEncuestaManager
+                    formData={formData}
+                    setFormData={setFormData}
+                    onNext={() => setStep(3)}
+                    onBack={() => setStep(1)}
+                    onCancel={handleClose}
+                  />
+                ) : (
+                  <PasoDosEncuesta
+                    formData={formData}
+                    setFormData={setFormData}
+                    onNext={() => setStep(3)}
+                    onBack={() => setStep(1)}
+                    onCancel={handleClose}
+                  />
+                )}
+              </>
             )}
 
             {step === 3 && (

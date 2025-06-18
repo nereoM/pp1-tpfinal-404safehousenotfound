@@ -544,6 +544,32 @@ export default function ReclutadorHome() {
         onClick: () => navigate("/reclutador/empleados-riesgo"),
       },
     ],
+    encuestas: [
+      {
+        icon: FileLock,
+        titulo: "Crear Encuesta",
+        descripcion: "Diseñá encuestas para obtener feedback del personal.",
+        onClick: () => setModalEncuesta(true),
+      },
+      {
+        icon: FileText,
+        titulo: "Gestionar Encuestas",
+        descripcion: "Administrá las encuestas creadas y sus resultados.",
+        onClick: () => setModalGestionEncuestas(true),
+      },
+      {
+        icon: FileSearchIcon,
+        titulo: "Encuestas Pendientes",
+        descripcion: "Consultá encuestas que aún no fueron respondidas.",
+        onClick: () => setModalEncuestasPendientes(true),
+      },
+      {
+        icon: FileText,
+        titulo: "Encuestas Respondidas",
+        descripcion: "Revisá las respuestas de encuestas completadas.",
+        onClick: () => setModalEncuestasRespondidas(true),
+      },
+    ],
   };
   
   const handleLogout = () => {
