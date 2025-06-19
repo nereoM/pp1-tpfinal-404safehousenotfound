@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { BarChart2, Download, FileLock, FilePlus, FileSearchIcon, FileText ,Users } from "lucide-react";
+import { BarChart2, Download, FileLock, FilePlus, FileSearchIcon, FileText, Users } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Acciones } from "../components/Acciones.jsx";
@@ -571,7 +571,7 @@ export default function ReclutadorHome() {
       },
     ],
   };
-  
+
   const handleLogout = () => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
       method: "POST",
@@ -611,12 +611,14 @@ export default function ReclutadorHome() {
             </div>
           </div>
 
-          <Acciones  acciones={accionesPorSeccion} estilos={estilosSafe}/>
+          <Acciones acciones={accionesPorSeccion} estilos={estilosSafe} />
         </PageLayout>
 
         {modalOfertasOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-            <div className="bg-white rounded-lg p-6 w-full max-w-3xl shadow space-y-4 text-black">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+            onClick={() => setModalOfertasOpen(false)}>
+            <div className="bg-white rounded-lg p-6 w-full max-w-3xl shadow space-y-4 text-black"
+              onClick={e => e.stopPropagation()}>
               <h2 className="text-xl font-semibold">Ofertas asignadas</h2>
 
               {/* Filtros */}
@@ -824,7 +826,7 @@ export default function ReclutadorHome() {
 
               {/* añadir etiqueta */}
               <div className="mb-4">
-                {nuevasEtiquetas.length >  0 ? (
+                {nuevasEtiquetas.length > 0 ? (
                   <>
                     <label className="block text-sm font-medium mb-1 text-black">
                       Añadir etiqueta
@@ -930,32 +932,32 @@ export default function ReclutadorHome() {
           </div>
         )}
 
-        
-          <LicenciasACargoModal
-            open={modalLicenciasACargo}
-            onOpenChange={setModalLicenciasACargo}
-            service={reclutadorService}
-            extraContent={
-              <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2">
-                <button
-                  onClick={() => descargarReporteLicenciasAnalista("excel")}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
-                  title="Descargar reporte de licencias en Excel"
-                >
-                  <Download className="w-5 h-5" />
-                  Descargar Licencias Excel
-                </button>
-                <button
-                  onClick={() => descargarReporteLicenciasAnalista("pdf")}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
-                  title="Descargar reporte de licencias en PDF"
-                >
-                  <Download className="w-5 h-5" />
-                  Descargar Licencias PDF
-                </button>
-              </div>
-            }
-          />
+
+        <LicenciasACargoModal
+          open={modalLicenciasACargo}
+          onOpenChange={setModalLicenciasACargo}
+          service={reclutadorService}
+          extraContent={
+            <div className="mb-4 flex flex-col sm:flex-row justify-end gap-2">
+              <button
+                onClick={() => descargarReporteLicenciasAnalista("excel")}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-700 text-white rounded hover:bg-blue-900 transition font-semibold shadow"
+                title="Descargar reporte de licencias en Excel"
+              >
+                <Download className="w-5 h-5" />
+                Descargar Licencias Excel
+              </button>
+              <button
+                onClick={() => descargarReporteLicenciasAnalista("pdf")}
+                className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+                title="Descargar reporte de licencias en PDF"
+              >
+                <Download className="w-5 h-5" />
+                Descargar Licencias PDF
+              </button>
+            </div>
+          }
+        />
 
         <ModalParaEditarPerfil
           isOpen={modalEditarPerfilOpen}
