@@ -33,7 +33,11 @@ from models.schemes import (
     Preferencias_empresa,
     HistorialRendimientoEmpleadoManual,
     Periodo,
-    Tarea
+    Tarea,
+    Encuesta,
+    RespuestaEncuesta,
+    PreguntaEncuesta,
+    EncuestaAsignacion
 )
 from ml.desempeno_desarrollo.predictions import predecir_rend_futuro_individual, predecir_riesgo_despido_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_renuncia_individual, predecir_rot_post_individual
 
@@ -3071,6 +3075,508 @@ def obtener_notificaciones_todas():
     except Exception as e:
         print(f"Error al obtener notificaciones: {e}")
         return jsonify({"error": "Error interno al recuperar las notificaciones"}), 500
+    
+@manager_bp.route("/crear-encuesta/manager", methods=["POST"])
+@role_required(["manager"])
+def crear_encuesta_completa():
+    """
+    Permite a un manager crear una encuesta y asignarla solo a sus reclutadores:
+    - A todos los reclutadores a cargo (todos_reclutadores: true)
+    - A una lista de emails de sus reclutadores (emails: [...])
+    """
+    from sqlalchemy.exc import SQLAlchemyError
+    data = request.get_json()
+    tipo = data.get("tipo")
+    titulo = data.get("titulo")
+    descripcion = data.get("descripcion")
+    anonima = data.get("anonima")
+    fecha_inicio = data.get("fecha_inicio")
+    fecha_fin = data.get("fecha_fin")
+    todos_reclutadores = data.get("todos_reclutadores", False)
+    emails = data.get("emails")
+    preguntas = data.get("preguntas", [])
+
+    # Validaciones de campos requeridos
+    if not all([tipo, titulo, anonima is not None, fecha_inicio, fecha_fin]):
+        return jsonify({"error": "Faltan campos requeridos para la encuesta"}), 400
+
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    if not manager:
+        return jsonify({"error": "Manager no encontrado"}), 404
+
+    # Obtener reclutadores a cargo
+    reclutadores = (
+        db.session.query(Usuario)
+        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+        .join(Rol, UsuarioRol.id_rol == Rol.id)
+        .filter(Usuario.id_superior == id_manager)
+        .filter(Rol.slug == "reclutador")
+        .all()
+    )
+    emails_reclutadores = {r.correo for r in reclutadores}
+    ids_reclutadores = {r.id for r in reclutadores}
+
+    # Validar fechas
+    try:
+        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+    except Exception:
+        return jsonify({"error": "Formato de fecha inválido (YYYY-MM-DD)"}), 400
+
+    hoy = date.today()
+    if fecha_inicio_dt < hoy or fecha_fin_dt < hoy:
+        return jsonify({"error": "No se pueden elegir fechas pasadas"}), 400
+    if fecha_fin_dt < fecha_inicio_dt:
+        return jsonify({"error": "La fecha de fin no puede ser anterior a la de inicio"}), 400
+
+    estado = "activa" if fecha_inicio_dt == hoy else "pendiente"
+
+    try:
+        # Crear la encuesta
+        encuesta = Encuesta(
+            tipo=tipo,
+            titulo=titulo,
+            descripcion=descripcion,
+            es_anonima=bool(anonima),
+            fecha_inicio=fecha_inicio_dt,
+            fecha_fin=fecha_fin_dt,
+            creador_id=id_manager,
+            estado=estado,
+        )
+        db.session.add(encuesta)
+        db.session.flush()  # Para obtener el id de la encuesta
+
+        asignaciones = []
+
+        if todos_reclutadores:
+            # Asignar a todos los reclutadores a cargo
+            for reclutador in reclutadores:
+                asignacion = EncuestaAsignacion(
+                    id_encuesta=encuesta.id,
+                    id_usuario=reclutador.id,
+                    area=None,
+                    puesto_trabajo=reclutador.puesto_trabajo,
+                    tipo_asignacion="todos_reclutadores",
+                    id_asignador=id_manager,
+                    limpia=False
+                )
+                db.session.add(asignacion)
+                asignaciones.append(reclutador.correo)
+        elif emails and isinstance(emails, list):
+            # Asignar solo a los reclutadores de la lista de emails
+            for correo in emails:
+                if correo not in emails_reclutadores:
+                    db.session.rollback()
+                    return jsonify({"error": f"El correo {correo} no corresponde a un reclutador a tu cargo"}), 400
+                usuario = next((r for r in reclutadores if r.correo == correo), None)
+                asignacion = EncuestaAsignacion(
+                    id_encuesta=encuesta.id,
+                    id_usuario=usuario.id,
+                    area=None,
+                    puesto_trabajo=usuario.puesto_trabajo,
+                    tipo_asignacion="email_reclutador",
+                    id_asignador=id_manager,
+                    limpia=False
+                )
+                db.session.add(asignacion)
+                asignaciones.append(usuario.correo)
+        else:
+            db.session.rollback()
+            return jsonify({"error": "Debes indicar todos_reclutadores=true o una lista de emails de reclutadores a cargo"}), 400
+
+        # Preguntas
+        preguntas_creadas = []
+        for pregunta in preguntas:
+            texto = pregunta.get("texto")
+            tipo_preg = pregunta.get("tipo")
+            opciones = pregunta.get("opciones")
+            es_requerida = pregunta.get("es_requerida")
+            if not all([texto, tipo_preg, es_requerida is not None]):
+                db.session.rollback()
+                return jsonify({"error": "Faltan campos requeridos en una pregunta"}), 400
+            if tipo_preg in ["opcion_multiple", "unica_opcion"]:
+                if not opciones or not isinstance(opciones, list) or not all(isinstance(o, str) for o in opciones):
+                    db.session.rollback()
+                    return jsonify({"error": "Debes enviar una lista de opciones de respuesta"}), 400
+                opciones_json = json.dumps(opciones)
+            else:
+                opciones_json = None
+            pregunta_obj = PreguntaEncuesta(
+                id_encuesta=encuesta.id,
+                texto=texto,
+                tipo=tipo_preg,
+                opciones=opciones_json,
+                es_requerida=bool(es_requerida)
+            )
+            db.session.add(pregunta_obj)
+            db.session.flush()
+            preguntas_creadas.append({
+                "id": pregunta_obj.id,
+                "texto": texto,
+                "tipo": tipo_preg,
+                "opciones": opciones if opciones_json else None,
+                "es_requerida": bool(es_requerida)
+            })
+
+        db.session.commit()
+        return jsonify({
+            "message": "Encuesta creada, asignada y preguntas agregadas exitosamente",
+            "encuesta": {
+                "id": encuesta.id,
+                "tipo": encuesta.tipo,
+                "titulo": encuesta.titulo,
+                "descripcion": encuesta.descripcion,
+                "anonima": encuesta.es_anonima,
+                "fecha_inicio": encuesta.fecha_inicio.isoformat(),
+                "fecha_fin": encuesta.fecha_fin.isoformat(),
+                "estado": encuesta.estado,
+            },
+            "asignados": asignaciones,
+            "preguntas": preguntas_creadas
+        }), 201
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error de base de datos: {str(e)}"}), 500
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+@manager_bp.route("/obtener-encuestas-creadas/manager", methods=["GET"])
+@role_required(["manager"])
+def obtener_encuestas_jefe():
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    if not manager:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    encuestas = Encuesta.query.filter_by(creador_id=id_manager).order_by(Encuesta.fecha_inicio.desc()).all()
+    resultado = []
+    for encuesta in encuestas:
+        # Obtener asignaciones y preguntas
+        asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=encuesta.id).all()
+        preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=encuesta.id).all()
+        resultado.append({
+            "id": encuesta.id,
+            "tipo": encuesta.tipo,
+            "titulo": encuesta.titulo,
+            "descripcion": encuesta.descripcion,
+            "anonima": encuesta.es_anonima,
+            "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+            "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+            "estado": encuesta.estado,
+            "asignaciones": [
+                {
+                    "id_usuario": a.id_usuario,
+                    "area": a.area,
+                    "puesto_trabajo": a.puesto_trabajo,
+                    "tipo_asignacion": a.tipo_asignacion
+                } for a in asignaciones
+            ],
+            "preguntas": [
+                {
+                    "id": p.id,
+                    "texto": p.texto,
+                    "tipo": p.tipo,
+                    "opciones": json.loads(p.opciones) if p.opciones else None,
+                    "es_requerida": p.es_requerida
+                } for p in preguntas
+            ]
+        })
+    return jsonify(resultado), 200
+
+@manager_bp.route("/obtener-encuestas-asignadas/manager", methods=["GET"])
+@role_required(["manager"])
+def obtener_encuestas_asignadas():
+    """
+    Devuelve todas las encuestas asignadas al manager autenticado.
+    """
+    id_manager = get_jwt_identity()
+    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_manager).all()
+
+    if not asignaciones:
+        return jsonify({"message": "No tienes encuestas asignadas"}), 404
+
+    resultado = []
+    for asignacion in asignaciones:
+        encuesta = Encuesta.query.get(asignacion.id_encuesta)
+        if encuesta:
+            resultado.append({
+                "id_encuesta": encuesta.id,
+                "titulo": encuesta.titulo,
+                "descripcion": encuesta.descripcion,
+                "tipo": encuesta.tipo,
+                "anonima": encuesta.es_anonima,
+                "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+                "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+                "estado": encuesta.estado,
+                "asignacion": {
+                    "tipo_asignacion": asignacion.tipo_asignacion,
+                    "area": asignacion.area, 
+                    "puesto_trabajo": asignacion.puesto_trabajo 
+                }
+            })
+
+    return jsonify(resultado), 200
+
+@manager_bp.route("/encuesta-asignada/<int:id_encuesta>/manager", methods=["GET"])
+@role_required(["manager"])
+def obtener_encuesta_asignada_detalle(id_encuesta):
+    """
+    Devuelve toda la información de una encuesta asignada al manager autenticado, incluyendo preguntas y detalles de asignación.
+    """
+    id_manager = get_jwt_identity()
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_manager).first()
+    if not asignacion:
+        return jsonify({"error": "No tienes esta encuesta asignada"}), 404
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_info = [
+        {
+            "id": p.id,
+            "texto": p.texto,
+            "tipo": p.tipo,
+            "opciones": json.loads(p.opciones) if p.opciones else None,
+            "es_requerida": p.es_requerida
+        }
+        for p in preguntas
+    ]
+
+    return jsonify({
+        "id_encuesta": encuesta.id,
+        "titulo": encuesta.titulo,
+        "descripcion": encuesta.descripcion,
+        "tipo": encuesta.tipo,
+        "anonima": encuesta.es_anonima,
+        "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+        "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+        "estado": encuesta.estado,
+        "asignacion": {
+            "tipo_asignacion": asignacion.tipo_asignacion,
+            "area": asignacion.area, #
+            "puesto_trabajo": asignacion.puesto_trabajo #
+        },
+        "preguntas": preguntas_info
+    }), 200
+
+@manager_bp.route("/responder-encuesta/<int:id_encuesta>/manager", methods=["POST"])
+@role_required(["manager"])
+def responder_encuesta(id_encuesta):
+    """
+    Permite a un manager responder una encuesta asignada.
+    Espera un JSON con {"respuestas": [{"id_pregunta": int, "respuesta": ...}, ...]}
+    """
+    id_manager = get_jwt_identity()
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_manager).first()
+    if not asignacion:
+        return jsonify({"error": "No tienes esta encuesta asignada"}), 403
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    if encuesta.estado not in ["activa"]:
+        return jsonify({"error": "La encuesta no está activa"}), 400
+
+    data = request.get_json()
+    respuestas = data.get("respuestas")
+    if not respuestas or not isinstance(respuestas, list):
+        return jsonify({"error": "Debes enviar una lista de respuestas"}), 400
+
+    preguntas = {p.id: p for p in PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()}
+    preguntas_requeridas = {p.id for p in preguntas.values() if p.es_requerida}
+
+    respondidas = set()
+    for r in respuestas:
+        id_pregunta = r.get("id_pregunta")
+        respuesta = r.get("respuesta")
+        if id_pregunta not in preguntas:
+            return jsonify({"error": f"Pregunta {id_pregunta} inválida"}), 400
+        if preguntas[id_pregunta].es_requerida and (respuesta is None or respuesta == ""):
+            return jsonify({"error": f"La pregunta {id_pregunta} es requerida"}), 400
+        # Validar opciones si corresponde
+        if preguntas[id_pregunta].tipo in ["opcion_multiple", "unica_opcion"]:
+            opciones = json.loads(preguntas[id_pregunta].opciones or "[]")
+            if isinstance(respuesta, list):
+                if not all(opt in opciones for opt in respuesta):
+                    return jsonify({"error": f"Respuesta inválida para la pregunta {id_pregunta}"}), 400
+            else:
+                if respuesta not in opciones:
+                    return jsonify({"error": f"Respuesta inválida para la pregunta {id_pregunta}"}), 400
+        respondidas.add(id_pregunta)
+
+    # Verificar que todas las requeridas estén respondidas
+    if not preguntas_requeridas.issubset(respondidas):
+        return jsonify({"error": "Debes responder todas las preguntas requeridas"}), 400
+
+    # Guardar respuestas
+    for r in respuestas:
+        id_pregunta = r["id_pregunta"]
+        respuesta = r["respuesta"]
+        # Si la respuesta es lista, guardar como JSON string
+        if isinstance(respuesta, list):
+            respuesta_db = json.dumps(respuesta)
+        else:
+            respuesta_db = str(respuesta)
+        nueva_respuesta = RespuestaEncuesta(
+            id_pregunta=id_pregunta,
+            id_usuario=id_manager,
+            respuesta=respuesta_db,
+            fecha_respuesta=datetime.now(timezone.utc)
+        )
+        db.session.add(nueva_respuesta)
+
+    db.session.commit()
+    return jsonify({"message": "Respuestas guardadas correctamente"}), 201
+
+@manager_bp.route("/encuesta/<int:id_encuesta>/respuestas-info/manager", methods=["GET"])
+@role_required(["manager"])
+def estado_respuestas_encuesta(id_encuesta):
+    """
+    Devuelve para una encuesta creada por el manager:
+    - Si es anónima: solo totales y lista de no respondieron (sin lista de respondieron)
+    - Si NO es anónima: totales y listas completas
+    """
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    if not manager:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+    if encuesta.creador_id != manager.id:
+        return jsonify({"error": "No tienes permisos para ver esta información"}), 403
+
+    asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_ids = [p.id for p in preguntas]
+    respuestas = (
+        RespuestaEncuesta.query
+        .filter(RespuestaEncuesta.id_pregunta.in_(preguntas_ids))
+        .with_entities(RespuestaEncuesta.id_usuario)
+        .distinct()
+        .all()
+    )
+    respondieron_ids = {r.id_usuario for r in respuestas}
+
+    respondieron = []
+    no_respondieron = []
+    for asignacion in asignaciones:
+        usuario = Usuario.query.get(asignacion.id_usuario)
+        if not usuario:
+            continue
+        if encuesta.es_anonima:
+            info = {
+                "id": usuario.id,
+                "nombre": "Empleado Anónimo",
+                "apellido": "",
+                "correo": None,
+                "puesto_trabajo": usuario.puesto_trabajo
+            }
+        else:
+            info = {
+                "id": usuario.id,
+                "nombre": usuario.nombre,
+                "apellido": usuario.apellido,
+                "correo": usuario.correo,
+                "puesto_trabajo": usuario.puesto_trabajo
+            }
+        if usuario.id in respondieron_ids:
+            respondieron.append(info)
+        else:
+            no_respondieron.append(info)
+
+    if encuesta.es_anonima:
+        # Mostrar ambas listas pero con nombres anónimos
+        return jsonify({
+            "total_asignados": len(asignaciones),
+            "total_respondieron": len(respondieron),
+            "total_no_respondieron": len(no_respondieron),
+            "respondieron": respondieron,
+            "no_respondieron": no_respondieron
+        }), 200
+    else:
+        # Mostrar ambas listas con datos reales
+        return jsonify({
+            "total_asignados": len(asignaciones),
+            "total_respondieron": len(respondieron),
+            "total_no_respondieron": len(no_respondieron),
+            "respondieron": respondieron,
+            "no_respondieron": no_respondieron
+        }), 200
+    
+@manager_bp.route("/encuesta/<int:id_encuesta>/respuestas-empleado/<int:id_empleado>/manager", methods=["GET"])
+@role_required(["manager"])
+def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
+    """
+    Permite al manager ver las respuestas de un empleado a una encuesta, 
+    mostrando datos reales solo si la encuesta no es anónima.
+    """
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    if not manager:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+    if encuesta.creador_id != manager.id:
+        return jsonify({"error": "No tienes permisos para ver esta información"}), 403
+
+    # Verificar que el empleado esté asignado a la encuesta
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_empleado).first()
+    if not asignacion:
+        return jsonify({"error": "El empleado no está asignado a esta encuesta"}), 404
+
+    usuario = Usuario.query.get(id_empleado)
+    if not usuario:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_dict = {p.id: p for p in preguntas}
+
+    respuestas = (
+        RespuestaEncuesta.query
+        .filter_by(id_usuario=id_empleado)
+        .filter(RespuestaEncuesta.id_pregunta.in_([p.id for p in preguntas]))
+        .all()
+    )
+
+    respuestas_info = []
+    for r in respuestas:
+        pregunta = preguntas_dict.get(r.id_pregunta)
+        respuestas_info.append({
+            "id_pregunta": r.id_pregunta,
+            "pregunta": pregunta.texto if pregunta else None,
+            "respuesta": r.respuesta,
+            "fecha_respuesta": r.fecha_respuesta.isoformat() if r.fecha_respuesta else None
+        })
+
+    if encuesta.es_anonima:
+        empleado_info = {
+            "id": usuario.id,
+            "nombre": "Empleado Anónimo",
+            "apellido": "",
+            "correo": None,
+            "puesto_trabajo": usuario.puesto_trabajo
+        }
+    else:
+        empleado_info = {
+            "id": usuario.id,
+            "nombre": usuario.nombre,
+            "apellido": usuario.apellido,
+            "correo": usuario.correo,
+            "puesto_trabajo": usuario.puesto_trabajo
+        }
+
+    return jsonify({
+        "empleado": empleado_info,
+        "respuestas": respuestas_info
+    }), 200
 
 @manager_bp.route("/mis-tareas-manager", methods=["GET"])
 @role_required(["manager"])
