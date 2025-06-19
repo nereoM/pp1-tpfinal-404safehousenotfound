@@ -306,6 +306,7 @@ def grafico_ausencias_base64(data):
 @role_required(["manager", "reclutador"])
 def reporte_desempeno():
     formato = request.args.get("formato", "pdf")
+    id_periodo = request.args.get("periodo")
 
     ids_str = request.args.get("ids")
     ids_filtrados = list(map(int, ids_str.split(","))) if ids_str else None
@@ -314,6 +315,8 @@ def reporte_desempeno():
     manager = Usuario.query.get(id_manager)
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
     empresa = Empresa.query.get(manager.id_empresa)
+    
+    periodo = Periodo.query.get(int(id_periodo))
 
     color = preferencia.color_principal[1:] if preferencia and preferencia.color_principal else "2E86C1"
 
@@ -404,6 +407,7 @@ def reporte_desempeno():
             grafico_base64=grafico_base64,
             promedios_por_puesto=promedios_por_puesto,
             grafico_puesto_base64=grafico_puesto_base64,
+            nombre_periodo=periodo.nombre_periodo,
             now=datetime.now()
         )
         nombre_archivo = f"desempeno_futuro_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
@@ -700,7 +704,7 @@ def reporte_licencias_manager():
 def reporte_riesgos():
     formato = request.args.get("formato", "pdf")
     ids_str = request.args.get("ids")
-    id_periodo = request.args.get("periodoSeleccionado")
+    id_periodo = request.args.get("periodo")
     ids_filtrados = list(map(int, ids_str.split(","))) if ids_str else None
     print(ids_filtrados)
 
@@ -708,10 +712,11 @@ def reporte_riesgos():
     manager = Usuario.query.get(id_manager)
     empresa = Empresa.query.get(manager.id_empresa)
     preferencia = Preferencias_empresa.query.get(manager.id_empresa)
-    periodo = Periodo.query.get(id_periodo)
+    periodo = Periodo.query.get(int(id_periodo))
 
     color_excel = (preferencia.color_principal if preferencia and preferencia.color_principal else "#2E86C1").lstrip("#")
-    color_mpl = "#" + color_excel    
+    color_mpl = "#" + color_excel
+     
 
 
     if not ids_filtrados:
