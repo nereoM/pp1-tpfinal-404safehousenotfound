@@ -122,7 +122,7 @@ export default function Pagos() {
         aria-label="Volver"
       >
         <img
-          src="/icono.png"
+          src="https://i.postimg.cc/VNMPbhgL/icono.png"
           alt="Volver"
           className="w-16 h-16 md:w-30 md:h-30 object-contain drop-shadow-lg"
         />
@@ -143,7 +143,7 @@ export default function Pagos() {
             <li>Acceso inmediato y soporte 24/7</li>
           </ul>
           <img
-            src="/Imagen_para_pagos.png"
+            src="https://i.postimg.cc/L47dNRW6/Imagen-para-pagos.png"
             alt="Portada SIGRH+"
             className="rounded-xl shadow-lg w-full max-w-md"
           />

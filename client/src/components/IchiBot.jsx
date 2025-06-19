@@ -5,8 +5,8 @@ import { PaperPlaneIcon } from "@radix-ui/react-icons";
 const API_URL = import.meta.env.VITE_API_URL;
 
 const expresiones = {
-  neutral: "/avatars/ichi-neutral.png",
-  neutral2: "/avatars/ichi-neutral-ojo-cerrado.png",
+  neutral: "https://i.postimg.cc/XvWB5f8d/ichi-neutral.png",
+  neutral2: "https://i.postimg.cc/sXN2T7pn/ichi-neutral-ojo-cerrado.png",
 };
 
 const glowColors = {

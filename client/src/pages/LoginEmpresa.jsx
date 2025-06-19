@@ -6,8 +6,8 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 const DEFAULT_COMPANY = {
   nombre:    "SIGRH+",
-  icon_url:  "/iconoblack.png",
-  image_url: "/mapamundisigrh.png",
+  icon_url:  "https://i.postimg.cc/QCBcmcym/iconoblack.png",
+  image_url: "https://i.postimg.cc/4dR3qVyw/mapamundisigrh.png",
 };
 
 function CompanyHeader({ name, iconUrl }) {

@@ -325,7 +325,7 @@ export default function Login() {
           aria-label="Volver al menú principal"
         >
           <img
-            src="/icono.png"
+            src="https://i.postimg.cc/VNMPbhgL/icono.png"
             alt="SIGRH+"
             className="w-24 h-auto cursor-pointer hover:opacity-90"
           />
@@ -333,7 +333,7 @@ export default function Login() {
 
       {/* fondo */}
     <div className="absolute inset-0 z-0">
-      <div className="w-full h-full bg-[url('/city_blurred_4k_sunrise.webp')] bg-cover bg-center" />
+      <div className="w-full h-full bg-[url('https://i.postimg.cc/zXsymsyq/city-blurred-4k-sunrise.webp')] bg-cover bg-center" />
       <div className="absolute inset-0 bg-black/30" />
     </div>
 

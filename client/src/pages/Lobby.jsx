@@ -32,7 +32,7 @@ export default function Lobby() {
         </div>
 
         <img
-          src="/person-using-sigrh-happy.png"
+          src="https://i.postimg.cc/y8Zq356p/person-using-sigrh-happy.png"
           alt="Persona feliz usando SIGRH+"
           className="w-full max-w-md rounded-xl shadow-lg transition-all duration-300 transform hover:scale-105"
         />
@@ -78,10 +78,10 @@ export default function Lobby() {
       <footer className="bg-white/60 py-6 mt-16 text-center text-gray-600 backdrop-blur-sm">
         <p className="mb-4 font-semibold">Estas empresas confían en nosotros</p>
         <div className="flex flex-wrap justify-center gap-8 items-center max-w-5xl mx-auto">
-          <img src="/brands/nintendo.png" alt="Nintendo" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />
-          <img src="/brands/capcom.png" alt="Capcom" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />
-          <img src="/brands/mappa.png" alt="Mappa" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />
-          <img src="/brands/cafe-martinez.png" alt="Café Martínez" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />
+          <img src="https://i.postimg.cc/bw3nb66b/nintendo.png" alt="Nintendo" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />
+          <img src="https://i.postimg.cc/fTyCPNYk/capcom.png" alt="Capcom" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />
+          <img src="https://i.postimg.cc/QxckBJGk/mappa.png" alt="Mappa" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />
+          <img src="https://i.postimg.cc/LsGFJDR3/cafe-martinez.png" alt="Café Martínez" className="h-10 w-32 object-contain transition-all duration-300 transform hover:scale-105" />
         </div>
       </footer>
     </div>
