@@ -26,7 +26,9 @@ from models.schemes import (
     Encuesta,
     EncuestaAsignacion,
     PreguntaEncuesta,
-    RespuestaEncuesta
+    RespuestaEncuesta,
+    Periodo,
+    AceptadoOferta
 )
 from werkzeug.utils import secure_filename
 from flasgger import swag_from
@@ -235,14 +237,36 @@ def evaluar_postulacion(id_postulacion):
         return jsonify({"error": "La postulación ya ha sido procesada"}), 400
     
     postulacion.estado_postulacion = nuevo_estado
-    
     db.session.commit()
+
+    # Si la postulación fue aprobada, registrar en AceptadoOferta con el periodo actual
+    if nuevo_estado == "aprobada":
+        # Buscar el periodo activo de la empresa de la oferta
+        periodo = Periodo.query.filter(
+            Periodo.id_empresa == oferta.id_empresa,
+            Periodo.estado == "activo"
+        ).first()
+        if periodo:
+            # Evitar duplicados
+            ya_aceptado = AceptadoOferta.query.filter_by(
+                id_oferta=id_oferta,
+                id_usuario=postulacion.id_candidato,
+                id_periodo=periodo.id_periodo
+            ).first()
+            if not ya_aceptado:
+                aceptado = AceptadoOferta(
+                    id_oferta=id_oferta,
+                    id_usuario=postulacion.id_candidato,
+                    id_periodo=periodo.id_periodo,
+                    fecha_aceptacion=datetime.now(timezone.utc)
+                )
+                db.session.add(aceptado)
+                db.session.commit()
     
     nombre_empresa = Empresa.query.get(oferta.id_empresa).nombre
     nombre_oferta = oferta.nombre
     
     enviar_notificacion_candidato(correo_candidato, nuevo_estado, nombre_empresa, nombre_oferta)
-    
     crear_notificacion(postulacion.id_candidato, f"Tu postulación a la oferta {nombre_oferta} ha sido {nuevo_estado}.")
     
     return jsonify({"message": f"Postulación {nuevo_estado} y notificación enviada"}), 200

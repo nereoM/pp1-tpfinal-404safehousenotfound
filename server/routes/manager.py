@@ -37,7 +37,8 @@ from models.schemes import (
     Encuesta,
     RespuestaEncuesta,
     PreguntaEncuesta,
-    EncuestaAsignacion
+    EncuestaAsignacion,
+    AceptadoOferta
 )
 from ml.desempeno_desarrollo.predictions import predecir_rend_futuro_individual, predecir_riesgo_despido_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_renuncia_individual, predecir_rot_post_individual
 
@@ -1596,7 +1597,7 @@ def obtener_cantidad_postulaciones(id_empleado):
         .scalar()
     )
     return cantidad
-    
+
 @manager_bp.route("/cerrar_oferta/<int:id_oferta>", methods=["PUT"])
 @role_required(["manager"])
 def cerrar_oferta(id_oferta):
@@ -1605,6 +1606,11 @@ def cerrar_oferta(id_oferta):
 
     if not manager:
         return jsonify({"error": "Manager no encontrado"}), 404
+    
+    # Obtener el admin de empresa o superior del manager
+    admin_emp = Usuario.query.filter_by(id=manager.id_superior).first()
+    if not admin_emp:
+        return jsonify({"error": "No se encontró el administrador de la empresa"}), 404
 
     oferta = Oferta_laboral.query.get(id_oferta)
     if not oferta:
@@ -1616,10 +1622,121 @@ def cerrar_oferta(id_oferta):
     if not oferta.is_active:
         return jsonify({"error": "La oferta ya está cerrada"}), 400
 
+    # Marcar la oferta como cerrada
     oferta.is_active = False
     db.session.commit()
 
-    return jsonify({"message": "Oferta cerrada exitosamente"}), 200
+    # Buscar el periodo activo de la empresa
+    periodo = Periodo.query.filter(
+        Periodo.id_empresa == oferta.id_empresa,
+        Periodo.estado == "activo"
+    ).first()
+
+    if not periodo:
+        return jsonify({"error": "No hay periodo activo para la empresa"}), 400
+
+    # Buscar aceptados por el reclutador para esta oferta y periodo
+    aceptados = AceptadoOferta.query.filter_by(
+        id_oferta=id_oferta,
+        id_periodo=periodo.id_periodo
+    ).all()
+
+    encuestas_creadas = []
+    for aceptado in aceptados:
+        usuario_aceptado = Usuario.query.get(aceptado.id_usuario)
+        if not usuario_aceptado:
+            continue
+
+        # Crear encuesta para el manager sobre este aceptado
+        encuesta = Encuesta(
+            tipo="evaluacion_aceptado",
+            titulo=f"Evaluación de desempeño de {usuario_aceptado.nombre} {usuario_aceptado.apellido}",
+            descripcion=f"Por favor, evalúe al postulante aceptado {usuario_aceptado.nombre} {usuario_aceptado.apellido} en la oferta '{oferta.nombre}'.",
+            creador_id=admin_emp.id,
+            es_anonima=False,
+            fecha_inicio=datetime.now(timezone.utc),
+            fecha_fin=datetime.now(timezone.utc) + timedelta(days=7),
+            estado="activa"
+        )
+        db.session.add(encuesta)
+        db.session.flush()  # Para obtener el id de la encuesta
+
+        # Asignar la encuesta al manager (puedes cambiar esto si quieres que la responda otro usuario)
+        asignacion = EncuestaAsignacion(
+            id_encuesta=encuesta.id,
+            id_usuario=id_manager,
+            tipo_asignacion="evaluacion_aceptado",
+            id_asignador=admin_emp.id,
+            area=None,
+            puesto_trabajo=manager.puesto_trabajo,
+            limpia=False
+        )
+        db.session.add(asignacion)
+
+        # Ejemplo de preguntas (puedes personalizar)
+        preguntas = [
+            {
+                "texto": "¿Cómo calificaría al postulante aceptado por uno de sus reclutadores?",
+                "tipo": "unica_opcion",
+                "opciones": ["Prometedor", "Bueno", "Inadecuado", "Malo"],
+                "es_requerida": True
+            },
+            {
+                "texto": "Comentarios adicionales sobre el postulante:",
+                "tipo": "texto",
+                "opciones": None,
+                "es_requerida": False
+            }
+        ]
+        for pregunta in preguntas:
+            pregunta_obj = PreguntaEncuesta(
+                id_encuesta=encuesta.id,
+                texto=pregunta["texto"],
+                tipo=pregunta["tipo"],
+                opciones=json.dumps(pregunta["opciones"]) if pregunta["opciones"] else None,
+                es_requerida=pregunta["es_requerida"]
+            )
+            db.session.add(pregunta_obj)
+
+        encuestas_creadas.append({
+            "id_encuesta": encuesta.id,
+            "aceptado": {
+                "id_usuario": usuario_aceptado.id,
+                "nombre": usuario_aceptado.nombre,
+                "apellido": usuario_aceptado.apellido
+            }
+        })
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Oferta cerrada exitosamente. Se han generado encuestas de evaluación para los aceptados.",
+        "encuestas_creadas": encuestas_creadas
+    }), 200
+    
+# @manager_bp.route("/cerrar_oferta/<int:id_oferta>", methods=["PUT"])
+# @role_required(["manager"])
+# def cerrar_oferta(id_oferta):
+#     id_manager = get_jwt_identity()
+#     manager = Usuario.query.get(id_manager)
+
+#     if not manager:
+#         return jsonify({"error": "Manager no encontrado"}), 404
+
+#     oferta = Oferta_laboral.query.get(id_oferta)
+#     if not oferta:
+#         return jsonify({"error": "Oferta no encontrada"}), 404
+
+#     if oferta.id_empresa != manager.id_empresa:
+#         return jsonify({"error": "No tenés permisos para cerrar esta oferta"}), 403
+
+#     if not oferta.is_active:
+#         return jsonify({"error": "La oferta ya está cerrada"}), 400
+
+#     oferta.is_active = False
+#     db.session.commit()
+
+#     return jsonify({"message": "Oferta cerrada exitosamente"}), 200
 
 # ESTA ERA LA ANTERIOR
 # @manager_bp.route("/licencias-mis-reclutadores", methods=["GET"])

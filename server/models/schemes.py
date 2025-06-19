@@ -404,3 +404,11 @@ class Tarea(db.Model):
     prioridad = db.Column(db.String(50), nullable=True)  # Ej: 'alta', 'media', 'baja'
     
     usuario = db.relationship("Usuario", backref="tareas")
+
+class AceptadoOferta(db.Model):
+    __tablename__ = "aceptados_oferta"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_oferta = db.Column(db.Integer, db.ForeignKey("ofertas_laborales.id"), nullable=False)
+    id_usuario = db.Column(db.Integer, db.ForeignKey("usuarios.id"), nullable=False)
+    id_periodo = db.Column(db.Integer, db.ForeignKey("periodos.id_periodo"), nullable=False)
+    fecha_aceptacion = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

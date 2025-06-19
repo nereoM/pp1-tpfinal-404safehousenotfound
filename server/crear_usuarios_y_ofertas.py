@@ -364,6 +364,7 @@ def crear_estructura_empresas_y_ofertas():
             confirmado=True,
             id_empresa=empresa.id,
             id_superior=admin_emp.id,
+            puesto_trabajo="manager"
         )
         db.session.add(manager)
         db.session.commit()
