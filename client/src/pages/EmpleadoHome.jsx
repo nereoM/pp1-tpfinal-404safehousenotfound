@@ -173,13 +173,13 @@ export default function EmpleadoHome() {
       descripcion: "Gestioná el desempeño de los empleados de tu área.",
       onClick: () => setModalGestionarDesempeño(true),
     },
-    {
+    jefeRoles.includes(user.puesto_trabajo) && {
       icon: FileLock,
       titulo: "Crear Encuesta",
       descripcion: "Diseñá encuestas para obtener feedback del personal.",
       onClick: () => setModalEncuesta(true),
     },
-    {
+    jefeRoles.includes(user.puesto_trabajo) && {
       icon: FileText,
       titulo: "Gestionar Encuestas",
       descripcion: "Administrá las encuestas creadas y sus resultados.",

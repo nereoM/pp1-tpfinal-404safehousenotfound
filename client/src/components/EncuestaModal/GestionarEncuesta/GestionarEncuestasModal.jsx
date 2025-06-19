@@ -18,7 +18,11 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
           return res.json();
         })
         .then((data) => {
-          setEncuestas(data);
+          // Si alguna encuesta no tiene campo estado, lo seteamos como "Abierta" por default
+          const encuestasConEstado = data.map((e) =>
+            e.estado ? e : { ...e, estado: "Abierta" }
+          );
+          setEncuestas(encuestasConEstado);
         })
         .catch((error) => {
           console.error(error);
@@ -28,7 +32,11 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
   }, [open]);
 
   const handleCerrarEncuesta = (id) => {
-    setEncuestas((prev) => prev.filter((e) => e.id !== id));
+    setEncuestas((prev) =>
+      prev.map((encuesta) =>
+        encuesta.id === id ? { ...encuesta, estado: "Cerrada" } : encuesta
+      )
+    );
   };
 
   const formatFecha = (iso) => {
@@ -50,7 +58,7 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
           {encuestas.map((encuesta) => (
             <div
               key={encuesta.id}
-              className="border rounded-lg p-4 shadow flex justify-between items-start gap-4"
+              className="border rounded-lg p-4 shadow flex justify-between items-start gap-4 bg-white"
             >
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-black">{encuesta.titulo}</h3>
@@ -62,8 +70,19 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
                   Tipo: {encuesta.tipo} | Anónima: {encuesta.anonima ? "Sí" : "No"} | Preguntas: {encuesta.preguntas.length}
                 </p>
               </div>
+
               <div className="flex flex-col items-end gap-2">
-                <div className="flex gap-2">
+                <span
+                  className={`text-xs font-semibold px-2 py-1 rounded-md ${
+                    encuesta.estado === "Cerrada"
+                      ? "bg-red-100 text-red-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {encuesta.estado === "Cerrada" ? "Cerrada" : "Abierta"}
+                </span>
+
+                <div className="flex gap-2 mt-1">
                   <button
                     className="px-3 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-sm"
                     onClick={() => {
@@ -73,12 +92,15 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
                   >
                     Ver encuesta
                   </button>
-                  <button
-                    className="px-3 py-1 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm"
-                    onClick={() => handleCerrarEncuesta(encuesta.id)}
-                  >
-                    Cerrar encuesta
-                  </button>
+
+                  {encuesta.estado !== "Cerrada" && (
+                    <button
+                      className="px-3 py-1 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm"
+                      onClick={() => handleCerrarEncuesta(encuesta.id)}
+                    >
+                      Cerrar encuesta
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -93,7 +115,7 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
 
         <div className="flex justify-end">
           <button
-            className="px-4 py-2 rounded-md text-white text-sm bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="px-4 py-2 rounded-md text-white text-sm bg-red-600 hover:bg-red-700"
             onClick={() => onOpenChange(false)}
           >
             Cerrar
