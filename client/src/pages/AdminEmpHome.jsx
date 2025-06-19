@@ -589,8 +589,8 @@ const obtenerLicencias = async () => {
           />
 
           {modalOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setModalOpen(false)}>
+              <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4" onClick={e => e.stopPropagation()}>
                 <h2 className="text-lg font-semibold" style={{ color: "#000" }}>
                   Nuevo Manager
                 </h2>
@@ -685,8 +685,8 @@ const obtenerLicencias = async () => {
           )}
 
           {modalSubirEmpleados && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalSubirEmpleados(false)}>
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
                 <SubirEmpleados onUpload={subirEmpleadosDesdeCSV} />
                 <div className="mt-6 text-right">
                   <button
@@ -701,8 +701,8 @@ const obtenerLicencias = async () => {
           )}
 
           {modalSubirMetricas && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalSubirMetricas(false)}>
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
                 <h2 className="text-lg font-semibold mb-4">
                   Subir Métricas de Desempeño
                 </h2>

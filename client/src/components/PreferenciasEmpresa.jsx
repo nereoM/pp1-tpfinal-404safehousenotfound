@@ -48,8 +48,8 @@ export default function PreferenciasEmpresa({ idEmpresa, onClose, estilosEmpresa
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-2xl space-y-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white p-6 rounded-lg w-full max-w-2xl space-y-4" onClick={e => e.stopPropagation()}>
         <h2 className="text-lg font-semibold" style={{ color: "black" }}>Editar preferencias de empresa</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
