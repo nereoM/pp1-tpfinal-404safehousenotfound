@@ -3,12 +3,13 @@ import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
 
 export function VerEncuestaModal({ open, onClose, encuesta }) {
   const [respuestasInfo, setRespuestasInfo] = useState(null);
+  const [respuestasEmpleado, setRespuestasEmpleado] = useState({});
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (open && encuesta?.id) {
       setLoading(true);
-      fetch(`/api/empleado/encuesta/${encuesta.id}/respuestas-info`, {
+      fetch(`/api/encuesta/${encuesta.id}/respuestas-info`, {
         method: "GET",
         credentials: "include",
       })
@@ -25,7 +26,15 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
     }
   }, [open, encuesta]);
 
-  if (!encuesta) return null;
+  const fetchRespuestasEmpleado = (id_empleado) => {
+    fetch(`/api/encuesta/${encuesta.id}/respuestas-empleado/${id_empleado}`, {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => setRespuestasEmpleado((prev) => ({ ...prev, [id_empleado]: data })))
+      .catch((err) => console.error("Error al obtener detalles del empleado:", err));
+  };
 
   const formatFecha = (iso) => {
     if (!iso) return "Sin fecha";
@@ -37,9 +46,11 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
     });
   };
 
+  if (!encuesta) return null;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl space-y-4">
+      <DialogContent className="max-w-3xl space-y-4">
         <DialogTitle className="text-xl font-bold text-black">{encuesta.titulo}</DialogTitle>
 
         <div className="space-y-1 text-sm text-gray-700">
@@ -65,6 +76,7 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
                   <tr>
                     <th className="px-3 py-2">Empleado</th>
                     <th className="px-3 py-2">Estado</th>
+                    <th className="px-3 py-2">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -72,16 +84,28 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
                     [...(respuestasInfo.respondieron || []), ...(respuestasInfo.no_respondieron || [])]
                       .map((usuario, i) => {
                         const respondio = respuestasInfo.respondieron?.some((u) => u.id === usuario.id);
+                        const respuestas = respuestasEmpleado[usuario.id];
+
                         return (
-                          <tr key={i} className="border-t">
-                            <td className="px-3 py-2">
-                              {usuario.nombre} {usuario.apellido}
+                          <tr key={i} className="border-t align-top">
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <span className="text-black">{usuario.nombre} {usuario.apellido}</span>
                             </td>
                             <td className="px-3 py-2">
                               {respondio ? (
                                 <span className="text-green-600 font-medium">Respondió</span>
                               ) : (
                                 <span className="text-red-600 font-medium">No respondió</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2">
+                              {respondio && (
+                                <button
+                                  onClick={() => fetchRespuestasEmpleado(usuario.id)}
+                                  className="text-blue-600 underline text-sm"
+                                >
+                                  Ver respuestas
+                                </button>
                               )}
                             </td>
                           </tr>
@@ -92,6 +116,19 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
             </div>
           )}
         </div>
+
+        {Object.values(respuestasEmpleado).map((detalle, i) => (
+          <div key={i} className="mt-6 border-t pt-4">
+            <h5 className="font-semibold text-black">Respuestas de: {detalle.empleado.nombre} {detalle.empleado.apellido}</h5>
+            <ul className="mt-2 text-sm text-gray-700 space-y-2">
+              {detalle.respuestas.map((r, idx) => (
+                <li key={idx} className="border rounded p-2 bg-gray-50">
+                  <b>{r.pregunta}</b>: {r.respuesta}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
 
         <div className="flex justify-end pt-4">
           <button

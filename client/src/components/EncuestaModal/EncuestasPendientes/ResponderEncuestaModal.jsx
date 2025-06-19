@@ -21,6 +21,7 @@ export default function ResponderEncuestaModal({
       })
         .then((res) => res.json())
         .then((data) => {
+          console.log("Preguntas recibidas:", data);
           setPreguntas(data.preguntas || []);
         })
         .catch((err) => {
@@ -30,7 +31,7 @@ export default function ResponderEncuestaModal({
     }
   }, [open, encuesta?.id_encuesta]);
 
-  const preguntaActual = preguntas[preguntaIndex];
+  const preguntaActual = preguntas[preguntaIndex] || null;
   const esUltima = preguntaIndex === preguntas.length - 1;
 
   const handleClose = () => {
@@ -41,31 +42,37 @@ export default function ResponderEncuestaModal({
   };
 
   const handleRespuesta = (respuesta) => {
-    setRespuestas({ ...respuestas, [preguntaActual.texto]: respuesta });
+    setRespuestas((prev) => ({
+      ...prev,
+      [preguntaActual?.texto]: respuesta,
+    }));
     setError(null);
   };
 
   const handleMultipleRespuesta = (opcion) => {
-    const prev = respuestas[preguntaActual.texto] || [];
+    const prev = respuestas[preguntaActual?.texto] || [];
     const nueva = prev.includes(opcion)
       ? prev.filter((o) => o !== opcion)
       : [...prev, opcion];
-    setRespuestas({ ...respuestas, [preguntaActual.texto]: nueva });
+    setRespuestas((prevState) => ({
+      ...prevState,
+      [preguntaActual?.texto]: nueva,
+    }));
     setError(null);
   };
 
   const handleComentario = (comentario) => {
-    setRespuestas({
-      ...respuestas,
-      [`${preguntaActual.texto}_comentario`]: comentario,
-    });
+    setRespuestas((prev) => ({
+      ...prev,
+      [`${preguntaActual?.texto}_comentario`]: comentario,
+    }));
   };
 
   const validarRespuesta = () => {
-    if (!preguntaActual.obligatoria) return true;
-    const respuesta = respuestas[preguntaActual.texto];
-    if (preguntaActual.tipo === "checkbox") return Array.isArray(respuesta) && respuesta.length > 0;
-    return !!respuesta;
+    if (!preguntaActual?.obligatoria) return true;
+    const respuesta = respuestas[preguntaActual?.texto];
+    if (preguntaActual?.tipo === "checkbox") return Array.isArray(respuesta) && respuesta.length > 0;
+    return respuesta !== undefined && respuesta !== null && respuesta !== "";
   };
 
   const handleSiguiente = () => {
@@ -84,10 +91,15 @@ export default function ResponderEncuestaModal({
         const pregunta = preguntas.find((p) => p.texto === preguntaTexto);
         return {
           id_pregunta: pregunta?.id,
-          respuesta,
+          respuesta: Array.isArray(respuesta) ? respuesta : String(respuesta),
           comentario: respuestas[`${preguntaTexto}_comentario`] ?? null
         };
       });
+
+    if (respuestasFormateadas.length === 0) {
+      setError("Debes enviar al menos una respuesta válida.");
+      return;
+    }
 
     try {
       const res = await fetch(`http://localhost:5000/api/responder-encuesta/${encuesta.id_encuesta}`, {
@@ -127,14 +139,16 @@ export default function ResponderEncuestaModal({
           {encuesta?.titulo || "Responder Encuesta"}
         </DialogTitle>
 
-        {preguntaActual && (
+        {!preguntaActual ? (
+          <div className="text-center text-gray-500 italic">Cargando preguntas...</div>
+        ) : (
           <div className="space-y-4">
             <h2 className="text-md font-semibold mb-2">
               {preguntaActual.texto}
               {preguntaActual.obligatoria && <span className="text-red-600"> *</span>}
             </h2>
 
-            {preguntaActual.tipo === "texto" ? (
+            {preguntaActual.tipo === "texto" && !preguntaActual.opciones?.length ? (
               <textarea
                 className="w-full p-2 border rounded"
                 placeholder="Escribí tu respuesta"
@@ -147,11 +161,11 @@ export default function ResponderEncuestaModal({
                     (Podés seleccionar más de una opción)
                   </div>
                 )}
-                {preguntaActual.opciones.map((op, idx) => (
+                {(preguntaActual.opciones || []).map((op, idx) => (
                   <label key={idx} className="flex items-center gap-2 border rounded px-3 py-2 shadow-sm cursor-pointer hover:bg-gray-50">
                     <input
-                      type={preguntaActual.tipo}
-                      name="opcion"
+                      type={preguntaActual.tipo === "checkbox" ? "checkbox" : "radio"}
+                      name={preguntaActual.texto}
                       value={op}
                       className="accent-blue-600"
                       checked={
@@ -168,6 +182,17 @@ export default function ResponderEncuestaModal({
                     <span>{op}</span>
                   </label>
                 ))}
+                {preguntaActual.tipo !== "texto" && (
+                  <label className="col-span-2">
+                    <span className="block text-sm mb-1">Otro:</span>
+                    <input
+                      type="text"
+                      className="w-full p-2 border rounded"
+                      placeholder="Escribí otra respuesta"
+                      onChange={(e) => handleRespuesta(e.target.value)}
+                    />
+                  </label>
+                )}
               </div>
             )}
 
