@@ -432,13 +432,29 @@ export default function EmpleadoHome() {
           )}
 
           {modalPostulaciones && (
-            <PostulacionesModal onClose={() => setModalPostulaciones(false)} />
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalPostulaciones(false)}
+            >
+              <div onClick={e => e.stopPropagation()}>
+                <PostulacionesModal onClose={() => setModalPostulaciones(false)} />
+              </div>
+            </div>
           )}
 
-          <GestionarDesempeñoEmpleadosModal
-            onOpenChange={setModalGestionarDesempeño}
-            open={modalGestionarDesempeño}
-          />
+          {modalGestionarDesempeño && (
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalGestionarDesempeño(false)}
+            >
+              <div onClick={e => e.stopPropagation()}>
+                <GestionarDesempeñoEmpleadosModal
+                  onOpenChange={setModalGestionarDesempeño}
+                  open={modalGestionarDesempeño}
+                />
+              </div>
+            </div>
+          )}
 
           <ModalParaEditarPerfil
             isOpen={modalEditarPefil}
@@ -450,28 +466,64 @@ export default function EmpleadoHome() {
             }}
             onFileSelect={setModalImageFile}
           />
+
           {modalEncuesta && (
-            <ModalEncuesta
-              open={modalEncuesta}
-              onOpenChange={setModalEncuesta}
-            />
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalEncuesta(false)}
+            >
+              <div onClick={e => e.stopPropagation()}>
+                <ModalEncuesta
+                  open={modalEncuesta}
+                  onOpenChange={setModalEncuesta}
+                />
+              </div>
+            </div>
           )}
 
-          <GestionarEncuestasModal
-            open={modalGestionEncuestas}
-            onOpenChange={setModalGestionEncuestas}
-          />
+          {modalGestionEncuestas && (
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalGestionEncuestas(false)}
+            >
+              <div onClick={e => e.stopPropagation()}>
+                <GestionarEncuestasModal
+                  open={modalGestionEncuestas}
+                  onOpenChange={setModalGestionEncuestas}
+                />
+              </div>
+            </div>
+          )}
 
-          <EncuestasPendientesModal
-            open={modalEncuestasPendientes}
-            onOpenChange={setModalEncuestasPendientes}
-          />
+          {modalEncuestasPendientes && (
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalEncuestasPendientes(false)}
+            >
+              <div onClick={e => e.stopPropagation()}>
+                <EncuestasPendientesModal
+                  open={modalEncuestasPendientes}
+                  onOpenChange={setModalEncuestasPendientes}
+                />
+              </div>
+            </div>
+          )}
 
-          <EncuestasRespondidasModal
-            open={modalEncuestasRespondidas}
-            onOpenChange={setModalEncuestasRespondidas}
-            encuestas={encuestasRespondidas}
-          />
+          {modalEncuestasRespondidas && (
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalEncuestasRespondidas(false)}
+            >
+              <div onClick={e => e.stopPropagation()}>
+                <EncuestasRespondidasModal
+                  open={modalEncuestasRespondidas}
+                  onOpenChange={setModalEncuestasRespondidas}
+                  encuestas={encuestasRespondidas}
+                />
+              </div>
+            </div>
+          )}
+
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>
@@ -483,9 +535,8 @@ const Toast = ({ message, type, onClose }) => (
     initial={{ opacity: 0, y: -10 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -10 }}
-    className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${
-      type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
-    }`}
+    className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
+      }`}
   >
     {type === "success"}
     <span>{message}</span>
