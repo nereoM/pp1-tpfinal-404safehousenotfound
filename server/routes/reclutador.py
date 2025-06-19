@@ -238,30 +238,6 @@ def evaluar_postulacion(id_postulacion):
     
     postulacion.estado_postulacion = nuevo_estado
     db.session.commit()
-
-    # Si la postulación fue aprobada, registrar en AceptadoOferta con el periodo actual
-    if nuevo_estado == "aprobada":
-        # Buscar el periodo activo de la empresa de la oferta
-        periodo = Periodo.query.filter(
-            Periodo.id_empresa == oferta.id_empresa,
-            Periodo.estado == "activo"
-        ).first()
-        if periodo:
-            # Evitar duplicados
-            ya_aceptado = AceptadoOferta.query.filter_by(
-                id_oferta=id_oferta,
-                id_usuario=postulacion.id_candidato,
-                id_periodo=periodo.id_periodo
-            ).first()
-            if not ya_aceptado:
-                aceptado = AceptadoOferta(
-                    id_oferta=id_oferta,
-                    id_usuario=postulacion.id_candidato,
-                    id_periodo=periodo.id_periodo,
-                    fecha_aceptacion=datetime.now(timezone.utc)
-                )
-                db.session.add(aceptado)
-                db.session.commit()
     
     nombre_empresa = Empresa.query.get(oferta.id_empresa).nombre
     nombre_oferta = oferta.nombre
