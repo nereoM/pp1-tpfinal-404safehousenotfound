@@ -34,6 +34,7 @@ export default function CandidatoHome() {
     const [username, setUsername] = useState("");
     const [modalImageFile, setModalImageFile] = useState(null);   
     const [isPostulacionesModalOpen, setIsPostulacionesModalOpen] = useState(false);
+    const [isPostulando, setIsPostulando] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -233,6 +234,7 @@ const handlePostularse = async () => {
   if (!cvSeleccionado) {
     return addToast("Elegí un CV para completar tu postulación", "error");
   }
+  setIsPostulando(true);
   try {
     const res = await fetch(
       `${API_URL}/api/postularme/${idOfertaSeleccionada}`,
@@ -256,6 +258,8 @@ const handlePostularse = async () => {
     }
   } catch (err) {
     addToast("Error de conexión al postularse", "error");
+  } finally {
+    setIsPostulando(false);
   }
 };
 
@@ -442,8 +446,8 @@ const handlePostularse = async () => {
                 </div>
 
                 {modalOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4">
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setModalOpen(false)}>
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg space-y-4" onClick={e => e.stopPropagation()}>
                             <h2 className="text-lg font-semibold">Postularse a la oferta</h2>
 
                             <label className="block text-sm text-gray-600 mb-1">Seleccioná un CV</label>
@@ -484,7 +488,9 @@ const handlePostularse = async () => {
 
                             <div className="flex justify-end gap-2 mt-5">
                                 <button onClick={() => setModalOpen(false)} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Cancelar</button>
-                                <button onClick={handlePostularse} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Confirmar</button>
+                                <button onClick={handlePostularse} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700" disabled={isPostulando}>
+                                  {isPostulando ? "Enviando..." : "Confirmar"}
+                                </button>
                             </div>
                         </div>
                     </div>
