@@ -22,11 +22,16 @@ from models.schemes import (
     RendimientoEmpleado,
     Rol,
     UsuarioRol,
-    Tarea
+    Tarea,
+    Encuesta,
+    EncuestaAsignacion,
+    PreguntaEncuesta,
+    RespuestaEncuesta
 )
 from werkzeug.utils import secure_filename
 from flasgger import swag_from
 from ml.desempeno_desarrollo.predictions import predecir_rot_post_individual
+from sqlalchemy.exc import SQLAlchemyError
 
 reclutador_bp = Blueprint("reclutador", __name__)
 
@@ -1785,6 +1790,380 @@ def crear_notificacion_uso_especifico(id_usuario, mensaje):
         mensaje=mensaje,
     )
     db.session.add(notificacion)
+
+@reclutador_bp.route("/crear-encuesta/reclutador", methods=["POST"])
+@role_required(["reclutador"])
+def crear_encuesta_completa():
+    """
+    Permite a un reclutador crear una encuesta, asignarla y agregar preguntas en un solo endpoint.
+    """
+    area_jefes = {
+        "Jefe de Tecnología y Desarrollo": [
+            "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer", "DevOps Engineer",
+            "Data Engineer", "Ingeniero de Machine Learning", "Analista de Datos", "QA Automation Engineer",
+            "Soporte Técnico", "Administrador de Base de Datos", "Administrador de Redes", "Especialista en Seguridad Informática",
+        ],
+        "Jefe de Administración y Finanzas": [
+            "Analista Contable", "Contador Público", "Analista de Finanzas", "Administrativo/a", "Asistente Contable",
+        ],
+        "Jefe Comercial y de Ventas": [
+            "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial", "Supervisor de Ventas", "Asesor Comercial",
+        ],
+        "Jefe de Marketing y Comunicación": [
+            "Especialista en Marketing Digital", "Analista de Marketing", "Community Manager", "Diseñador Gráfico", "Responsable de Comunicación",
+        ],
+        "Jefe de Industria y Producción": [
+            "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta", "Ingeniero de Procesos", "Encargado de Logística",
+        ],
+        "Jefe de Servicios Generales y Gastronomía": [
+            "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza",
+        ],
+    }
+
+    data = request.get_json()
+    # 1. Datos de la encuesta
+    tipo = data.get("tipo")
+    titulo = data.get("titulo")
+    descripcion = data.get("descripcion")
+    anonima = data.get("anonima")
+    fecha_inicio = data.get("fecha_inicio")
+    fecha_fin = data.get("fecha_fin")
+    # 2. Asignación
+    emails = data.get("emails")  # lista de correos
+    email = data.get("email")
+    area = data.get("area")
+    todos_jefes = data.get("todos_jefes", False)
+    todos_empleados = data.get("todos_empleados", False)
+    # 3. Preguntas
+    preguntas = data.get("preguntas", [])
+
+    # Validaciones de campos requeridos
+    if not all([tipo, titulo, anonima is not None, fecha_inicio, fecha_fin]):
+        return jsonify({"error": "Faltan campos requeridos para la encuesta"}), 400
+
+    id_reclutador = get_jwt_identity()
+    reclutador = Usuario.query.get(id_reclutador)
+    if not reclutador:
+        return jsonify({"error": "Reclutador no encontrado"}), 404
+
+    # Validar fechas
+    try:
+        fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+    except Exception:
+        return jsonify({"error": "Formato de fecha inválido (YYYY-MM-DD)"}), 400
+
+    hoy = date.today()
+    if fecha_inicio_dt < hoy or fecha_fin_dt < hoy:
+        return jsonify({"error": "No se pueden elegir fechas pasadas"}), 400
+    if fecha_fin_dt < fecha_inicio_dt:
+        return jsonify({"error": "La fecha de fin no puede ser anterior a la de inicio"}), 400
+
+    estado = "activa" if fecha_inicio_dt == hoy else "pendiente"
+
+    try:
+        # Crear la encuesta
+        encuesta = Encuesta(
+            tipo=tipo,
+            titulo=titulo,
+            descripcion=descripcion,
+            es_anonima=bool(anonima),
+            fecha_inicio=fecha_inicio_dt,
+            fecha_fin=fecha_fin_dt,
+            creador_id=id_reclutador,
+            estado=estado,
+        )
+        db.session.add(encuesta)
+        db.session.flush()  # Para obtener el id de la encuesta
+
+        asignaciones = []
+        # Asignación
+        if todos_jefes:
+            # Asignar a todos los jefes de área de la empresa
+            jefes = Usuario.query.filter(
+                Usuario.id_empresa == reclutador.id_empresa,
+                Usuario.puesto_trabajo.in_(area_jefes.keys())
+            ).all()
+            for jefe_area in jefes:
+                asignacion = EncuestaAsignacion(
+                    id_encuesta=encuesta.id,
+                    id_usuario=jefe_area.id,
+                    area=None,
+                    puesto_trabajo=jefe_area.puesto_trabajo,
+                    tipo_asignacion="todos_jefes",
+                    id_asignador=id_reclutador,
+                    limpia=False
+                )
+                db.session.add(asignacion)
+                asignaciones.append(jefe_area.correo)
+        elif todos_empleados:
+            # Asignar a todos los empleados que NO son jefes de área
+            empleados = Usuario.query.filter(
+                Usuario.id_empresa == reclutador.id_empresa,
+                ~Usuario.puesto_trabajo.in_(area_jefes.keys())
+            ).all()
+            for emp in empleados:
+                asignacion = EncuestaAsignacion(
+                    id_encuesta=encuesta.id,
+                    id_usuario=emp.id,
+                    area=None,
+                    puesto_trabajo=emp.puesto_trabajo,
+                    tipo_asignacion="todos_empleados",
+                    id_asignador=id_reclutador,
+                    limpia=False
+                )
+                db.session.add(asignacion)
+                asignaciones.append(emp.correo)
+        elif emails and isinstance(emails, list):
+            # Múltiples emails (pueden ser jefes o empleados)
+            for correo in emails:
+                usuario = Usuario.query.filter_by(correo=correo, id_empresa=reclutador.id_empresa).first()
+                if not usuario:
+                    db.session.rollback()
+                    return jsonify({"error": f"Usuario no encontrado: {correo}"}), 404
+                asignacion = EncuestaAsignacion(
+                    id_encuesta=encuesta.id,
+                    id_usuario=usuario.id,
+                    area=None,
+                    puesto_trabajo=usuario.puesto_trabajo,
+                    tipo_asignacion="email_multiple",
+                    id_asignador=id_reclutador,
+                    limpia=False
+                )
+                db.session.add(asignacion)
+                asignaciones.append(usuario.correo)
+        elif email:
+            # Individual (puede ser jefe o empleado)
+            usuario = Usuario.query.filter_by(correo=email, id_empresa=reclutador.id_empresa).first()
+            if not usuario:
+                db.session.rollback()
+                return jsonify({"error": "Usuario no encontrado"}), 404
+            asignacion = EncuestaAsignacion(
+                id_encuesta=encuesta.id,
+                id_usuario=usuario.id,
+                area=None,
+                puesto_trabajo=usuario.puesto_trabajo,
+                tipo_asignacion="email",
+                id_asignador=id_reclutador,
+                limpia=False
+            )
+            db.session.add(asignacion)
+            asignaciones.append(usuario.correo)
+        elif area:
+            # Un área (todos los empleados de esa área)
+            if area not in area_jefes:
+                db.session.rollback()
+                return jsonify({"error": "Área no válida"}), 400
+            empleados = Usuario.query.filter(
+                Usuario.id_empresa == reclutador.id_empresa,
+                Usuario.puesto_trabajo.in_(area_jefes[area])
+            ).all()
+            for emp in empleados:
+                asignacion = EncuestaAsignacion(
+                    id_encuesta=encuesta.id,
+                    id_usuario=emp.id,
+                    area=area,
+                    puesto_trabajo=emp.puesto_trabajo,
+                    tipo_asignacion="area",
+                    id_asignador=id_reclutador,
+                    limpia=False
+                )
+                db.session.add(asignacion)
+                asignaciones.append(emp.correo)
+        else:
+            db.session.rollback()
+            return jsonify({"error": "Debes indicar emails, email, area, todos_jefes o todos_empleados para la asignación"}), 400
+
+        # Preguntas
+        preguntas_creadas = []
+        for pregunta in preguntas:
+            texto = pregunta.get("texto")
+            tipo_preg = pregunta.get("tipo")
+            opciones = pregunta.get("opciones")
+            es_requerida = pregunta.get("es_requerida")
+            if not all([texto, tipo_preg, es_requerida is not None]):
+                db.session.rollback()
+                return jsonify({"error": "Faltan campos requeridos en una pregunta"}), 400
+            if tipo_preg in ["opcion_multiple", "unica_opcion"]:
+                if not opciones or not isinstance(opciones, list) or not all(isinstance(o, str) for o in opciones):
+                    db.session.rollback()
+                    return jsonify({"error": "Debes enviar una lista de opciones de respuesta"}), 400
+                opciones_json = json.dumps(opciones)
+            else:
+                opciones_json = None
+            pregunta_obj = PreguntaEncuesta(
+                id_encuesta=encuesta.id,
+                texto=texto,
+                tipo=tipo_preg,
+                opciones=opciones_json,
+                es_requerida=bool(es_requerida)
+            )
+            db.session.add(pregunta_obj)
+            db.session.flush()
+            preguntas_creadas.append({
+                "id": pregunta_obj.id,
+                "texto": texto,
+                "tipo": tipo_preg,
+                "opciones": opciones if opciones_json else None,
+                "es_requerida": bool(es_requerida)
+            })
+
+        db.session.commit()
+        return jsonify({
+            "message": "Encuesta creada, asignada y preguntas agregadas exitosamente",
+            "encuesta": {
+                "id": encuesta.id,
+                "tipo": encuesta.tipo,
+                "titulo": encuesta.titulo,
+                "descripcion": encuesta.descripcion,
+                "anonima": encuesta.es_anonima,
+                "fecha_inicio": encuesta.fecha_inicio.isoformat(),
+                "fecha_fin": encuesta.fecha_fin.isoformat(),
+                "estado": encuesta.estado,
+            },
+            "asignados": asignaciones,
+            "preguntas": preguntas_creadas
+        }), 201
+
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error de base de datos: {str(e)}"}), 500
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
+
+@empleado_bp.route("/obtener-encuestas-creadas", methods=["GET"])
+@role_required(["empleado"])
+def obtener_encuestas_jefe():
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    # Solo jefes pueden acceder
+    area_jefes = [
+        "Jefe de Tecnología y Desarrollo",
+        "Jefe de Administración y Finanzas",
+        "Jefe Comercial y de Ventas",
+        "Jefe de Marketing y Comunicación",
+        "Jefe de Industria y Producción",
+        "Jefe de Servicios Generales y Gastronomía",
+    ]
+    if jefe.puesto_trabajo not in area_jefes:
+        return jsonify({"error": "No tienes permisos para ver encuestas de jefe"}), 403
+
+    encuestas = Encuesta.query.filter_by(creador_id=id_jefe).order_by(Encuesta.fecha_inicio.desc()).all()
+    resultado = []
+    for encuesta in encuestas:
+        # Obtener asignaciones y preguntas
+        asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=encuesta.id).all()
+        preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=encuesta.id).all()
+        resultado.append({
+            "id": encuesta.id,
+            "tipo": encuesta.tipo,
+            "titulo": encuesta.titulo,
+            "descripcion": encuesta.descripcion,
+            "anonima": encuesta.es_anonima,
+            "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+            "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+            "estado": encuesta.estado,
+            "asignaciones": [
+                {
+                    "id_usuario": a.id_usuario,
+                    "area": a.area,
+                    "puesto_trabajo": a.puesto_trabajo,
+                    "tipo_asignacion": a.tipo_asignacion
+                } for a in asignaciones
+            ],
+            "preguntas": [
+                {
+                    "id": p.id,
+                    "texto": p.texto,
+                    "tipo": p.tipo,
+                    "opciones": json.loads(p.opciones) if p.opciones else None,
+                    "es_requerida": p.es_requerida
+                } for p in preguntas
+            ]
+        })
+    return jsonify(resultado), 200
+
+@empleado_bp.route("/obtener-encuestas-asignadas", methods=["GET"])
+@role_required(["empleado"])
+def obtener_encuestas_asignadas():
+    """
+    Devuelve todas las encuestas asignadas al empleado autenticado.
+    """
+    id_empleado = get_jwt_identity()
+    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_empleado).all()
+
+    if not asignaciones:
+        return jsonify({"message": "No tienes encuestas asignadas"}), 404
+
+    resultado = []
+    for asignacion in asignaciones:
+        encuesta = Encuesta.query.get(asignacion.id_encuesta)
+        if encuesta:
+            resultado.append({
+                "id_encuesta": encuesta.id,
+                "titulo": encuesta.titulo,
+                "descripcion": encuesta.descripcion,
+                "tipo": encuesta.tipo,
+                "anonima": encuesta.es_anonima,
+                "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+                "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+                "estado": encuesta.estado,
+                "asignacion": {
+                    "tipo_asignacion": asignacion.tipo_asignacion,
+                    "area": asignacion.area,
+                    "puesto_trabajo": asignacion.puesto_trabajo
+                }
+            })
+
+    return jsonify(resultado), 200
+
+@empleado_bp.route("/encuesta-asignada/<int:id_encuesta>", methods=["GET"])
+@role_required(["empleado"])
+def obtener_encuesta_asignada_detalle(id_encuesta):
+    """
+    Devuelve toda la información de una encuesta asignada al empleado autenticado, incluyendo preguntas y detalles de asignación.
+    """
+    id_empleado = get_jwt_identity()
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_empleado).first()
+    if not asignacion:
+        return jsonify({"error": "No tienes esta encuesta asignada"}), 404
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_info = [
+        {
+            "id": p.id,
+            "texto": p.texto,
+            "tipo": p.tipo,
+            "opciones": json.loads(p.opciones) if p.opciones else None,
+            "es_requerida": p.es_requerida
+        }
+        for p in preguntas
+    ]
+
+    return jsonify({
+        "id_encuesta": encuesta.id,
+        "titulo": encuesta.titulo,
+        "descripcion": encuesta.descripcion,
+        "tipo": encuesta.tipo,
+        "anonima": encuesta.es_anonima,
+        "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+        "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+        "estado": encuesta.estado,
+        "asignacion": {
+            "tipo_asignacion": asignacion.tipo_asignacion,
+            "area": asignacion.area,
+            "puesto_trabajo": asignacion.puesto_trabajo
+        },
+        "preguntas": preguntas_info
+    }), 200
 
 @reclutador_bp.route("/mis-tareas-reclutador", methods=["GET"])
 @role_required(["reclutador"])

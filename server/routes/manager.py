@@ -3211,3 +3211,34 @@ def eliminar_tarea(id_tarea):
     db.session.commit()
     
     return jsonify({"message": "Tarea eliminada exitosamente"}), 200
+
+@manager_bp.route("/mis-reclutadores", methods=["GET"])
+@role_required(["manager"])
+def obtener_mis_reclutadores():
+    """
+    Devuelve la lista de reclutadores a cargo del manager autenticado.
+    """
+    id_manager = get_jwt_identity()
+    # Reclutadores a cargo del manager
+    reclutadores = (
+        db.session.query(Usuario)
+        .join(UsuarioRol, Usuario.id == UsuarioRol.id_usuario)
+        .join(Rol, UsuarioRol.id_rol == Rol.id)
+        .filter(Usuario.id_superior == id_manager)
+        .filter(Rol.slug == "reclutador")
+        .all()
+    )
+
+    resultado = [
+        {
+            "id": r.id,
+            "nombre": r.nombre,
+            "apellido": r.apellido,
+            "correo": r.correo,
+            "username": r.username,
+            "activo": r.activo,
+        }
+        for r in reclutadores
+    ]
+
+    return jsonify({"reclutadores": resultado}), 200
