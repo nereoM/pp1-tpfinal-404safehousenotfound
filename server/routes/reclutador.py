@@ -2032,27 +2032,15 @@ def crear_encuesta_completa():
         db.session.rollback()
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
 
-@empleado_bp.route("/obtener-encuestas-creadas", methods=["GET"])
-@role_required(["empleado"])
+@reclutador_bp.route("/obtener-encuestas-creadas/reclutador", methods=["GET"])
+@role_required(["reclutador"])
 def obtener_encuestas_jefe():
-    id_jefe = get_jwt_identity()
-    jefe = Usuario.query.get(id_jefe)
-    if not jefe:
+    id_reclutador = get_jwt_identity()
+    reclutador = Usuario.query.get(id_reclutador)
+    if not reclutador:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
-    # Solo jefes pueden acceder
-    area_jefes = [
-        "Jefe de Tecnología y Desarrollo",
-        "Jefe de Administración y Finanzas",
-        "Jefe Comercial y de Ventas",
-        "Jefe de Marketing y Comunicación",
-        "Jefe de Industria y Producción",
-        "Jefe de Servicios Generales y Gastronomía",
-    ]
-    if jefe.puesto_trabajo not in area_jefes:
-        return jsonify({"error": "No tienes permisos para ver encuestas de jefe"}), 403
-
-    encuestas = Encuesta.query.filter_by(creador_id=id_jefe).order_by(Encuesta.fecha_inicio.desc()).all()
+    encuestas = Encuesta.query.filter_by(creador_id=id_reclutador).order_by(Encuesta.fecha_inicio.desc()).all()
     resultado = []
     for encuesta in encuestas:
         # Obtener asignaciones y preguntas
@@ -2087,14 +2075,14 @@ def obtener_encuestas_jefe():
         })
     return jsonify(resultado), 200
 
-@empleado_bp.route("/obtener-encuestas-asignadas", methods=["GET"])
-@role_required(["empleado"])
+@reclutador_bp.route("/obtener-encuestas-asignadas/reclutador", methods=["GET"])
+@role_required(["reclutador"])
 def obtener_encuestas_asignadas():
     """
-    Devuelve todas las encuestas asignadas al empleado autenticado.
+    Devuelve todas las encuestas asignadas al reclutador autenticado.
     """
-    id_empleado = get_jwt_identity()
-    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_empleado).all()
+    id_reclutador = get_jwt_identity()
+    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_reclutador).all()
 
     if not asignaciones:
         return jsonify({"message": "No tienes encuestas asignadas"}), 404
@@ -2114,21 +2102,21 @@ def obtener_encuestas_asignadas():
                 "estado": encuesta.estado,
                 "asignacion": {
                     "tipo_asignacion": asignacion.tipo_asignacion,
-                    "area": asignacion.area,
-                    "puesto_trabajo": asignacion.puesto_trabajo
+                    "area": asignacion.area, # esto no lo va a tener el reclutador me parece
+                    "puesto_trabajo": asignacion.puesto_trabajo # esto tampoco
                 }
             })
 
     return jsonify(resultado), 200
 
-@empleado_bp.route("/encuesta-asignada/<int:id_encuesta>", methods=["GET"])
-@role_required(["empleado"])
+@reclutador_bp.route("/encuesta-asignada/<int:id_encuesta>/reclutador", methods=["GET"])
+@role_required(["reclutador"])
 def obtener_encuesta_asignada_detalle(id_encuesta):
     """
-    Devuelve toda la información de una encuesta asignada al empleado autenticado, incluyendo preguntas y detalles de asignación.
+    Devuelve toda la información de una encuesta asignada al reclutador autenticado, incluyendo preguntas y detalles de asignación.
     """
-    id_empleado = get_jwt_identity()
-    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_empleado).first()
+    id_reclutador = get_jwt_identity()
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_reclutador).first()
     if not asignacion:
         return jsonify({"error": "No tienes esta encuesta asignada"}), 404
 
@@ -2159,10 +2147,224 @@ def obtener_encuesta_asignada_detalle(id_encuesta):
         "estado": encuesta.estado,
         "asignacion": {
             "tipo_asignacion": asignacion.tipo_asignacion,
-            "area": asignacion.area,
-            "puesto_trabajo": asignacion.puesto_trabajo
+            "area": asignacion.area, #
+            "puesto_trabajo": asignacion.puesto_trabajo #
         },
         "preguntas": preguntas_info
+    }), 200
+
+@reclutador_bp.route("/responder-encuesta/<int:id_encuesta>/reclutador", methods=["POST"])
+@role_required(["reclutador"])
+def responder_encuesta(id_encuesta):
+    """
+    Permite a un reclutador responder una encuesta asignada.
+    Espera un JSON con {"respuestas": [{"id_pregunta": int, "respuesta": ...}, ...]}
+    """
+    id_reclutador = get_jwt_identity()
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_reclutador).first()
+    if not asignacion:
+        return jsonify({"error": "No tienes esta encuesta asignada"}), 403
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    if encuesta.estado not in ["activa"]:
+        return jsonify({"error": "La encuesta no está activa"}), 400
+
+    data = request.get_json()
+    respuestas = data.get("respuestas")
+    if not respuestas or not isinstance(respuestas, list):
+        return jsonify({"error": "Debes enviar una lista de respuestas"}), 400
+
+    preguntas = {p.id: p for p in PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()}
+    preguntas_requeridas = {p.id for p in preguntas.values() if p.es_requerida}
+
+    respondidas = set()
+    for r in respuestas:
+        id_pregunta = r.get("id_pregunta")
+        respuesta = r.get("respuesta")
+        if id_pregunta not in preguntas:
+            return jsonify({"error": f"Pregunta {id_pregunta} inválida"}), 400
+        if preguntas[id_pregunta].es_requerida and (respuesta is None or respuesta == ""):
+            return jsonify({"error": f"La pregunta {id_pregunta} es requerida"}), 400
+        # Validar opciones si corresponde
+        if preguntas[id_pregunta].tipo in ["opcion_multiple", "unica_opcion"]:
+            opciones = json.loads(preguntas[id_pregunta].opciones or "[]")
+            if isinstance(respuesta, list):
+                if not all(opt in opciones for opt in respuesta):
+                    return jsonify({"error": f"Respuesta inválida para la pregunta {id_pregunta}"}), 400
+            else:
+                if respuesta not in opciones:
+                    return jsonify({"error": f"Respuesta inválida para la pregunta {id_pregunta}"}), 400
+        respondidas.add(id_pregunta)
+
+    # Verificar que todas las requeridas estén respondidas
+    if not preguntas_requeridas.issubset(respondidas):
+        return jsonify({"error": "Debes responder todas las preguntas requeridas"}), 400
+
+    # Guardar respuestas
+    for r in respuestas:
+        id_pregunta = r["id_pregunta"]
+        respuesta = r["respuesta"]
+        # Si la respuesta es lista, guardar como JSON string
+        if isinstance(respuesta, list):
+            respuesta_db = json.dumps(respuesta)
+        else:
+            respuesta_db = str(respuesta)
+        nueva_respuesta = RespuestaEncuesta(
+            id_pregunta=id_pregunta,
+            id_usuario=id_reclutador,
+            respuesta=respuesta_db,
+            fecha_respuesta=datetime.now(timezone.utc)
+        )
+        db.session.add(nueva_respuesta)
+
+    db.session.commit()
+    return jsonify({"message": "Respuestas guardadas correctamente"}), 201
+
+@reclutador_bp.route("/encuesta/<int:id_encuesta>/respuestas-info/reclutador", methods=["GET"])
+@role_required(["reclutador"])
+def estado_respuestas_encuesta(id_encuesta):
+    """
+    Devuelve para una encuesta creada por el reclutador:
+    - Si es anónima: solo totales y lista de no respondieron (sin lista de respondieron)
+    - Si NO es anónima: totales y listas completas
+    """
+    id_reclutador = get_jwt_identity()
+    reclutador = Usuario.query.get(id_reclutador)
+    if not reclutador:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+    if encuesta.creador_id != reclutador.id:
+        return jsonify({"error": "No tienes permisos para ver esta información"}), 403
+
+    asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_ids = [p.id for p in preguntas]
+    respuestas = (
+        RespuestaEncuesta.query
+        .filter(RespuestaEncuesta.id_pregunta.in_(preguntas_ids))
+        .with_entities(RespuestaEncuesta.id_usuario)
+        .distinct()
+        .all()
+    )
+    respondieron_ids = {r.id_usuario for r in respuestas}
+
+    respondieron = []
+    no_respondieron = []
+    for asignacion in asignaciones:
+        usuario = Usuario.query.get(asignacion.id_usuario)
+        if not usuario:
+            continue
+        if encuesta.es_anonima:
+            info = {
+                "id": usuario.id,
+                "nombre": "Empleado Anónimo",
+                "apellido": "",
+                "correo": None,
+                "puesto_trabajo": usuario.puesto_trabajo
+            }
+        else:
+            info = {
+                "id": usuario.id,
+                "nombre": usuario.nombre,
+                "apellido": usuario.apellido,
+                "correo": usuario.correo,
+                "puesto_trabajo": usuario.puesto_trabajo
+            }
+        if usuario.id in respondieron_ids:
+            respondieron.append(info)
+        else:
+            no_respondieron.append(info)
+
+    if encuesta.es_anonima:
+        # Mostrar ambas listas pero con nombres anónimos
+        return jsonify({
+            "total_asignados": len(asignaciones),
+            "total_respondieron": len(respondieron),
+            "total_no_respondieron": len(no_respondieron),
+            "respondieron": respondieron,
+            "no_respondieron": no_respondieron
+        }), 200
+    else:
+        # Mostrar ambas listas con datos reales
+        return jsonify({
+            "total_asignados": len(asignaciones),
+            "total_respondieron": len(respondieron),
+            "total_no_respondieron": len(no_respondieron),
+            "respondieron": respondieron,
+            "no_respondieron": no_respondieron
+        }), 200
+
+@reclutador_bp.route("/encuesta/<int:id_encuesta>/respuestas-empleado/<int:id_empleado>/reclutador", methods=["GET"])
+@role_required(["reclutador"])
+def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
+    """
+    Permite al reclutador ver las respuestas de un empleado a una encuesta, 
+    mostrando datos reales solo si la encuesta no es anónima.
+    """
+    id_reclutador = get_jwt_identity()
+    reclutador = Usuario.query.get(id_reclutador)
+    if not reclutador:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+    if encuesta.creador_id != reclutador.id:
+        return jsonify({"error": "No tienes permisos para ver esta información"}), 403
+
+    # Verificar que el empleado esté asignado a la encuesta
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_empleado).first()
+    if not asignacion:
+        return jsonify({"error": "El empleado no está asignado a esta encuesta"}), 404
+
+    usuario = Usuario.query.get(id_empleado)
+    if not usuario:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_dict = {p.id: p for p in preguntas}
+
+    respuestas = (
+        RespuestaEncuesta.query
+        .filter_by(id_usuario=id_empleado)
+        .filter(RespuestaEncuesta.id_pregunta.in_([p.id for p in preguntas]))
+        .all()
+    )
+
+    respuestas_info = []
+    for r in respuestas:
+        pregunta = preguntas_dict.get(r.id_pregunta)
+        respuestas_info.append({
+            "id_pregunta": r.id_pregunta,
+            "pregunta": pregunta.texto if pregunta else None,
+            "respuesta": r.respuesta,
+            "fecha_respuesta": r.fecha_respuesta.isoformat() if r.fecha_respuesta else None
+        })
+
+    if encuesta.es_anonima:
+        empleado_info = {
+            "id": usuario.id,
+            "nombre": "Empleado Anónimo",
+            "apellido": "",
+            "correo": None,
+            "puesto_trabajo": usuario.puesto_trabajo
+        }
+    else:
+        empleado_info = {
+            "id": usuario.id,
+            "nombre": usuario.nombre,
+            "apellido": usuario.apellido,
+            "correo": usuario.correo,
+            "puesto_trabajo": usuario.puesto_trabajo
+        }
+
+    return jsonify({
+        "empleado": empleado_info,
+        "respuestas": respuestas_info
     }), 200
 
 @reclutador_bp.route("/mis-tareas-reclutador", methods=["GET"])
