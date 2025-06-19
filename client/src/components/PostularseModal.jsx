@@ -5,13 +5,14 @@ export function PostularseModal({ cvs, onClose, idOferta, addToast }) {
   const [cvSeleccionado, setCvSeleccionado] = useState(null);
   const [salarioPretendido, setSalarioPretendido] = useState(0);
   const [mensajeError, setMensajeError] = useState("");
+  const [enviando, setEnviando] = useState(false); 
 
   const handlePostularse = () => {
     if (!cvSeleccionado) {
       addToast("Elegí un CV para completar tu postulación", "error");
       return;
     }
-
+    setEnviando(true); 
     empleadoService
       .postularse({ idCv: cvSeleccionado, idOferta })
       .then(() => {
@@ -20,6 +21,9 @@ export function PostularseModal({ cvs, onClose, idOferta, addToast }) {
       })
       .catch((err) => {
         addToast("Error: " + (err.message || "desconocido"));
+      })
+      .finally(() => {
+        setEnviando(false); 
       });
   };
 
@@ -82,14 +86,16 @@ export function PostularseModal({ cvs, onClose, idOferta, addToast }) {
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+            disabled={enviando}
           >
             Cancelar
           </button>
           <button
             onClick={handlePostularse}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-60"
+            disabled={enviando}
           >
-            Confirmar
+            {enviando ? "Enviando..." : "Confirmar"}
           </button>
         </div>
       </div>
