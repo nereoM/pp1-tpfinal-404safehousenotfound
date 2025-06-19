@@ -8,8 +8,8 @@ export default function GestionUsuarios({ onClose, textColor , service }) {
   const [mensajeExito, setMensajeExito] = useState("");
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-5xl space-y-4"> {/* ⬅️ Cambiado a max-w-5xl */}
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white p-6 rounded-lg w-full max-w-5xl space-y-4" onClick={e => e.stopPropagation()}> {/* ⬅️ Cambiado a max-w-5xl */}
         <h2 className="text-lg font-semibold text-black">Empleados bajo tu cargo</h2>
 
         {mensajeExito && (
@@ -72,8 +72,8 @@ export default function GestionUsuarios({ onClose, textColor , service }) {
       </div>
 
       {confirmModal.open && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded p-6 shadow-lg w-full max-w-sm space-y-4">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={() => setConfirmModal({ open: false, id: null })}>
+          <div className="bg-white rounded p-6 shadow-lg w-full max-w-sm space-y-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-md font-semibold text-blue-900"> 
               ¿Seguro que querés desvincular a este usuario?
             </h3>

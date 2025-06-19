@@ -105,8 +105,8 @@ export default function PeriodosEmpresaModal({ open, onClose, apiUrl, showToast 
     if (!open) return null;
 
     return (
-        <div className="text-black fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-auto">
+        <div className="text-black fixed inset-0 z-50 bg-black/40 flex items-center justify-center" onClick={onClose}>
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-bold">Gestión de Periodos</h2>
                     <button

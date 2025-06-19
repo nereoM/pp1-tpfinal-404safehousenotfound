@@ -857,8 +857,8 @@ export default function ManagerHome() {
           />
 
           {modalAnalistaOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setModalAnalistaOpen(false)}>
+              <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4" onClick={e => e.stopPropagation()}>
                 {/* Elimina cualquier mensaje dentro de la modal */}
                 <h2 className="text-lg font-semibold text-black">
                   Nuevo Analista
@@ -911,8 +911,8 @@ export default function ManagerHome() {
           )}
 
           {modalRendimientoAnalistas && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-11/12 md:w-5/6 lg:w-3/4 max-h-[80vh] overflow-auto text-black">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalRendimientoAnalistas(false)}>
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-11/12 md:w-5/6 lg:w-3/4 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
                 <RendimientoAnalistasTable
                   onSuccess={() => setModalRendimientoAnalistas(false)}
                 />
@@ -929,8 +929,8 @@ export default function ManagerHome() {
           )}
 
           {modalVerOfertasOpen && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
-              <div className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl w-3/4 max-h-[89.9vh] text-black shadow-xl flex flex-col">
+            <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50" onClick={() => setModalVerOfertasOpen(false)}>
+              <div className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl w-3/4 max-h-[89.9vh] text-black shadow-xl flex flex-col" onClick={e => e.stopPropagation()}>
                 {/* Elimina cualquier mensaje dentro de la modal */}
                 <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
                 <div className="mb-4 flex flex-wrap gap-4 items-end">
@@ -1207,8 +1207,8 @@ export default function ManagerHome() {
           />
 
           {modalSubirEmpleados && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalSubirEmpleados(false)}>
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
                 <h2 className="text-lg font-semibold mb-4">
                   Subir Empleados por CSV
                 </h2>
@@ -1273,8 +1273,8 @@ export default function ManagerHome() {
           )}
 
           {modalSubirMetricas && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black">
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalSubirMetricas(false)}>
+              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
                 <h2 className="text-lg font-semibold mb-4">
                   Subir Métricas de Analistas
                 </h2>
@@ -1354,11 +1354,15 @@ export default function ManagerHome() {
           />
 
           {modalGestionEquipo && (
-            <GestionUsuarios
-              service={managerService}
-              onClose={() => setModalGestionEquipo(false)}
-              textColor={estilos.color_texto}
-            />
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setModalGestionEquipo(false)}>
+              <div onClick={e => e.stopPropagation()}>
+                <GestionUsuarios
+                  service={managerService}
+                  onClose={() => setModalGestionEquipo(false)}
+                  textColor={estilos.color_texto}
+                />
+              </div>
+            </div>
           )}
           {modalEncuesta && (
             <ModalEncuesta
