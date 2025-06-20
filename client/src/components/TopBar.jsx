@@ -19,6 +19,8 @@ export function TopBar({ username, user, onEditPerfil, onPostulacion, showBell =
   const [profileVisible, setProfileVisible] = useState(false);
   const notificacionesRef = useRef(null);
   const profileRef = useRef(null);
+  const profileImgRef = useRef(null)
+  const bellRef = useRef(null)
   const navigate = useNavigate();
 
 const [telegramLink, setTelegramLink] = useState(null);
@@ -60,6 +62,12 @@ const [mostrarBotonTelegram, setMostrarBotonTelegram] = useState(false);
   // Cierra modales al hacer clic fuera
   useEffect(() => {
     const clickOutside = (e) => {
+      if(profileImgRef.current && profileImgRef.current.contains(e.target)){
+        return
+      }
+      if(bellRef.current && bellRef.current.contains(e.target)){
+        return
+      }
       if (notificacionesRef.current && !notificacionesRef.current.contains(e.target)) {
         setModalVisible(false);
       }
@@ -153,6 +161,7 @@ useEffect(() => {
         {/* campana */}
         {showBell && (
           <button
+            ref={bellRef}
             onClick={() => {
               setModalVisible((prev) => !prev);
               if (!modalVisible) setProfileVisible(false);
@@ -235,6 +244,7 @@ useEffect(() => {
 
         {/* icono de usuario */}
           <img
+            ref={profileImgRef}
             src={imgSrc}
             alt="foto perfil"
             className="w-10 h-10 rounded-full border-2 cursor-pointer"
