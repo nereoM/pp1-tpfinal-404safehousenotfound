@@ -1,10 +1,14 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowUpRight,
+  FileCheck,
   FileLock,
   Settings,
   Upload,
+  UploadCloud,
   UserPlus,
-  Users
+  Users,
+  XCircle
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -20,7 +24,6 @@ import { ModalEncuesta } from "../components/ModalEncuesta";
 import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
 
 import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
-
 
 import { FileSearchIcon, FileText } from "lucide-react";
 import { ExpiredSession } from "../components/ExpiredSession.jsx";
@@ -46,9 +49,11 @@ export default function AdminEmpHome() {
   const [modalVerEncuesta, setModalVerEncuesta] = useState(false);
   const [encuestaSeleccionada, setEncuestaSeleccionada] = useState(null);
 
-  const [modalEncuestasPendientes, setModalEncuestasPendientes] = useState(false);
+  const [modalEncuestasPendientes, setModalEncuestasPendientes] =
+    useState(false);
 
-  const [modalEncuestasRespondidas, setModalEncuestasRespondidas] = useState(false);
+  const [modalEncuestasRespondidas, setModalEncuestasRespondidas] =
+    useState(false);
 
   const [encuestasRespondidas, setEncuestasRespondidas] = useState([
     {
@@ -86,7 +91,8 @@ export default function AdminEmpHome() {
     {
       id: 3,
       titulo: "Evaluación de Herramientas de Trabajo",
-      descripcion: "Queremos conocer tu experiencia con las herramientas digitales.",
+      descripcion:
+        "Queremos conocer tu experiencia con las herramientas digitales.",
       respuestas: [
         {
           pregunta: "¿Las herramientas son suficientes?",
@@ -120,7 +126,7 @@ export default function AdminEmpHome() {
   const [mensajeMetricas, setMensajeMetricas] = useState("");
   const [archivoMetricas, setArchivoMetricas] = useState(null);
   const [toasts, setToasts] = useState([]);
-  
+
   const inputMetricasRef = React.useRef(null);
   const toastIdRef = React.useRef(0);
   const navigate = useNavigate();
@@ -151,10 +157,7 @@ export default function AdminEmpHome() {
   // --- IFs DE CARGA ---
   if (loadingUser)
     return <div className="p-10 text-center">Cargando usuario…</div>;
-  if (!user)
-    return (
-      <ExpiredSession />
-    );
+  if (!user) return <ExpiredSession />;
   if (loadingEstilos)
     return (
       <div className="p-10 text-center">Cargando preferencias de empresa…</div>
@@ -230,19 +233,21 @@ export default function AdminEmpHome() {
     );
   }
 
-const obtenerLicencias = async () => {
-  try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/licencias-mis-managers`, {
-      credentials: "include",
-    });
-    if (!res.ok) throw new Error();
-    const json = await res.json();
-    setLicencias(json.licencias);
-  } catch (error) {
-    showToast("Error al cargar las licencias.", "error");
-  }
-};
-
+  const obtenerLicencias = async () => {
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/licencias-mis-managers`,
+        {
+          credentials: "include",
+        }
+      );
+      if (!res.ok) throw new Error();
+      const json = await res.json();
+      setLicencias(json.licencias);
+    } catch (error) {
+      showToast("Error al cargar las licencias.", "error");
+    }
+  };
 
   const evaluarLicencia = async (id_licencia, nuevoEstado) => {
     try {
@@ -568,7 +573,10 @@ const obtenerLicencias = async () => {
           )}
 
           {modalEncuesta && (
-            <ModalEncuesta open={modalEncuesta} onOpenChange={setModalEncuesta} />
+            <ModalEncuesta
+              open={modalEncuesta}
+              onOpenChange={setModalEncuesta}
+            />
           )}
 
           <GestionarEncuestasModal
@@ -588,8 +596,14 @@ const obtenerLicencias = async () => {
           />
 
           {modalOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setModalOpen(false)}>
-              <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4" onClick={e => e.stopPropagation()}>
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalOpen(false)}
+            >
+              <div
+                className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <h2 className="text-lg font-semibold" style={{ color: "#000" }}>
                   Nuevo Manager
                 </h2>
@@ -684,58 +698,89 @@ const obtenerLicencias = async () => {
           )}
 
           {modalSubirEmpleados && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalSubirEmpleados(false)}>
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
-                <SubirEmpleados onUpload={subirEmpleadosDesdeCSV} />
-                <div className="mt-6 text-right">
-                  <button
-                    onClick={() => setModalSubirEmpleados(false)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                  >
-                    Cerrar
-                  </button>
-                </div>
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+              onClick={() => setModalSubirEmpleados(false)}
+            >
+              <div
+                className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <SubirEmpleados
+                  onClose={() => setModalSubirEmpleados(false)}
+                  onUpload={subirEmpleadosDesdeCSV}
+                />
               </div>
             </div>
           )}
 
           {modalSubirMetricas && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalSubirMetricas(false)}>
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+              onClick={() => setModalSubirMetricas(false)}
+            >
+              <div
+                className="bg-white p-6 rounded-2xl w-full flex flex-col gap-4 sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <h2 className="text-lg font-semibold mb-4">
                   Subir Métricas de Desempeño
                 </h2>
-
-                {/* Botón personalizado para seleccionar archivo */}
-                <div className="mb-4">
-                  <input
-                    type="file"
-                    accept=".csv"
-                    ref={inputMetricasRef}
-                    onChange={(e) => setArchivoMetricas(e.target.files[0])}
-                    className="hidden"
-                    id="input-metricas"
-                  />
+                <div className="space-y-2 flex flex-col gap-2">
                   <label
                     htmlFor="input-metricas"
-                    className="cursor-pointer inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                    className="text-sm font-medium text-gray-700"
                   >
-                    Seleccionar archivo
+                    Adjuntar archivo en formato CSV
                   </label>
-
-                  {/* Mostrar nombre del archivo */}
-                  {archivoMetricas && (
-                    <div className="mt-2 text-sm text-gray-700">
-                      Archivo seleccionado: <b>{archivoMetricas.name}</b>
+                  {archivoMetricas ? (
+                    <div className="flex justify-between items-center gap-2">
+                      <div className="mt-2 flex items-center space-x-2 text-green-600">
+                        <FileCheck className="w-5 h-5" />
+                        <span className="text-sm">{archivoMetricas.name}</span>
+                      </div>
+                      <button
+                        className="opacity-50 hover:opacity-100 transition"
+                        onClick={() => setArchivoMetricas(null)}
+                      >
+                        <XCircle />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="relative border-2 border-dashed hover:bg-gray-100 border-gray-300 rounded-lg p-4 flex items-center justify-center hover:border-primary-500 transition-colors cursor-pointer">
+                      <input
+                        ref={inputMetricasRef}
+                        id="input-metricas"
+                        className="absolute inset-0 opacity-0 cursor-pointer"
+                        accept=".csv"
+                        type="file"
+                        onChange={(e) => setArchivoMetricas(e.target.files[0])}
+                      />
+                      <div className="flex flex-col items-center text-gray-500">
+                        <UploadCloud className="h-8 w-8 mb-1" />
+                        <span className="text-sm">
+                          Haz click o arrastra tu archivo CSV aquí
+                        </span>
+                      </div>
                     </div>
                   )}
                 </div>
 
+                <div>
+                  <a
+                    className="mx-auto text-indigo-500 hover:underline group text-xs flex items-center w-fit"
+                    target="_blank"
+                    href="https://docs.google.com/spreadsheets/d/1huAWWzslooGEnzRjIEd8jDAb-i16xrx-pEeXcfsf0Bo/edit?gid=1723363062#gid=1723363062"
+                  >
+                    Asegurate de seguir esta plantilla{" "}
+                    <ArrowUpRight className="group-hover:-translate-y-1 group-hover:translate-x-1 transition" />
+                  </a>
+                </div>
                 {/* Mensaje de alerta si hay */}
                 {mensajeMetricas && <MensajeAlerta texto={mensajeMetricas} />}
 
                 {/* Botones de acción */}
-                <div className="flex justify-end gap-2 mt-4">
+                <div className="flex *:flex-1 gap-2">
                   <button
                     onClick={() => {
                       setModalSubirMetricas(false);
@@ -749,21 +794,12 @@ const obtenerLicencias = async () => {
                     Cancelar
                   </button>
                   <button
+                    disabled={archivoMetricas === null}
                     onClick={subirMetricasDesdeCSV}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                    className="px-4 py-2 bg-indigo-600 disabled:opacity-50 text-white rounded hover:bg-indigo-700"
                   >
                     Subir
                   </button>
-                </div>
-
-                {/* Instrucciones de columnas */}
-                <div className="mt-4 text-xs text-gray-500">
-                  El archivo debe tener las columnas: <br />
-                  <b>
-                    id_empleado, desempeno_previo, cantidad_proyectos, tamano_equipo,
-                    horas_extras, antiguedad, horas_capacitacion, ausencias_injustificadas,
-                    llegadas_tarde, salidas_tempranas
-                  </b>
                 </div>
               </div>
             </div>
