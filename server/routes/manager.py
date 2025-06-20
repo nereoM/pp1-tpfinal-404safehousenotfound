@@ -1276,11 +1276,26 @@ def cerrar_periodo(id_periodo):
 
         # Agrupar postulados aceptados por jefe de área
         encuestas_por_jefe = {}
+        # for job_app, oferta, postulado in postulaciones_aceptadas:
+        #     # Determinar jefe de área según el puesto al que va el postulado
+        #     jefe_destino = None
+        #     for jefe_area, puestos in area_puestos.items():
+        #         if postulado.puesto_trabajo in puestos:
+        #             jefe_destino = jefe_por_puesto.get(jefe_area)
+        #             break
+        #     if jefe_destino:
+        #         if jefe_destino.id not in encuestas_por_jefe:
+        #             encuestas_por_jefe[jefe_destino.id] = []
+        #         encuestas_por_jefe[jefe_destino.id].append({
+        #             "postulado": postulado,
+        #             "oferta": oferta,
+        #             "job_app": job_app
+        #         })
         for job_app, oferta, postulado in postulaciones_aceptadas:
-            # Determinar jefe de área según el puesto al que va el postulado
+            # Determinar jefe de área según el puesto de la oferta laboral
             jefe_destino = None
             for jefe_area, puestos in area_puestos.items():
-                if postulado.puesto_trabajo in puestos:
+                if oferta.nombre in puestos:
                     jefe_destino = jefe_por_puesto.get(jefe_area)
                     break
             if jefe_destino:

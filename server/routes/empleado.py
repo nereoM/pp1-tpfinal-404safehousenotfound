@@ -2042,7 +2042,7 @@ def obtener_encuestas_asignadas():
     Devuelve todas las encuestas asignadas al empleado autenticado.
     """
     id_empleado = get_jwt_identity()
-    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_empleado).all()
+    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_empleado, respondida=False).all()
 
     if not asignaciones:
         return jsonify({"message": "No tienes encuestas asignadas"}), 404
@@ -2050,7 +2050,7 @@ def obtener_encuestas_asignadas():
     resultado = []
     for asignacion in asignaciones:
         encuesta = Encuesta.query.get(asignacion.id_encuesta)
-        if encuesta:
+        if encuesta and encuesta.estado == "activa":
             resultado.append({
                 "id_encuesta": encuesta.id,
                 "titulo": encuesta.titulo,
@@ -2066,6 +2066,8 @@ def obtener_encuestas_asignadas():
                     "puesto_trabajo": asignacion.puesto_trabajo
                 }
             })
+    if not resultado:
+        return jsonify({"message": "No tienes encuestas activas asignadas"}), 404
 
     return jsonify(resultado), 200
 
@@ -2179,6 +2181,8 @@ def responder_encuesta(id_encuesta):
             fecha_respuesta=datetime.now(timezone.utc)
         )
         db.session.add(nueva_respuesta)
+
+    asignacion.respondida = True
 
     db.session.commit()
     return jsonify({"message": "Respuestas guardadas correctamente"}), 201
@@ -2389,6 +2393,32 @@ def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
         "empleado": empleado_info,
         "respuestas": respuestas_info
     }), 200
+
+@empleado_bp.route("/cerrar-encuesta/<int:id_encuesta>", methods=["PUT"])
+@role_required(["empleado"])
+def cerrar_encuesta(id_encuesta):
+    """
+    Permite al jefe cerrar una encuesta creada por él.
+    """
+    id_jefe = get_jwt_identity()
+    jefe = Usuario.query.get(id_jefe)
+    if not jefe:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    if encuesta.creador_id != jefe.id:
+        return jsonify({"error": "No tienes permisos para cerrar esta encuesta"}), 403
+
+    if encuesta.estado == "cerrada":
+        return jsonify({"error": "La encuesta ya está cerrada"}), 400
+
+    encuesta.estado = "cerrada"
+    db.session.commit()
+
+    return jsonify({"message": "Encuesta cerrada exitosamente", "id_encuesta": encuesta.id}), 200
 
 @empleado_bp.route("/mis-tareas-empleado", methods=["GET"])
 @role_required(["empleado"])

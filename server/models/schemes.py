@@ -340,6 +340,9 @@ class EncuestaAsignacion(db.Model):
     puesto_trabajo = db.Column(db.String(100), nullable=True)  # Aquellos usuarios con el puesto de trabajo especifico
     tipo_asignacion = db.Column(db.String(50), nullable=False)  # Ej: 'individual', 'grupo', 'area'
 
+    respondida = db.Column(db.Boolean, default=False)
+
+
     limpia = db.Column(db.Boolean, default=False)  # Indica si la asignación ha sido limpiada o no
 
     # Puedes agregar campos extra si lo necesitas, como fecha de asignación, etc.
