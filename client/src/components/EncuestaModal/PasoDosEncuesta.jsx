@@ -107,13 +107,17 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
                     checked={formData.empleadosSeleccionados?.includes(emp.id)}
                     onChange={(e) => {
                       const id = emp.id;
+                      const correo = emp.correo;
                       let seleccionados = formData.empleadosSeleccionados || [];
+                      let emails = formData.emails || [];
                       if (e.target.checked) {
                         seleccionados = [...seleccionados, id];
+                        emails = [...emails, correo];
                       } else {
                         seleccionados = seleccionados.filter((eid) => eid !== id);
+                        emails = emails.filter((mail) => mail !== correo);
                       }
-                      setFormData({ ...formData, empleadosSeleccionados: seleccionados });
+                      setFormData({ ...formData, empleadosSeleccionados: seleccionados, emails });
                     }}
                   />
                   {emp.nombre} {emp.apellido} - {emp.puesto_trabajo}

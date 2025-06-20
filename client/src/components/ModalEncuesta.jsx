@@ -40,6 +40,7 @@ export function ModalEncuesta({ open, onOpenChange }) {
           preguntas: [],
           envioATodos: true,
           correosAnalistas: [],
+          emails: [],
         });
       })
       .catch(err => {
@@ -99,7 +100,10 @@ export function ModalEncuesta({ open, onOpenChange }) {
           anonima: formData.anonima === "si",
           fecha_inicio: fechas.from?.toISOString().split("T")[0],
           fecha_fin: fechas.to?.toISOString().split("T")[0],
-          email: formData.destinatario === "empleado" ? formData.correo : null,
+          // Siempre enviar emails como array si destinatario es "empleado"
+          emails: formData.destinatario === "empleado" ? formData.emails : (
+            formData.destinatario === "lista_emails" ? formData.emails : null
+          ),
           area: formData.destinatario === "area" ? formData.area : null,
           puesto_trabajo: formData.destinatario === "puesto" ? formData.puesto : null,
           preguntas: (formData.preguntas || []).map((p) => ({
@@ -209,3 +213,4 @@ export function ModalEncuesta({ open, onOpenChange }) {
     </Dialog>
   );
 }
+
