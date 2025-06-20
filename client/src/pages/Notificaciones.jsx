@@ -1,8 +1,11 @@
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
+import { ExpiredSession } from "../components/ExpiredSession";
 import PageLayout from "../components/PageLayout";
 import { TopBar } from "../components/TopBar";
 import { NotificationsList } from "../components/notifications/NotificationsList";
-import { format } from "date-fns";
+import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
+import { authService } from "../services/authService";
 
 function mapNotificacionApiToFrontend(n) {
   return {
@@ -17,7 +20,19 @@ function mapNotificacionApiToFrontend(n) {
 export default function NotificacionesPage() {
   const [notificaciones, setNotificaciones] = useState([]);
   const [notificacionActiva, setNotificacionActiva] = useState(null);
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState("")
+  const { estilos, loading: loadingEstilos } = useEmpresaEstilos(user?.id_empresa);
 
+  const estilosSafe = {
+    color_principal: estilos?.color_principal ?? "#2563eb",
+    color_secundario: estilos?.color_secundario ?? "#f3f4f6",
+    color_texto: estilos?.color_texto ?? "#000000",
+    slogan:
+      estilos?.slogan ?? "Bienvenido al panel de Administración de Empresa",
+    logo_url: estilos?.logo_url ?? null,
+  };
+  
   const rol = localStorage.getItem("rol") || "reclutador";
 
   const endpointBase = {
@@ -27,6 +42,10 @@ export default function NotificacionesPage() {
     reclutador: "reclutador",
     empleado: "empleado",
   }[rol] || "reclutadores";
+
+  useEffect(()=> {
+    authService.obtenerInfoUsuario().then(setUser).catch(e => setError(e))
+  }, [])
 
   useEffect(() => {
     const fetchNotificaciones = async () => {
@@ -58,12 +77,19 @@ export default function NotificacionesPage() {
     if (selected) setNotificacionActiva({ ...selected, opened: true });
   };
 
+  if(error){
+    return <ExpiredSession />
+  }
+
   return (
-    <section className="bg-white">
+    <section style={{
+      "--primary" : estilosSafe.color_principal,
+    }} className="bg-white">
       <PageLayout>
         <TopBar
+          user={user}
           username={`Usuario prueba`}
-          style={{ backgroundColor: "#dddddd" }}
+          style={{ backgroundColor: "var(--primary)" }}
           showBell={false}
         />
 

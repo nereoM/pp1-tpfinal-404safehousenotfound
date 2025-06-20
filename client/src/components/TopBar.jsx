@@ -7,7 +7,7 @@ import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
 
 
 export function TopBar({ username, user, onEditPerfil, onPostulacion, showBell = true }) {
-  const { estilos } = useEstiloEmpresa();
+  const { estilos } = useEstiloEmpresa(user?.id_empresa);
   const primary = estilos?.color_principal ?? "#2563eb";
   const logoUrl = estilos?.logo_url ?? null;
   const textColor = estilos?.color_texto ?? (isLightColor(primary) ? "#000000" : "#ffffff");

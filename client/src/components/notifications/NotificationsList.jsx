@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import {
   Calendar,
   CheckCheck,
@@ -6,6 +5,7 @@ import {
   FolderOpen,
   MessageSquareDot,
 } from "lucide-react";
+import { useMemo } from "react";
 import { useEstiloEmpresa } from "../../context/EstiloEmpresaContext";
 import {
   Accordion,
@@ -95,7 +95,7 @@ export function NotificationsList({
       >
         <AccordionItem value="recientes">
           <AccordionTrigger className="px-4">
-            <Clock style={{ color: primary }} className="size-5" />
+            <Clock style={{ color: "var(--primary)" }} className="size-5 custom" />
             Últimos 7 días
           </AccordionTrigger>
           <AccordionContent>{renderGrupo(ultimos7)}</AccordionContent>
@@ -103,7 +103,7 @@ export function NotificationsList({
 
         <AccordionItem value="esteMes">
           <AccordionTrigger className="px-4">
-            <Calendar style={{ color: primary }} className="size-5" />
+            <Calendar style={{ color: "var(--primary)" }} className="size-5 custom" />
             Último mes
           </AccordionTrigger>
           <AccordionContent>{renderGrupo(ultimoMes)}</AccordionContent>
@@ -111,7 +111,7 @@ export function NotificationsList({
 
         <AccordionItem value="viejas">
           <AccordionTrigger className="px-4">
-            <FolderOpen style={{ color: primary }} className="size-5" />
+            <FolderOpen style={{ color: "var(--primary)" }} className="size-5 custom" />
             Más antiguas
           </AccordionTrigger>
           <AccordionContent>{renderGrupo(masAntiguas)}</AccordionContent>
