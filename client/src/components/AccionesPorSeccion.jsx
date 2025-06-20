@@ -1,15 +1,50 @@
 import { motion } from "framer-motion";
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "./shadcn/Accordion";
+import {
+  Building2,
+  ChartSpline,
+  File,
+  FileUser,
+  HardHat,
+  MessageSquareDot,
+  Users,
+} from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "./shadcn/Accordion";
 
 const seccionesAmigables = {
-  licencias: "Licencias",
-  ofertas: "Ofertas",
-  empleados: "Empleados",
-  metricas: "Métricas y Desempeño",
-  usuarios: "Usuarios",
-  empresa: "Empresa",
-  encuestas: "Encuestas"
+  licencias: {
+    icon: <File />,
+    value: "Licencias",
+  },
+  ofertas: {
+    icon: <FileUser />,
+    value: "Ofertas",
+  },
+  empleados: {
+    icon: <HardHat />,
+    value: "Empleados",
+  },
+  metricas: {
+    icon: <ChartSpline />,
+    value: "Métricas y Desempeño",
+  },
+  usuarios: {
+    icon: <Users />,
+    value: "Usuarios",
+  },
+  empresa: {
+    icon: <Building2 />,
+    value: "Empresa",
+  },
+  encuestas: {
+    icon: <MessageSquareDot />,
+    value: "Encuestas",
+  },
 };
 
 export function AccionesPorSeccion({ accionesPorSeccion, estilos }) {
@@ -18,7 +53,12 @@ export function AccionesPorSeccion({ accionesPorSeccion, estilos }) {
       {Object.entries(accionesPorSeccion).map(([seccionKey, acciones]) => (
         <AccordionItem key={seccionKey} value={seccionKey}>
           <AccordionTrigger className="text-black">
-            {seccionesAmigables[seccionKey]}
+            <div className="flex items-center gap-2">
+              <span style={{ color: estilos.color_principal }}>
+                {seccionesAmigables[seccionKey].icon}
+              </span>
+              {seccionesAmigables[seccionKey].value}
+            </div>
           </AccordionTrigger>
           <AccordionContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
