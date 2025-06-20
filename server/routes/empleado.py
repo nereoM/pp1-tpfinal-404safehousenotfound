@@ -2420,6 +2420,88 @@ def cerrar_encuesta(id_encuesta):
 
     return jsonify({"message": "Encuesta cerrada exitosamente", "id_encuesta": encuesta.id}), 200
 
+@empleado_bp.route("/mis-encuestas-respondidas", methods=["GET"])
+@role_required(["empleado"])
+def obtener_encuestas_respondidas():
+    """
+    Devuelve todas las encuestas que el empleado autenticado ya respondió.
+    """
+    id_empleado = get_jwt_identity()
+    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_empleado, respondida=True).all()
+
+    if not asignaciones:
+        return jsonify({"message": "No tienes encuestas respondidas"}), 404
+
+    resultado = []
+    for asignacion in asignaciones:
+        encuesta = Encuesta.query.get(asignacion.id_encuesta)
+        if encuesta:
+            resultado.append({
+                "id_encuesta": encuesta.id,
+                "titulo": encuesta.titulo,
+                "descripcion": encuesta.descripcion,
+                "tipo": encuesta.tipo,
+                "anonima": encuesta.es_anonima,
+                "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+                "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+                "estado": encuesta.estado,
+                "asignacion": {
+                    "tipo_asignacion": asignacion.tipo_asignacion,
+                    "area": asignacion.area,
+                    "puesto_trabajo": asignacion.puesto_trabajo
+                }
+            })
+    if not resultado:
+        return jsonify({"message": "No tienes encuestas respondidas"}), 404
+
+    return jsonify(resultado), 200
+
+@empleado_bp.route("/mis-respuestas-encuesta/<int:id_encuesta>", methods=["GET"])
+@role_required(["empleado"])
+def ver_mis_respuestas_encuesta(id_encuesta):
+    """
+    Permite al empleado ver sus respuestas a una encuesta respondida.
+    """
+    id_empleado = get_jwt_identity()
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_empleado).first()
+    if not asignacion or not asignacion.respondida:
+        return jsonify({"error": "No has respondido esta encuesta o no está asignada a ti"}), 404
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_dict = {p.id: p for p in preguntas}
+
+    respuestas = (
+        RespuestaEncuesta.query
+        .filter_by(id_usuario=id_empleado)
+        .filter(RespuestaEncuesta.id_pregunta.in_([p.id for p in preguntas]))
+        .all()
+    )
+
+    respuestas_info = []
+    for r in respuestas:
+        pregunta = preguntas_dict.get(r.id_pregunta)
+        respuestas_info.append({
+            "id_pregunta": r.id_pregunta,
+            "pregunta": pregunta.texto if pregunta else None,
+            "respuesta": r.respuesta,
+            "fecha_respuesta": r.fecha_respuesta.isoformat() if r.fecha_respuesta else None
+        })
+
+    return jsonify({
+        "encuesta": {
+            "id": encuesta.id,
+            "titulo": encuesta.titulo,
+            "descripcion": encuesta.descripcion,
+            "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+            "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+        },
+        "respuestas": respuestas_info
+    }), 200
+
 @empleado_bp.route("/mis-tareas-empleado", methods=["GET"])
 @role_required(["empleado"])
 def obtener_tareas():
