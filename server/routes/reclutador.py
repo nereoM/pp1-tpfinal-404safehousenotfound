@@ -27,8 +27,7 @@ from models.schemes import (
     EncuestaAsignacion,
     PreguntaEncuesta,
     RespuestaEncuesta,
-    Periodo,
-    AceptadoOferta
+    Periodo
 )
 from werkzeug.utils import secure_filename
 from flasgger import swag_from

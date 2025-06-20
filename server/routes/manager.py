@@ -38,7 +38,6 @@ from models.schemes import (
     RespuestaEncuesta,
     PreguntaEncuesta,
     EncuestaAsignacion,
-    AceptadoOferta
 )
 from ml.desempeno_desarrollo.predictions import predecir_rend_futuro_individual, predecir_riesgo_despido_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_renuncia_individual, predecir_rot_post_individual
 
@@ -1208,8 +1207,6 @@ def estado_periodo(id_periodo):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-
 @manager_bp.route("/cerrar-periodo/<int:id_periodo>", methods=["PUT"])
 @role_required(["manager"])
 def cerrar_periodo(id_periodo):
@@ -1228,14 +1225,156 @@ def cerrar_periodo(id_periodo):
         if periodo.estado == "cerrado":
             return jsonify({"mensaje": "El periodo ya está cerrado"}), 200
 
+        # 1. Buscar postulaciones aceptadas en el periodo
+        fecha_inicio = periodo.fecha_inicio
+        fecha_fin = periodo.fecha_fin
+
+        postulaciones_aceptadas = (
+            db.session.query(Job_Application, Oferta_laboral, Usuario)
+            .join(Oferta_laboral, Job_Application.id_oferta == Oferta_laboral.id)
+            .join(Usuario, Job_Application.id_candidato == Usuario.id)
+            .filter(
+                Oferta_laboral.id_empresa == usuario.id_empresa,
+                Job_Application.estado_postulacion == "aprobada",
+                Job_Application.fecha_postulacion >= fecha_inicio,
+                Job_Application.fecha_postulacion <= fecha_fin
+            )
+            .all()
+        )
+
+        # 2. Agrupar por jefe de área (según puesto_trabajo del jefe y del postulado)
+        # Mapear jefe de área a sus puestos
+        area_puestos = {
+            "Jefe de Tecnología y Desarrollo": [
+                "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer", "DevOps Engineer",
+                "Data Engineer", "Ingeniero de Machine Learning", "Analista de Datos", "QA Automation Engineer",
+                "Soporte Técnico", "Administrador de Base de Datos", "Administrador de Redes", "Especialista en Seguridad Informática",
+            ],
+            "Jefe de Administración y Finanzas": [
+                "Analista Contable", "Contador Público", "Analista de Finanzas", "Administrativo/a", "Asistente Contable",
+            ],
+            "Jefe Comercial y de Ventas": [
+                "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial", "Supervisor de Ventas", "Asesor Comercial",
+            ],
+            "Jefe de Marketing y Comunicación": [
+                "Especialista en Marketing Digital", "Analista de Marketing", "Community Manager", "Diseñador Gráfico", "Responsable de Comunicación",
+            ],
+            "Jefe de Industria y Producción": [
+                "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta", "Ingeniero de Procesos", "Encargado de Logística",
+            ],
+            "Jefe de Servicios Generales y Gastronomía": [
+                "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza",
+            ],
+        }
+
+        # Buscar todos los jefes de área de la empresa
+        jefes_area = Usuario.query.filter(
+            Usuario.id_empresa == usuario.id_empresa,
+            Usuario.puesto_trabajo.in_(list(area_puestos.keys()))
+        ).all()
+        jefe_por_puesto = {jefe.puesto_trabajo: jefe for jefe in jefes_area}
+
+        # Agrupar postulados aceptados por jefe de área
+        encuestas_por_jefe = {}
+        for job_app, oferta, postulado in postulaciones_aceptadas:
+            # Determinar jefe de área según el puesto al que va el postulado
+            jefe_destino = None
+            for jefe_area, puestos in area_puestos.items():
+                if postulado.puesto_trabajo in puestos:
+                    jefe_destino = jefe_por_puesto.get(jefe_area)
+                    break
+            if jefe_destino:
+                if jefe_destino.id not in encuestas_por_jefe:
+                    encuestas_por_jefe[jefe_destino.id] = []
+                encuestas_por_jefe[jefe_destino.id].append({
+                    "postulado": postulado,
+                    "oferta": oferta,
+                    "job_app": job_app
+                })
+
+        # 3. Crear encuestas para cada jefe de área con postulados nuevos
+        for id_jefe, postulados in encuestas_por_jefe.items():
+            jefe = Usuario.query.get(id_jefe)
+            encuesta = Encuesta(
+                tipo="evaluacion_postulados",
+                titulo=f"Opinión sobre postulados aceptados en tu área ({periodo.nombre_periodo})",
+                descripcion="Por favor, evaluá a los nuevos postulados aceptados para tu área. Tu opinión será tenida en cuenta para futuras decisiones.",
+                es_anonima=False,
+                fecha_inicio=datetime.now(timezone.utc),
+                fecha_fin=datetime.now(timezone.utc) + timedelta(days=7),
+                creador_id=usuario.id,
+                estado="activa"
+            )
+            db.session.add(encuesta)
+            db.session.flush()  # Para obtener el id
+
+            # Asignar la encuesta al jefe de área
+            asignacion = EncuestaAsignacion(
+                id_encuesta=encuesta.id,
+                id_asignador=usuario.id,
+                id_usuario=jefe.id,
+                tipo_asignacion="individual"
+            )
+            db.session.add(asignacion)
+
+            # 4. Crear preguntas de opción única para cada postulado
+            for item in postulados:
+                postulado = item["postulado"]
+                oferta = item["oferta"]
+                job_app = item["job_app"]
+                # Identificar el reclutador responsable
+                reclutador_rel = Oferta_analista.query.filter_by(id_oferta=oferta.id).first()
+                id_reclutador = reclutador_rel.id_analista if reclutador_rel else None
+
+                texto_pregunta = (
+                    f"¿Considera adecuado al postulado '{postulado.nombre} {postulado.apellido}' "
+                    f"para el puesto '{oferta.nombre}'? (Reclutador responsable: {Usuario.query.get(id_reclutador).nombre if id_reclutador else 'N/A'})"
+                )
+                opciones = json.dumps(["Sí, es adecuado", "No, no es adecuado", "No lo conozco lo suficiente"])
+                pregunta = PreguntaEncuesta(
+                    id_encuesta=encuesta.id,
+                    texto=texto_pregunta,
+                    tipo="unica_opcion",
+                    opciones=opciones,
+                    es_requerida=True
+                )
+                db.session.add(pregunta)
+
         periodo.estado = "cerrado"
         db.session.commit()
 
-        return jsonify({"mensaje": f"Periodo '{periodo.nombre_periodo}' cerrado correctamente"}), 200
+        return jsonify({"mensaje": f"Periodo '{periodo.nombre_periodo}' cerrado correctamente y encuestas generadas"}), 200
 
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+# @manager_bp.route("/cerrar-periodo/<int:id_periodo>", methods=["PUT"])
+# @role_required(["manager"])
+# def cerrar_periodo(id_periodo):
+#     try:
+#         user_id = get_jwt_identity()
+#         usuario = Usuario.query.get(user_id)
+
+#         if not usuario or not usuario.id_empresa:
+#             return jsonify({"error": "El usuario no tiene una empresa asociada"}), 404
+
+#         periodo = Periodo.query.filter_by(id_periodo=id_periodo, id_empresa=usuario.id_empresa).first()
+
+#         if not periodo:
+#             return jsonify({"error": "Periodo no encontrado"}), 404
+
+#         if periodo.estado == "cerrado":
+#             return jsonify({"mensaje": "El periodo ya está cerrado"}), 200
+
+#         periodo.estado = "cerrado"
+#         db.session.commit()
+
+#         return jsonify({"mensaje": f"Periodo '{periodo.nombre_periodo}' cerrado correctamente"}), 200
+
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify({"error": str(e)}), 500
 
 @manager_bp.route("/listar-periodos", methods=["GET"])
 @role_required(["manager", "reclutador"])
