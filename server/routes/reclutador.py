@@ -2081,7 +2081,7 @@ def obtener_encuestas_asignadas():
     Devuelve todas las encuestas asignadas al reclutador autenticado.
     """
     id_reclutador = get_jwt_identity()
-    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_reclutador).all()
+    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_reclutador, respondida=False).all()
 
     if not asignaciones:
         return jsonify({"message": "No tienes encuestas asignadas"}), 404
@@ -2089,7 +2089,7 @@ def obtener_encuestas_asignadas():
     resultado = []
     for asignacion in asignaciones:
         encuesta = Encuesta.query.get(asignacion.id_encuesta)
-        if encuesta:
+        if encuesta and encuesta.estado == "activa":
             resultado.append({
                 "id_encuesta": encuesta.id,
                 "titulo": encuesta.titulo,
@@ -2105,6 +2105,8 @@ def obtener_encuestas_asignadas():
                     "puesto_trabajo": asignacion.puesto_trabajo # esto tampoco
                 }
             })
+    if not resultado:
+        return jsonify({"message": "No tienes encuestas activas asignadas"}), 404
 
     return jsonify(resultado), 200
 
@@ -2218,6 +2220,8 @@ def responder_encuesta(id_encuesta):
             fecha_respuesta=datetime.now(timezone.utc)
         )
         db.session.add(nueva_respuesta)
+
+    asignacion.respondida = True
 
     db.session.commit()
     return jsonify({"message": "Respuestas guardadas correctamente"}), 201
@@ -2364,6 +2368,190 @@ def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
     return jsonify({
         "empleado": empleado_info,
         "respuestas": respuestas_info
+    }), 200
+
+@reclutador_bp.route("/cerrar-encuesta/<int:id_encuesta>/reclutador", methods=["PUT"])
+@role_required(["reclutador"])
+def cerrar_encuesta(id_encuesta):
+    """
+    Permite al reclutador cerrar una encuesta creada por él.
+    """
+    id_reclutador = get_jwt_identity()
+    reclutador = Usuario.query.get(id_reclutador)
+    if not reclutador:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    if encuesta.creador_id != reclutador.id:
+        return jsonify({"error": "No tienes permisos para cerrar esta encuesta"}), 403
+
+    if encuesta.estado == "cerrada":
+        return jsonify({"error": "La encuesta ya está cerrada"}), 400
+
+    encuesta.estado = "cerrada"
+    db.session.commit()
+
+    return jsonify({"message": "Encuesta cerrada exitosamente", "id_encuesta": encuesta.id}), 200
+
+@reclutador_bp.route("/mis-encuestas-respondidas/reclutador", methods=["GET"])
+@role_required(["reclutador"])
+def obtener_encuestas_respondidas():
+    """
+    Devuelve todas las encuestas que el reclutador autenticado ya respondió.
+    """
+    id_reclutador = get_jwt_identity()
+    asignaciones = EncuestaAsignacion.query.filter_by(id_usuario=id_reclutador, respondida=True).all()
+
+    if not asignaciones:
+        return jsonify({"message": "No tienes encuestas respondidas"}), 404
+
+    resultado = []
+    for asignacion in asignaciones:
+        encuesta = Encuesta.query.get(asignacion.id_encuesta)
+        if encuesta:
+            resultado.append({
+                "id_encuesta": encuesta.id,
+                "titulo": encuesta.titulo,
+                "descripcion": encuesta.descripcion,
+                "tipo": encuesta.tipo,
+                "anonima": encuesta.es_anonima,
+                "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+                "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+                "estado": encuesta.estado,
+                "asignacion": {
+                    "tipo_asignacion": asignacion.tipo_asignacion,
+                    "area": asignacion.area,
+                    "puesto_trabajo": asignacion.puesto_trabajo
+                }
+            })
+    if not resultado:
+        return jsonify({"message": "No tienes encuestas respondidas"}), 404
+
+    return jsonify(resultado), 200
+
+@reclutador_bp.route("/mis-respuestas-encuesta/<int:id_encuesta>/reclutador", methods=["GET"])
+@role_required(["reclutador"])
+def ver_mis_respuestas_encuesta(id_encuesta):
+    """
+    Permite al reclutador ver sus respuestas a una encuesta respondida.
+    """
+    id_reclutador = get_jwt_identity()
+    asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_reclutador).first()
+    if not asignacion or not asignacion.respondida:
+        return jsonify({"error": "No has respondido esta encuesta o no está asignada a ti"}), 404
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+    preguntas_dict = {p.id: p for p in preguntas}
+
+    respuestas = (
+        RespuestaEncuesta.query
+        .filter_by(id_usuario=id_reclutador)
+        .filter(RespuestaEncuesta.id_pregunta.in_([p.id for p in preguntas]))
+        .all()
+    )
+
+    respuestas_info = []
+    for r in respuestas:
+        pregunta = preguntas_dict.get(r.id_pregunta)
+        respuestas_info.append({
+            "id_pregunta": r.id_pregunta,
+            "pregunta": pregunta.texto if pregunta else None,
+            "respuesta": r.respuesta,
+            "fecha_respuesta": r.fecha_respuesta.isoformat() if r.fecha_respuesta else None
+        })
+
+    return jsonify({
+        "encuesta": {
+            "id": encuesta.id,
+            "titulo": encuesta.titulo,
+            "descripcion": encuesta.descripcion,
+            "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+            "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+        },
+        "respuestas": respuestas_info
+    }), 200
+
+@reclutador_bp.route("/info-para-reclutador", methods=["GET"])
+@role_required(["reclutador"])
+def empleados_por_area():
+    """
+    Devuelve los jefes de área, empleados normales y los nombres de las áreas.
+    """
+    id_reclutador = get_jwt_identity()
+    reclutador = Usuario.query.get(id_reclutador)
+    if not reclutador:
+        return jsonify({"error": "Reclutador no encontrado"}), 404
+
+    # Define las áreas y los puestos asociados
+    area_jefes = {
+        "Jefe de Tecnología y Desarrollo": [
+            "Desarrollador Backend", "Desarrollador Frontend", "Full Stack Developer", "DevOps Engineer",
+            "Data Engineer", "Ingeniero de Machine Learning", "Analista de Datos", "QA Automation Engineer",
+            "Soporte Técnico", "Administrador de Base de Datos", "Administrador de Redes", "Especialista en Seguridad Informática",
+        ],
+        "Jefe de Administración y Finanzas": [
+            "Analista Contable", "Contador Público", "Analista de Finanzas", "Administrativo/a", "Asistente Contable",
+        ],
+        "Jefe Comercial y de Ventas": [
+            "Representante de Ventas", "Ejecutivo de Cuentas", "Vendedor Comercial", "Supervisor de Ventas", "Asesor Comercial",
+        ],
+        "Jefe de Marketing y Comunicación": [
+            "Especialista en Marketing Digital", "Analista de Marketing", "Community Manager", "Diseñador Gráfico", "Responsable de Comunicación",
+        ],
+        "Jefe de Industria y Producción": [
+            "Técnico de Mantenimiento", "Operario de Producción", "Supervisor de Planta", "Ingeniero de Procesos", "Encargado de Logística",
+        ],
+        "Jefe de Servicios Generales y Gastronomía": [
+            "Mozo/a", "Cocinero/a", "Encargado de Salón", "Recepcionista", "Limpieza",
+        ],
+    }
+
+    # Nombres de las áreas
+    nombres_areas = list(area_jefes.keys())
+
+    # Jefes de área
+    jefes = Usuario.query.filter(
+        Usuario.id_empresa == reclutador.id_empresa,
+        Usuario.puesto_trabajo.in_(nombres_areas)
+    ).all()
+    jefes_info = [
+        {
+            "id": jefe.id,
+            "nombre": jefe.nombre,
+            "apellido": jefe.apellido,
+            "correo": jefe.correo,
+            "puesto_trabajo": jefe.puesto_trabajo
+        }
+        for jefe in jefes
+    ]
+
+    # Empleados normales (no jefes de área)
+    empleados = Usuario.query.filter(
+        Usuario.id_empresa == reclutador.id_empresa,
+        ~Usuario.puesto_trabajo.in_(nombres_areas)
+    ).all()
+    empleados_info = [
+        {
+            "id": emp.id,
+            "nombre": emp.nombre,
+            "apellido": emp.apellido,
+            "correo": emp.correo,
+            "puesto_trabajo": emp.puesto_trabajo
+        }
+        for emp in empleados
+    ]
+
+    return jsonify({
+        "areas": nombres_areas,
+        "jefes_area": jefes_info,
+        "empleados_normales": empleados_info
     }), 200
 
 @reclutador_bp.route("/mis-tareas-reclutador", methods=["GET"])
