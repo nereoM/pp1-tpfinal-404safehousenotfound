@@ -28,6 +28,7 @@ import { Acciones } from "../components/Acciones.jsx";
 import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import PeriodosEmpresaModal from "../components/PeriodosEmpresaModal";
 
+import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import { ModalEncuesta } from "../components/ModalEncuesta";
 
 

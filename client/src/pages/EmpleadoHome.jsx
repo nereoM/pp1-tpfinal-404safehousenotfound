@@ -33,6 +33,7 @@ import { ModalEncuesta } from "../components/ModalEncuesta";
 import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
 
 import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
+import { ExpiredSession } from "../components/ExpiredSession.jsx";
 
 const jefeRoles = [
   "Jefe de Tecnología y Desarrollo",
@@ -142,7 +143,7 @@ export default function EmpleadoHome() {
 
   if (error) {
     return (
-      <ExpiredSession />
+      <ExpiredSession/>
     );
   }
 

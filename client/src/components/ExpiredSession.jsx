@@ -5,7 +5,7 @@ export function ExpiredSession() {
     <section className="bg-background text-foreground h-dvh flex flex-col items-center justify-center gap-12">
       <header className="flex flex-col gap-4 items-center">
         <h2 className="text-2xl font-semibold">Sesión expirada</h2>
-        <p>
+        <p className="opacity-65 text-center">
           Por tu seguridad, tu sesión ha finalizado automáticamente. Por favor,
           vuelve a iniciar sesión para continuar.
         </p>
