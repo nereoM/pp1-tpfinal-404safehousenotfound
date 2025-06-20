@@ -101,7 +101,7 @@ export function LicenciasACargoModal({
     }));
   };
 
-  if (loading) {
+  if (loading && open) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto">
         <div className="bg-white p-6 rounded-2xl w-4/5 max-h-[80vh] overflow-auto text-black">
