@@ -1,10 +1,10 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { Download } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { useLicenciasACargo } from "../services/useLicenciasACargo";
 import MensajeAlerta from "./MensajeAlerta";
 import { Dialog, DialogContent, DialogTitle } from "./shadcn/Dialog";
-import { AnimatePresence, motion } from "framer-motion";
 
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
@@ -172,8 +172,6 @@ export function LicenciasACargoModal({
         <DialogTitle>
           Gestión de licencias
         </DialogTitle>
-        {/* <h2 className="text-2xl font-semibold mb-4 text-center">
-        </h2> */}
         {/* Filtros */}
         <div className="flex flex-wrap gap-4 mb-4">
           <div>

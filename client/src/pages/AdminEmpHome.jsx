@@ -14,14 +14,15 @@ import { LicenciasACargoModal } from "../components/LicenciasACargoModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 
-import { ModalEncuesta } from "../components/ModalEncuesta";
 import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
+import { ModalEncuesta } from "../components/ModalEncuesta";
 
 import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
 
 import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
 
 
+import { FileSearchIcon, FileText } from "lucide-react";
 import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
 import SubirEmpleados from "../components/RegistrarEmpleados";
@@ -29,7 +30,6 @@ import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { adminEmpService } from "../services/adminEmpService";
-import {FileText, FileSearchIcon } from "lucide-react";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function AdminEmpHome() {
@@ -770,13 +770,11 @@ const obtenerLicencias = async () => {
             </div>
           )}
 
-          {modalLicenciasOpen && (
-            <LicenciasACargoModal
-              service={adminEmpService}
-              open={modalLicenciasOpen}
-              onOpenChange={setModalLicenciasOpen}
-            />
-          )}
+          <LicenciasACargoModal
+            service={adminEmpService}
+            open={modalLicenciasOpen}
+            onOpenChange={setModalLicenciasOpen}
+          />
 
           <ModalParaEditarPerfil
             isOpen={modalEditarPerfilOpen}
