@@ -23,6 +23,7 @@ import { EncuestasRespondidasModal } from "../components/EncuestaModal/Encuestas
 
 
 import { FileSearchIcon, FileText } from "lucide-react";
+import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
 import SubirEmpleados from "../components/RegistrarEmpleados";
@@ -152,9 +153,7 @@ export default function AdminEmpHome() {
     return <div className="p-10 text-center">Cargando usuario…</div>;
   if (!user)
     return (
-      <div className="p-10 text-center text-red-600">
-        No se pudo cargar el usuario.
-      </div>
+      <ExpiredSession />
     );
   if (loadingEstilos)
     return (

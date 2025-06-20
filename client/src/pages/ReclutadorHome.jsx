@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { BarChart2, Download, FileLock, FilePlus, FileSearchIcon, FileText, Users } from "lucide-react";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Acciones } from "../components/Acciones.jsx";
 import { LicenciasACargoModal } from "../components/LicenciasACargoModal.jsx";
@@ -15,6 +15,7 @@ import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { reclutadorService } from '../services/reclutadorService.js';
 import EmpleadosRendimiento from "./EmpleadosRendimientoEmpleados";
 
+import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import { ModalEncuesta } from "../components/ModalEncuesta";
 
 
@@ -592,7 +593,7 @@ export default function ReclutadorHome() {
   };
 
   if (loadingUser) return <div className="p-10 text-center">Cargando usuario…</div>;
-  if (!user) return <div className="p-10 text-center text-red-600">No se pudo cargar el usuario.</div>;
+  if (!user) return <ExpiredSession />;
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>

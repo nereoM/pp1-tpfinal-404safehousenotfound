@@ -142,9 +142,7 @@ export default function EmpleadoHome() {
 
   if (error) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray-100">
-        <div className="text-lg text-gray-600">Error al cargar el perfil</div>
-      </div>
+      <ExpiredSession />
     );
   }
 

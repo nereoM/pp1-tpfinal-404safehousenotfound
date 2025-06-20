@@ -799,9 +799,7 @@ export default function ManagerHome() {
     return <div className="p-10 text-center">Cargando usuario…</div>;
   if (!user)
     return (
-      <div className="p-10 text-center text-red-600">
-        No se pudo cargar el usuario.
-      </div>
+      <ExpiredSession />
     );
 
   return (
