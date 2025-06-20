@@ -5,6 +5,7 @@ import {
   PasoUnoEncuesta,
   PasoDosEncuesta,
   PasoDosEncuestaManager,
+  PasoDosEncuestaAnalista, 
   PasoTresEncuesta,
   PasoCuatroEncuesta,
 } from "./EncuestaModal";
@@ -158,6 +159,14 @@ export function ModalEncuesta({ open, onOpenChange }) {
               <>
                 {roles.includes("manager") ? (
                   <PasoDosEncuestaManager
+                    formData={formData}
+                    setFormData={setFormData}
+                    onNext={() => setStep(3)}
+                    onBack={() => setStep(1)}
+                    onCancel={handleClose}
+                  />
+                ) : roles.includes("reclutador") ? (
+                  <PasoDosEncuestaAnalista
                     formData={formData}
                     setFormData={setFormData}
                     onNext={() => setStep(3)}

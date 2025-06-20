@@ -15,6 +15,9 @@ import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { reclutadorService } from '../services/reclutadorService.js';
 import EmpleadosRendimiento from "./EmpleadosRendimientoEmpleados";
 
+import { ModalEncuesta } from "../components/ModalEncuesta";
+
+
 export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -55,6 +58,10 @@ export default function ReclutadorHome() {
   const [filtroDescripcionOferta, setFiltroDescripcionOferta] = useState("");
   const [ofertasFiltradas, setOfertasFiltradas] = useState([]);
   const [filtroEstadoOferta, setFiltroEstadoOferta] = useState("");
+
+  //ENCUESTA
+  const [modalEncuesta, setModalEncuesta] = useState(false);
+
 
   // Modal
   const [modalLicenciasACargo, setModalLicenciasACargo] = useState(false)
@@ -970,7 +977,12 @@ export default function ReclutadorHome() {
           onFileSelect={setModalImageFile}
         />
 
-
+        {modalEncuesta && (
+          <ModalEncuesta
+            open={modalEncuesta}
+            onOpenChange={setModalEncuesta}
+          />
+        )}
 
       </motion.div>
     </EstiloEmpresaContext.Provider>
