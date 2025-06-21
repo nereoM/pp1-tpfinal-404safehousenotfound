@@ -16,9 +16,12 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
   const [puestosAsignados, setPuestosAsignados] = useState([]);
   const [empleadosArea, setEmpleadosArea] = useState([]);
   const [mensajeAlerta, setMensajeAlerta] = useState(null);
+  const [errores, setErrores] = useState({});
+  const [bloqueoBoton, setBloqueoBoton] = useState(false);
 
   const handleChange = (campo, valor) => {
     setFormData({ ...formData, [campo]: valor });
+    setErrores({ ...errores, [campo]: null });
   };
 
   useEffect(() => {
@@ -89,20 +92,25 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
           </label>
         ))}
       </div>
+      {errores.destinatario && <p className="text-sm text-red-600">{errores.destinatario}</p>}
 
       {formData.destinatario === "empleado" && (
         <div>
-          <label className="block text-sm font-medium text-black">
+          <label className="block text-sm font-medium text-black mb-1">
             Seleccioná los empleados
           </label>
-          <div className="border p-2 rounded max-h-60 overflow-y-auto bg-gray-50">
+          <div className="border p-2 rounded max-h-60 overflow-y-auto bg-white space-y-1">
             {empleadosArea.length === 0 ? (
               <p className="text-sm text-gray-500">No hay empleados disponibles.</p>
             ) : (
               empleadosArea.map((emp) => (
-                <label key={emp.id} className="flex items-center gap-2 text-black">
+                <label
+                  key={emp.id}
+                  className="flex items-center gap-2 px-2 py-1 hover:bg-blue-50 rounded cursor-pointer text-black"
+                >
                   <input
                     type="checkbox"
+                    className="accent-blue-600"
                     value={emp.id}
                     checked={formData.empleadosSeleccionados?.includes(emp.id)}
                     onChange={(e) => {
@@ -110,21 +118,41 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
                       const correo = emp.correo;
                       let seleccionados = formData.empleadosSeleccionados || [];
                       let emails = formData.emails || [];
+                      let datos = formData.empleadosDatos || [];
+
                       if (e.target.checked) {
                         seleccionados = [...seleccionados, id];
                         emails = [...emails, correo];
+                        datos = [
+                          ...datos,
+                          {
+                            id,
+                            nombre: emp.nombre,
+                            apellido: emp.apellido,
+                            email: emp.correo,
+                          },
+                        ];
                       } else {
                         seleccionados = seleccionados.filter((eid) => eid !== id);
                         emails = emails.filter((mail) => mail !== correo);
+                        datos = datos.filter((e) => e.id !== id);
                       }
-                      setFormData({ ...formData, empleadosSeleccionados: seleccionados, emails });
+
+                      setFormData({
+                        ...formData,
+                        empleadosSeleccionados: seleccionados,
+                        emails,
+                        empleadosDatos: datos,
+                      });
                     }}
                   />
-                  {emp.nombre} {emp.apellido} - {emp.puesto_trabajo}
+                  {emp.nombre} {emp.apellido} —{" "}
+                  <span className="text-sm text-gray-600">{emp.puesto_trabajo}</span>
                 </label>
               ))
             )}
           </div>
+          {errores.empleado && <p className="text-sm text-red-600 mt-1">{errores.empleado}</p>}
         </div>
       )}
 
@@ -133,6 +161,7 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
           <label className="block text-sm font-medium text-black">Área de trabajo</label>
           <p className="text-black p-2 border rounded bg-gray-100">{areaJefe}</p>
           <input type="hidden" value={areaJefe} name="area" />
+          {errores.area && <p className="text-sm text-red-600 mt-1">{errores.area}</p>}
         </div>
       )}
 
@@ -154,6 +183,7 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
               </option>
             ))}
           </select>
+          {errores.puesto && <p className="text-sm text-red-600 mt-1">{errores.puesto}</p>}
         </div>
       )}
 
@@ -172,31 +202,51 @@ export default function PasoDosEncuesta({ formData, setFormData, onNext, onBack,
             Atrás
           </button>
           <button
+            disabled={bloqueoBoton}
             onClick={() => {
+              const nuevosErrores = {};
+
+              if (!formData.destinatario) {
+                nuevosErrores.destinatario = "Seleccioná a quién va dirigida la encuesta.";
+              }
+
               if (
                 formData.destinatario === "empleado" &&
                 (!formData.empleadosSeleccionados || formData.empleadosSeleccionados.length === 0)
               ) {
-                setMensajeAlerta("Seleccioná al menos un empleado.");
-                return;
+                nuevosErrores.empleado = "Seleccioná al menos un empleado.";
               }
+
               if (formData.destinatario === "area" && !formData.area) {
-                setMensajeAlerta("No se pudo obtener el área de trabajo. Verificá tu conexión.");
-                return;
+                nuevosErrores.area = "No se pudo obtener el área de trabajo. Verificá tu conexión.";
               }
+
               if (formData.destinatario === "puesto" && !formData.puesto) {
-                setMensajeAlerta("Por favor seleccioná un puesto.");
+                nuevosErrores.puesto = "Por favor seleccioná un puesto.";
+              }
+
+              if (Object.keys(nuevosErrores).length > 0) {
+                setErrores(nuevosErrores);
+                setMensajeAlerta(Object.values(nuevosErrores)[0]);
+                setBloqueoBoton(true);
+                setTimeout(() => setBloqueoBoton(false), 3000);
                 return;
               }
+
+              setErrores({});
+              setMensajeAlerta(null);
 
               const nuevaData = { ...formData };
               if (nuevaData.destinatario === "area") {
                 nuevaData.area = mapeoArea[nuevaData.area] || nuevaData.area;
               }
+
               setFormData(nuevaData);
               onNext();
             }}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className={`px-4 py-2 rounded text-white ${
+              bloqueoBoton ? "bg-blue-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
             Siguiente
           </button>

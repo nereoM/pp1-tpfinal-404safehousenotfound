@@ -5,6 +5,15 @@ import { es } from "date-fns/locale";
 export default function PasoCuatroEncuesta({ formData, onBack, onFinish, onCancel }) {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
+  const tipoLabel = {
+    clima: "Clima Laboral",
+    uso: "Uso de la Plataforma",
+    desempeño: "Desempeño",
+    capacitacion: "Capacitación y Desarrollo",
+    diversidad: "Diversidad e Inclusión",
+    otro: "Otro",
+  };
+
   const formatFecha = (fecha) =>
     fecha ? format(new Date(fecha), "dd/MM/yyyy", { locale: es }) : "-";
 
@@ -26,7 +35,7 @@ export default function PasoCuatroEncuesta({ formData, onBack, onFinish, onCance
       <h2 className="text-lg font-semibold text-black">Resumen de la encuesta</h2>
 
       <div className="space-y-2 text-black">
-        <p><strong>Tipo:</strong> {formData.tipo}</p>
+        <p><strong>Tipo:</strong> {tipoLabel[formData.tipo] || formData.tipo}</p>
         <p><strong>Título:</strong> {formData.titulo}</p>
         <p><strong>Descripción:</strong> {formData.descripcion || "-"}</p>
         <p><strong>¿Anónima?:</strong> {formData.anonima === "si" ? "Sí" : "No"}</p>
@@ -41,14 +50,27 @@ export default function PasoCuatroEncuesta({ formData, onBack, onFinish, onCance
       <hr className="my-4" />
 
       <h3 className="font-semibold text-black">Dirigido a:</h3>
+
       {formData.destinatario === "empleado" && (
-        <p className="text-black">Empleado: {formData.correo}</p>
+        <div className="text-black space-y-1">
+          <p className="font-medium">Empleados seleccionados:</p>
+          <ul className="list-disc ml-6">
+            {(formData.empleadosDatos || []).map((emp, i) => (
+              <li key={i}>
+                {emp.nombre} {emp.apellido} —{" "}
+                <span className="text-sm text-gray-600">{emp.email}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
+
       {formData.destinatario === "area" && (
-        <p className="text-black">Área de trabajo: {formData.area}</p>
+        <p className="text-black">Área seleccionada: {formData.area}</p>
       )}
+
       {formData.destinatario === "puesto" && (
-        <p className="text-black">Puesto de trabajo: {formData.puesto}</p>
+        <p className="text-black">Puesto seleccionado: {formData.puesto}</p>
       )}
 
       <hr className="my-4" />
@@ -78,7 +100,7 @@ export default function PasoCuatroEncuesta({ formData, onBack, onFinish, onCance
         ))}
       </ul>
 
-      {/* Botones de acción */}
+      {/* Botones */}
       <div className="flex justify-between gap-2 pt-6">
         <button
           onClick={() => setMostrarConfirmacion(true)}

@@ -25,13 +25,13 @@ export function ModalEncuesta({ open, onOpenChange }) {
         setRoles(rolesActuales);
 
         setFormData({
-          tipo: "general",
+          tipo: "",
           titulo: "",
           descripcion: "",
-          anonima: "si",
+          anonima: null,
           fechas: {
-            from: new Date(),
-            to: new Date(),
+            from: null,
+            to: null,
           },
           destinatario: null,
           correo: "",
