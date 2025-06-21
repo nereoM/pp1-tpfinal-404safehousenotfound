@@ -466,6 +466,20 @@ def asignar_analista_a_oferta():
         return jsonify(
             {"error": "El analista no pertenece a la misma empresa que la oferta."}
         ), 403
+    
+    # Nueva validación: el analista no puede tener más de una oferta asignada
+    #oferta_existente = Oferta_analista.query.filter_by(id_analista=analista.id).first()
+    #if oferta_existente:
+    #    return jsonify(
+    #        {"error": "El analista ya tiene una oferta asignada. No se puede asignar otra."}
+    #    ), 400
+    
+    # Validar que la oferta NO tenga otro analista asignado
+    # analista_existente_oferta = Oferta_analista.query.filter_by(id_oferta=oferta.id).first()
+    # if analista_existente_oferta:
+    #     return jsonify(
+    #         {"error": "La oferta ya tiene un analista asignado. No se puede asignar otro."}
+    #     ), 400
 
     oferta_analista = Oferta_analista(
     id_oferta=oferta.id,
@@ -1262,6 +1276,21 @@ def cerrar_periodo(id_periodo):
 
         # Agrupar postulados aceptados por jefe de área
         encuestas_por_jefe = {}
+        # for job_app, oferta, postulado in postulaciones_aceptadas:
+        #     # Determinar jefe de área según el puesto al que va el postulado
+        #     jefe_destino = None
+        #     for jefe_area, puestos in area_puestos.items():
+        #         if postulado.puesto_trabajo in puestos:
+        #             jefe_destino = jefe_por_puesto.get(jefe_area)
+        #             break
+        #     if jefe_destino:
+        #         if jefe_destino.id not in encuestas_por_jefe:
+        #             encuestas_por_jefe[jefe_destino.id] = []
+        #         encuestas_por_jefe[jefe_destino.id].append({
+        #             "postulado": postulado,
+        #             "oferta": oferta,
+        #             "job_app": job_app
+        #         })
         for job_app, oferta, postulado in postulaciones_aceptadas:
             # Determinar jefe de área según el puesto de la oferta laboral
             jefe_destino = None
@@ -1334,6 +1363,33 @@ def cerrar_periodo(id_periodo):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": str(e)}), 500
+
+# @manager_bp.route("/cerrar-periodo/<int:id_periodo>", methods=["PUT"])
+# @role_required(["manager"])
+# def cerrar_periodo(id_periodo):
+#     try:
+#         user_id = get_jwt_identity()
+#         usuario = Usuario.query.get(user_id)
+
+#         if not usuario or not usuario.id_empresa:
+#             return jsonify({"error": "El usuario no tiene una empresa asociada"}), 404
+
+#         periodo = Periodo.query.filter_by(id_periodo=id_periodo, id_empresa=usuario.id_empresa).first()
+
+#         if not periodo:
+#             return jsonify({"error": "Periodo no encontrado"}), 404
+
+#         if periodo.estado == "cerrado":
+#             return jsonify({"mensaje": "El periodo ya está cerrado"}), 200
+
+#         periodo.estado = "cerrado"
+#         db.session.commit()
+
+#         return jsonify({"mensaje": f"Periodo '{periodo.nombre_periodo}' cerrado correctamente"}), 200
+
+#     except Exception as e:
+#         db.session.rollback()
+#         return jsonify({"error": str(e)}), 500
 
 @manager_bp.route("/listar-periodos", methods=["GET"])
 @role_required(["manager", "reclutador"])
@@ -1719,6 +1775,165 @@ def cerrar_oferta(id_oferta):
     db.session.commit()
 
     return jsonify({"message": "Oferta cerrada exitosamente"}), 200
+
+# ESTA ERA LA ANTERIOR
+# @manager_bp.route("/licencias-mis-reclutadores", methods=["GET"])
+# @role_required(["manager"])
+# def visualizar_licencias():
+#     id_manager = get_jwt_identity()
+#     manager = Usuario.query.filter_by(id=id_manager).first()
+#     empresa = Empresa.query.filter_by(id=manager.id_empresa).first()
+
+#     licencias = Licencia.query.filter_by(id_empresa=empresa.id).all()
+
+#     resultado = []
+#     for licencia in licencias:
+#         empleado = Usuario.query.filter_by(id=licencia.id_empleado).first()
+#         if (
+#             empleado.id_superior == manager.id
+#             and empleado.id_empresa == manager.id_empresa
+#         ):
+#             resultado.append(
+#                 {
+#                     "licencia": {
+#                         "id_licencia": licencia.id,
+#                         "empleado": {
+#                             "id": licencia.id_empleado,
+#                             "nombre": empleado.nombre,
+#                             "apellido": empleado.apellido,
+#                             "username": empleado.username,
+#                             "email": empleado.correo,
+#                         },
+#                         "tipo": licencia.tipo,
+#                         "descripcion": licencia.descripcion if licencia.descripcion else "Sin descripción",
+#                         "fecha_inicio": licencia.fecha_inicio.isoformat()
+#                         if licencia.fecha_inicio
+#                         else None,
+#                         "fecha_fin": licencia.fecha_fin.isoformat()
+#                         if licencia.fecha_fin
+#                         else None,
+#                         "estado": licencia.estado,
+#                         "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "No Aplica",
+#                         "empresa": {
+#                             "id": licencia.id_empresa,
+#                             "nombre": empresa.nombre,
+#                         },
+#                         "certificado_url": licencia.certificado_url
+#                         if licencia.certificado_url
+#                         else None,
+#                     }
+#                 }
+#             )
+
+#     return jsonify(resultado), 200
+# ESTA ERA LA ANTERIOR
+
+# @manager_bp.route("/licencia-<int:id_licencia>-reclutador/informacion", methods=["GET"])
+# @role_required(["manager"])
+# def obtener_detalle_licencia(id_licencia):
+#     id_manager = get_jwt_identity()
+#     manager = Usuario.query.get(id_manager)
+#     licencia = Licencia.query.get(id_licencia)
+#     if not licencia:
+#         return jsonify({"error": "Licencia no encontrada"}), 404
+
+#     empleado = Usuario.query.get(licencia.id_empleado)
+#     if not empleado:
+#         return jsonify({"error": "Empleado no encontrado"}), 404
+
+#     # Solo puede ver si la licencia es de su empresa o de un empleado a su cargo
+#     if licencia.id_empresa != manager.id_empresa and empleado.id_superior != manager.id:
+#         return jsonify({"error": "No tienes permiso para ver esta licencia"}), 403
+
+#     empresa = Empresa.query.get(licencia.id_empresa)
+
+#     return jsonify({
+#         "id_licencia": licencia.id,
+#         "empleado": {
+#             "id": empleado.id,
+#             "nombre": empleado.nombre,
+#             "apellido": empleado.apellido,
+#             "username": empleado.username,
+#             "email": empleado.correo,
+#         },
+#         "tipo": licencia.tipo,
+#         "descripcion": licencia.descripcion,
+#         "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+#         "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+#         "estado": licencia.estado,
+#         "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+#         "empresa": {
+#             "id": licencia.id_empresa,
+#             "nombre": empresa.nombre if empresa else None,
+#         },  
+#         "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+#         "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
+#     }), 200
+
+# @manager_bp.route("/licencia-<int:id_licencia>-reclutador/evaluacion", methods=["PUT"])
+# @role_required(["manager"])
+# def eval_licencia(id_licencia):
+#     data = request.get_json()
+#     nuevo_estado = data.get("estado")  # "aprobada" o "rechazada"
+#     motivo = data.get("motivo")
+
+#     if nuevo_estado not in ["aprobada", "rechazada"]:
+#         return jsonify({"error": "El estado debe ser 'aprobada' o 'rechazada'"}), 400
+
+#     id_manager = get_jwt_identity()
+#     manager = Usuario.query.get(id_manager)
+#     licencia = Licencia.query.get(id_licencia)
+#     if not licencia:
+#         return jsonify({"error": "Licencia no encontrada"}), 404
+
+#     empleado = Usuario.query.get(licencia.id_empleado)
+#     if not empleado:
+#         return jsonify({"error": "Empleado no encontrado"}), 404
+
+#     # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
+#     if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
+#         return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
+
+#     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
+#     if licencia.id_empresa != manager.id_empresa and empleado.id_superior != manager.id:
+#         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
+
+#     licencia.estado = nuevo_estado
+#     if motivo:
+#         licencia.motivo_rechazo = motivo
+
+#     db.session.commit()
+
+#     empresa = Empresa.query.get(licencia.id_empresa)
+
+#     return jsonify({
+#         "message": f"Licencia {nuevo_estado} exitosamente",
+#         "licencia": {
+#             "id_licencia": licencia.id,
+#             "empleado": {
+#                 "id": licencia.id_empleado,
+#                 "nombre": empleado.nombre,
+#                 "apellido": empleado.apellido,
+#                 "username": empleado.username,
+#                 "email": empleado.correo,
+#             },
+#             "tipo": licencia.tipo,
+#             "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+#             "descripcion": licencia.descripcion,
+#             "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+#             "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+#             "estado": licencia.estado,
+#             "empresa": {
+#                 "id": licencia.id_empresa,
+#                 "nombre": empresa.nombre if empresa else None,
+#             },
+#             "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+#             "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
+#         }
+#     }), 200
+
+#         # ---------------#
+
 
 @manager_bp.route("/ofertas-libres-reclutadores", methods=["GET"])
 @role_required(["manager"])
@@ -2321,6 +2536,23 @@ def solicitar_licencia():
         estado = "aprobada"
 
     # Estudios
+    # elif tipo_licencia == "estudios":
+    #     if not certificado_url:
+    #         return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+    #     if not dias_requeridos:
+    #         return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
+    #     if dias_requeridos < 1 or dias_requeridos > 10:
+    #         return jsonify({"error": "La cantidad de dias debe estar entre 1 y 10"}), 400
+    #     try:
+    #         dias_requeridos_val = int(dias_requeridos)
+    #     except ValueError:
+    #         return jsonify({"error": "Cantidad de días inválida"}), 400
+    #     if not fecha_inicio:
+    #         return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
+    #     fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    #     fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val-1)
+    #     estado = "aprobada"
+
     elif tipo_licencia == "estudios":
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
@@ -2619,6 +2851,118 @@ def obtener_detalle_licencia(id_licencia):
         "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
         "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
     }), 200
+
+# @manager_bp.route("/licencia-<int:id_licencia>-reclutador/evaluacion", methods=["PUT"])
+# @role_required(["manager"])
+# def eval_licencia(id_licencia):
+#     data = request.get_json()
+#     nuevo_estado = data.get("estado")  # "aprobada" o "rechazada"
+#     motivo = data.get("motivo")
+#     fecha_inicio_sugerida = data.get("fecha_inicio_sugerida")
+#     fecha_fin_sugerida = data.get("fecha_fin_sugerida")
+
+#     if nuevo_estado not in ["aprobada", "rechazada", "sugerencia"]:
+#         return jsonify({"error": "El estado debe ser 'aprobada', 'rechazada' o 'sugerencia'"}), 400
+
+#     id_manager = get_jwt_identity()
+#     manager = Usuario.query.get(id_manager)
+#     licencia = Licencia.query.get(id_licencia)
+#     if not licencia:
+#         return jsonify({"error": "Licencia no encontrada"}), 404
+
+#     empleado = Usuario.query.get(licencia.id_empleado)
+#     if not empleado:
+#         return jsonify({"error": "Empleado no encontrado"}), 404
+    
+#     rol_reclutador = (
+#         db.session.query(Rol)
+#         .join(UsuarioRol, UsuarioRol.id_rol == Rol.id)
+#         .filter(UsuarioRol.id_usuario == empleado.id, Rol.slug == "reclutador")
+#         .first()
+#     )
+
+#     # Permitir aprobar si la licencia está pendiente o si la sugerencia fue aceptada
+#     puede_aprobar = (
+#         (licencia.estado == "pendiente" and licencia.tipo in ["vacaciones"])
+#         or (licencia.estado == "pendiente" and licencia.estado_sugerencia == "sugerencia aceptada")
+#         or (licencia.estado == "sugerencia" and licencia.estado_sugerencia == "sugerencia aceptada")
+#     )
+
+#     # Solo puede evaluar licencias de vacaciones o estudio en estado pendiente
+#     # if licencia.estado != "pendiente" or licencia.tipo not in ["vacaciones"]:
+#     #     return jsonify({"error": "Solo puedes evaluar licencias de vacaciones pendientes"}), 403
+
+#     # Solo puede evaluar si la licencia es de su empresa o de un empleado a su cargo
+#     if licencia.id_empresa != manager.id_empresa and not rol_reclutador:
+#         return jsonify({"error": "No tienes permiso para evaluar esta licencia"}), 403
+    
+#     message = f"Licencia {nuevo_estado} exitosamente"
+#     if nuevo_estado == "aprobada":
+#         if not puede_aprobar:
+#             return jsonify({"error": "Solo puedes aprobar licencias de vacaciones pendientes o con sugerencia aceptada"}), 403
+#         licencia.estado = nuevo_estado
+#         # Si la sugerencia fue aceptada, actualizar fechas
+#         if licencia.estado_sugerencia == "sugerencia aceptada":
+#             licencia.fecha_inicio = licencia.fecha_inicio_sugerencia
+#             licencia.fecha_fin = licencia.fecha_fin_sugerencia
+#         if motivo:
+#             licencia.motivo_rechazo = motivo
+#     elif nuevo_estado == "sugerencia":
+#         # Guardar sugerencia de fechas y estado_sugerencia
+#         if not fecha_inicio_sugerida or not fecha_fin_sugerida:
+#             return jsonify({"error": "Debes indicar fecha de inicio y fin sugeridas"}), 400
+#         try:
+#             fecha_inicio_dt = datetime.strptime(fecha_inicio_sugerida, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+#             fecha_fin_dt = datetime.strptime(fecha_fin_sugerida, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+#         except Exception:
+#             return jsonify({"error": "Formato de fecha sugerida inválido"}), 400
+
+#         licencia.estado = nuevo_estado
+#         licencia.estado_sugerencia = "sugerencia pendiente"
+#         licencia.fecha_inicio_sugerencia = fecha_inicio_dt
+#         licencia.fecha_fin_sugerencia = fecha_fin_dt
+#         # El estado de la licencia se mantiene pendiente
+#         if motivo:
+#             licencia.motivo_rechazo = motivo
+#         message = "Licencia sugerida exitosamente"
+#     else:
+#         licencia.estado = nuevo_estado
+#         if motivo:
+#             licencia.motivo_rechazo = motivo
+
+#     db.session.commit()
+
+#     empresa = Empresa.query.get(licencia.id_empresa)
+
+#     return jsonify({
+#         "message": message,
+#         # "message": f"Licencia {nuevo_estado} exitosamente",
+#         "licencia": {
+#             "id_licencia": licencia.id,
+#             "empleado": {
+#                 "id": licencia.id_empleado,
+#                 "nombre": empleado.nombre,
+#                 "apellido": empleado.apellido,
+#                 "username": empleado.username,
+#                 "email": empleado.correo,
+#             },
+#             "tipo": licencia.tipo,
+#             "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+#             "descripcion": licencia.descripcion,
+#             "fecha_inicio": licencia.fecha_inicio.isoformat() if licencia.fecha_inicio else None,
+#             "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+#             "estado": licencia.estado,
+#             "estado_sugerencia": licencia.estado_sugerencia if licencia.estado_sugerencia else None,
+#             "fecha_inicio_sugerida": licencia.fecha_inicio_sugerencia.isoformat() if licencia.fecha_inicio_sugerencia else None,
+#             "fecha_fin_sugerida": licencia.fecha_fin_sugerencia.isoformat() if licencia.fecha_fin_sugerencia else None,
+#             "empresa": {
+#                 "id": licencia.id_empresa,
+#                 "nombre": empresa.nombre if empresa else None,
+#             },
+#             "certificado_url": licencia.certificado_url if licencia.certificado_url else None,
+#             "dias_requeridos": licencia.dias_requeridos if licencia.dias_requeridos else None
+#         }
+#     }), 200
 
 @manager_bp.route("/licencia-<int:id_licencia>-reclutador/evaluacion", methods=["PUT"])
 @role_required(["manager"])

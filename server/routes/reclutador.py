@@ -257,6 +257,114 @@ def enviar_notificacion_candidato(email_destino, estado, nombre_empresa, nombre_
     except Exception as e:
         print(f"Error al enviar correo a {email_destino}: {e}")
 
+# @swag_from('../docs/reclutador/solicitud-licencia.yml')
+# @reclutador_bp.route("/solicitud-licencia", methods=["POST"])
+# @role_required(["reclutador"])
+# def solicitar_licencia1():
+#     data = request.get_json()
+#     tipo_licencia = data.get("lic_type")
+#     descripcion = data.get("description")
+
+#     id_empleado = get_jwt_identity()
+#     empleado = Usuario.query.filter_by(id=id_empleado).first()
+
+#     nueva_licencia = Licencia(
+#         id_empleado=id_empleado,
+#         tipo=tipo_licencia,
+#         descripcion=descripcion,
+#         estado="pendiente",
+#         id_empresa=empleado.id_empresa,
+#     )
+
+#     db.session.add(nueva_licencia)
+#     db.session.commit()
+
+#     return jsonify(
+#         {
+#             "message": "Solicitud de licencia enviada exitosamente",
+#             "licencia": {
+#                 "id": nueva_licencia.id,
+#                 "tipo": nueva_licencia.tipo,
+#                 "descripcion": nueva_licencia.descripcion,
+#                 "estado": nueva_licencia.estado,
+#                 "fecha_inicio": nueva_licencia.fecha_inicio.isoformat()
+#                 if nueva_licencia.fecha_inicio
+#                 else None,
+#                 "empresa": {
+#                     "id": nueva_licencia.id_empresa,
+#                     "nombre": Empresa.query.get(nueva_licencia.id_empresa).nombre,
+#                 },
+#             },
+#         }
+#     ), 201
+
+# ESTA ERA LA ANTERIOR
+# @reclutador_bp.route("/mis-licencias-reclutador", methods=["GET"])
+# @role_required(["reclutador"])
+# def ver_mis_licencias():
+#     id_empleado = get_jwt_identity()
+#     licencias = Licencia.query.filter_by(id_empleado=id_empleado).all()
+
+#     resultado = [
+#         {
+#           "id_licencia": licencia.id,
+#           "tipo": licencia.tipo,
+#           "descripcion": licencia.descripcion,
+#           "fecha_inicio": licencia.fecha_inicio.isoformat()
+#           if licencia.fecha_inicio
+#           else None,
+#           "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
+#           "estado": licencia.estado,
+#           "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+#           "empresa": {
+#               "id": licencia.id_empresa,
+#               "nombre": Empresa.query.get(licencia.id_empresa).nombre,
+#           },
+#           "certificado_url": licencia.certificado_url
+#           if licencia.certificado_url
+#           else None,
+#         }
+#         for licencia in licencias
+#     ]
+
+#     return jsonify(resultado), 200
+# ESTA ERA LA ANTERIOR
+
+# @swag_from('../docs/reclutador/mis-licencias.yml')
+# @reclutador_bp.route("/mis-licencias", methods=["GET"])
+# @role_required(["reclutador"])
+# def ver_mis_licencias():
+#     id_reclutador = get_jwt_identity()
+#     licencias = Licencia.query.filter_by(id_empleado=id_reclutador).all()
+
+#     resultado = [
+#         {
+#             "licencias": {
+#                 "licencia": {
+#                     "id_licencia": licencia.id,
+#                     "tipo": licencia.tipo,
+#                     "descripcion": licencia.descripcion,
+#                     "fecha_inicio": licencia.fecha_inicio.isoformat()
+#                     if licencia.fecha_inicio
+#                     else None,
+#                     "estado": licencia.estado,
+#                     "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
+#                     "empresa": {
+#                         "id": licencia.id_empresa,
+#                         "nombre": Empresa.query.get(licencia.id_empresa).nombre,
+#                     },
+#                     "certificado_url": licencia.certificado_url
+#                     if licencia.certificado_url
+#                     else None,
+#                 }
+#             }
+#         }
+#         for licencia in licencias
+#     ]
+
+#     return jsonify(resultado), 200
+
+
 UPLOAD_FOLDER = "uploads/certificados"  # Carpeta donde se guardarán los certificados
 ALLOWED_EXTENSIONS = {"pdf"}
 
@@ -357,6 +465,304 @@ def obtener_ofertas_asignadas():
     ), 200
 
 from datetime import datetime, timezone, timedelta
+
+# @reclutador_bp.route("/solicitar-licencia-reclutador", methods=["POST"])
+# @role_required(["reclutador"])
+# def solicitar_licencia2():
+#     data = request.get_json()
+#     tipo_licencia = data.get("lic_type")
+#     descripcion = data.get("description")
+#     fecha_inicio = data.get("start_date")
+#     fecha_fin = data.get("end_date")
+#     certificado_url = data.get("certificado_url")
+#     dias_requeridos = data.get("dias_requeridos")  # solo para estudio
+
+#     id_empleado = get_jwt_identity()
+#     empleado = Usuario.query.filter_by(id=id_empleado).first()
+
+#     if tipo_licencia not in ["medica", "embarazo", "estudio", "vacaciones"]:
+#         return jsonify({"error": "Tipo de licencia inválido"}), 400
+
+#     # Licencia médica o embarazo: certificado obligatorio, estado activa
+#     if tipo_licencia in ["medica", "embarazo"]:
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para este tipo de licencia"}), 400
+#         estado = "activa"
+#         fecha_inicio_dt = datetime.now(timezone.utc)
+#         if not fecha_fin:
+#             return jsonify({"error": "Debe indicar fecha de fin"}), 400
+#         fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
+
+#     # Licencia por estudio: máximo 10 días, estado pendiente
+#     elif tipo_licencia == "estudio":
+#         if not dias_requeridos or not fecha_inicio:
+#             return jsonify({"error": "Debe indicar cantidad de días y fecha de inicio"}), 400
+#         try:
+#             dias_requeridos = int(dias_requeridos)
+#         except ValueError:
+#             return jsonify({"error": "Cantidad de días inválida"}), 400
+#         if dias_requeridos < 1 or dias_requeridos > 10:
+#             return jsonify({"error": "La cantidad máxima de días para licencia de estudio es 10"}), 400
+#         estado = "pendiente"
+#         fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+#         fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos-1)
+
+#     # Licencia por vacaciones: estado pendiente, requiere inicio y fin
+#     elif tipo_licencia == "vacaciones":
+#         if not fecha_inicio or not fecha_fin:
+#             return jsonify({"error": "Debe indicar fecha de inicio y fin"}), 400
+#         estado = "pendiente"
+#         fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
+#         fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
+
+#     nueva_licencia = Licencia(
+#         id_empleado=id_empleado,
+#         tipo=tipo_licencia,
+#         descripcion=descripcion,
+#         fecha_inicio=fecha_inicio_dt,
+#         fecha_fin=fecha_fin_dt,
+#         estado=estado,
+#         id_empresa=empleado.id_empresa,
+#         certificado_url=certificado_url,
+#         dias_requeridos=dias_requeridos if tipo_licencia == "estudio" else None,
+#     )
+
+#     db.session.add(nueva_licencia)
+#     db.session.commit()
+
+#     return jsonify(
+#         {
+#             "message": "Solicitud de licencia enviada exitosamente",
+#             "licencia": {
+#                 "id": nueva_licencia.id,
+#                 "tipo": nueva_licencia.tipo,
+#                 "descripcion": nueva_licencia.descripcion,
+#                 "estado": nueva_licencia.estado,
+#                 "fecha_inicio": nueva_licencia.fecha_inicio.isoformat() if nueva_licencia.fecha_inicio else None,
+#                 "fecha_fin": nueva_licencia.fecha_fin.isoformat() if nueva_licencia.fecha_fin else None,
+#                 "dias_requeridos": nueva_licencia.dias_requeridos,
+#                 "empresa": {
+#                     "id": nueva_licencia.id_empresa,
+#                     "nombre": Empresa.query.get(nueva_licencia.id_empresa).nombre,
+#                 },
+#                 "certificado_url": nueva_licencia.certificado_url,
+#             },
+#         }
+#     ), 201
+
+# ESTA ERA LA ANTERIOR
+# @reclutador_bp.route("/solicitar-licencia-reclutador", methods=["POST"])
+# @role_required(["reclutador"])
+# def solicitar_licencia():
+#     data = request.get_json()
+#     tipo_licencia = data.get("lic_type")
+#     descripcion = data.get("description")
+#     fecha_inicio = data.get("start_date")
+#     fecha_fin = data.get("end_date")
+#     certificado_url = data.get("certificado_url")
+#     dias_requeridos = data.get("dias_requeridos")
+
+#     id_empleado = get_jwt_identity()
+#     empleado = Usuario.query.filter_by(id=id_empleado).first()
+
+#     now = datetime.now(timezone.utc)
+
+#     # Tipos de licencia válidos
+#     tipos_validos = [
+#         "accidente_laboral", "enfermedad", "maternidad", "nacimiento_hijo",
+#         "duelo", "matrimonio", "mudanza", "estudios", "vacaciones", "otro"
+#     ]
+#     if tipo_licencia not in tipos_validos:
+#         return jsonify({"error": "Tipo de licencia inválido"}), 400
+
+#     estado = None
+#     fecha_inicio_dt = None
+#     fecha_fin_dt = None
+#     dias_requeridos_val = None
+
+#     # Accidente laboral
+#     if tipo_licencia == "accidente_laboral":
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para accidente laboral"}), 400
+#         if not dias_requeridos:
+#             return jsonify({"error": "Debe indicar la cantidad de días requeridos"}), 400
+#         try:
+#             dias_requeridos_val = int(dias_requeridos)
+#         except ValueError:
+#             return jsonify({"error": "Cantidad de días inválida"}), 400
+#         if dias_requeridos_val < 1:
+#             return jsonify({"error": "La cantidad de días debe ser mayor a 0"}), 400
+#         fecha_inicio_dt = now
+#         fecha_fin_dt = now + timedelta(days=dias_requeridos_val-1)
+#         estado = "activa"
+
+#     # Médica
+#     elif tipo_licencia == "enfermedad":
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para licencia médica"}), 400
+#         if not dias_requeridos:
+#             return jsonify({"error": "Debe indicar la cantidad de días requeridos"}), 400
+#         try:
+#             dias_requeridos_val = int(dias_requeridos)
+#         except ValueError:
+#             return jsonify({"error": "Cantidad de días inválida"}), 400
+#         if dias_requeridos_val < 1:
+#             return jsonify({"error": "La cantidad de días debe ser mayor a 0"}), 400
+#         fecha_inicio_dt = now
+#         fecha_fin_dt = now + timedelta(days=dias_requeridos_val-1)
+#         estado = "activa"
+
+#     # Maternidad
+#     elif tipo_licencia == "maternidad":
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para maternidad"}), 400
+#         fecha_inicio_dt = now
+#         fecha_fin_dt = now + timedelta(days=90-1)
+#         estado = "activa"
+
+#     # Paternidad
+#     elif tipo_licencia == "nacimiento_hijo":
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para paternidad"}), 400
+#         fecha_inicio_dt = now
+#         fecha_fin_dt = now + timedelta(days=10-1)
+#         estado = "activa"
+
+#     # Duelo
+#     elif tipo_licencia == "duelo":
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para duelo"}), 400
+#         fecha_inicio_dt = now
+#         fecha_fin_dt = now + timedelta(days=5-1)
+#         estado = "activa"
+
+#     # Matrimonio
+#     elif tipo_licencia == "matrimonio":
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para matrimonio"}), 400
+#         if not fecha_inicio:
+#             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
+#         try:
+#             fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+#         except Exception:
+#             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
+#         fecha_fin_dt = fecha_inicio_dt + timedelta(days=10-1)
+#         estado = "aprobada"
+
+#     # Mudanza
+#     elif tipo_licencia == "mudanza":
+#         if not fecha_inicio:
+#             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
+#         try:
+#             fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+#         except Exception:
+#             return jsonify({"error": "Formato de fecha de inicio inválido"}), 400
+#         fecha_fin_dt = fecha_inicio_dt + timedelta(days=2-1)
+#         estado = "aprobada"
+
+#     # Estudios
+#     elif tipo_licencia == "estudios":
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+#         if not dias_requeridos:
+#             return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
+#         if dias_requeridos < 1 or dias_requeridos > 10:
+#             return jsonify({"error": "La cantidad de dias debe estar entre 1 y 10"}), 400
+#         try:
+#             dias_requeridos_val = int(dias_requeridos)
+#         except ValueError:
+#             return jsonify({"error": "Cantidad de días inválida"}), 400
+#         if not fecha_inicio:
+#             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
+#         fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+#         fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val-1)
+#         estado = "aprobada"
+
+#     # Vacaciones
+#     elif tipo_licencia == "vacaciones":
+#         if not dias_requeridos:
+#             return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
+#         if dias_requeridos < 1:
+#             return jsonify({"error": "La cantidad de dias debe ser mayor a 0"}), 400
+#         try:
+#             dias_requeridos_val = int(dias_requeridos)
+#         except ValueError:
+#             return jsonify({"error": "Cantidad de días inválida"}), 400
+#         if not fecha_inicio:
+#             return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
+#         fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+#         fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val-1)
+#         estado = "pendiente"
+
+#     elif tipo_licencia == "otro":
+#         if not certificado_url:
+#             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+#         if not dias_requeridos:
+#             return jsonify({"error": "Debe indicar la cantidad de días requeridos"}), 400
+#         try:
+#             dias_requeridos_val = int(dias_requeridos)
+#         except ValueError:
+#             return jsonify({"error": "Cantidad de días inválida"}), 400
+#         if dias_requeridos_val < 1:
+#             return jsonify({"error": "La cantidad de días debe ser mayor a 0"}), 400
+#         fecha_inicio_dt = now
+#         fecha_fin_dt = now + timedelta(days=dias_requeridos_val-1)
+#         estado = "pendiente"
+
+#     nueva_licencia = Licencia(
+#         id_empleado=id_empleado,
+#         tipo=tipo_licencia,
+#         descripcion=descripcion,
+#         fecha_inicio=fecha_inicio_dt,
+#         fecha_fin=fecha_fin_dt,
+#         estado=estado,
+#         id_empresa=empleado.id_empresa,
+#         certificado_url=certificado_url,
+#         dias_requeridos=dias_requeridos_val,
+#     )
+
+#     db.session.add(nueva_licencia)
+#     db.session.commit()
+
+#     # Si el estado de la licencia es activa, colocar al reclutador como inactivo
+#     if nueva_licencia.estado == "activa":
+#         empleado.activo = False
+#         db.session.commit()
+
+#     # Si el reclutador está inactivo, liberar las ofertas laborales que tenia asignadas
+#     if not empleado.activo:
+#         ofertas_asignadas = Oferta_analista.query.filter_by(id_analista=id_empleado).all()
+#         if ofertas_asignadas:
+#             for oferta in ofertas_asignadas:
+#                 oferta.estado = "libre"
+#                 db.session.commit()
+
+#     return jsonify(
+#         {
+#             "message": "Solicitud de licencia enviada exitosamente",
+#             "licencia": {
+#                 "id": nueva_licencia.id,
+#                 "tipo": nueva_licencia.tipo,
+#                 "descripcion": nueva_licencia.descripcion,
+#                 "estado": nueva_licencia.estado,
+#                 "fecha_inicio": nueva_licencia.fecha_inicio.isoformat() if nueva_licencia.fecha_inicio else None,
+#                 "fecha_fin": nueva_licencia.fecha_fin.isoformat() if nueva_licencia.fecha_fin else None,
+#                 "dias_requeridos": nueva_licencia.dias_requeridos,
+#                 "empresa": {
+#                     "id": nueva_licencia.id_empresa,
+#                     "nombre": Empresa.query.get(nueva_licencia.id_empresa).nombre,
+#                 },
+#                 "certificado_url": nueva_licencia.certificado_url,
+#             },
+#         }
+#     ), 201
+# ESTA ERA LA ANTERIOR
 
 @reclutador_bp.route("/notificaciones-reclutador-no-leidas", methods=["GET"])
 @role_required(["reclutador"])
@@ -845,6 +1251,23 @@ def solicitar_licencia():
         estado = "aprobada"
 
     # Estudios
+    # elif tipo_licencia == "estudios":
+    #     if not certificado_url:
+    #         return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
+    #     if not dias_requeridos:
+    #         return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
+    #     if dias_requeridos < 1 or dias_requeridos > 10:
+    #         return jsonify({"error": "La cantidad de dias debe estar entre 1 y 10"}), 400
+    #     try:
+    #         dias_requeridos_val = int(dias_requeridos)
+    #     except ValueError:
+    #         return jsonify({"error": "Cantidad de días inválida"}), 400
+    #     if not fecha_inicio:
+    #         return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
+    #     fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    #     fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val-1)
+    #     estado = "aprobada"
+
     elif tipo_licencia == "estudios":
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
