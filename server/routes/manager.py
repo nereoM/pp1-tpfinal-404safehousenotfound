@@ -3733,6 +3733,32 @@ def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
         "respuestas": respuestas_info
     }), 200
 
+@manager_bp.route("/cerrar-encuesta/<int:id_encuesta>", methods=["PUT"])
+@role_required(["manager"])
+def cerrar_encuesta(id_encuesta):
+    """
+    Permite al manager cerrar una encuesta creada por él.
+    """
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+    if not manager:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    encuesta = Encuesta.query.get(id_encuesta)
+    if not encuesta:
+        return jsonify({"error": "Encuesta no encontrada"}), 404
+
+    if encuesta.creador_id != manager.id:
+        return jsonify({"error": "No tienes permisos para cerrar esta encuesta"}), 403
+
+    if encuesta.estado == "cerrada":
+        return jsonify({"error": "La encuesta ya está cerrada"}), 400
+
+    encuesta.estado = "cerrada"
+    db.session.commit()
+
+    return jsonify({"message": "Encuesta cerrada exitosamente", "id_encuesta": encuesta.id}), 200
+
 @manager_bp.route("/mis-tareas-manager", methods=["GET"])
 @role_required(["manager"])
 def obtener_tareas():
