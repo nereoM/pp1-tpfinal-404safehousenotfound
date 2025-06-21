@@ -1831,6 +1831,7 @@ def crear_encuesta_completa():
     emails = data.get("emails")  # lista de correos
     email = data.get("email")
     area = data.get("area")
+    areas = data.get("areas") # lista de areas
     todos_jefes = data.get("todos_jefes", False)
     todos_empleados = data.get("todos_empleados", False)
     # 3. Preguntas
@@ -1931,39 +1932,29 @@ def crear_encuesta_completa():
                 )
                 db.session.add(asignacion)
                 asignaciones.append(usuario.correo)
-        elif email:
-            # Individual (puede ser jefe o empleado)
-            usuario = Usuario.query.filter_by(correo=email, id_empresa=reclutador.id_empresa).first()
-            if not usuario:
-                db.session.rollback()
-                return jsonify({"error": "Usuario no encontrado"}), 404
-            asignacion = EncuestaAsignacion(
-                id_encuesta=encuesta.id,
-                id_usuario=usuario.id,
-                area=None,
-                puesto_trabajo=usuario.puesto_trabajo,
-                tipo_asignacion="email",
-                id_asignador=id_reclutador,
-                limpia=False
-            )
-            db.session.add(asignacion)
-            asignaciones.append(usuario.correo)
-        elif area:
-            # Un área (todos los empleados de esa área)
-            if area not in area_jefes:
-                db.session.rollback()
-                return jsonify({"error": "Área no válida"}), 400
+        elif areas and isinstance(areas, list):
+            # Asignar a todos los empleados normales de varias áreas (excluyendo jefes)
+            puestos_jefes = set(area_jefes.keys())
+            puestos_empleados = set()
+            for area_nombre in areas:
+                if area_nombre not in area_jefes:
+                    db.session.rollback()
+                    return jsonify({"error": f"Área no válida: {area_nombre}"}), 400
+                puestos_empleados.update(area_jefes[area_nombre])
             empleados = Usuario.query.filter(
                 Usuario.id_empresa == reclutador.id_empresa,
-                Usuario.puesto_trabajo.in_(area_jefes[area])
+                Usuario.puesto_trabajo.in_(puestos_empleados),
+                ~Usuario.puesto_trabajo.in_(puestos_jefes)
             ).all()
             for emp in empleados:
+                # Buscar a qué área pertenece el puesto
+                area_asignada = next((a for a, puestos in area_jefes.items() if emp.puesto_trabajo in puestos), None)
                 asignacion = EncuestaAsignacion(
                     id_encuesta=encuesta.id,
                     id_usuario=emp.id,
-                    area=area,
+                    area=area_asignada,
                     puesto_trabajo=emp.puesto_trabajo,
-                    tipo_asignacion="area",
+                    tipo_asignacion="areas_multiple",
                     id_asignador=id_reclutador,
                     limpia=False
                 )
