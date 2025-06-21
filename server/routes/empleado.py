@@ -60,171 +60,7 @@ def allowed_file(filename):
 def empleado_home():
     return jsonify({"message": "Bienvenido al Inicio de Empleado"}), 200
 
-
-# @swag_from("../docs/empleado/solicitar-licencia.yml")
-# @empleado_bp.route("/solicitar-licencia", methods=["POST"])
-# @role_required(["empleado"])
-# def solicitar_licencia():
-#     data = request.get_json()
-#     tipo_licencia = data.get("lic_type")
-#     descripcion = data.get("description")
-#     fecha_inicio = data.get("start_date")
-#     fecha_fin = data.get("end_date")
-#     certificado_url = data.get("certificado_url")
-
-#     id_empleado = get_jwt_identity()
-#     empleado = Usuario.query.filter_by(id=id_empleado).first()
-
-#     nueva_licencia = Licencia(
-#         id_empleado=id_empleado,
-#         tipo=tipo_licencia,
-#         descripcion=descripcion,
-#         fecha_inicio=datetime.strptime(fecha_inicio, "%Y-%m-%d"),
-#         fecha_fin=datetime.strptime(fecha_fin, "%Y-%m-%d"),
-#         estado="pendiente",
-#         id_empresa=empleado.id_empresa,
-#         certificado_url=certificado_url,
-#     )
-
-#     db.session.add(nueva_licencia)
-#     db.session.commit()
-
-#     return jsonify(
-#         {
-#             "message": "Solicitud de licencia enviada exitosamente",
-#             "licencia": {
-#                 "id": nueva_licencia.id,
-#                 "tipo": nueva_licencia.tipo,
-#                 "descripcion": nueva_licencia.descripcion,
-#                 "estado": nueva_licencia.estado,
-#                 "fecha_inicio": nueva_licencia.fecha_inicio.isoformat()
-#                 if nueva_licencia.fecha_inicio
-#                 else None,
-#                 "empresa": {
-#                     "id": nueva_licencia.id_empresa,
-#                     "nombre": Empresa.query.get(nueva_licencia.id_empresa).nombre,
-#                 },
-#             },
-#         }
-#     ), 201
-
 from datetime import timedelta
-
-# @swag_from("../docs/empleado/solicitar-licencia.yml")
-# @empleado_bp.route("/solicitar-licencia", methods=["POST"])
-# @role_required(["empleado"])
-# def solicitar_licencia():
-#     data = request.get_json()
-#     tipo_licencia = data.get("lic_type")
-#     descripcion = data.get("description")
-#     fecha_inicio = data.get("start_date")
-#     fecha_fin = data.get("end_date")
-#     certificado_url = data.get("certificado_url")
-#     dias_requeridos = data.get("dias_requeridos")  # solo para estudio
-
-#     id_empleado = get_jwt_identity()
-#     empleado = Usuario.query.filter_by(id=id_empleado).first()
-
-#     if tipo_licencia not in ["medica", "embarazo", "estudio", "vacaciones"]:
-#         return jsonify({"error": "Tipo de licencia inválido"}), 400
-
-#     # Licencia médica o embarazo: certificado obligatorio, estado activa
-#     if tipo_licencia in ["medica", "embarazo"]:
-#         if not certificado_url:
-#             return jsonify({"error": "Debe adjuntar un certificado para este tipo de licencia"}), 400
-#         estado = "activa"
-#         fecha_inicio_dt = datetime.now(timezone.utc)
-#         if not fecha_fin:
-#             return jsonify({"error": "Debe indicar fecha de fin"}), 400
-#         fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
-
-#     # Licencia por estudio: máximo 10 días, estado pendiente
-#     elif tipo_licencia == "estudio":
-#         if not dias_requeridos or not fecha_inicio:
-#             return jsonify({"error": "Debe indicar cantidad de días y fecha de inicio"}), 400
-#         try:
-#             dias_requeridos = int(dias_requeridos)
-#         except ValueError:
-#             return jsonify({"error": "Cantidad de días inválida"}), 400
-#         if dias_requeridos < 1 or dias_requeridos > 10:
-#             return jsonify({"error": "La cantidad máxima de días para licencia de estudio es 10"}), 400
-#         estado = "pendiente"
-#         fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
-#         fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos-1)
-
-#     # Licencia por vacaciones: estado pendiente, requiere inicio y fin
-#     elif tipo_licencia == "vacaciones":
-#         if not fecha_inicio or not fecha_fin:
-#             return jsonify({"error": "Debe indicar fecha de inicio y fin"}), 400
-#         estado = "pendiente"
-#         fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d")
-#         fecha_fin_dt = datetime.strptime(fecha_fin, "%Y-%m-%d")
-
-#     nueva_licencia = Licencia(
-#         id_empleado=id_empleado,
-#         tipo=tipo_licencia,
-#         descripcion=descripcion,
-#         fecha_inicio=fecha_inicio_dt,
-#         fecha_fin=fecha_fin_dt,
-#         estado=estado,
-#         id_empresa=empleado.id_empresa,
-#         certificado_url=certificado_url,
-#         dias_requeridos=dias_requeridos if tipo_licencia == "estudio" else None,
-#     )
-
-#     db.session.add(nueva_licencia)
-#     db.session.commit()
-
-#     return jsonify(
-#         {
-#             "message": "Solicitud de licencia enviada exitosamente",
-#             "licencia": {
-#                 "id": nueva_licencia.id,
-#                 "tipo": nueva_licencia.tipo,
-#                 "descripcion": nueva_licencia.descripcion,
-#                 "estado": nueva_licencia.estado,
-#                 "fecha_inicio": nueva_licencia.fecha_inicio.isoformat() if nueva_licencia.fecha_inicio else None,
-#                 "fecha_fin": nueva_licencia.fecha_fin.isoformat() if nueva_licencia.fecha_fin else None,
-#                 "dias_requeridos": nueva_licencia.dias_requeridos,
-#                 "empresa": {
-#                     "id": nueva_licencia.id_empresa,
-#                     "nombre": Empresa.query.get(nueva_licencia.id_empresa).nombre,
-#                 },
-#                 "certificado_url": nueva_licencia.certificado_url,
-#             },
-#         }
-#     ), 201
-
-# @swag_from("../docs/empleado/mis-licencias.yml")
-# @empleado_bp.route("/mis-licencias-empleado", methods=["GET"])
-# @role_required(["empleado"])
-# def ver_mis_licencias():
-#     id_empleado = get_jwt_identity()
-#     licencias = Licencia.query.filter_by(id_empleado=id_empleado).all()
-
-#     resultado = [
-#         {
-#           "id_licencia": licencia.id,
-#           "tipo": licencia.tipo,
-#           "descripcion": licencia.descripcion,
-#           "fecha_inicio": licencia.fecha_inicio.isoformat()
-#           if licencia.fecha_inicio
-#           else None,
-#           "fecha_fin": licencia.fecha_fin.isoformat() if licencia.fecha_fin else None,
-#           "estado": licencia.estado,
-#           "motivo_rechazo": licencia.motivo_rechazo if licencia.motivo_rechazo else "-",
-#           "empresa": {
-#               "id": licencia.id_empresa,
-#               "nombre": Empresa.query.get(licencia.id_empresa).nombre,
-#           },
-#           "certificado_url": licencia.certificado_url
-#           if licencia.certificado_url
-#           else None,
-#         }
-#         for licencia in licencias
-#     ]
-
-#     return jsonify(resultado), 200
 
 UPLOAD_FOLDER = "uploads/certificados"  # Carpeta donde se guardarán los certificados
 ALLOWED_EXTENSIONS = {"pdf"}
@@ -997,23 +833,6 @@ def solicitar_licencia():
         estado = "aprobada"
 
     # Estudios
-    # elif tipo_licencia == "estudios":
-    #     if not certificado_url:
-    #         return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
-    #     if not dias_requeridos:
-    #         return jsonify({"error": "Debe indicar la cantidad de dias requeridos"}), 400
-    #     if dias_requeridos < 1 or dias_requeridos > 10:
-    #         return jsonify({"error": "La cantidad de dias debe estar entre 1 y 10"}), 400
-    #     try:
-    #         dias_requeridos_val = int(dias_requeridos)
-    #     except ValueError:
-    #         return jsonify({"error": "Cantidad de días inválida"}), 400
-    #     if not fecha_inicio:
-    #         return jsonify({"error": "Debe indicar la fecha de inicio"}), 400
-    #     fecha_inicio_dt = datetime.strptime(fecha_inicio, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-    #     fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias_requeridos_val-1)
-    #     estado = "aprobada"
-
     elif tipo_licencia == "estudios":
         if not certificado_url:
             return jsonify({"error": "Debe adjuntar un certificado para licencia"}), 400
@@ -1328,18 +1147,6 @@ def empleados_mi_area():
         Usuario.id_empresa == jefe.id_empresa,
         Usuario.puesto_trabajo.in_(area_puestos[jefe.puesto_trabajo]),
     ).all()
-
-    # resultado = [
-    #     {
-    #         "id": e.id,
-    #         "nombre": e.nombre,
-    #         "apellido": e.apellido,
-    #         "correo": e.correo,
-    #         "username": e.username,
-    #         "puesto_trabajo": e.puesto_trabajo
-    #     }
-    #     for e in empleados
-    # ]
 
     resultado = []
     for e in empleados:
@@ -2187,69 +1994,6 @@ def responder_encuesta(id_encuesta):
     db.session.commit()
     return jsonify({"message": "Respuestas guardadas correctamente"}), 201
 
-# @empleado_bp.route("/encuesta/<int:id_encuesta>/respuestas-info", methods=["GET"])
-# @role_required(["empleado"])
-# def estado_respuestas_encuesta(id_encuesta):
-#     """
-#     Devuelve para una encuesta creada por el jefe:
-#     - Si es anónima: solo totales y lista de no respondieron (sin lista de respondieron)
-#     - Si NO es anónima: totales y listas completas
-#     """
-#     id_jefe = get_jwt_identity()
-#     encuesta = Encuesta.query.get(id_encuesta)
-#     if not encuesta:
-#         return jsonify({"error": "Encuesta no encontrada"}), 404
-#     if encuesta.creador_id != id_jefe:
-#         return jsonify({"error": "No tienes permisos para ver esta información"}), 403
-
-#     asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta).all()
-#     preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
-#     preguntas_ids = [p.id for p in preguntas]
-#     respuestas = (
-#         RespuestaEncuesta.query
-#         .filter(RespuestaEncuesta.id_pregunta.in_(preguntas_ids))
-#         .with_entities(RespuestaEncuesta.id_usuario)
-#         .distinct()
-#         .all()
-#     )
-#     respondieron_ids = {r.id_usuario for r in respuestas}
-
-#     respondieron = []
-#     no_respondieron = []
-#     for asignacion in asignaciones:
-#         usuario = Usuario.query.get(asignacion.id_usuario)
-#         if not usuario:
-#             continue
-#         info = {
-#             "id": usuario.id,
-#             "nombre": usuario.nombre,
-#             "apellido": usuario.apellido,
-#             "correo": usuario.correo,
-#             "puesto_trabajo": usuario.puesto_trabajo
-#         }
-#         if usuario.id in respondieron_ids:
-#             respondieron.append(info)
-#         else:
-#             no_respondieron.append(info)
-
-#     if encuesta.es_anonima:
-#         # No mostrar la lista de respondieron
-#         return jsonify({
-#             "total_asignados": len(asignaciones),
-#             "total_respondieron": len(respondieron),
-#             "total_no_respondieron": len(no_respondieron),
-#             "no_respondieron": no_respondieron
-#         }), 200
-#     else:
-#         # Mostrar ambas listas
-#         return jsonify({
-#             "total_asignados": len(asignaciones),
-#             "total_respondieron": len(respondieron),
-#             "total_no_respondieron": len(no_respondieron),
-#             "respondieron": respondieron,
-#             "no_respondieron": no_respondieron
-#         }), 200
-    
 @empleado_bp.route("/encuesta/<int:id_encuesta>/respuestas-info", methods=["GET"])
 @role_required(["empleado"])
 def estado_respuestas_encuesta(id_encuesta):
