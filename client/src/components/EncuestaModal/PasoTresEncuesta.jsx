@@ -2,7 +2,7 @@ import { useState } from "react";
 
 export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack, onCancel }) {
   const [pregunta, setPregunta] = useState("");
-  const [tipoPregunta, setTipoPregunta] = useState("opcion unica");
+  const [tipoPregunta, setTipoPregunta] = useState("");
   const [permitirComentario, setPermitirComentario] = useState(false);
   const [esObligatoria, setEsObligatoria] = useState(false);
   const [opciones, setOpciones] = useState(["Excelente", "Buena", "Regular", "Mala"]);
@@ -10,20 +10,24 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
   const [editIndex, setEditIndex] = useState(null);
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
-  const agregarOpcion = () => {
-    if (nuevaOpcion.trim() && !opciones.includes(nuevaOpcion.trim())) {
-      setOpciones([...opciones, nuevaOpcion.trim()]);
-      setNuevaOpcion("");
-    }
-  };
+  const [errores, setErrores] = useState({});
+  const [errorPaso, setErrorPaso] = useState("");
 
-  const eliminarOpcion = (index) => {
-    const nuevasOpciones = opciones.filter((_, i) => i !== index);
-    setOpciones(nuevasOpciones);
+  const preguntasAgregadas = formData.preguntas || [];
+
+  const validarFormularioActual = () => {
+    const nuevosErrores = {};
+    if (!tipoPregunta) nuevosErrores.tipo = "Debe seleccionar un tipo de pregunta.";
+    if (!pregunta.trim()) nuevosErrores.pregunta = "La pregunta no puede estar vacía.";
+    if (tipoPregunta !== "rellena el usuario" && opciones.length === 0) {
+      nuevosErrores.opciones = "Debe tener al menos una opción de respuesta.";
+    }
+    setErrores(nuevosErrores);
+    return Object.keys(nuevosErrores).length === 0;
   };
 
   const guardarPregunta = () => {
-    if (!pregunta.trim() || (tipoPregunta !== "rellena el usuario" && opciones.length === 0)) return;
+    if (!validarFormularioActual()) return;
 
     const nuevaPregunta = {
       texto: pregunta.trim(),
@@ -33,25 +37,53 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
       obligatoria: esObligatoria,
     };
 
-    const preguntas = formData.preguntas || [];
     const nuevasPreguntas =
       editIndex !== null
-        ? preguntas.map((p, i) => (i === editIndex ? nuevaPregunta : p))
-        : [...preguntas, nuevaPregunta];
+        ? preguntasAgregadas.map((p, i) => (i === editIndex ? nuevaPregunta : p))
+        : [...preguntasAgregadas, nuevaPregunta];
 
     setFormData({ ...formData, preguntas: nuevasPreguntas });
     setPregunta("");
     setOpciones(["Excelente", "Buena", "Regular", "Mala"]);
-    setTipoPregunta("opcion unica");
+    setTipoPregunta("");
     setPermitirComentario(false);
     setEsObligatoria(false);
     setEditIndex(null);
+    setErrores({});
+  };
+
+  const handleSiguientePaso = () => {
+    const tienePreguntas = preguntasAgregadas.length > 0;
+
+    if (!tienePreguntas) {
+      const esFormularioValido = validarFormularioActual();
+      if (!esFormularioValido) {
+        setErrorPaso("");
+        return;
+      }
+      setErrorPaso("Debés agregar al menos una pregunta antes de continuar.");
+      return;
+    }
+
+    setErrorPaso("");
+    onNext();
+  };
+
+  const agregarOpcion = () => {
+    if (nuevaOpcion.trim() && !opciones.includes(nuevaOpcion.trim())) {
+      setOpciones([...opciones, nuevaOpcion.trim()]);
+      setNuevaOpcion("");
+    }
+  };
+
+  const eliminarOpcion = (index) => {
+    setOpciones(opciones.filter((_, i) => i !== index));
   };
 
   const editarPregunta = (index) => {
-    const p = formData.preguntas[index];
+    const p = preguntasAgregadas[index];
     setPregunta(p.texto);
-    setTipoPregunta(p.tipo || "opcion unica");
+    setTipoPregunta(p.tipo || "");
     setPermitirComentario(p.permitir_comentario || false);
     setEsObligatoria(p.obligatoria || false);
     setOpciones(p.opciones?.length ? p.opciones : []);
@@ -59,19 +91,17 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
   };
 
   const eliminarPregunta = (index) => {
-    const nuevasPreguntas = (formData.preguntas || []).filter((_, i) => i !== index);
+    const nuevasPreguntas = preguntasAgregadas.filter((_, i) => i !== index);
     setFormData({ ...formData, preguntas: nuevasPreguntas });
     if (editIndex === index) {
       setPregunta("");
       setOpciones(["Excelente", "Buena", "Regular", "Mala"]);
-      setTipoPregunta("opcion unica");
+      setTipoPregunta("");
       setPermitirComentario(false);
       setEsObligatoria(false);
       setEditIndex(null);
     }
   };
-
-  const preguntasAgregadas = formData.preguntas || [];
 
   return (
     <div className="space-y-4 relative">
@@ -91,13 +121,18 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
       <label className="block text-sm font-medium text-black">Tipo de pregunta</label>
       <select
         value={tipoPregunta}
-        onChange={(e) => setTipoPregunta(e.target.value)}
-        className="w-full border p-2 rounded text-black"
+        onChange={(e) => {
+          setTipoPregunta(e.target.value);
+          setErrores((prev) => ({ ...prev, tipo: null }));
+        }}
+        className="w-full border p-2 rounded text-black bg-white"
       >
+        <option value="" disabled hidden>Seleccione una opción</option>
         <option value="opcion unica">Opción única</option>
         <option value="opcion multiple">Opción múltiple</option>
         <option value="rellena el usuario">Rellena el usuario</option>
       </select>
+      {errores.tipo && <p className="text-sm text-red-600 mt-1">{errores.tipo}</p>}
 
       <label className="block text-sm font-medium text-black mt-2">Pregunta</label>
       <input
@@ -107,6 +142,7 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
         className="w-full border p-2 rounded text-black"
         placeholder="¿Cómo fue tu experiencia con el uso de la app?"
       />
+      {errores.pregunta && <p className="text-red-600 text-sm">{errores.pregunta}</p>}
 
       <div className="pt-2">
         <label className="flex items-center gap-2 text-black">
@@ -122,14 +158,24 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
       {tipoPregunta !== "rellena el usuario" && (
         <>
           <label className="block text-sm font-medium text-black">Opciones de respuesta:</label>
-          <ul className="space-y-2">
+          {errores.opciones && <p className="text-red-600 text-sm">{errores.opciones}</p>}
+          <ul className="space-y-1">
             {opciones.map((op, index) => (
-              <li key={index} className="flex items-center gap-2">
-                <input type="checkbox" checked disabled />
-                <span className="text-black">{op}</span>
+              <li
+                key={index}
+                className="flex items-center gap-2 px-3 py-1 rounded hover:bg-blue-50 transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked
+                  readOnly
+                  className="accent-green-500 w-4 h-4 pointer-events-none"
+                />
+                <span className="text-black flex-1">{op}</span>
                 <button
                   onClick={() => eliminarOpcion(index)}
-                  className="text-red-600 hover:underline"
+                  className="text-red-600 font-bold text-lg hover:text-red-800"
+                  title="Eliminar opción"
                 >
                   ×
                 </button>
@@ -168,7 +214,7 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
           onClick={guardarPregunta}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
-          {editIndex !== null ? "Guardar cambios" : "Agregar otra pregunta"}
+          {editIndex !== null ? "Guardar cambios" : "Agregar pregunta"}
         </button>
       </div>
 
@@ -211,6 +257,7 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
           </ul>
         </div>
       )}
+      {errorPaso && <p className="text-red-600 text-sm mt-2">{errorPaso}</p>}
 
       <div className="flex justify-between gap-2 pt-4">
         <button
@@ -227,7 +274,7 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
             Atrás
           </button>
           <button
-            onClick={onNext}
+            onClick={handleSiguientePaso}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Siguiente

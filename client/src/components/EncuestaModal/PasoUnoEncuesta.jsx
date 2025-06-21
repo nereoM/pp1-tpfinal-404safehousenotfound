@@ -1,5 +1,3 @@
-// components/EncuestaModal/PasoUnoEncuesta.jsx
-
 import { useState } from "react";
 import { DayPicker } from "react-day-picker";
 import { format } from "date-fns";
@@ -7,18 +5,37 @@ import { es } from "date-fns/locale";
 import "react-day-picker/dist/style.css";
 
 export default function PasoUnoEncuesta({ formData, setFormData, onNext, onCancel }) {
+  const [errores, setErrores] = useState({});
   const [showInicio, setShowInicio] = useState(false);
   const [showFin, setShowFin] = useState(false);
 
   const handleChange = (campo, valor) => {
     setFormData({ ...formData, [campo]: valor });
+    setErrores({ ...errores, [campo]: null }); // limpia errores si el usuario edita
   };
 
-  const handleChangeFecha = (campo, fecha) => {
-    setFormData({
-      ...formData,
-      fechas: { ...formData.fechas, [campo]: fecha },
-    });
+  const handleNext = () => {
+    const nuevosErrores = {};
+
+    if (!formData.tipo) {
+      nuevosErrores.tipo = "Debe seleccionar un tipo.";
+    }
+    if (!formData.titulo || formData.titulo.trim() === "") {
+      nuevosErrores.titulo = "El título es obligatorio.";
+    }
+    if (!formData.fechas?.from || !formData.fechas?.to) {
+      nuevosErrores.fechas = "Debe seleccionar un rango de fechas completo.";
+    }
+    if (formData.anonima !== "si" && formData.anonima !== "no") {
+      nuevosErrores.anonima = "Debe seleccionar si la encuesta será anónima.";
+    }
+
+    if (Object.keys(nuevosErrores).length > 0) {
+      setErrores(nuevosErrores);
+      return;
+    }
+
+    onNext();
   };
 
   const formatFecha = (fecha) =>
@@ -46,7 +63,7 @@ export default function PasoUnoEncuesta({ formData, setFormData, onNext, onCance
         onChange={(e) => handleChange("tipo", e.target.value)}
         className="w-full border p-2 rounded text-black bg-white"
       >
-        <option value="" disabled>Seleccionar tipo</option>
+        <option value="" disabled hidden>Seleccione un tipo</option>
         <option value="clima">Clima Laboral</option>
         <option value="uso">Uso de la Plataforma</option>
         <option value="desempeño">Desempeño</option>
@@ -54,6 +71,7 @@ export default function PasoUnoEncuesta({ formData, setFormData, onNext, onCance
         <option value="diversidad">Diversidad e Inclusión</option>
         <option value="otro">Otro</option>
       </select>
+      {errores.tipo && <p className="text-sm text-red-600">{errores.tipo}</p>}
 
       {/* Título */}
       <label className="block text-sm font-medium text-black">Título</label>
@@ -64,14 +82,15 @@ export default function PasoUnoEncuesta({ formData, setFormData, onNext, onCance
         className="w-full border p-2 rounded text-black"
         placeholder="Ej: Evaluación semestral"
       />
+      {errores.titulo && <p className="text-sm text-red-600">{errores.titulo}</p>}
 
-      {/* Descripción */}
+      {/* Descripción (opcional) */}
       <label className="block text-sm font-medium text-black">Descripción</label>
       <textarea
         value={formData.descripcion || ""}
         onChange={(e) => handleChange("descripcion", e.target.value)}
         className="w-full border p-2 rounded text-black"
-        placeholder="Objetivo general de la encuesta"
+        placeholder="Objetivo general de la encuesta (opcional)"
       />
 
       {/* ¿Anónima? */}
@@ -97,6 +116,7 @@ export default function PasoUnoEncuesta({ formData, setFormData, onNext, onCance
           </label>
         ))}
       </div>
+      {errores.anonima && <p className="text-sm text-red-600 mt-1">{errores.anonima}</p>}
 
       {/* Fechas */}
       <label className="block text-sm font-medium text-black">Rango de fechas</label>
@@ -125,6 +145,7 @@ export default function PasoUnoEncuesta({ formData, setFormData, onNext, onCance
               : " (solo fecha de inicio)"}
           </p>
         )}
+        {errores.fechas && <p className="text-sm text-red-600 mt-2">{errores.fechas}</p>}
       </div>
 
       {/* Botones */}
@@ -136,7 +157,7 @@ export default function PasoUnoEncuesta({ formData, setFormData, onNext, onCance
           Cancelar
         </button>
         <button
-          onClick={onNext}
+          onClick={handleNext}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Siguiente
