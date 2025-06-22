@@ -32,7 +32,7 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
       texto: pregunta.trim(),
       tipo: tipoPregunta,
       opciones: tipoPregunta === "rellena el usuario" ? [] : opciones,
-      obligatoria: esObligatoria,
+      es_requerida: esObligatoria, // CAMBIO: el backend espera 'es_requerida'
     };
 
     const nuevasPreguntas =
