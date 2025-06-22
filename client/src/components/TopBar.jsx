@@ -293,7 +293,7 @@ export function TopBar({
           ref={profileImgRef}
           src={imgSrc}
           alt="foto perfil"
-          className="w-10 h-10 rounded-full border-2 cursor-pointer"
+          className="w-10 h-10 rounded-full object-cover border-2 cursor-pointer"
           style={{ borderColor: primary }}
           onClick={() => {
             setProfileVisible((prev) => !prev);
@@ -317,7 +317,7 @@ export function TopBar({
           >
             <img
               src={imgSrc}
-              className="w-20 h-20 rounded-full border shadow"
+              className="w-20 h-20 rounded-full object-cover border shadow"
               style={{ borderColor: primary }}
             />
             <div className="text-center">
