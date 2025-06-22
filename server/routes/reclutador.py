@@ -2523,11 +2523,22 @@ def empleados_por_area():
         for jefe in jefes
     ]
 
-    # Empleados normales (no jefes de área)
+    from sqlalchemy.orm import aliased
+    
+    # Empleados normales (no jefes de área, ni managers, ni reclutadores)
+    subq = (
+        db.session.query(UsuarioRol.id_usuario)
+        .join(Rol, UsuarioRol.id_rol == Rol.id)
+        .filter(Rol.slug.in_(["manager", "reclutador"]))
+        .subquery()
+    )
+
     empleados = Usuario.query.filter(
         Usuario.id_empresa == reclutador.id_empresa,
-        ~Usuario.puesto_trabajo.in_(nombres_areas)
+        ~Usuario.puesto_trabajo.in_(nombres_areas),
+        ~Usuario.id.in_(subq)
     ).all()
+
     empleados_info = [
         {
             "id": emp.id,

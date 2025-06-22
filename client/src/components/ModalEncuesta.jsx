@@ -137,7 +137,6 @@ export function ModalEncuesta({ open, onOpenChange }) {
       handleClose();
     } catch (error) {
       console.error(error);
-      alert("Hubo un problema al crear la encuesta.");
     }
   };
 
