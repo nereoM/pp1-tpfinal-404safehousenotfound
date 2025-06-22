@@ -3,7 +3,6 @@ import { useState } from "react";
 export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack, onCancel }) {
   const [pregunta, setPregunta] = useState("");
   const [tipoPregunta, setTipoPregunta] = useState("");
-  const [permitirComentario, setPermitirComentario] = useState(false);
   const [esObligatoria, setEsObligatoria] = useState(false);
   const [opciones, setOpciones] = useState(["Excelente", "Buena", "Regular", "Mala"]);
   const [nuevaOpcion, setNuevaOpcion] = useState("");
@@ -33,7 +32,6 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
       texto: pregunta.trim(),
       tipo: tipoPregunta,
       opciones: tipoPregunta === "rellena el usuario" ? [] : opciones,
-      permitir_comentario: tipoPregunta !== "rellena el usuario" ? permitirComentario : false,
       obligatoria: esObligatoria,
     };
 
@@ -46,7 +44,6 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
     setPregunta("");
     setOpciones(["Excelente", "Buena", "Regular", "Mala"]);
     setTipoPregunta("");
-    setPermitirComentario(false);
     setEsObligatoria(false);
     setEditIndex(null);
     setErrores({});
@@ -84,7 +81,6 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
     const p = preguntasAgregadas[index];
     setPregunta(p.texto);
     setTipoPregunta(p.tipo || "");
-    setPermitirComentario(p.permitir_comentario || false);
     setEsObligatoria(p.obligatoria || false);
     setOpciones(p.opciones?.length ? p.opciones : []);
     setEditIndex(index);
@@ -97,7 +93,6 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
       setPregunta("");
       setOpciones(["Excelente", "Buena", "Regular", "Mala"]);
       setTipoPregunta("");
-      setPermitirComentario(false);
       setEsObligatoria(false);
       setEditIndex(null);
     }
@@ -195,17 +190,6 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
               + Agregar nueva opción
             </button>
           </div>
-
-          <div className="pt-2">
-            <label className="flex items-center gap-2 text-black">
-              <input
-                type="checkbox"
-                checked={permitirComentario}
-                onChange={(e) => setPermitirComentario(e.target.checked)}
-              />
-              ¿Permitir comentario adicional?
-            </label>
-          </div>
         </>
       )}
 
@@ -231,9 +215,6 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
                       <li key={j}>{op}</li>
                     ))}
                   </ul>
-                )}
-                {p.permitir_comentario && (
-                  <p className="text-xs text-gray-500">Incluye comentario adicional</p>
                 )}
                 {p.obligatoria && (
                   <p className="text-xs text-red-500">Esta pregunta es obligatoria</p>

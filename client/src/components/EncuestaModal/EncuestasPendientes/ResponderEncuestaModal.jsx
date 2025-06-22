@@ -1,4 +1,3 @@
-// ✅ ResponderEncuestaModal.jsx
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
 
@@ -21,8 +20,11 @@ export default function ResponderEncuestaModal({
       })
         .then((res) => res.json())
         .then((data) => {
-          console.log("Preguntas recibidas:", data);
-          setPreguntas(data.preguntas || []);
+          const normalizadas = (data.preguntas || []).map(p => ({
+            ...p,
+            obligatoria: Boolean(p.obligatoria)
+          }));
+          setPreguntas(normalizadas);
         })
         .catch((err) => {
           console.error("Error al cargar preguntas de la encuesta", err);
@@ -51,9 +53,9 @@ export default function ResponderEncuestaModal({
 
   const handleMultipleRespuesta = (opcion) => {
     const prev = respuestas[preguntaActual?.texto] || [];
-    const nueva = prev.includes(opcion)
-      ? prev.filter((o) => o !== opcion)
-      : [...prev, opcion];
+    const nueva = prev.includes(opcion.trim())
+      ? prev.filter((o) => o.trim() !== opcion.trim())
+      : [...prev, opcion.trim()];
     setRespuestas((prevState) => ({
       ...prevState,
       [preguntaActual?.texto]: nueva,
@@ -69,30 +71,63 @@ export default function ResponderEncuestaModal({
   };
 
   const validarRespuesta = () => {
-    if (!preguntaActual?.obligatoria) return true;
+    if (!preguntaActual || !preguntaActual.obligatoria) return true;
+
     const respuesta = respuestas[preguntaActual?.texto];
-    if (preguntaActual?.tipo === "checkbox") return Array.isArray(respuesta) && respuesta.length > 0;
+    if (preguntaActual?.tipo?.toLowerCase() === "checkbox") {
+      return (
+        Array.isArray(respuesta) &&
+        respuesta.filter((r) => r?.trim() !== "").length > 0
+      );
+    }
+
     return respuesta !== undefined && respuesta !== null && respuesta !== "";
   };
 
   const handleSiguiente = () => {
     if (!validarRespuesta()) {
-      setError("Esta pregunta es obligatoria.");
+      if (preguntaActual?.obligatoria) {
+        setError("Esta pregunta es obligatoria. Seleccioná al menos una opción.");
+      }
       return;
     }
+
+    setRespuestas((prev) => {
+      const newState = { ...prev };
+      delete newState[`${preguntaActual.texto}_comentario`];
+      delete newState[`${preguntaActual.texto}_comentario_check`];
+      return newState;
+    });
+
+    setError(null);
     if (esUltima) handleFinalizar();
     else setPreguntaIndex((prev) => prev + 1);
   };
 
+  const handleAnterior = () => {
+    setError(null);
+    setPreguntaIndex((prev) => Math.max(0, prev - 1));
+  };
+
   const handleFinalizar = async () => {
+    if (!validarRespuesta()) {
+      if (preguntaActual?.obligatoria) {
+        setError("Esta pregunta es obligatoria. Seleccioná al menos una opción.");
+      }
+      return;
+    }
+
     const respuestasFormateadas = Object.entries(respuestas)
-      .filter(([k]) => !k.endsWith("_comentario"))
+      .filter(([k]) => !k.endsWith("_comentario_check"))
       .map(([preguntaTexto, respuesta]) => {
         const pregunta = preguntas.find((p) => p.texto === preguntaTexto);
         return {
           id_pregunta: pregunta?.id,
           respuesta: Array.isArray(respuesta) ? respuesta : String(respuesta),
-          comentario: respuestas[`${preguntaTexto}_comentario`] ?? null
+          comentario:
+            respuestas[`${preguntaTexto}_comentario_check`]
+              ? respuestas[`${preguntaTexto}_comentario`] || ""
+              : null,
         };
       });
 
@@ -148,15 +183,16 @@ export default function ResponderEncuestaModal({
               {preguntaActual.obligatoria && <span className="text-red-600"> *</span>}
             </h2>
 
-            {preguntaActual.tipo === "texto" && !preguntaActual.opciones?.length ? (
+            {preguntaActual.tipo?.toLowerCase() === "texto" && !preguntaActual.opciones?.length ? (
               <textarea
                 className="w-full p-2 border rounded"
                 placeholder="Escribí tu respuesta"
+                value={respuestas[preguntaActual.texto] || ""}
                 onChange={(e) => handleRespuesta(e.target.value)}
               />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {preguntaActual.tipo === "checkbox" && (
+                {preguntaActual.tipo?.toLowerCase() === "checkbox" && (
                   <div className="col-span-2 text-sm text-gray-500 italic">
                     (Podés seleccionar más de una opción)
                   </div>
@@ -164,17 +200,17 @@ export default function ResponderEncuestaModal({
                 {(preguntaActual.opciones || []).map((op, idx) => (
                   <label key={idx} className="flex items-center gap-2 border rounded px-3 py-2 shadow-sm cursor-pointer hover:bg-gray-50">
                     <input
-                      type={preguntaActual.tipo === "checkbox" ? "checkbox" : "radio"}
-                      name={preguntaActual.texto}
+                      type={preguntaActual.tipo?.toLowerCase() === "checkbox" ? "checkbox" : "radio"}
+                      name={`pregunta-${preguntaActual.id}`}
                       value={op}
                       className="accent-blue-600"
                       checked={
-                        preguntaActual.tipo === "checkbox"
+                        preguntaActual.tipo?.toLowerCase() === "checkbox"
                           ? respuestas[preguntaActual.texto]?.includes(op)
                           : respuestas[preguntaActual.texto] === op
                       }
                       onChange={() =>
-                        preguntaActual.tipo === "checkbox"
+                        preguntaActual.tipo?.toLowerCase() === "checkbox"
                           ? handleMultipleRespuesta(op)
                           : handleRespuesta(op)
                       }
@@ -182,50 +218,66 @@ export default function ResponderEncuestaModal({
                     <span>{op}</span>
                   </label>
                 ))}
-                {preguntaActual.tipo !== "texto" && (
-                  <label className="col-span-2">
-                    <span className="block text-sm mb-1">Otro:</span>
-                    <input
-                      type="text"
-                      className="w-full p-2 border rounded"
-                      placeholder="Escribí otra respuesta"
-                      onChange={(e) => handleRespuesta(e.target.value)}
-                    />
-                  </label>
+
+                <label className="flex items-center gap-2 mt-4 col-span-2">
+                  <input
+                    type="checkbox"
+                    className="accent-blue-600"
+                    checked={!!respuestas[`${preguntaActual.texto}_comentario_check`]}
+                    onChange={(e) =>
+                      setRespuestas((prev) => ({
+                        ...prev,
+                        [`${preguntaActual.texto}_comentario_check`]: e.target.checked,
+                        [`${preguntaActual.texto}_comentario`]: e.target.checked
+                          ? prev[`${preguntaActual.texto}_comentario`] || ""
+                          : "",
+                      }))
+                    }
+                  />
+                  <span className="text-sm">¿Desea agregar un comentario o recomendación?</span>
+                </label>
+
+                {respuestas[`${preguntaActual.texto}_comentario_check`] && (
+                  <textarea
+                    className="w-full border mt-2 p-2 rounded col-span-2"
+                    rows={3}
+                    value={respuestas[`${preguntaActual.texto}_comentario`] || ""}
+                    onChange={(e) => handleComentario(e.target.value)}
+                  />
                 )}
               </div>
             )}
 
-            {preguntaActual.comentario && (
-              <div>
-                <label className="block mb-1 text-sm">
-                  ¿Deseás agregar un comentario?
-                </label>
-                <textarea
-                  className="w-full border p-2 rounded"
-                  rows={4}
-                  onChange={(e) => handleComentario(e.target.value)}
-                />
-              </div>
+            {error && (
+              <p className="text-red-600 text-sm mt-2">{error}</p>
             )}
 
-            {error && <p className="text-red-600 text-sm">{error}</p>}
+            <div className="flex justify-between gap-2 pt-4">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 disabled:opacity-50"
+                onClick={handleAnterior}
+                disabled={preguntaIndex === 0}
+              >
+                Anterior
+              </button>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <button
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                onClick={handleClose}
-              >
-                Cancelar
-              </button>
-              <button
-                className={`px-4 py-2 rounded text-white ${
-                  esUltima ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
-                }`}
-                onClick={handleSiguiente}
-              >
-                {esUltima ? "Finalizar" : "Siguiente"}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                  onClick={handleClose}
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  className={`px-4 py-2 rounded text-white ${
+                    esUltima ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
+                  }`}
+                  onClick={handleSiguiente}
+                >
+                  {esUltima ? "Finalizar" : "Siguiente"}
+                </button>
+              </div>
             </div>
           </div>
         )}

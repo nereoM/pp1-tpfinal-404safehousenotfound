@@ -9,7 +9,7 @@ export function EncuestasPendientesModal({ open, onOpenChange }) {
 
   useEffect(() => {
     if (open) {
-      fetch("http://localhost:5000/api/obtener-encuestas-asignadas", {
+      fetch("/api/obtener-encuestas-asignadas", {
         method: "GET",
         credentials: "include",
       })

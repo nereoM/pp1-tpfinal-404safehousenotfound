@@ -2050,7 +2050,7 @@ def obtener_encuestas_asignadas():
     resultado = []
     for asignacion in asignaciones:
         encuesta = Encuesta.query.get(asignacion.id_encuesta)
-        if encuesta and encuesta.estado == "activa":
+        if encuesta and encuesta.activa == 1:
             resultado.append({
                 "id_encuesta": encuesta.id,
                 "titulo": encuesta.titulo,
@@ -2087,16 +2087,20 @@ def obtener_encuesta_asignada_detalle(id_encuesta):
         return jsonify({"error": "Encuesta no encontrada"}), 404
 
     preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
-    preguntas_info = [
-        {
+    preguntas_info = []
+    for p in preguntas:
+        tipo_frontend = (
+            "checkbox" if p.tipo == "opcion_multiple"
+            else "radio" if p.tipo == "unica_opcion"
+            else "texto"
+        )
+        preguntas_info.append({
             "id": p.id,
             "texto": p.texto,
-            "tipo": p.tipo,
-            "opciones": json.loads(p.opciones) if p.opciones else None,
-            "es_requerida": p.es_requerida
-        }
-        for p in preguntas
-    ]
+            "tipo": tipo_frontend,
+            "opciones": json.loads(p.opciones) if p.opciones else [],
+            "obligatoria": bool(p.es_requerida)
+        })
 
     return jsonify({
         "id_encuesta": encuesta.id,
@@ -2131,7 +2135,7 @@ def responder_encuesta(id_encuesta):
     if not encuesta:
         return jsonify({"error": "Encuesta no encontrada"}), 404
 
-    if encuesta.estado not in ["activa"]:
+    if not encuesta.activa:
         return jsonify({"error": "La encuesta no está activa"}), 400
 
     data = request.get_json()
@@ -2183,6 +2187,9 @@ def responder_encuesta(id_encuesta):
         db.session.add(nueva_respuesta)
 
     asignacion.respondida = True
+
+    if encuesta.estado == "pendiente":
+        encuesta.estado = "respondida"
 
     db.session.commit()
     return jsonify({"message": "Respuestas guardadas correctamente"}), 201
