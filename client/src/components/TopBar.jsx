@@ -4,36 +4,43 @@ import { SiTelegram } from "react-icons/si";
 import { Link, useNavigate } from "react-router-dom";
 import isLightColor from "../components/isLightColor";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
+import { Badge } from "./shadcn/Badge";
 
-
-export function TopBar({ username, user, onEditPerfil, onPostulacion, showBell = true }) {
+export function TopBar({
+  username,
+  user,
+  onEditPerfil,
+  onPostulacion,
+  showBell = true,
+}) {
   const { estilos } = useEstiloEmpresa(user?.id_empresa);
   const primary = estilos?.color_principal ?? "#2563eb";
   const logoUrl = estilos?.logo_url ?? null;
-  const textColor = estilos?.color_texto ?? (isLightColor(primary) ? "#000000" : "#ffffff");
+  const textColor =
+    estilos?.color_texto ?? (isLightColor(primary) ? "#000000" : "#ffffff");
   const API_URL = import.meta.env.VITE_API_URL;
-
   const [notificaciones, setNotificaciones] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [modalVisible, setModalVisible] = useState(false);
   const [profileVisible, setProfileVisible] = useState(false);
   const notificacionesRef = useRef(null);
   const profileRef = useRef(null);
-  const profileImgRef = useRef(null)
-  const bellRef = useRef(null)
+  const profileImgRef = useRef(null);
+  const bellRef = useRef(null);
   const navigate = useNavigate();
 
-const [telegramLink, setTelegramLink] = useState(null);
-const [mostrarBotonTelegram, setMostrarBotonTelegram] = useState(false);
+  const [telegramLink, setTelegramLink] = useState(null);
+  const [mostrarBotonTelegram, setMostrarBotonTelegram] = useState(false);
 
   const rol = localStorage.getItem("rol") || "reclutador";
-  const endpointBase = {
-    candidato: "candidato",
-    manager: "manager",
-    "admin-emp": "admin-emp",
-    reclutador: "reclutador",
-    empleado: "empleado"
-  }[rol] || "reclutadores";
+  const endpointBase =
+    {
+      candidato: "candidato",
+      manager: "manager",
+      "admin-emp": "admin-emp",
+      reclutador: "reclutador",
+      empleado: "empleado",
+    }[rol] || "reclutadores";
 
   // Imagen de perfil
   const imgSrc = useMemo(() => {
@@ -45,8 +52,18 @@ const [mostrarBotonTelegram, setMostrarBotonTelegram] = useState(false);
   useEffect(() => {
     const fetchNotificaciones = async () => {
       try {
-        const res1 = await fetch(`${import.meta.env.VITE_API_URL}/api/notificaciones-${endpointBase}-no-leidas`, { credentials: "include" });
-        const res2 = await fetch(`${import.meta.env.VITE_API_URL}/api/notificaciones-${endpointBase}-no-leidas-contador`, { credentials: "include" });
+        const res1 = await fetch(
+          `${
+            import.meta.env.VITE_API_URL
+          }/api/notificaciones-${endpointBase}-no-leidas`,
+          { credentials: "include" }
+        );
+        const res2 = await fetch(
+          `${
+            import.meta.env.VITE_API_URL
+          }/api/notificaciones-${endpointBase}-no-leidas-contador`,
+          { credentials: "include" }
+        );
         if (res1.ok) setNotificaciones((await res1.json()).notificaciones);
         if (res2.ok) setUnreadCount((await res2.json()).total_no_leidas);
       } catch (e) {
@@ -62,13 +79,16 @@ const [mostrarBotonTelegram, setMostrarBotonTelegram] = useState(false);
   // Cierra modales al hacer clic fuera
   useEffect(() => {
     const clickOutside = (e) => {
-      if(profileImgRef.current && profileImgRef.current.contains(e.target)){
-        return
+      if (profileImgRef.current && profileImgRef.current.contains(e.target)) {
+        return;
       }
-      if(bellRef.current && bellRef.current.contains(e.target)){
-        return
+      if (bellRef.current && bellRef.current.contains(e.target)) {
+        return;
       }
-      if (notificacionesRef.current && !notificacionesRef.current.contains(e.target)) {
+      if (
+        notificacionesRef.current &&
+        !notificacionesRef.current.contains(e.target)
+      ) {
         setModalVisible(false);
       }
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -104,7 +124,9 @@ const [mostrarBotonTelegram, setMostrarBotonTelegram] = useState(false);
       });
 
       if (res.ok) {
-        window.dispatchEvent(new CustomEvent("cvSubidoOk", { detail: "¡CV subido exitosamente!" }));
+        window.dispatchEvent(
+          new CustomEvent("cvSubidoOk", { detail: "¡CV subido exitosamente!" })
+        );
         window.location.reload();
       }
     } catch (error) {
@@ -113,43 +135,41 @@ const [mostrarBotonTelegram, setMostrarBotonTelegram] = useState(false);
     }
   };
 
-
-useEffect(() => {
-  const obtenerLinkTelegram = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/telegram/link`, {
-        credentials: "include",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setTelegramLink(data.link);
+  useEffect(() => {
+    const obtenerLinkTelegram = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/telegram/link`, {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setTelegramLink(data.link);
+        }
+      } catch (error) {
+        console.error("Error al obtener el link de Telegram:", error);
       }
-    } catch (error) {
-      console.error("Error al obtener el link de Telegram:", error);
+    };
+
+    // Mostrar solo si el rol es válido
+    const rolesPermitidos = ["manager", "reclutador", "empleado"];
+    if (rolesPermitidos.includes(rol)) {
+      setMostrarBotonTelegram(true);
+      obtenerLinkTelegram();
     }
-  };
-
-  // Mostrar solo si el rol es válido
-  const rolesPermitidos = ["manager", "reclutador", "empleado"];
-  if (rolesPermitidos.includes(rol)) {
-    setMostrarBotonTelegram(true);
-    obtenerLinkTelegram();
-  }
-}, [rol]);
-
+  }, [rol]);
 
   return (
     <header
       className="sticky top-0 flex justify-between items-center py-4 px-6 border-b z-50"
-      style={{ borderColor: primary, color: textColor, backgroundColor : estilos?.color_secundario  }}
+      style={{
+        borderColor: primary,
+        color: textColor,
+        backgroundColor: estilos?.color_secundario,
+      }}
     >
       <div className="flex items-center gap-4">
         {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt="Logo empresa"
-            className="h-23 w-auto "
-          />
+          <img src={logoUrl} alt="Logo empresa" className="h-23 w-auto " />
         ) : (
           <h1 className="text-2xl font-bold" style={{ color: textColor }}>
             SIGRH+
@@ -158,6 +178,7 @@ useEffect(() => {
       </div>
 
       <div className="flex items-center gap-4 relative">
+        <Badge className="capitalize" variant="ghost">{rol.replace("-", " ")}</Badge>
         {/* campana */}
         {showBell && (
           <button
@@ -190,17 +211,26 @@ useEffect(() => {
                   {notificaciones.map((n) => (
                     <li
                       key={n.id}
-                      className={`p-2 text-sm cursor-pointer ${n.leida ? "text-gray-400" : "hover:bg-gray-100"}`}
+                      className={`p-2 text-sm cursor-pointer ${
+                        n.leida ? "text-gray-400" : "hover:bg-gray-100"
+                      }`}
                       onClick={async () => {
                         if (n.leida) return;
                         try {
-                          await fetch(`${import.meta.env.VITE_API_URL}/api/leer-notificacion-${endpointBase}/${n.id}`, {
-                            method: "PUT",
-                            credentials: "include"
-                          });
+                          await fetch(
+                            `${
+                              import.meta.env.VITE_API_URL
+                            }/api/leer-notificacion-${endpointBase}/${n.id}`,
+                            {
+                              method: "PUT",
+                              credentials: "include",
+                            }
+                          );
                           setNotificaciones((prev) =>
                             prev.map((notif) =>
-                              notif.id === n.id ? { ...notif, leida: true } : notif
+                              notif.id === n.id
+                                ? { ...notif, leida: true }
+                                : notif
                             )
                           );
                           setUnreadCount((prev) => Math.max(prev - 1, 0));
@@ -217,12 +247,19 @@ useEffect(() => {
                   className="w-full text-xs text-blue-600 hover:underline p-2 text-left"
                   onClick={async () => {
                     try {
-                      await Promise.all(notificaciones.map((n) =>
-                        fetch(`${import.meta.env.VITE_API_URL}/api/leer-notificacion-${endpointBase}/${n.id}`, {
-                          method: "PUT",
-                          credentials: "include"
-                        })
-                      ));
+                      await Promise.all(
+                        notificaciones.map((n) =>
+                          fetch(
+                            `${
+                              import.meta.env.VITE_API_URL
+                            }/api/leer-notificacion-${endpointBase}/${n.id}`,
+                            {
+                              method: "PUT",
+                              credentials: "include",
+                            }
+                          )
+                        )
+                      );
                       setNotificaciones([]);
                       setUnreadCount(0);
                     } catch (e) {
@@ -234,87 +271,98 @@ useEffect(() => {
                 </button>
               </>
             ) : (
-              <div className="p-4 text-center text-gray-500 text-sm">No tienes notificaciones</div>
+              <div className="p-4 text-center text-gray-500 text-sm">
+                No tienes notificaciones
+              </div>
             )}
             <footer className="flex justify-center">
-              <Link style={{ color: primary }} to="/notificaciones" className="underline text-xs p-2">Ver todas las notificaciones</Link>
+              <Link
+                style={{ color: primary }}
+                to="/notificaciones"
+                className="underline text-xs p-2"
+              >
+                Ver todas las notificaciones
+              </Link>
             </footer>
           </div>
         )}
 
         {/* icono de usuario */}
-          <img
-            ref={profileImgRef}
-            src={imgSrc}
-            alt="foto perfil"
-            className="w-10 h-10 rounded-full border-2 cursor-pointer"
-            style={{ borderColor: primary }}
-            onClick={() => {
-              setProfileVisible((prev) => !prev);
-              if (!profileVisible) setModalVisible(false);
-            }}
-          />
+        <img
+          ref={profileImgRef}
+          src={imgSrc}
+          alt="foto perfil"
+          className="w-10 h-10 rounded-full border-2 cursor-pointer"
+          style={{ borderColor: primary }}
+          onClick={() => {
+            setProfileVisible((prev) => !prev);
+            if (!profileVisible) setModalVisible(false);
+          }}
+        />
 
         {/* dropdown de perfil */}
-{profileVisible && (
-  <div
-    ref={profileRef}
-    className="absolute right-0 top-12 w-72 bg-white border shadow-lg rounded-xl z-50 p-4 flex flex-col gap-3 items-center"
-    style={{
-      borderColor: primary,
-      backgroundColor: estilos && estilos.color_secundario ? estilos.color_secundario : "#fff",
-      color: textColor,
-    }}
-  >
-    <img
-      src={imgSrc}
-      className="w-20 h-20 rounded-full border shadow"
-      style={{ borderColor: primary }}
-    />
-    <div className="text-center">
-      <p className="font-bold text-lg">{user?.nombre} {user?.apellido}</p>
-      <p className="text-sm text-gray-500">{user?.correo}</p>
-      <p className="text-xs text-gray-400 italic">{rol}</p>
-    </div>
+        {profileVisible && (
+          <div
+            ref={profileRef}
+            className="absolute right-0 top-12 w-72 bg-white border shadow-lg rounded-xl z-50 p-4 flex flex-col gap-3 items-center"
+            style={{
+              borderColor: primary,
+              backgroundColor:
+                estilos && estilos.color_secundario
+                  ? estilos.color_secundario
+                  : "#fff",
+              color: textColor,
+            }}
+          >
+            <img
+              src={imgSrc}
+              className="w-20 h-20 rounded-full border shadow"
+              style={{ borderColor: primary }}
+            />
+            <div className="text-center">
+              <p className="font-bold text-lg">
+                {user?.nombre} {user?.apellido}
+              </p>
+              <p className="text-sm text-gray-500">{user?.correo}</p>
+              <p className="text-xs text-gray-400 italic">{rol}</p>
+            </div>
 
-    <div className="w-full flex flex-col gap-2 mt-2">
-      <button
-        onClick={onEditPerfil}
-        className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg cursor-pointer"
-        style={{
-          backgroundColor: primary,
-          color: isLightColor(primary) ? "#000" : "#fff",
-        }}
-      >
-        <Edit size={16} /> Editar perfil
-      </button>
+            <div className="w-full flex flex-col gap-2 mt-2">
+              <button
+                onClick={onEditPerfil}
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg cursor-pointer"
+                style={{
+                  backgroundColor: primary,
+                  color: isLightColor(primary) ? "#000" : "#fff",
+                }}
+              >
+                <Edit size={16} /> Editar perfil
+              </button>
 
-      {mostrarBotonTelegram && telegramLink && (
-        <a
-          href={telegramLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg cursor-pointer"
-          style={{
-            backgroundColor: "#229ED9",
-            color: "#fff",
-          }}
-        >
-          <SiTelegram size={16} /> Activar notificaciones Telegram
-        </a>
-      )}
+              {mostrarBotonTelegram && telegramLink && (
+                <a
+                  href={telegramLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg cursor-pointer"
+                  style={{
+                    backgroundColor: "#229ED9",
+                    color: "#fff",
+                  }}
+                >
+                  <SiTelegram size={16} /> Activar notificaciones Telegram
+                </a>
+              )}
 
-      <button
-        onClick={handleLogout}
-        className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg bg-red-600 text-white shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg cursor-pointer"
-      >
-        <LogOut size={16} /> Cerrar sesión
-      </button>
-    </div>
-  </div>
-)}
-
-
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg bg-red-600 text-white shadow-md transition-all duration-200 hover:brightness-110 hover:shadow-lg cursor-pointer"
+              >
+                <LogOut size={16} /> Cerrar sesión
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
