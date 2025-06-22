@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import {
+  File,
   FileLock,
   FileSearchIcon,
   FileText,
@@ -439,12 +440,22 @@ export default function EmpleadoHome() {
                   <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
                 </div>
               </div>
-              <OfertasRecomendadas
-                onSelectOferta={(id) => setIdOfertaSeleccionada(id)}
-                isLoading={ofertasIsLoading}
-                error={ofertasError}
-                ofertas={ofertasFiltradas}
-              />
+              {
+                cvs.length ?
+                <OfertasRecomendadas
+                  onSelectOferta={(id) => setIdOfertaSeleccionada(id)}
+                  isLoading={ofertasIsLoading}
+                  error={ofertasError}
+                  ofertas={ofertasFiltradas}
+                />
+                 : <section className="flex flex-col items-center gap-4 p-12 relative">
+                  <div className="flex opacity-50">
+                  <File className="translate-x-5 -rotate-12 size-14 "/>
+                  <File className="-translate-x-2 rotate-12 size-14 fill-white"/>
+                  </div>
+                  <p className="bg-gradient-to-b from-transparent via-white to-transparent p-2">Sube un CV para obtener recomendaciones</p>
+                 </section>
+              }
             </div>
           </div>
 
