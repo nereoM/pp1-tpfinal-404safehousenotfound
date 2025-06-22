@@ -52,6 +52,7 @@ export function ModalSubirEmpleados({ service, open, onOpenChange }) {
       } else {
         // Verifica si `total_empleados` está definido
         if (data.total_empleados !== undefined) {
+          setFile(null)
           setMessage(
             `${data.message}. Total empleados registrados: ${data.total_empleados}`
           );
