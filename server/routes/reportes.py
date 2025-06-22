@@ -1,10 +1,11 @@
 import os, io, base64, requests
 from datetime import datetime
-from flask import request, send_file, Blueprint
+from flask import request, send_file, Blueprint, jsonify, render_template
 from flask_jwt_extended import get_jwt_identity
 from sqlalchemy import func, case, text, extract
+from urllib.request import urlopen
 from jinja2 import Environment, FileSystemLoader
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image as ExcelImage
 from openpyxl.styles import Font, Alignment, PatternFill
@@ -16,7 +17,7 @@ from io import BytesIO
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot as plt
-from models.schemes import Usuario, Empresa, Preferencias_empresa, Oferta_laboral, Job_Application, RendimientoEmpleado, Licencia, Rol, UsuarioRol, Oferta_analista, Periodo
+from models.schemes import Usuario, Empresa, Preferencias_empresa, Oferta_laboral, Job_Application, RendimientoEmpleado, Licencia, Rol, UsuarioRol, Oferta_analista, Periodo, PreguntaEncuesta, Encuesta, EncuestaAsignacion, RespuestaEncuesta
 from auth.decorators import role_required
 from .manager import manager_bp
 from models.extensions import db
@@ -1089,6 +1090,120 @@ def generar_excel_eficacia(tabla, nombre_empresa, logo_url, color_hex):
     path = os.path.join(TEMP_DIR, nombre_archivo)
     wb.save(path)
     return send_file(path, as_attachment=True, download_name=nombre_archivo)
+
+
+
+@reportes_bp.route("/reporte-encuestas-empresa", methods=["GET"])
+@role_required(["manager"])
+def generar_reporte_encuestas_empresa():
+    id_usuario = get_jwt_identity()
+    usuario = Usuario.query.get_or_404(id_usuario)
+
+    if not usuario.id_empresa:
+        return jsonify({"error": "El usuario no tiene una empresa asociada"}), 400
+
+    empresa = Empresa.query.get(usuario.id_empresa)
+    preferencia = Preferencias_empresa.query.get(usuario.id_empresa)
+    logo_base64 = None
+    if preferencia and preferencia.logo_url:
+        logo_base64 = imagen_base64(preferencia.logo_url)
+
+    encuestas = (
+        Encuesta.query
+        .join(Usuario, Usuario.id == Encuesta.creador_id)
+        .filter(Usuario.id_empresa == usuario.id_empresa)
+        .all()
+    )
+
+    if not encuestas:
+        return jsonify({"error": "No se encontraron encuestas"}), 404
+
+    reportes = []
+
+    for encuesta in encuestas:
+        preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=encuesta.id).all()
+        respuestas = RespuestaEncuesta.query.join(PreguntaEncuesta)\
+            .filter(PreguntaEncuesta.id_encuesta == encuesta.id).all()
+        asignaciones = EncuestaAsignacion.query.filter_by(id_encuesta=encuesta.id).all()
+
+        total_asignados = len(asignaciones)
+        total_respondidas = len({r.id_usuario for r in respuestas if r.id_usuario})
+        porcentaje_respuesta = (total_respondidas / total_asignados * 100) if total_asignados else 0
+
+        fig1, ax1 = plt.subplots()
+        ax1.bar(["Asignados", "Respondieron"], [total_asignados, total_respondidas], color="#2E86C1")
+        ax1.set_title("Participación")
+        grafico_participacion = fig_to_base64(fig1)
+        plt.close(fig1)
+
+        preguntas_detalle = []
+        grafico_torta_base64 = None
+
+        for pregunta in preguntas:
+            respuestas_pregunta = [r.respuesta for r in respuestas if r.id_pregunta == pregunta.id]
+            preguntas_detalle.append({
+                "texto": pregunta.texto,
+                "tipo": pregunta.tipo,
+                "total_respuestas": len(respuestas_pregunta),
+                "respuestas": respuestas_pregunta,
+            })
+
+            # Solo un gráfico de torta, de la primera opción múltiple
+            if not grafico_torta_base64 and pregunta.tipo == "opcion_multiple":
+                conteo = {}
+                for r in respuestas_pregunta:
+                    conteo[r] = conteo.get(r, 0) + 1
+                if conteo:
+                    fig2, ax2 = plt.subplots()
+                    ax2.pie(conteo.values(), labels=conteo.keys(), autopct="%1.1f%%")
+                    ax2.set_title(pregunta.texto)
+                    grafico_torta_base64 = fig_to_base64(fig2)
+                    plt.close(fig2)
+
+        reportes.append({
+            "encuesta": encuesta,
+            "total_asignados": total_asignados,
+            "total_respondidas": total_respondidas,
+            "porcentaje_respuesta": round(porcentaje_respuesta, 2),
+            "preguntas_detalle": preguntas_detalle,
+            "grafico_participacion": grafico_participacion,
+            "grafico_torta": grafico_torta_base64
+        })
+
+    datos = {
+        "empresa": empresa.nombre,
+        "logo_empresa": logo_base64,
+        "color_principal": preferencia.color_principal if preferencia else "#2E86C1",
+        "color_secundario": preferencia.color_secundario if preferencia else "#AED6F1",
+        "fecha_generacion": datetime.now().strftime("%d/%m/%Y"),
+        "reportes": reportes
+    }
+
+    ruta_css = os.path.join(os.path.dirname(__file__), '..', 'templates', 'reportes_encuesta.css')
+
+    html = render_template('reportes_encuesta.html', datos=datos)
+    nombre_archivo = f"reporte_encuestas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+    ruta_pdf = os.path.join(TEMP_DIR, nombre_archivo)
+    pdf = HTML(string=html).write_pdf(ruta_pdf, stylesheets=[CSS(ruta_css)])
+    return send_file(BytesIO(pdf), download_name=nombre_archivo, as_attachment=True)
+
+
+def imagen_base64(path):
+    if path.startswith("http://") or path.startswith("https://"):
+        # Descargar imagen desde URL
+        with urlopen(path) as response:
+            return base64.b64encode(response.read()).decode("utf-8")
+    else:
+        # Leer imagen local
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+
+def fig_to_base64(fig):
+    buf = BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight")
+    buf.seek(0)
+    return base64.b64encode(buf.read()).decode("utf-8")
+
 
 
 

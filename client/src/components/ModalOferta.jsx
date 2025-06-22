@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import TagInput from './TagInput';
 
 const provincias = [
@@ -137,7 +137,7 @@ const handleConfirmar = () => {
   if (!modalOfertaOpen) return null;
 
   return (
-    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto' onClick={() => setModalOfertaOpen(false)}>
+    <div className='fixed p-6 inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto' onClick={() => setModalOfertaOpen(false)}>
       <div className='bg-white rounded-lg p-6 w-full max-w-6xl max-h-[100vh] overflow-y-auto shadow space-y-4' onClick={e => e.stopPropagation()}>
         {mensajeOferta && (
           <div

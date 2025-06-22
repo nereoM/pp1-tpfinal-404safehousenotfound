@@ -8,6 +8,7 @@ import {
   FileText,
   FileUp,
   PlusCircle,
+  Upload,
   Users,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -30,18 +31,16 @@ import PeriodosEmpresaModal from "../components/PeriodosEmpresaModal";
 
 import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import { ModalEncuesta } from "../components/ModalEncuesta";
-
+import { ModalSubirEmpleados } from "../components/ModalSubirEmpleados.jsx";
+import { SearchModal } from "../components/SearchModal.jsx";
 
 // Toast system
 function Toast({ toasts, removeToast }) {
-
-    // 🔧 useEffect para eliminar solo los que tienen autoClose === true
+  // 🔧 useEffect para eliminar solo los que tienen autoClose === true
   useEffect(() => {
     const timers = toasts
       .filter((t) => t.autoClose)
-      .map((toast) =>
-        setTimeout(() => removeToast(toast.id), 3000)
-      );
+      .map((toast) => setTimeout(() => removeToast(toast.id), 3000));
     return () => timers.forEach(clearTimeout);
   }, [toasts]);
 
@@ -70,7 +69,11 @@ function Toast({ toasts, removeToast }) {
                   strokeWidth="2"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               ) : (
                 <svg
@@ -80,7 +83,11 @@ function Toast({ toasts, removeToast }) {
                   strokeWidth="2"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               )}
               <span className="whitespace-pre-line">{toast.message}</span>
@@ -151,9 +158,8 @@ export default function ManagerHome() {
   const [filtroEstado, setFiltroEstado] = useState("");
   const [ofertasFiltradas, setOfertasFiltradas] = useState([]);
 
-  
   const [ofertasLibres, setOfertasLibres] = useState(new Set());
-  
+
   const [modalEncuesta, setModalEncuesta] = useState(false);
 
   useEffect(() => {
@@ -228,8 +234,6 @@ export default function ManagerHome() {
     }
   }, [modalVerOfertasOpen]);
 
-
-
   useEffect(() => {
     const cargarOfertasLibres = async () => {
       try {
@@ -255,23 +259,25 @@ export default function ManagerHome() {
     }
   }, [modalVerOfertasOpen, ofertasAsignadas]); // ✅ importante: depende de ofertasAsignadas
 
-  
   // Toast state
   const [toasts, setToasts] = useState([]);
   const toastIdRef = useRef(0);
 
   // Toast helpers
-  const showToast = useCallback((message, type = "success", autoClose = true) => {
-    const id = ++toastIdRef.current;
-    setToasts((prev) => [...prev, { id, message, type, autoClose }]);
+  const showToast = useCallback(
+    (message, type = "success", autoClose = true) => {
+      const id = ++toastIdRef.current;
+      setToasts((prev) => [...prev, { id, message, type, autoClose }]);
 
-    if (autoClose) {
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, 3000);
-    }
-  }, []);
-  
+      if (autoClose) {
+        setTimeout(() => {
+          setToasts((prev) => prev.filter((t) => t.id !== id));
+        }, 3000);
+      }
+    },
+    []
+  );
+
   const removeToast = (id) =>
     setToasts((prev) => prev.filter((t) => t.id !== id));
 
@@ -590,7 +596,6 @@ export default function ManagerHome() {
           return nuevo;
         });
 
-
         //  marcar como asignada
         setOfertasAsignadas((prev) => new Set(prev).add(ofertaId));
       } else {
@@ -715,9 +720,9 @@ export default function ManagerHome() {
     ],
     empleados: [
       {
-        icon: FileText,
-        titulo: "Subir Empleados por CSV",
-        descripcion: "Carga empleados en lote desde un archivo CSV.",
+        icon: Upload,
+        titulo: "Subir Empleados",
+        descripcion: "Carga un archivo CSV para registrar empleados.",
         onClick: () => setModalSubirEmpleados(true),
       },
       {
@@ -798,13 +803,11 @@ export default function ManagerHome() {
 
   if (loadingUser)
     return <div className="p-10 text-center">Cargando usuario…</div>;
-  if (!user)
-    return (
-      <ExpiredSession />
-    );
+  if (!user) return <ExpiredSession />;
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos }}>
+      <SearchModal actions={accionesPorSeccion} />
       <Toast toasts={toasts} removeToast={removeToast} />
       <motion.div
         initial={{ opacity: 0 }}
@@ -846,7 +849,7 @@ export default function ManagerHome() {
             apiUrl={import.meta.env.VITE_API_URL}
             showToast={showToast}
           />
-          
+
           <ModalOferta
             modalOfertaOpen={modalOfertaOpen}
             setModalOfertaOpen={setModalOfertaOpen}
@@ -856,8 +859,14 @@ export default function ManagerHome() {
           />
 
           {modalAnalistaOpen && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setModalAnalistaOpen(false)}>
-              <div className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4" onClick={e => e.stopPropagation()}>
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalAnalistaOpen(false)}
+            >
+              <div
+                className="bg-white rounded-lg p-6 w-full max-w-md shadow space-y-4"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {/* Elimina cualquier mensaje dentro de la modal */}
                 <h2 className="text-lg font-semibold text-black">
                   Nuevo Analista
@@ -910,8 +919,14 @@ export default function ManagerHome() {
           )}
 
           {modalRendimientoAnalistas && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalRendimientoAnalistas(false)}>
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-11/12 md:w-5/6 lg:w-3/4 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+              onClick={() => setModalRendimientoAnalistas(false)}
+            >
+              <div
+                className="bg-white p-6 rounded-2xl w-full sm:w-11/12 md:w-5/6 lg:w-3/4 max-h-[80vh] overflow-auto text-black"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <RendimientoAnalistasTable
                   onSuccess={() => setModalRendimientoAnalistas(false)}
                 />
@@ -928,8 +943,14 @@ export default function ManagerHome() {
           )}
 
           {modalVerOfertasOpen && (
-            <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50" onClick={() => setModalVerOfertasOpen(false)}>
-              <div className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl w-3/4 max-h-[89.9vh] text-black shadow-xl flex flex-col" onClick={e => e.stopPropagation()}>
+            <div
+              className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50"
+              onClick={() => setModalVerOfertasOpen(false)}
+            >
+              <div
+                className="bg-white/90 backdrop-blur-lg p-6 rounded-2xl w-3/4 max-h-[89.9vh] text-black shadow-xl flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {/* Elimina cualquier mensaje dentro de la modal */}
                 <h2 className="text-2xl font-semibold mb-4">Mis Ofertas</h2>
                 <div className="mb-4 flex flex-wrap gap-4 items-end">
@@ -1059,7 +1080,8 @@ export default function ManagerHome() {
                           const id = Number(o.id_oferta);
                           const estaAsignada = ofertasAsignadas.has(id);
                           const estaLibre = ofertasLibres.has(id); // sigue existiendo pero se chequea después
-                          const analistaSeleccionado = selectedAnalistas[o.id_oferta];
+                          const analistaSeleccionado =
+                            selectedAnalistas[o.id_oferta];
 
                           let claseColor = "";
                           let icono = "";
@@ -1094,7 +1116,10 @@ export default function ManagerHome() {
                           );
 
                           return (
-                            <tr key={o.id_oferta} className={`border-t ${claseColor}`}>
+                            <tr
+                              key={o.id_oferta}
+                              className={`border-t ${claseColor}`}
+                            >
                               <td className="px-4 py-2 flex items-center gap-2">
                                 <span title={tooltip}>{icono}</span> {o.nombre}
                               </td>
@@ -1103,7 +1128,10 @@ export default function ManagerHome() {
                                 <select
                                   value={selectedAnalistas[o.id_oferta] || ""}
                                   onChange={(e) =>
-                                    handleSelectAnalista(o.id_oferta, e.target.value)
+                                    handleSelectAnalista(
+                                      o.id_oferta,
+                                      e.target.value
+                                    )
                                   }
                                   className="border px-2 py-1 rounded mr-2 text-black"
                                   disabled={!o.is_active || estaAsignada}
@@ -1168,6 +1196,12 @@ export default function ManagerHome() {
             </div>
           )}
 
+          <ModalSubirEmpleados
+            onOpenChange={setModalSubirEmpleados}
+            open={modalSubirEmpleados}
+            service={managerService}
+          />
+
           <LicenciasModal
             onOpenChange={setModalLicenciasOpen}
             open={modalLicenciasOpen}
@@ -1205,75 +1239,15 @@ export default function ManagerHome() {
             open={modalSolicitarLicencia}
           />
 
-          {modalSubirEmpleados && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalSubirEmpleados(false)}>
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
-                <h2 className="text-lg font-semibold mb-4">
-                  Subir Empleados por CSV
-                </h2>
-
-                {/* Botón "Seleccionar archivo" estilizado */}
-                <div className="mb-4">
-                  <input
-                    type="file"
-                    accept=".csv"
-                    ref={inputEmpleadosRef}
-                    onChange={(e) => setArchivoEmpleados(e.target.files[0])}
-                    className="hidden"
-                    id="input-empleados"
-                  />
-                  <label
-                    htmlFor="input-empleados"
-                    className="cursor-pointer inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                  >
-                    Seleccionar archivo
-                  </label>
-
-                  {/* Nombre del archivo cargado */}
-                  {archivoEmpleados && (
-                    <div className="mt-2 text-sm text-gray-700">
-                      Archivo seleccionado: <b>{archivoEmpleados.name}</b>
-                    </div>
-                  )}
-                </div>
-
-                {/* Mensaje de alerta */}
-                {/* {mensajeEmpleados && <MensajeAlerta texto={mensajeEmpleados} />} */}
-
-                {/* Botones de acción */}
-                <div className="flex justify-end gap-2 mt-4">
-                  <button
-                    onClick={() => {
-                      setModalSubirEmpleados(false);
-                      setMensajeEmpleados("");
-                      setArchivoEmpleados(null);
-                      if (inputEmpleadosRef.current)
-                        inputEmpleadosRef.current.value = "";
-                    }}
-                    className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={subirEmpleadosDesdeCSV}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                  >
-                    Subir
-                  </button>
-                </div>
-
-                {/* Instrucción sobre columnas */}
-                <div className="mt-4 text-xs text-gray-500">
-                  El archivo debe tener las columnas: <br />
-                  <b>nombre, apellido, email, username, contrasena, puesto</b>
-                </div>
-              </div>
-            </div>
-          )}
-
           {modalSubirMetricas && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto" onClick={() => setModalSubirMetricas(false)}>
-              <div className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black" onClick={e => e.stopPropagation()}>
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
+              onClick={() => setModalSubirMetricas(false)}
+            >
+              <div
+                className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <h2 className="text-lg font-semibold mb-4">
                   Subir Métricas de Analistas
                 </h2>
@@ -1353,8 +1327,11 @@ export default function ManagerHome() {
           />
 
           {modalGestionEquipo && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setModalGestionEquipo(false)}>
-              <div onClick={e => e.stopPropagation()}>
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalGestionEquipo(false)}
+            >
+              <div onClick={(e) => e.stopPropagation()}>
                 <GestionUsuarios
                   service={managerService}
                   onClose={() => setModalGestionEquipo(false)}

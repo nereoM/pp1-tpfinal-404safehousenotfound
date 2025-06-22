@@ -17,6 +17,7 @@ import EmpleadosRendimiento from "./EmpleadosRendimientoEmpleados";
 
 import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import { ModalEncuesta } from "../components/ModalEncuesta";
+import { SearchModal } from "../components/SearchModal.jsx";
 
 
 export default function ReclutadorHome() {
@@ -597,6 +598,7 @@ export default function ReclutadorHome() {
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos: estilosSafe }}>
+      <SearchModal actions={accionesPorSeccion}/>
       <Toast toasts={toasts} removeToast={removeToast} />
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
         <PageLayout>

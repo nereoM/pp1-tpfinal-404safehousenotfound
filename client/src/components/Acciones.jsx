@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
-import { LayoutGrid, Rows4 } from 'lucide-react';
-import { useState } from 'react';
+import { LayoutGrid, Rows4 } from "lucide-react";
+import { useState } from "react";
 import { AccionesPorSeccion } from "./AccionesPorSeccion";
 import { AccionesSinSeccion } from "./AccionesSinSeccion";
 
@@ -21,17 +21,26 @@ export function Acciones({ estilos, acciones }) {
           transition={{ duration: 0.4 }}
           className="w-full max-w-3xl space-y-4"
         >
-          <h2
-            className="text-lg font-semibold"
-            style={{
-              color: estilos.color_texto,
-              textAlign: "center",
-            }}
-          >
-            Acciones disponibles
-          </h2>
+          <div className="flex justify-between items-center">
+          <header className="flex flex-col gap-2">
+            <h2
+              className="text-lg font-semibold"
+              style={{
+                color: estilos.color_texto,
+              }}
+            >
+              Acciones disponibles
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Presiona{" "}
+              <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                ctrl + K
+              </kbd>{" "}
+              para abrir el comando de búsqueda
+            </p>
+          </header>
           <section
-            className="flex justify-end items-center gap-2"
+            className="flex items-center gap-2"
             style={{
               color: estilos.color_texto,
             }}
@@ -57,13 +66,14 @@ export function Acciones({ estilos, acciones }) {
               <LayoutGrid />
             </button>
           </section>
+          </div>
           {mostrarAccionesPorSeccion ? (
             <AccionesPorSeccion
               accionesPorSeccion={acciones}
               estilos={estilos}
             />
           ) : (
-            < AccionesSinSeccion
+            <AccionesSinSeccion
               acciones={mapAccionesPorSeccionToAcciones(acciones)}
               estilos={estilos}
             />
