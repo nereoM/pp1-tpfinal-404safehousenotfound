@@ -4,6 +4,7 @@ import { SiTelegram } from "react-icons/si";
 import { Link, useNavigate } from "react-router-dom";
 import isLightColor from "../components/isLightColor";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
+import { getHomeUrl } from "../lib/utils";
 import { Badge } from "./shadcn/Badge";
 
 export function TopBar({
@@ -167,7 +168,7 @@ export function TopBar({
         backgroundColor: estilos?.color_secundario,
       }}
     >
-      <div className="flex items-center gap-4">
+      <Link to={getHomeUrl(rol)} className="flex items-center gap-4">
         {logoUrl ? (
           <img src={logoUrl} alt="Logo empresa" className="h-23 w-auto " />
         ) : (
@@ -175,7 +176,7 @@ export function TopBar({
             SIGRH+
           </h1>
         )}
-      </div>
+      </Link>
 
       <div className="flex items-center gap-4 relative">
         <Badge className="capitalize" variant="ghost">{rol.replace("-", " ")}</Badge>

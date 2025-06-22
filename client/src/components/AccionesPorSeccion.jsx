@@ -49,7 +49,7 @@ export const seccionesAmigables = {
 
 export function AccionesPorSeccion({ accionesPorSeccion, estilos }) {
   return (
-    <Accordion type="multiple" collapsible className="w-full">
+    <Accordion type="multiple" className="w-full">
       {Object.entries(accionesPorSeccion).map(([seccionKey, acciones]) => (
         <AccordionItem key={seccionKey} value={seccionKey}>
           <AccordionTrigger className="text-black">

@@ -17,7 +17,7 @@ export function useLicenciasACargo({ service }) {
       .obtenerLicenciasACargo()
       .then(setLicencias)
       .then((err) => {
-        console.error(err.message);
+        console.error({err});
         setError("Error al cargar las licencias.");
       })
       .finally(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function useEmpresaEstilos(idEmpresa) {
   const [estilos, setEstilos] = useState(null);
@@ -6,9 +6,6 @@ export function useEmpresaEstilos(idEmpresa) {
 
   useEffect(() => {
     const fetchEstilos = async () => {
-      console.log("API_URL:", import.meta.env.VITE_API_URL);
-      console.log("idEmpresa:", idEmpresa);
-
       setLoading(true);
       try {
         if (!idEmpresa) {
@@ -29,7 +26,6 @@ export function useEmpresaEstilos(idEmpresa) {
         if (!res.ok) throw new Error(`Status ${res.status}`);
 
         const data = await res.json();
-        console.log("estilos recibidos:", data);
         setEstilos(data);
       } catch (err) {
         console.error("Error cargando estilos:", err);
