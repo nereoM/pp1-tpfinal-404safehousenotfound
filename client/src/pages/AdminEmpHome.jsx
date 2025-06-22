@@ -3,33 +3,30 @@ import {
   ArrowUpRight,
   FileCheck,
   FileLock,
+  FileSearchIcon,
+  FileText,
   Settings,
   Upload,
   UploadCloud,
   UserPlus,
   Users,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Acciones } from "../components/Acciones.jsx";
+import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
+import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
+import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
+import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import GestionUsuarios from "../components/GestionUsuarios";
 import { LicenciasACargoModal } from "../components/LicenciasACargoModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta";
-import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
-
-import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
 import { ModalEncuesta } from "../components/ModalEncuesta";
-
-import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
-
-import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
-
-import { FileSearchIcon, FileText } from "lucide-react";
-import { ExpiredSession } from "../components/ExpiredSession.jsx";
+import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
+import { ModalSubirEmpleados } from "../components/ModalSubirEmpleados.jsx";
 import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
-import SubirEmpleados from "../components/RegistrarEmpleados";
 import { SearchModal } from "../components/SearchModal.jsx";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
@@ -481,13 +478,15 @@ export default function AdminEmpHome() {
         onClick: () => setModalLicenciasOpen(true),
       },
     ],
-    metricas: [
+    empleados: [
       {
         icon: Upload,
         titulo: "Subir Empleados",
         descripcion: "Carga un archivo CSV para registrar empleados.",
         onClick: () => setModalSubirEmpleados(true),
       },
+    ],
+    metricas: [
       {
         icon: Upload,
         titulo: "Subir Métricas de Desempeño",
@@ -528,7 +527,7 @@ export default function AdminEmpHome() {
     <EstiloEmpresaContext.Provider
       value={{ estilos: estilosSafe, loading: loadingEstilos }}
     >
-      <SearchModal actions={accionesPorSeccion}/>
+      <SearchModal actions={accionesPorSeccion} />
       <Toast toasts={toasts} removeToast={removeToast} />
       <motion.div
         initial={{ opacity: 0 }}
@@ -699,22 +698,11 @@ export default function AdminEmpHome() {
             </div>
           )}
 
-          {modalSubirEmpleados && (
-            <div
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
-              onClick={() => setModalSubirEmpleados(false)}
-            >
-              <div
-                className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <SubirEmpleados
-                  onClose={() => setModalSubirEmpleados(false)}
-                  onUpload={subirEmpleadosDesdeCSV}
-                />
-              </div>
-            </div>
-          )}
+          <ModalSubirEmpleados
+            onOpenChange={setModalSubirEmpleados}
+            open={modalSubirEmpleados}
+            service={adminEmpService}
+          />
 
           {modalSubirMetricas && (
             <div

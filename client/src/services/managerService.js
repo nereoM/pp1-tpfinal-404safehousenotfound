@@ -194,4 +194,18 @@ export const managerService = {
     const data = await fetcher({ url, options });
     return data;
   },
+  async registrarEmpleadosDesdeCSV(file) {
+      const url = `${API_URL}/api/registrar-empleados-manager`
+  
+      const formData = new FormData()
+      formData.append("file", file)
+  
+      const options = {
+        method: "POST",
+        body: formData,
+      }
+  
+      const data = await fetcher({ url, options })
+      return data
+    }
 };
