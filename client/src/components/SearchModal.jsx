@@ -46,7 +46,7 @@ export function SearchModal({ actions }) {
                   const Icon = accion.icon;
                   return (
                     <CommandItem
-                      key={`${seccion}-${index}`}
+                    key={`${seccion}-${index}`}
                       value={`${accion.titulo} ${accion.descripcion}`}
                       onSelect={() => handleActionSelect(accion)}
                       className="flex items-center gap-3 cursor-pointer"

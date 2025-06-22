@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import TagInput from './TagInput';
 
 const provincias = [
@@ -23,8 +23,7 @@ const ModalOfertaFull = ({
 }) => {
   const [mensajeOferta, setMensajeOferta] = useState('');
   const [etiquetas, setEtiquetas] = useState([]);
-  const [errores, setErrores] = useState({}); 
-
+  const [errores, setErrores] = useState({});
 
   // Inyecta etiquetas como string separado por comas
   useEffect(() => {
@@ -45,12 +44,13 @@ const ModalOfertaFull = ({
       currency,
       experience_level,
       fecha_cierre,
-      umbral_individual 
+      umbral_individual
     } = formOferta;
 
     if (!nombre) nuevosErrores.nombre = 'El nombre es obligatorio.';
     if (!location) nuevosErrores.location = 'La ubicación es obligatoria.';
-    if (!employment_type) nuevosErrores.employment_type = 'El tipo de empleo es obligatorio.';
+    if (!employment_type)
+      nuevosErrores.employment_type = 'El tipo de empleo es obligatorio.';
     if (!workplace_type) nuevosErrores.workplace_type = 'La modalidad es obligatoria.';
     if (!salary_min) nuevosErrores.salary_min = 'El salario mínimo es obligatorio.';
     if (!salary_max) nuevosErrores.salary_max = 'El salario máximo es obligatorio.';
@@ -61,16 +61,19 @@ const ModalOfertaFull = ({
     if (parseInt(salary_max) < 0) {
       nuevosErrores.salary_max = 'El salario máximo no puede ser negativo.';
     }
+    // Consolidated salary comparison check
     if (parseInt(salary_min) >= parseInt(salary_max)) {
-      nuevosErrores.salary_min = 'El salario mínimo no puede ser mayor o igual al salario máximo.';
+      nuevosErrores.salary_min =
+        'El salario mínimo no puede ser mayor o igual al salario máximo.';
     }
 
     if (umbral_individual && parseInt(umbral_individual) <= 0) {
-      nuevosErrores.umbral_individual = 'El nivel mínimo de coincidencia debe ser mayor a 0.'; // <-- Agregado
+      nuevosErrores.umbral_individual = 'El nivel mínimo de coincidencia debe ser mayor a 0.';
     }
 
     if (!currency) nuevosErrores.currency = 'La moneda es obligatoria.';
-    if (!experience_level) nuevosErrores.experience_level = 'El nivel de experiencia es obligatorio.';
+    if (!experience_level)
+      nuevosErrores.experience_level = 'El nivel de experiencia es obligatorio.';
 
     if (!fecha_cierre) {
       nuevosErrores.fecha_cierre = 'La fecha de cierre es obligatoria.';
@@ -80,14 +83,11 @@ const ModalOfertaFull = ({
 
       const fecha = new Date(fecha_cierre);
       if (fecha < hoy) {
-        nuevosErrores.fecha_cierre = 'La fecha de cierre no puede ser anterior a hoy.'; // <-- Agregado
+        nuevosErrores.fecha_cierre = 'La fecha de cierre no puede ser anterior a hoy.';
       }
     }
     if (etiquetas.length === 0) {
       nuevosErrores.etiquetas = 'Debes agregar al menos una etiqueta.';
-    }
-    if (parseInt(salary_min) >= parseInt(salary_max)) {
-      nuevosErrores.salary_min = 'El salario mínimo no puede ser mayor o igual al salario máximo.';
     }
 
     setErrores(nuevosErrores);
@@ -101,47 +101,52 @@ const ModalOfertaFull = ({
     return true;
   };
 
-const handleConfirmar = () => {
-  if (validarFormulario()) {
-    console.log("Todo validado correctamente. Enviando...");
-    crearOfertaLaboral();
+  const handleConfirmar = () => {
+    if (validarFormulario()) {
+      console.log('Todo validado correctamente. Enviando...');
+      crearOfertaLaboral();
 
-    setMensajeOferta('Oferta creada exitosamente.');
+      setMensajeOferta('Oferta creada exitosamente.');
 
-    setFormOferta({
-      nombre: '',
-      descripcion: '',
-      location: '',
-      employment_type: '',
-      workplace_type: '',
-      salary_min: '',
-      salary_max: '',
-      currency: '',
-      experience_level: '',
-      fecha_cierre: '',
-      umbral_individual: '',
-      etiquetas: ''
-    });
+      setFormOferta({
+        nombre: '',
+        descripcion: '',
+        location: '',
+        employment_type: '',
+        workplace_type: '',
+        salary_min: '',
+        salary_max: '',
+        currency: '',
+        experience_level: '',
+        fecha_cierre: '',
+        umbral_individual: '',
+        etiquetas: ''
+      });
 
-    setEtiquetas([]);
-    setErrores({});
+      setEtiquetas([]);
+      setErrores({});
 
-    setTimeout(() => {
-      setMensajeOferta('');
-      setModalOfertaOpen(false);
-    }, 2000);
-  }
-};
-
+      setTimeout(() => {
+        setMensajeOferta('');
+        setModalOfertaOpen(false);
+      }, 2000);
+    }
+  };
 
   if (!modalOfertaOpen) return null;
 
   return (
-    <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto' onClick={() => setModalOfertaOpen(false)}>
-      <div className='bg-white rounded-lg p-6 w-full max-w-6xl max-h-[100vh] overflow-y-auto shadow space-y-4' onClick={e => e.stopPropagation()}>
+    <div
+      className='fixed p-4 sm:p-6 inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto'
+      onClick={() => setModalOfertaOpen(false)}
+    >
+      <div
+        className='bg-white rounded-lg p-4 sm:p-6 w-full max-w-6xl max-h-[95vh] overflow-y-auto shadow space-y-4'
+        onClick={e => e.stopPropagation()}
+      >
         {mensajeOferta && (
           <div
-            className={`text-sm p-2 rounded text-center mx-auto w-2/3 ${
+            className={`text-sm p-2 rounded text-center mx-auto w-full sm:w-2/3 ${
               mensajeOferta.includes('exitosamente')
                 ? 'text-green-700 bg-green-100'
                 : 'text-red-700 bg-red-100'
@@ -155,28 +160,33 @@ const handleConfirmar = () => {
 
         <div className='grid grid-cols-1 md:grid-cols-3 gap-3'>
           {/* Nombre */}
-          <div className="flex-1 min-w-[220px]">
-            <label className="text-sm font-medium text-black">Nombre de la Oferta</label>
+          <div className='flex-1'>
+            {' '}
+            {/* Removed min-w here, w-full on input handles it */}
+            <label className='text-sm font-medium text-black'>Nombre de la Oferta</label>
             <input
-              type="text"
-              placeholder="Nombre de la Oferta"
+              type='text'
+              placeholder='Nombre de la Oferta'
               value={formOferta.nombre || ''}
               onChange={e => setFormOferta({ ...formOferta, nombre: e.target.value })}
-              className="w-full p-2 border border-gray-300 rounded text-black"
+              className='w-full p-2 border border-gray-300 rounded text-black'
             />
-            {errores.nombre && <p className='text-red-600 text-sm mt-1'>{errores.nombre}</p>}
+            {errores.nombre && (
+              <p className='text-red-600 text-sm mt-1'>{errores.nombre}</p>
+            )}
           </div>
 
-          <div className="flex-[2] min-w-[300px]">
-            <label className="text-sm font-medium text-black">Descripción *Opcional</label>
+          <div className='md:col-span-2'>
+            {' '}
+            {/* Description takes 2 columns on medium screens+ */}
+            <label className='text-sm font-medium text-black'>Descripción *Opcional</label>
             <textarea
-              placeholder="Descripción de la Oferta"
+              placeholder='Descripción de la Oferta'
               value={formOferta.descripcion || ''}
               onChange={e => setFormOferta({ ...formOferta, descripcion: e.target.value })}
-              className="w-full p-2 border border-gray-300 rounded text-black h-[100px] resize-none"
+              className='w-full p-2 border border-gray-300 rounded text-black h-[100px] resize-none'
             />
           </div>
-
 
           <div>
             <label className='text-sm font-medium text-black'>Tipo de Empleo</label>
@@ -185,12 +195,18 @@ const handleConfirmar = () => {
               onChange={e => setFormOferta({ ...formOferta, employment_type: e.target.value })}
               className='w-full p-2 border border-gray-300 rounded text-black'
             >
-              <option value='' disabled>Seleccionar Tipo de Empleo</option>
+              <option value='' disabled>
+                Seleccionar Tipo de Empleo
+              </option>
               {tiposEmpleo.map(tipo => (
-                <option key={tipo} value={tipo}>{tipo}</option>
+                <option key={tipo} value={tipo}>
+                  {tipo}
+                </option>
               ))}
             </select>
-            {errores.employment_type && <p className='text-red-600 text-sm mt-1'>{errores.employment_type}</p>} 
+            {errores.employment_type && (
+              <p className='text-red-600 text-sm mt-1'>{errores.employment_type}</p>
+            )}
           </div>
 
           <div>
@@ -202,10 +218,11 @@ const handleConfirmar = () => {
               onChange={e => setFormOferta({ ...formOferta, salary_min: e.target.value })}
               className='w-full p-2 border border-gray-300 rounded text-black'
             />
-            {errores.salary_min && <p className='text-red-600 text-sm mt-1'>{errores.salary_min}</p>} 
+            {errores.salary_min && (
+              <p className='text-red-600 text-sm mt-1'>{errores.salary_min}</p>
+            )}
           </div>
 
- 
           <div>
             <label className='text-sm font-medium text-black'>Salario Máximo</label>
             <input
@@ -215,7 +232,9 @@ const handleConfirmar = () => {
               onChange={e => setFormOferta({ ...formOferta, salary_max: e.target.value })}
               className='w-full p-2 border border-gray-300 rounded text-black'
             />
-            {errores.salary_max && <p className='text-red-600 text-sm mt-1'>{errores.salary_max}</p>}
+            {errores.salary_max && (
+              <p className='text-red-600 text-sm mt-1'>{errores.salary_max}</p>
+            )}
           </div>
 
           <div>
@@ -225,14 +244,19 @@ const handleConfirmar = () => {
               onChange={e => setFormOferta({ ...formOferta, currency: e.target.value })}
               className='w-full p-2 border border-gray-300 rounded text-black'
             >
-              <option value='' disabled>Seleccionar Moneda</option>
+              <option value='' disabled>
+                Seleccionar Moneda
+              </option>
               {monedas.map(m => (
-                <option key={m} value={m}>{m}</option>
+                <option key={m} value={m}>
+                  {m}
+                </option>
               ))}
             </select>
-            {errores.currency && <p className='text-red-600 text-sm mt-1'>{errores.currency}</p>}
+            {errores.currency && (
+              <p className='text-red-600 text-sm mt-1'>{errores.currency}</p>
+            )}
           </div>
-
 
           <div>
             <label className='text-sm font-medium text-black'>Fecha de Cierre</label>
@@ -242,9 +266,10 @@ const handleConfirmar = () => {
               onChange={e => setFormOferta({ ...formOferta, fecha_cierre: e.target.value })}
               className='w-full p-2 border border-gray-300 rounded text-black'
             />
-            {errores.fecha_cierre && <p className='text-red-600 text-sm mt-1'>{errores.fecha_cierre}</p>}
+            {errores.fecha_cierre && (
+              <p className='text-red-600 text-sm mt-1'>{errores.fecha_cierre}</p>
+            )}
           </div>
-
 
           <div>
             <label className='text-sm font-medium text-black'>Ubicación</label>
@@ -253,14 +278,19 @@ const handleConfirmar = () => {
               onChange={e => setFormOferta({ ...formOferta, location: e.target.value })}
               className='w-full p-2 border border-gray-300 rounded text-black'
             >
-              <option value='' disabled>Seleccionar Provincia</option>
+              <option value='' disabled>
+                Seleccionar Provincia
+              </option>
               {provincias.map(p => (
-                <option key={p} value={p}>{p}</option>
+                <option key={p} value={p}>
+                  {p}
+                </option>
               ))}
             </select>
-            {errores.location && <p className='text-red-600 text-sm mt-1'>{errores.location}</p>}
+            {errores.location && (
+              <p className='text-red-600 text-sm mt-1'>{errores.location}</p>
+            )}
           </div>
-
 
           <div>
             <label className='text-sm font-medium text-black'>Modalidad</label>
@@ -269,14 +299,19 @@ const handleConfirmar = () => {
               onChange={e => setFormOferta({ ...formOferta, workplace_type: e.target.value })}
               className='w-full p-2 border border-gray-300 rounded text-black'
             >
-              <option value='' disabled>Seleccionar Modalidad</option>
+              <option value='' disabled>
+                Seleccionar Modalidad
+              </option>
               {modalidades.map(m => (
-                <option key={m} value={m}>{m}</option>
+                <option key={m} value={m}>
+                  {m}
+                </option>
               ))}
             </select>
-            {errores.workplace_type && <p className='text-red-600 text-sm mt-1'>{errores.workplace_type}</p>}
+            {errores.workplace_type && (
+              <p className='text-red-600 text-sm mt-1'>{errores.workplace_type}</p>
+            )}
           </div>
-
 
           <div>
             <label className='text-sm font-medium text-black'>Nivel de Experiencia</label>
@@ -285,38 +320,48 @@ const handleConfirmar = () => {
               onChange={e => setFormOferta({ ...formOferta, experience_level: e.target.value })}
               className='w-full p-2 border border-gray-300 rounded text-black'
             >
-              <option value='' disabled>Seleccionar Nivel</option>
+              <option value='' disabled>
+                Seleccionar Nivel
+              </option>
               {nivelesExperiencia.map(ne => (
-                <option key={ne} value={ne}>{ne}</option>
+                <option key={ne} value={ne}>
+                  {ne}
+                </option>
               ))}
             </select>
-            {errores.experience_level && <p className='text-red-600 text-sm mt-1'>{errores.experience_level}</p>}
-          </div>
-
-
-          <div className='col-span-2'>
-            <TagInput etiquetas={etiquetas} setEtiquetas={setEtiquetas} />
-            {errores.etiquetas && (
-              <p className="text-red-600 text-sm mt-1">{errores.etiquetas}</p>
+            {errores.experience_level && (
+              <p className='text-red-600 text-sm mt-1'>{errores.experience_level}</p>
             )}
           </div>
 
+          <div className='col-span-full'>
+            {' '}
+            {/* TagInput takes full width on all screens */}
+            <TagInput etiquetas={etiquetas} setEtiquetas={setEtiquetas} />
+            {errores.etiquetas && (
+              <p className='text-red-600 text-sm mt-1'>{errores.etiquetas}</p>
+            )}
+          </div>
 
           <div>
-            <label className='text-sm font-medium text-black'>Nivel mínimo de coincidencia (%)</label>
+            <label className='text-sm font-medium text-black'>
+              Nivel mínimo de coincidencia (%)
+            </label>
             <input
               type='number'
               placeholder='Nivel de Busqueda por Defecto (55%)'
               value={formOferta.umbral_individual || ''}
-              onChange={e => setFormOferta({ ...formOferta, umbral_individual: e.target.value })}
+              onChange={e =>
+                setFormOferta({ ...formOferta, umbral_individual: e.target.value })
+              }
               className='w-full p-2 border border-gray-300 rounded text-black'
             />
-            <p className='text-red-600 text-sm mt-1'>{errores.umbral_individual}</p> 
+            <p className='text-red-600 text-sm mt-1'>{errores.umbral_individual}</p>
           </div>
         </div>
 
         {/* Botones */}
-        <div className='flex justify-end gap-2 pt-4'>
+        <div className='flex flex-col sm:flex-row justify-end gap-2 pt-4'>
           <button
             onClick={() => {
               setFormOferta({
@@ -338,13 +383,13 @@ const handleConfirmar = () => {
               setMensajeOferta('');
               setModalOfertaOpen(false);
             }}
-            className='px-4 py-2 bg-gray-300 rounded hover:bg-gray-400'
+            className='px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 order-2 sm:order-1'
           >
             Cancelar
           </button>
           <button
             onClick={handleConfirmar}
-            className='px-4 py-2 text-white rounded bg-indigo-600'
+            className='px-4 py-2 text-white rounded bg-indigo-600 order-1 sm:order-2'
           >
             Confirmar
           </button>
