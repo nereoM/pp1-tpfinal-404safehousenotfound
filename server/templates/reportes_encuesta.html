@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Reporte de Encuestas - {{ datos.empresa }}</title>
+  <style>
+    :root {
+      --main-color: {{ datos.color_principal }};
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #222;
+      background: #f8fafc;
+      margin: 0;
+      padding: 0;
+    }
+    .header {
+      background: var(--main-color);
+      color: #fff;
+      text-align: center;
+      padding: 24px 0 16px 0;
+    }
+    .logo {
+        max-height: 60px;
+        display: block;
+        margin: 0 auto 12px auto;
+    }
+    h1 {
+      margin: 10px 0;
+      font-size: 2rem;
+    }
+    .container {
+      max-width: 950px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 4px 24px 0 #0001;
+      padding: 32px 40px 40px 40px;
+    }
+    h2 {
+      background: var(--main-color);
+      color: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 32px;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      background: #f9fafb;
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 13px;
+    }
+    th, td {
+      border: 1px solid #e5e7eb;
+      text-align: center;
+      padding: 6px 8px;
+      word-break: break-word;
+    }
+    th {
+      background: var(--main-color);
+      color: #fff;
+      font-weight: 600;
+    }
+    tr:nth-child(even) td {
+      background: #f3f4f6;
+    }
+    tr:hover td {
+      background: #e0e7ef;
+    }
+    .grafico {
+      display: block;
+      margin: 30px auto 20px auto;
+      max-width: 600px;
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px #0002;
+    }
+    .footer {
+      margin-top: 40px;
+      font-size: 0.95rem;
+      text-align: right;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    {% if datos.logo_empresa %}
+        <div style="text-align: center; margin-bottom: 12px;">
+            <img src="data:image/png;base64,{{ datos.logo_empresa }}" style="max-height: 60px; display: inline-block;" alt="Logo empresa">
+        </div>
+    {% endif %}
+    <h1>Reporte de Encuestas</h1>
+    <div>{{ datos.empresa }}</div>
+    <div style="font-size:14px;">Generado: {{ datos.fecha_generacion }}</div>
+  </div>
+
+  <div class="container">
+    <h2>Resumen de Encuestas</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Título</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+          <th>Asignados</th>
+          <th>Respondidas</th>
+          <th>% Participación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in datos.reportes %}
+        <tr>
+          <td>{{ r.encuesta.titulo }}</td>
+          <td>{{ r.encuesta.tipo }}</td>
+          <td>{{ r.encuesta.estado }}</td>
+          <td>{{ r.total_asignados }}</td>
+          <td>{{ r.total_respondidas }}</td>
+          <td>{{ r.porcentaje_respuesta }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% for r in datos.reportes %}
+      <h2>{{ r.encuesta.titulo }}</h2>
+      <p><strong>Tipo:</strong> {{ r.encuesta.tipo }}</p>
+      <p><strong>Descripción:</strong> {{ r.encuesta.descripcion or "Sin descripción" }}</p>
+      <p><strong>Fechas:</strong> 
+        {% if r.encuesta.fecha_inicio %} {{ r.encuesta.fecha_inicio.strftime("%d/%m/%Y") }} {% else %} - {% endif %}
+        a
+        {% if r.encuesta.fecha_fin %} {{ r.encuesta.fecha_fin.strftime("%d/%m/%Y") }} {% else %} - {% endif %}
+      </p>
+      <p><strong>Participación:</strong> {{ r.total_respondidas }}/{{ r.total_asignados }} ({{ r.porcentaje_respuesta }}%)</p>
+
+      {% if r.grafico_participacion %}
+        <img class="grafico" src="data:image/png;base64,{{ r.grafico_participacion }}" alt="Gráfico participación">
+      {% endif %}
+
+      {% if r.grafico_torta %}
+        <img class="grafico" src="data:image/png;base64,{{ r.grafico_torta }}" alt="Gráfico respuestas">
+      {% endif %}
+
+      <h3>Preguntas</h3>
+      {% for p in r.preguntas_detalle %}
+        <p><strong>{{ p.texto }}</strong> <em>({{ p.tipo }})</em></p>
+        <p>Respuestas: {{ p.total_respuestas }}</p>
+        {% if p.tipo != 'texto_libre' %}
+          <ul>
+            {% for respuesta in p.respuestas %}
+              <li>{{ respuesta }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <ul>
+            {% for respuesta in p.respuestas[:3] %}
+              <li>"{{ respuesta }}"</li>
+            {% endfor %}
+          </ul>
+          {% if p.total_respuestas > 3 %}
+            <p>... ({{ p.total_respuestas - 3 }} respuestas más)</p>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+
+    <div class="footer">
+      SIGRH+ · Reporte generado automáticamente el {{ datos.fecha_generacion }}
+    </div>
+  </div>
+</body>
+</html>
