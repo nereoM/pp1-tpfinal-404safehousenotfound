@@ -4,6 +4,8 @@ from services.config import Config
 from services.swagger_config import setup_swagger_ui
 import os
 
+from routes.notificacion import configurar_webhook
+
 from routes.auth_routes import auth_bp
 from routes.admin404 import admin_404_bp
 from routes.candidato import candidato_bp
@@ -140,6 +142,9 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(activar_licencias, 'interval', minutes=5)
 scheduler.start()
 """            
+with app.app_context():
+    configurar_webhook()
+
 if __name__ == "__main__":
     iniciar_db()
     #ejecutar_generation()

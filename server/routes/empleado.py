@@ -11,6 +11,7 @@ from ml.extraction import extraer_texto_pdf, extraer_texto_word, predecir_cv
 from ml.matching_semantico import dividir_cv_en_partes
 from ml.modelo import modelo_sbert
 from models.extensions import db, mail
+from .notificacion import enviar_mensaje_telegram
 from models.schemes import (
     CV,
     Empresa,
@@ -1869,6 +1870,16 @@ def crear_encuesta_completa():
                 "opciones": opciones if opciones_json else None,
                 "es_requerida": bool(es_requerida)
             })
+
+        usuarios_asignados = Usuario.query.filter(Usuario.correo.in_(asignaciones)).all()
+
+        for user in usuarios_asignados:
+            if user.telegram and user.telegram.chat_id:
+                try:
+                    mensaje = f"¡Hola {user.nombre}!\nTenés una nueva encuesta para responder: \"{titulo}\".\nDesde: {fecha_inicio_dt.strftime('%d/%m/%Y')} hasta {fecha_fin_dt.strftime('%d/%m/%Y')}."
+                    enviar_mensaje_telegram(user.telegram.chat_id, mensaje)
+                except Exception as e:
+                    print(f"No se pudo enviar notificación a {user.nombre}: {e}")
 
         db.session.commit()
         return jsonify({

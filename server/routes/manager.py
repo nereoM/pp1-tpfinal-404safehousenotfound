@@ -13,7 +13,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import aliased
 from sqlalchemy import and_
 from datetime import datetime, timezone, date
-from .notificacion import crear_notificacion
+from .notificacion import crear_notificacion, enviar_mensaje_telegram
 from flask_mail import Message
 from models.extensions import mail
 import os
@@ -38,6 +38,7 @@ from models.schemes import (
     RespuestaEncuesta,
     PreguntaEncuesta,
     EncuestaAsignacion,
+    UsuarioTelegram,
 )
 from ml.desempeno_desarrollo.predictions import predecir_rend_futuro_individual, predecir_riesgo_despido_individual, predecir_riesgo_rotacion_individual, predecir_riesgo_renuncia_individual, predecir_rot_post_individual
 
@@ -1331,6 +1332,18 @@ def cerrar_periodo(id_periodo):
                 tipo_asignacion="individual"
             )
             db.session.add(asignacion)
+
+            registro_telegram = UsuarioTelegram.query.filter_by(id_usuario=jefe.id).first()
+
+            if registro_telegram:
+                try:
+                    mensaje_telegram = (
+                        f"Hola {jefe.nombre}, se te ha asignado una nueva encuesta "
+                        f"correspondiente al periodo '{periodo.nombre_periodo}'. Por favor, respondela antes del {encuesta.fecha_fin.strftime('%d/%m/%Y')}."
+                    )
+                    enviar_mensaje_telegram(registro_telegram.chat_id, mensaje_telegram)
+                except Exception as e:
+                    print(f"No se pudo enviar notificación a {jefe.nombre}: {e}")
 
             # 4. Crear preguntas de opción única para cada postulado
             for item in postulados:
