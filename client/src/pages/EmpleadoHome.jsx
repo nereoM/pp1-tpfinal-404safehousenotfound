@@ -8,11 +8,17 @@ import {
   SquareChartGanttIcon,
   Upload,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { AccionesSinSeccion } from "../components/AccionesSinSeccion";
+import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
+import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
+import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
+import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import { GestionarDesempeñoEmpleadosModal } from "../components/GestionarDesempeñoEmpleadosModal";
 import { LicenciasModal } from "../components/LicenciasModal";
+import { ModalEncuesta } from "../components/ModalEncuesta";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil";
 import { OfertasRecomendadas } from "../components/OfertasRecomendadas";
 import PageLayout from "../components/PageLayoutCand";
@@ -20,20 +26,13 @@ import { PostulacionesModal } from "../components/PostulacionesModal";
 import { PostularseModal } from "../components/PostularseModal";
 import { SearchFilters } from "../components/SearchFilters";
 import { SolicitarLicenciaModal } from "../components/SolicitarLicenciaModal";
+import { Toast } from "../components/Toast.jsx";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { useOfertasRecomendadas } from "../hooks/useOfertasRecomendadas";
 import { authService } from "../services/authService";
 import { empleadoService } from "../services/empleadoService";
-
-import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
-import { ModalEncuesta } from "../components/ModalEncuesta";
-
-import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
-
-import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
-import { ExpiredSession } from "../components/ExpiredSession.jsx";
 
 const jefeRoles = [
   "Jefe de Tecnología y Desarrollo",
@@ -45,6 +44,7 @@ const jefeRoles = [
 ];
 
 export default function EmpleadoHome() {
+  const [modalEditarPerfilOpen, setModalEditarPerfilOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cvFile, setCvFile] = useState(null);
@@ -55,16 +55,14 @@ export default function EmpleadoHome() {
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [toasts, setToasts] = useState([]);
-
+  const toastIdRef = useRef(0);
   const [modalEncuesta, setModalEncuesta] = useState(false);
   const [modalGestionEncuestas, setModalGestionEncuestas] = useState(false);
-
   const [modalVerEncuesta, setModalVerEncuesta] = useState(false);
   const [encuestaSeleccionada, setEncuestaSeleccionada] = useState(null);
   const [modalEncuestasRespondidas, setModalEncuestasRespondidas] =
     useState(false);
   const [encuestasRespondidas, setEncuestasRespondidas] = useState([]);
-
   const [modalEncuestasPendientes, setModalEncuestasPendientes] =
     useState(false);
 
@@ -133,6 +131,23 @@ export default function EmpleadoHome() {
     }, 5000);
   };
 
+  const removeToast = (id) =>
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+
+  const showToast = useCallback(
+    (message, type = "success", autoClose = true) => {
+      const id = ++toastIdRef.current;
+      setToasts((prev) => [...prev, { id, message, type, autoClose }]);
+
+      if (autoClose) {
+        setTimeout(() => {
+          setToasts((prev) => prev.filter((t) => t.id !== id));
+        }, 3000);
+      }
+    },
+    []
+  );
+
   if (loading) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-gray-100">
@@ -142,10 +157,35 @@ export default function EmpleadoHome() {
   }
 
   if (error) {
-    return (
-      <ExpiredSession/>
-    );
+    return <ExpiredSession />;
   }
+
+  const handleProfileUpdate = async ({
+    nombre,
+    apellido,
+    username,
+    email,
+    password,
+  }) => {
+    try {
+      const result = await authService.updateProfile({
+        email,
+        password,
+        username,
+      });
+      console.log({result});
+      
+      setUser((prev) => ({
+        ...prev,
+        username: result.username,
+        correo: result.email,
+      }));
+      setModalEditarPerfilOpen(false);
+      toast.success("Perfil actualizado correctamente.");
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
 
   const acciones = [
     {
@@ -247,6 +287,7 @@ export default function EmpleadoHome() {
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos }}>
+      <Toast toasts={toasts} removeToast={removeToast} />
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -254,6 +295,7 @@ export default function EmpleadoHome() {
       >
         <PageLayout>
           <TopBar
+            onEditPerfil={() => setModalEditarPerfilOpen(true)}
             username={`${user?.nombre} ${user?.apellido}`}
             onLogout={handleLogout}
           />
@@ -435,8 +477,10 @@ export default function EmpleadoHome() {
               className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
               onClick={() => setModalPostulaciones(false)}
             >
-              <div onClick={e => e.stopPropagation()}>
-                <PostulacionesModal onClose={() => setModalPostulaciones(false)} />
+              <div onClick={(e) => e.stopPropagation()}>
+                <PostulacionesModal
+                  onClose={() => setModalPostulaciones(false)}
+                />
               </div>
             </div>
           )}
@@ -446,7 +490,7 @@ export default function EmpleadoHome() {
               className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
               onClick={() => setModalGestionarDesempeño(false)}
             >
-              <div onClick={e => e.stopPropagation()}>
+              <div onClick={(e) => e.stopPropagation()}>
                 <GestionarDesempeñoEmpleadosModal
                   onOpenChange={setModalGestionarDesempeño}
                   open={modalGestionarDesempeño}
@@ -471,7 +515,7 @@ export default function EmpleadoHome() {
               className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
               onClick={() => setModalEncuesta(false)}
             >
-              <div onClick={e => e.stopPropagation()}>
+              <div onClick={(e) => e.stopPropagation()}>
                 <ModalEncuesta
                   open={modalEncuesta}
                   onOpenChange={setModalEncuesta}
@@ -485,7 +529,7 @@ export default function EmpleadoHome() {
               className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
               onClick={() => setModalGestionEncuestas(false)}
             >
-              <div onClick={e => e.stopPropagation()}>
+              <div onClick={(e) => e.stopPropagation()}>
                 <GestionarEncuestasModal
                   open={modalGestionEncuestas}
                   onOpenChange={setModalGestionEncuestas}
@@ -499,7 +543,7 @@ export default function EmpleadoHome() {
               className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
               onClick={() => setModalEncuestasPendientes(false)}
             >
-              <div onClick={e => e.stopPropagation()}>
+              <div onClick={(e) => e.stopPropagation()}>
                 <EncuestasPendientesModal
                   open={modalEncuestasPendientes}
                   onOpenChange={setModalEncuestasPendientes}
@@ -513,7 +557,7 @@ export default function EmpleadoHome() {
               className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
               onClick={() => setModalEncuestasRespondidas(false)}
             >
-              <div onClick={e => e.stopPropagation()}>
+              <div onClick={(e) => e.stopPropagation()}>
                 <EncuestasRespondidasModal
                   open={modalEncuestasRespondidas}
                   onOpenChange={setModalEncuestasRespondidas}
@@ -523,24 +567,18 @@ export default function EmpleadoHome() {
             </div>
           )}
 
+          <ModalParaEditarPerfil
+            isOpen={modalEditarPerfilOpen}
+            onClose={() => setModalEditarPerfilOpen(false)}
+            user={user}
+            onSave={async ({ username, email, password }) => {
+              await handleProfileUpdate({ username, email, password });
+              if (modalImageFile) await handleImageUpload(modalImageFile);
+            }}
+            onFileSelect={setModalImageFile}
+          />
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>
   );
 }
-
-const Toast = ({ message, type, onClose }) => (
-  <motion.div
-    initial={{ opacity: 0, y: -10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -10 }}
-    className={`fixed top-5 right-5 p-4 rounded-lg shadow-md flex items-center gap-2 ${type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
-      }`}
-  >
-    {type === "success"}
-    <span>{message}</span>
-    <button className="ml-2 text-lg" onClick={onClose}>
-      ×
-    </button>
-  </motion.div>
-);
