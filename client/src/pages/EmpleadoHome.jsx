@@ -243,14 +243,14 @@ export default function EmpleadoHome() {
     empleadoService
       .subirCV({ file: cvFile })
       .then(() => {
-        addToast("¡CV subido exitosamente!");
+        toast.success("¡CV subido exitosamente!")
         setCvPreview(null);
         setCvFile(null);
         window.location.reload();
       })
       .catch(() => {
+        toast.error("Error de conexión al subir CV")
         console.log("ERROR AL SUBIR EL CV");
-        addToast("Error de conexión al subir CV", "error");
       });
   };
 

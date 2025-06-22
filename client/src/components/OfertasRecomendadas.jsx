@@ -3,7 +3,7 @@ import { JobCard } from '../components/JobCard';
 
 export function OfertasRecomendadas({ onSelectOferta, ofertas, isLoading, error }) {
   if (error) {
-    return <section>{error}</section>;
+    return <section>Hubo un error al cargar las ofertas</section>;
   }
 
   if (isLoading) {
