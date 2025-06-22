@@ -30,9 +30,14 @@ import { LicenciasModal } from "../components/LicenciasModal.jsx";
 import PeriodosEmpresaModal from "../components/PeriodosEmpresaModal";
 
 import { ExpiredSession } from "../components/ExpiredSession.jsx";
-import { ModalEncuesta } from "../components/ModalEncuesta";
 import { ModalSubirEmpleados } from "../components/ModalSubirEmpleados.jsx";
 import { SearchModal } from "../components/SearchModal.jsx";
+
+//ENCUENSTA
+import { ModalEncuesta } from "../components/ModalEncuesta";
+import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
+import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
+import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
 
 // Toast system
 function Toast({ toasts, removeToast }) {
@@ -159,8 +164,12 @@ export default function ManagerHome() {
   const [ofertasFiltradas, setOfertasFiltradas] = useState([]);
 
   const [ofertasLibres, setOfertasLibres] = useState(new Set());
-
+  //ENCUESTA
   const [modalEncuesta, setModalEncuesta] = useState(false);
+  const [modalGestionEncuestas, setModalGestionEncuestas] = useState(false);
+  const [modalEncuestasPendientes, setModalEncuestasPendientes] = useState(false);
+  const [modalEncuestasRespondidas, setModalEncuestasRespondidas] = useState(false);
+  const [encuestasRespondidas, setEncuestasRespondidas] = useState([]); 
 
   useEffect(() => {
     let filtradas = ofertas;
@@ -1346,6 +1355,51 @@ export default function ManagerHome() {
               onOpenChange={setModalEncuesta}
             />
           )}
+
+          {modalGestionEncuestas && (
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalGestionEncuestas(false)}
+            >
+              <div onClick={(e) => e.stopPropagation()}>
+                <GestionarEncuestasModal
+                  open={modalGestionEncuestas}
+                  onOpenChange={setModalGestionEncuestas}
+                />
+              </div>
+            </div>
+          )}
+
+          {modalEncuestasPendientes && (
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalEncuestasPendientes(false)}
+            >
+              <div onClick={(e) => e.stopPropagation()}>
+                <EncuestasPendientesModal
+                  open={modalEncuestasPendientes}
+                  onOpenChange={setModalEncuestasPendientes}
+                />
+              </div>
+            </div>
+          )}
+
+          {modalEncuestasRespondidas && (
+            <div
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => setModalEncuestasRespondidas(false)}
+            >
+              <div onClick={(e) => e.stopPropagation()}>
+                <EncuestasRespondidasModal
+                  open={modalEncuestasRespondidas}
+                  onOpenChange={setModalEncuestasRespondidas}
+                  encuestas={encuestasRespondidas}
+                />
+              </div>
+            </div>
+          )}
+
+
         </PageLayout>
       </motion.div>
     </EstiloEmpresaContext.Provider>

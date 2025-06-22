@@ -495,32 +495,6 @@ export default function AdminEmpHome() {
         onClick: () => setModalSubirMetricas(true),
       },
     ],
-    encuestas: [
-      {
-        icon: FileLock,
-        titulo: "Crear Encuesta",
-        descripcion: "Diseñá encuestas para obtener feedback del personal.",
-        onClick: () => setModalEncuesta(true),
-      },
-      {
-        icon: FileText,
-        titulo: "Gestionar Encuestas",
-        descripcion: "Administrá las encuestas creadas y sus resultados.",
-        onClick: () => setModalGestionEncuestas(true),
-      },
-      {
-        icon: FileSearchIcon,
-        titulo: "Encuestas Pendientes",
-        descripcion: "Consultá encuestas que aún no fueron respondidas.",
-        onClick: () => setModalEncuestasPendientes(true),
-      },
-      {
-        icon: FileText,
-        titulo: "Encuestas Respondidas",
-        descripcion: "Revisá las respuestas de encuestas completadas.",
-        onClick: () => setModalEncuestasRespondidas(true),
-      },
-    ],
   };
 
   return (
@@ -573,29 +547,6 @@ export default function AdminEmpHome() {
               onActualizar={handleActualizarEstilos}
             />
           )}
-
-          {modalEncuesta && (
-            <ModalEncuesta
-              open={modalEncuesta}
-              onOpenChange={setModalEncuesta}
-            />
-          )}
-
-          <GestionarEncuestasModal
-            open={modalGestionEncuestas}
-            onOpenChange={setModalGestionEncuestas}
-          />
-
-          <EncuestasPendientesModal
-            open={modalEncuestasPendientes}
-            onOpenChange={setModalEncuestasPendientes}
-          />
-
-          <EncuestasRespondidasModal
-            open={modalEncuestasRespondidas}
-            onOpenChange={setModalEncuestasRespondidas}
-            encuestas={encuestasRespondidas}
-          />
 
           {modalOpen && (
             <div

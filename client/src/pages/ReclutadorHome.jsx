@@ -16,9 +16,13 @@ import { reclutadorService } from '../services/reclutadorService.js';
 import EmpleadosRendimiento from "./EmpleadosRendimientoEmpleados";
 
 import { ExpiredSession } from "../components/ExpiredSession.jsx";
-import { ModalEncuesta } from "../components/ModalEncuesta";
 import { SearchModal } from "../components/SearchModal.jsx";
 
+//ENCUESTA
+import { ModalEncuesta } from "../components/ModalEncuesta";
+import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
+import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
+import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
 
 export default function ReclutadorHome() {
   const [user, setUser] = useState(null);
@@ -63,6 +67,10 @@ export default function ReclutadorHome() {
 
   //ENCUESTA
   const [modalEncuesta, setModalEncuesta] = useState(false);
+  const [modalGestionEncuestas, setModalGestionEncuestas] = useState(false);
+  const [modalEncuestasPendientes, setModalEncuestasPendientes] = useState(false);
+  const [modalEncuestasRespondidas, setModalEncuestasRespondidas] = useState(false);
+  const [encuestasRespondidas, setEncuestasRespondidas] = useState([]); 
 
 
   // Modal
@@ -985,6 +993,49 @@ export default function ReclutadorHome() {
             open={modalEncuesta}
             onOpenChange={setModalEncuesta}
           />
+        )}
+
+        {modalGestionEncuestas && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setModalGestionEncuestas(false)}
+          >
+            <div onClick={(e) => e.stopPropagation()}>
+              <GestionarEncuestasModal
+                open={modalGestionEncuestas}
+                onOpenChange={setModalGestionEncuestas}
+              />
+            </div>
+          </div>
+        )}
+
+        {modalEncuestasPendientes && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setModalEncuestasPendientes(false)}
+          >
+            <div onClick={(e) => e.stopPropagation()}>
+              <EncuestasPendientesModal
+                open={modalEncuestasPendientes}
+                onOpenChange={setModalEncuestasPendientes}
+              />
+            </div>
+          </div>
+        )}
+
+        {modalEncuestasRespondidas && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            onClick={() => setModalEncuestasRespondidas(false)}
+          >
+            <div onClick={(e) => e.stopPropagation()}>
+              <EncuestasRespondidasModal
+                open={modalEncuestasRespondidas}
+                onOpenChange={setModalEncuestasRespondidas}
+                encuestas={encuestasRespondidas}
+              />
+            </div>
+          </div>
         )}
 
       </motion.div>
