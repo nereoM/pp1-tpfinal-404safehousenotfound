@@ -34,10 +34,10 @@ import { ModalSubirEmpleados } from "../components/ModalSubirEmpleados.jsx";
 import { SearchModal } from "../components/SearchModal.jsx";
 
 //ENCUENSTA
-import { ModalEncuesta } from "../components/ModalEncuesta";
-import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
 import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
 import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
+import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
+import { ModalEncuesta } from "../components/ModalEncuesta";
 
 // Toast system
 function Toast({ toasts, removeToast }) {
@@ -937,16 +937,9 @@ export default function ManagerHome() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <RendimientoAnalistasTable
+                  onClose={() => setModalRendimientoAnalistas(false)}
                   onSuccess={() => setModalRendimientoAnalistas(false)}
                 />
-                <div className="mt-6 text-right">
-                  <button
-                    onClick={() => setModalRendimientoAnalistas(false)}
-                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                  >
-                    Cerrar
-                  </button>
-                </div>
               </div>
             </div>
           )}
