@@ -83,7 +83,11 @@ export default function PasoCuatroEncuesta({ formData, onBack, onFinish, onCance
         return;
       }
       // Llamada al backend
-      const res = await fetch("/api/crear-encuesta/reclutador", {
+      let endpoint = "/api/crear-encuesta/reclutador";
+      if (formData.rolUsuario === "manager") {
+        endpoint = "/api/crear-encuesta/manager";
+      }
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
