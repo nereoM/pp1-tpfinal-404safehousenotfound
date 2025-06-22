@@ -16,7 +16,7 @@ import {
   AccordionTrigger,
 } from "./shadcn/Accordion";
 
-const seccionesAmigables = {
+export const seccionesAmigables = {
   licencias: {
     icon: <File />,
     value: "Licencias",

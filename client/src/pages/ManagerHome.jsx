@@ -30,6 +30,7 @@ import PeriodosEmpresaModal from "../components/PeriodosEmpresaModal";
 
 import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import { ModalEncuesta } from "../components/ModalEncuesta";
+import { SearchModal } from "../components/SearchModal.jsx";
 
 
 // Toast system
@@ -805,6 +806,7 @@ export default function ManagerHome() {
 
   return (
     <EstiloEmpresaContext.Provider value={{ estilos }}>
+      <SearchModal actions={accionesPorSeccion}/>
       <Toast toasts={toasts} removeToast={removeToast} />
       <motion.div
         initial={{ opacity: 0 }}

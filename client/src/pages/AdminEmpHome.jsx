@@ -30,6 +30,7 @@ import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import PageLayout from "../components/PageLayout";
 import PreferenciasEmpresa from "../components/PreferenciasEmpresa";
 import SubirEmpleados from "../components/RegistrarEmpleados";
+import { SearchModal } from "../components/SearchModal.jsx";
 import { TopBar } from "../components/TopBar";
 import { EstiloEmpresaContext } from "../context/EstiloEmpresaContext";
 import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
@@ -527,6 +528,7 @@ export default function AdminEmpHome() {
     <EstiloEmpresaContext.Provider
       value={{ estilos: estilosSafe, loading: loadingEstilos }}
     >
+      <SearchModal actions={accionesPorSeccion}/>
       <Toast toasts={toasts} removeToast={removeToast} />
       <motion.div
         initial={{ opacity: 0 }}
