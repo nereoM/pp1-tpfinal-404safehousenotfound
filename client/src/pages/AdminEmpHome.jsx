@@ -3,26 +3,20 @@ import {
   ArrowUpRight,
   FileCheck,
   FileLock,
-  FileSearchIcon,
-  FileText,
   Settings,
   Upload,
   UploadCloud,
   UserPlus,
   Users,
-  XCircle,
+  XCircle
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Acciones } from "../components/Acciones.jsx";
-import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
-import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
-import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
 import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import GestionUsuarios from "../components/GestionUsuarios";
 import { LicenciasACargoModal } from "../components/LicenciasACargoModal.jsx";
 import MensajeAlerta from "../components/MensajeAlerta";
-import { ModalEncuesta } from "../components/ModalEncuesta";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import { ModalSubirEmpleados } from "../components/ModalSubirEmpleados.jsx";
 import PageLayout from "../components/PageLayout";
@@ -373,11 +367,12 @@ export default function AdminEmpHome() {
       const data = await response.json();
       showToast(
         `Usuario creado correctamente.\nUsername: ${data.credentials.username}\nContraseña temporal: ${data.credentials.password}`,
-        "success"
+        "success",
+        15000 // Mostrar toast por 15 segundos
       );
       setFormData({ nombre: "", apellido: "", username: "", email: "" });
     } catch (error) {
-      showToast(error.message || "Error al conectar con el servidor.", "error");
+      showToast("Error al crear manager", "error");
     }
   };
 
