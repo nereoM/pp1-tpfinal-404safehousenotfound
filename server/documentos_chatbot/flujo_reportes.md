@@ -2,7 +2,7 @@
 
 ## Descripción
 
-Este proceso permite que los usuarios con rol autorizado (por ejemplo, `manager` o `reclutadores/analistas`) soliciten y descarguen reportes analíticos sobre empleados, postulaciones, rendimiento o riesgos, en formatos PDF o Excel.
+Este proceso permite que los usuarios con rol autorizado (por ejemplo, `manager` o `reclutadores/analistas`) soliciten y descarguen reportes analíticos sobre empleados, postulaciones, rendimiento, riesgos o hasta encuestas, en formatos PDF o Excel.
 
 ## Flujo general
 
