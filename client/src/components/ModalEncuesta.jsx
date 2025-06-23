@@ -8,6 +8,8 @@ import {
   PasoDosEncuestaAnalista, 
   PasoTresEncuesta,
   PasoCuatroEncuesta,
+  PasoCuatroEncuestaManager,
+  PasoCuatroEncuestaAnalista,
 } from "./EncuestaModal";
 
 export function ModalEncuesta({ open, onOpenChange }) {
@@ -72,12 +74,16 @@ export function ModalEncuesta({ open, onOpenChange }) {
           fecha_fin: fechas.to?.toISOString().split("T")[0] || new Date().toISOString().split("T")[0],
         };
       } else if (isManager) {
-        endpoint = "/manager/encuestas/crear";
+        endpoint = "/api/crear-encuesta/manager";
         payload = {
+          tipo: formData.tipo || "general",
           titulo: formData.titulo,
           descripcion: formData.descripcion || undefined,
-          envioATodos: formData.envioATodos,
-          correosAnalistas: formData.envioATodos ? [] : formData.correosAnalistas,
+          anonima: false,
+          fecha_inicio: formData.fechas?.from?.toISOString().split("T")[0],
+          fecha_fin: formData.fechas?.to?.toISOString().split("T")[0],
+          todos_reclutadores: formData.envioATodos,
+          emails: formData.envioATodos ? [] : formData.correosAnalistas,
           preguntas: (formData.preguntas || []).map((p) => ({
             texto: p.texto,
             tipo:
@@ -90,7 +96,11 @@ export function ModalEncuesta({ open, onOpenChange }) {
             es_requerida: !!p.obligatoria,
           })),
         };
+      } else if (roles.includes("reclutador")) {
+        // El Paso 4 del analista se encarga del POST, no hacemos nada acá
+        return;
       } else {
+        // Esto queda exclusivamente para el jefe de empleados
         endpoint = "/api/crear-encuesta";
         const fechas = formData.fechas || {};
         payload = {
@@ -100,7 +110,6 @@ export function ModalEncuesta({ open, onOpenChange }) {
           anonima: formData.anonima === "si",
           fecha_inicio: fechas.from?.toISOString().split("T")[0],
           fecha_fin: fechas.to?.toISOString().split("T")[0],
-          // Siempre enviar emails como array si destinatario es "empleado"
           emails: formData.destinatario === "empleado" ? formData.emails : (
             formData.destinatario === "lista_emails" ? formData.emails : null
           ),
@@ -199,12 +208,28 @@ export function ModalEncuesta({ open, onOpenChange }) {
             )}
 
             {step === 4 && (
-              <PasoCuatroEncuesta
-                formData={formData}
-                onBack={() => setStep(3)}
-                onFinish={handleFinalizar}
-                onCancel={handleClose}
-              />
+              roles.includes("manager") ? (
+                <PasoCuatroEncuestaManager
+                  formData={formData}
+                  onBack={() => setStep(3)}
+                  onFinish={handleFinalizar}
+                  onCancel={handleClose}
+                />
+              ) : roles.includes("reclutador") ? (
+                <PasoCuatroEncuestaAnalista
+                  formData={formData}
+                  onBack={() => setStep(3)}
+                  onFinish={handleFinalizar}
+                  onCancel={handleClose}
+                />
+              ) : (
+                <PasoCuatroEncuesta
+                  formData={formData}
+                  onBack={() => setStep(3)}
+                  onFinish={handleFinalizar}
+                  onCancel={handleClose}
+                />
+              )
             )}
           </>
         )}
