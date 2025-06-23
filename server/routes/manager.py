@@ -3387,6 +3387,16 @@ def crear_encuesta_completa():
                 "es_requerida": bool(es_requerida)
             })
 
+        usuarios_asignados = Usuario.query.filter(Usuario.correo.in_(asignaciones)).all()
+
+        for user in usuarios_asignados:
+            if user.telegram and user.telegram.chat_id:
+                try:
+                    mensaje = f"¡Hola {user.nombre}!\nTu manager te asignó una nueva encuesta: \"{titulo}\".\nResponda entre el {fecha_inicio_dt.strftime('%d/%m/%Y')} y el {fecha_fin_dt.strftime('%d/%m/%Y')}."
+                    enviar_mensaje_telegram(user.telegram.chat_id, mensaje)
+                except Exception as e:
+                    print(f"No se pudo enviar notificación a {user.nombre}: {e}")
+
         db.session.commit()
         return jsonify({
             "message": "Encuesta creada, asignada y preguntas agregadas exitosamente",
