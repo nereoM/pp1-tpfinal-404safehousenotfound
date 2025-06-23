@@ -316,6 +316,7 @@ class PreguntaEncuesta(db.Model):
     tipo = db.Column(db.String(50), nullable=False)  # Ej: 'opcion_multiple', 'texto_libre'
     opciones = db.Column(db.Text, nullable=True)  # Opciones en formato JSON si es de opción múltiple
     es_requerida = db.Column(db.Boolean, default=True)
+    campo_adicional = db.Column(db.String(100), nullable=True)  # Campo adicional para respuestas de texto libre
 
     respuestas = db.relationship("RespuestaEncuesta", backref="pregunta", cascade="all, delete-orphan")
 
