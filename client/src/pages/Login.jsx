@@ -1,7 +1,7 @@
 import { GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -317,23 +317,23 @@ export default function Login() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-900 text-white px-4 relative">
+    <div className="min-h-screen flex flex-col justify-center items-center text-white px-4 relative">
       {/* Botón Volver */}
-        <button
-          onClick={() => navigate("/")}
+        <Link
+          to="/"
           className="absolute top-0 left-6 z-30 rounded-lg transition"
           aria-label="Volver al menú principal"
         >
           <img
-            src="https://i.postimg.cc/VNMPbhgL/icono.png"
+            src="/icono.webp"
             alt="SIGRH+"
             className="w-24 h-auto cursor-pointer hover:opacity-90"
           />
-        </button>
+        </Link>
 
       {/* fondo */}
-    <div className="absolute inset-0 z-0">
-      <div className="w-full h-full bg-[url('https://i.postimg.cc/zXsymsyq/city-blurred-4k-sunrise.webp')] bg-cover bg-center" />
+    <div className="absolute inset-0 z-0 blur-xs">
+      <div className="w-full h-full bg-[url('/city.webp')] bg-cover bg-center" />
       <div className="absolute inset-0 bg-black/30" />
     </div>
 

@@ -3,6 +3,22 @@ import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
 export function VerRespuestasModal({ open, onOpenChange, encuesta }) {
   if (!encuesta) return null;
 
+  const respuestasNormalizadas = (encuesta.respuestas || []).map((r) => {
+    let respuestaFormateada = r.respuesta;
+
+    // Intenta parsear si es JSON válido
+    try {
+      const parsed = JSON.parse(r.respuesta);
+      if (Array.isArray(parsed)) {
+        respuestaFormateada = parsed;
+      }
+    } catch (_) {
+      // no era JSON, queda tal cual
+    }
+
+    return { ...r, respuesta: respuestaFormateada };
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl space-y-4">
@@ -10,9 +26,9 @@ export function VerRespuestasModal({ open, onOpenChange, encuesta }) {
           Respuestas de: {encuesta.titulo}
         </DialogTitle>
 
-        {encuesta.respuestas?.length > 0 ? (
+        {respuestasNormalizadas.length > 0 ? (
           <div className="space-y-4 max-h-[65vh] overflow-auto">
-            {encuesta.respuestas.map((r, idx) => (
+            {respuestasNormalizadas.map((r, idx) => (
               <div
                 key={idx}
                 className="rounded-lg border bg-white p-4 shadow space-y-2"

@@ -1,6 +1,6 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -29,12 +29,12 @@ export default function Header() {
   return (
     <header className="fixed top-0 text-gray-800 left-0 w-full z-50 flex justify-between items-center px-4 md:px-8 py-4 shadow-sm bg-white">
       {/* Logo */}
-      <button
-        onClick={() => navigate("/")}
+      <Link
+        to="/"
         className="text-2xl font-bold text-indigo-600 hover:text-indigo-500 transition-colors"
       >
         SIGRH+
-      </button>
+      </Link>
 
       {/* Navegación principal (desktop) */}
       <nav className="hidden md:flex flex-1 justify-center space-x-6 text-center">
@@ -63,25 +63,25 @@ export default function Header() {
 
         {showLoginMenu && (
           <div className="origin-top-right absolute right-0 mt-2 w-44 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
-            <div className="py-1">
-              <button
+            <div className="py-1 flex flex-col">
+              <Link
+                to="/login"
                 onClick={() => {
                   setShowLoginMenu(false);
-                  navigate("/login");
                 }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 Soy candidato
-              </button>
-              <button
+              </Link>
+              <Link
+                to="/empresa"
                 onClick={() => {
                   setShowLoginMenu(false);
-                  navigate("/empresa");
                 }}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
                 Soy empresa
-              </button>
+              </Link>
             </div>
           </div>
         )}
@@ -124,24 +124,18 @@ export default function Header() {
               </button>
             ))}
             <hr />
-            <button
-              onClick={() => {
-                setShowMobileMenu(false);
-                navigate("/login");
-              }}
+            <Link
+              to="/login"
               className="w-full text-left px-2 py-2 text-indigo-600 hover:bg-indigo-50 rounded"
             >
               Iniciar Sesion Candidato
-            </button>
-            <button
-              onClick={() => {
-                setShowMobileMenu(false);
-                navigate("/empresa");
-              }}
+            </Link>
+            <Link
+              to="/empresa"
               className="w-full text-left px-2 py-2 text-indigo-600 hover:bg-indigo-50 rounded"
             >
               Iniciar Sesion Empresa
-            </button>
+            </Link>
           </div>
           {/* Clic fuera del menú cierra el menú */}
           <div

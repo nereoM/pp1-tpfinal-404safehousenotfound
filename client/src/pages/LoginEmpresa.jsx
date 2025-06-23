@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
+import { GoogleLogin } from "@react-oauth/google";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";      
-import { Eye, EyeOff } from "lucide-react";            
+
 const API_URL = import.meta.env.VITE_API_URL;           
 
 const DEFAULT_COMPANY = {
   nombre:    "SIGRH+",
   icon_url:  "https://i.postimg.cc/QCBcmcym/iconoblack.png",
-  image_url: "https://i.postimg.cc/4dR3qVyw/mapamundisigrh.png",
+  image_url: "/mapamundisigrh.webp",
 };
 
 function CompanyHeader({ name, iconUrl }) {
@@ -41,6 +41,8 @@ export default function LoginEmpresa() {
           { method: "GET", credentials: "include" }
         );
         const data = await res.json();
+        console.log({data});
+        
         if (res.ok) {
           setCompany({
             nombre:    data.nombre || DEFAULT_COMPANY.nombre,

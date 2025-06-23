@@ -5,11 +5,18 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
   const [respuestasInfo, setRespuestasInfo] = useState(null);
   const [respuestasEmpleado, setRespuestasEmpleado] = useState({});
   const [loading, setLoading] = useState(false);
+  const [rol, setRol] = useState(null);
 
   useEffect(() => {
     if (open && encuesta?.id) {
+      const r = localStorage.getItem("rol");
+      setRol(r);
+
+      const endpoint = `/api/encuesta/${encuesta.id}/respuestas-info` +
+        (r === "manager" ? "/manager" : r === "reclutador" ? "/reclutador" : "");
+
       setLoading(true);
-      fetch(`/api/encuesta/${encuesta.id}/respuestas-info`, {
+      fetch(endpoint, {
         method: "GET",
         credentials: "include",
       })
@@ -27,7 +34,11 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
   }, [open, encuesta]);
 
   const fetchRespuestasEmpleado = (id_empleado) => {
-    fetch(`/api/encuesta/${encuesta.id}/respuestas-empleado/${id_empleado}`, {
+    const r = rol;
+    const endpoint = `/api/encuesta/${encuesta.id}/respuestas-empleado/${id_empleado}` +
+      (r === "manager" ? "/manager" : r === "reclutador" ? "/reclutador" : "");
+
+    fetch(endpoint, {
       method: "GET",
       credentials: "include",
     })

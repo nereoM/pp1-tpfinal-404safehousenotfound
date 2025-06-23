@@ -1,18 +1,32 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
 import ResponderEncuestaModal from "./ResponderEncuestaModal";
+import { authService } from "../../../services/authService"; // Ruta corregida
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export function EncuestasPendientesModal({ open, onOpenChange }) {
   const [encuestas, setEncuestas] = useState([]);
   const [modalResponder, setModalResponder] = useState(false);
   const [encuestaSeleccionada, setEncuestaSeleccionada] = useState(null);
+  const [roles, setRoles] = useState([]);
 
   useEffect(() => {
     if (open) {
-      fetch("/api/obtener-encuestas-asignadas", {
-        method: "GET",
-        credentials: "include",
-      })
+      authService.obtenerInfoUsuario()
+        .then((userInfo) => {
+          const rolesActuales = userInfo.roles || [];
+          setRoles(rolesActuales);
+
+          const endpoint = rolesActuales.includes("reclutador")
+            ? `${API_URL}/api/obtener-encuestas-asignadas/reclutador`
+            : `${API_URL}/api/obtener-encuestas-asignadas`;
+
+          return fetch(endpoint, {
+            method: "GET",
+            credentials: "include",
+          });
+        })
         .then((res) => {
           if (!res.ok) throw new Error("Error al obtener encuestas asignadas");
           return res.json();
@@ -34,7 +48,7 @@ export function EncuestasPendientesModal({ open, onOpenChange }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl space-y-4" aria-describedby="desc">
-        <p id="desc" className="sr-only">Lista de encuestas pendientes asignadas al empleado.</p>
+        <p id="desc" className="sr-only">Lista de encuestas pendientes asignadas al usuario.</p>
         <DialogTitle className="text-xl font-bold text-black">
           Encuestas Pendientes
         </DialogTitle>

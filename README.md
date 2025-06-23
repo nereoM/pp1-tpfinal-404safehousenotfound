@@ -27,7 +27,7 @@ Conoce al equipo detrás de SIGHR+:
 
 | Foto                                                     | Nombre Completo    | Rol en el Proyecto     | LinkedIn                                                     |
 | :------------------------------------------------------- | :----------------- | :--------------------- | :----------------------------------------------------------- |
-| ![Nereo Manganiello]()                                   | Nereo Manganiello  | Desarrollador Backend  | [Perfil de LinkedIn](URL_DE_TU_PERFIL_DE_LINKEDIN)           |
+| ![Nereo Manganiello](https://github.com/user-attachments/assets/81c9955d-2666-4f66-a284-d6c4cd1b069c)| Nereo Manganiello  | Desarrollador Backend  | [Perfil de LinkedIn](URL_DE_TU_PERFIL_DE_LINKEDIN)           |
 | ![Naim Torres](https://github.com/user-attachments/assets/cf033176-2d7b-4769-8548-3e85daf468d5)| Naim Torres        | Desarrollador Backend  | [Perfil de LinkedIn](URL_DEL_PERFIL_DE_LINKEDIN_DE_NOMBRE_2) |
 | ![Joaquin Tonizzo](https://github.com/user-attachments/assets/7d48fc50-8269-4a02-888d-ea849959579e)| Joaquin Tonizzo    | Desarrollador Frontend | [Perfil de LinkedIn](URL_DEL_PERFIL_DE_LINKEDIN_DE_NOMBRE_3) |
 | ![Nazareno Sotomayor](https://github.com/user-attachments/assets/e222d929-7f70-4293-ae1f-f927229a851d)| Nazareno Sotomayor | Desarrollador Frontend | [Perfil de LinkedIn](URL_DEL_PERFIL_DE_LINKEDIN_DE_NOMBRE_4) |

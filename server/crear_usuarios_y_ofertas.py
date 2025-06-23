@@ -284,7 +284,14 @@ def crear_estructura_empresas_y_ofertas():
     empresas_info = [
         {"nombre": "Globant", "admin": {"nombre": "Valentina", "apellido": "Martínez", "username": "valemtz", "correo": "valentina@globant.com"}},
         {"nombre": "Techint", "admin": {"nombre": "Carlos", "apellido": "López", "username": "carloslpz", "correo": "carlos@techint.com"}},
-        {"nombre": "Mercado Libre", "admin": {"nombre": "Julieta", "apellido": "Ramos", "username": "julir", "correo": "julieta@mercadolibre.com"}},
+        {"nombre": "Mercado Libre", "admin": {"nombre": "Julieta", "apellido": "Ramos", "username": "julir", "correo": "julieta@mercadolibre.com"}}, 
+        {"nombre": "Nintendo", "admin": {"nombre": "Ricardo", "apellido": "Fernández", "username": "rfernandez", "correo": "ricardo@nintendo.com"}},
+        {"nombre": "Metrovias", "admin": {"nombre": "Federico", "apellido": "Guzmán", "username": "fguzman", "correo": "federico@metrovias.com"}},
+        {"nombre": "Starbucks", "admin": {"nombre": "Martina", "apellido": "Herrera", "username": "mherrera", "correo": "martina@starbucks.com"}},
+        {"nombre": "Twitch", "admin": {"nombre": "Mariana", "apellido": "Pereyra", "username": "mpereyra", "correo": "mariana@twitch.com"}},
+        {"nombre": "Spotify", "admin": {"nombre": "Luciano", "apellido": "Franco", "username": "lfranco", "correo": "luciano@spotify.com"}},
+        {"nombre": "Netflix", "admin": {"nombre": "Roman", "apellido": "Quiroga", "username": "rquiroga", "correo": "roman@netflix.com"}},
+        {"nombre": "Pepsi", "admin": {"nombre": "Pedro", "apellido": "Mendieta", "username": "pmendieta", "correo": "pedro@pepsi.com"}}
     ]
 
     for empresa_info in empresas_info:
@@ -320,7 +327,7 @@ def crear_estructura_empresas_y_ofertas():
         elif nombre_empresa.lower() == "techint":
             preferencias = Preferencias_empresa(
                 id_empresa=empresa.id,
-                color_principal="#E10600",  # Rojo
+                color_principal="#000000",  # Rojo
                 color_secundario="#FFFFFF",  # Blanco
                 color_texto="#000000",      # Negro
                 slogan="Bienvenido a Techint",
@@ -336,6 +343,76 @@ def crear_estructura_empresas_y_ofertas():
                 slogan="Bienvenido a MercadoLibre",
                 icon_url="https://cdn2.downdetector.com/static/uploads/logo/MercadoLibre_BmN6sLa.png",
                 image_url="https://caracol.com.co/resizer/v2/SXVGMHUEI5A2DBHZIAPZST577E.jpg?auth=96bd13f5fdc196d1dcd923a34e217edaf06b3d52d420eb51f9ad38efd34d4759&width=650&height=488&quality=70&smart=true"
+            )
+        elif nombre_empresa.lower() == "nintendo":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#FF0000",
+                color_secundario="#FFFFFF",
+                color_texto="#000000",
+                slogan="Bienvenido a Nintendo",
+                icon_url="https://i.pinimg.com/736x/29/bd/dc/29bddc6ace851b19363d032ad117f393.jpg",
+                image_url="https://i.pinimg.com/736x/05/60/04/0560048531cd851ec26f788bc6337ff1.jpg"
+            )
+        elif nombre_empresa.lower() == "pepsi":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#0D00FF",
+                color_secundario="#FFFFFF",
+                color_texto="#000000",
+                slogan="Bienvenido a Pepsi",
+                icon_url="https://cdn-icons-png.flaticon.com/512/732/732236.png",
+                image_url="https://static.comunicae.com/photos/notas/1252967/Camarero_sirviendo_Pepsi_en_uno_de_los_eventos_de_la_marca_en_Espaa.jpg"
+            )
+        elif nombre_empresa.lower() == "netflix":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#FF0000",
+                color_secundario="#FFFFFF",
+                color_texto="#000000",
+                slogan="Bienvenido a Netflix",
+                icon_url="https://cdn-icons-png.flaticon.com/512/732/732228.png",
+                image_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5QsVoHQhKFmyhrLmHH_LszTbrMFAMJ0eY2Q&s"
+            )
+        elif nombre_empresa.lower() == "starbucks":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#107900",
+                color_secundario="#FFFFFF",
+                color_texto="#000000",
+                slogan="Bienvenido a Starbucks",
+                icon_url="https://cdn-icons-png.flaticon.com/512/5977/5977591.png",
+                image_url="https://okdiario.com/img/2021/11/01/por-que-el-logo-de-starbucks-es-una-sirena-conoce-su-sorprendente-historia.jpg"
+            )
+        elif nombre_empresa.lower() == "metrovias":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#3D413D",
+                color_secundario="#F6FF00",
+                color_texto="#000000",
+                slogan="Bienvenido a Metrovias",
+                icon_url="https://www.integri-sys.com/wp-content/uploads/metrovias.png",
+                image_url="https://hurlinghampost.com/wp-content/uploads/2023/04/tren.webp"
+            )
+        elif nombre_empresa.lower() == "spotify":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#18B100",
+                color_secundario="#FFFFFF",
+                color_texto="#000000",
+                slogan="Bienvenido a Spotify",
+                icon_url="https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Spotify_logo_without_text.svg/480px-Spotify_logo_without_text.svg.png",
+                image_url="https://industriamusical.com/wp-content/uploads/2024/11/Spotify.png"
+            )
+        elif nombre_empresa.lower() == "twitch":
+            preferencias = Preferencias_empresa(
+                id_empresa=empresa.id,
+                color_principal="#C300FF",
+                color_secundario="#FFFFFF",
+                color_texto="#000000",
+                slogan="Bienvenido a Twitch",
+                icon_url="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQcQNjBcpB-xCcBv1n7MYgepsgIy4e0kCnpng&s",
+                image_url="https://wallpapers.com/images/hd/twitch-background-foflejk41c5i0ic5.jpg"
             )
         else:
             preferencias = Preferencias_empresa(
