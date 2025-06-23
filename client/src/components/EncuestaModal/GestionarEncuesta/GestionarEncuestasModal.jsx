@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
 import { VerEncuestaModal } from "./VerEncuestaModal";
+import { Download } from "lucide-react";
 
 export function GestionarEncuestasModal({ open, onOpenChange }) {
   const [encuestas, setEncuestas] = useState([]);
@@ -76,10 +77,48 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
     });
   };
 
+  // Nueva función para descargar el reporte de encuestas
+  const descargarReporteEncuestas = async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || "";
+      const res = await fetch(`${apiUrl}/api/reporte-encuestas-empresa`, {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("No se pudo descargar el reporte");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "reporte_encuestas.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert("Error al descargar el reporte de encuestas:" + err);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl space-y-4">
-        <DialogTitle className="text-xl font-bold text-black">Gestionar Encuestas</DialogTitle>
+        <DialogTitle className="text-xl font-bold text-black">
+          Gestionar Encuestas
+        </DialogTitle>
+
+        {/* Botón de descarga solo para manager */}
+        {rol === "manager" && (
+          <div className="flex justify-end mb-2">
+            <button
+              className="flex items-center gap-2 px-4 py-2 bg-red-700 text-white rounded hover:bg-red-900 transition font-semibold shadow"
+              onClick={descargarReporteEncuestas}
+            >
+              <Download className="w-5 h-5" />
+              Descargar Reporte PDF
+            </button>
+          </div>
+        )}
 
         <div className="space-y-4 max-h-[60vh] overflow-auto">
           {encuestas.map((encuesta) => (
@@ -88,13 +127,18 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
               className="border rounded-lg p-4 shadow flex justify-between items-start gap-4 bg-white"
             >
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-black">{encuesta.titulo}</h3>
+                <h3 className="text-lg font-semibold text-black">
+                  {encuesta.titulo}
+                </h3>
                 <p className="text-sm text-gray-700">{encuesta.descripcion}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  Publicación: {formatFecha(encuesta.fecha_inicio)} | Cierre: {formatFecha(encuesta.fecha_fin)}
+                  Publicación: {formatFecha(encuesta.fecha_inicio)} | Cierre:{" "}
+                  {formatFecha(encuesta.fecha_fin)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1 italic">
-                  Tipo: {encuesta.tipo} | Anónima: {encuesta.anonima ? "Sí" : "No"} | Preguntas: {encuesta.preguntas.length}
+                  Tipo: {encuesta.tipo} | Anónima:{" "}
+                  {encuesta.anonima ? "Sí" : "No"} | Preguntas:{" "}
+                  {encuesta.preguntas.length}
                 </p>
               </div>
 
