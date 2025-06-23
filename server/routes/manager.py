@@ -3417,6 +3417,7 @@ def crear_encuesta_completa():
     except SQLAlchemyError as e:
         db.session.rollback()
         return jsonify({"error": f"Error de base de datos: {str(e)}"}), 500
+    
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Error inesperado: {str(e)}"}), 500
