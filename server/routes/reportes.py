@@ -1184,9 +1184,8 @@ def generar_reporte_encuestas_empresa():
     html = render_template('reportes_encuesta.html', datos=datos)
     nombre_archivo = f"reporte_encuestas_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
     ruta_pdf = os.path.join(TEMP_DIR, nombre_archivo)
-    pdf = HTML(string=html).write_pdf(ruta_pdf, stylesheets=[CSS(ruta_css)])
-    return send_file(BytesIO(pdf), download_name=nombre_archivo, as_attachment=True)
-
+    HTML(string=html).write_pdf(ruta_pdf, stylesheets=[CSS(ruta_css)])
+    return send_file(ruta_pdf, as_attachment=True, download_name=nombre_archivo)
 
 def imagen_base64(path):
     if path.startswith("http://") or path.startswith("https://"):
