@@ -1,6 +1,6 @@
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -124,24 +124,18 @@ export default function Header() {
               </button>
             ))}
             <hr />
-            <button
-              onClick={() => {
-                setShowMobileMenu(false);
-                navigate("/login");
-              }}
+            <Link
+              to="/login"
               className="w-full text-left px-2 py-2 text-indigo-600 hover:bg-indigo-50 rounded"
             >
               Iniciar Sesion Candidato
-            </button>
-            <button
-              onClick={() => {
-                setShowMobileMenu(false);
-                navigate("/empresa");
-              }}
+            </Link>
+            <Link
+              to="/empresa"
               className="w-full text-left px-2 py-2 text-indigo-600 hover:bg-indigo-50 rounded"
             >
               Iniciar Sesion Empresa
-            </button>
+            </Link>
           </div>
           {/* Clic fuera del menú cierra el menú */}
           <div

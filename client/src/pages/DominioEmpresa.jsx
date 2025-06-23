@@ -39,10 +39,10 @@ export default function DomainLogin() {
       <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 bg-indigo-100 opacity-50 w-64 h-64 rounded-full" />
       <div className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 bg-indigo-100 opacity-50 w-64 h-64 rounded-full" />
 
-      <div className="relative flex bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl w-full">
-        <div className="w-1/2 p-8">
+      <div className="relative *:flex-1 flex flex-col sm:flex-row bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl w-full">
+        <div className="p-8">
           <div className="mb-6 text-center">
-            <img src="https://i.postimg.cc/VNMPbhgL/icono.png" alt="SIGRH+" className="mx-auto h-19" />
+            <img src="/icono.webp" alt="SIGRH+" className="mx-auto h-19" />
           </div>
           <h1 className="text-2xl font-semibold text-gray-800 mb-2 text-center">
             Accede a tu portal de empresa
@@ -92,9 +92,9 @@ export default function DomainLogin() {
           </p>
         </div>
 
-        <div className="w-1/2">
+        <div className="">
           <img
-            src="https://i.postimg.cc/4dR3qVyw/mapamundisigrh.png"
+            src="/mapamundisigrh.webp"
             alt="Mapa mundial de conexiones SIGRH+"
             className="object-cover w-full h-full"
           />
