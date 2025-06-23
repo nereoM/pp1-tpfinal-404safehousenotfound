@@ -248,6 +248,8 @@ export default function ManagerHome() {
   // Estado para el periodo seleccionado y lista de periodos
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("");
   const [periodos, setPeriodos] = useState([]);
+  // Estado de carga para el botón de subir métricas
+  const [subiendoMetricas, setSubiendoMetricas] = useState(false);
 
   // Cargar periodos al abrir el modal de subir métricas
   useEffect(() => {
@@ -276,6 +278,7 @@ export default function ManagerHome() {
       showToast("Selecciona un periodo.", "error");
       return;
     }
+    setSubiendoMetricas(true);
     showToast("Subiendo archivo...", "success");
     const formData = new FormData();
     formData.append("file", archivoMetricas);
@@ -295,6 +298,8 @@ export default function ManagerHome() {
       }
     } catch (err) {
       showToast("Error de conexión.", "error");
+    } finally {
+      setSubiendoMetricas(false);
     }
   };
 
@@ -1251,14 +1256,16 @@ export default function ManagerHome() {
                         inputMetricasRef.current.value = "";
                     }}
                     className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
+                    disabled={subiendoMetricas}
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={subirMetricasDesdeCSV}
-                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                    className={`px-4 py-2 rounded text-white ${subiendoMetricas ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"}`}
+                    disabled={subiendoMetricas}
                   >
-                    Subir
+                    {subiendoMetricas ? "Cargando..." : "Subir"}
                   </button>
                 </div>
 
