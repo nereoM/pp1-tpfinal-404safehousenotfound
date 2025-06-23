@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 export function AccionesSinSeccion({ acciones, estilos }) {
   return (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {acciones.map(({ icon: Icon, titulo, descripcion, onClick }, idx) => (
         <motion.div
           key={idx}
