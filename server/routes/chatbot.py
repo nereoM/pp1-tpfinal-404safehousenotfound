@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended.exceptions import NoAuthorizationError
 from services.gpt import generar_respuesta_gpt
 
 chatbot_bp = Blueprint("chatbot", __name__)
@@ -26,16 +27,19 @@ def obtener_rol_usuario(user_id):
 
 
 @chatbot_bp.route("/chatbot", methods=["POST"])
-@jwt_required()
 def chatbot():
+    try:
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+    except NoAuthorizationError:
+        user_id = None
+
     data = request.get_json()
     mensaje = data.get("mensaje", "").strip()
-
-    user_id = get_jwt_identity()
-    rol = obtener_rol_usuario(user_id)
 
     if not mensaje:
         return jsonify({"error": "Mensaje vacío"}), 400
 
+    rol = obtener_rol_usuario(user_id) if user_id else "desconocido"
     respuesta = generar_respuesta_gpt(mensaje, rol)
     return jsonify({"respuesta": respuesta})

@@ -584,6 +584,24 @@ def obtener_rendimiento_futuro(id_empleado):
 @manager_bp.route("/subir-info-laboral-analistas", methods=["POST"])
 @role_required(["manager"])
 def subir_info_laboral_empleados():
+    id_periodo = request.args.get('id_periodo', type=int)
+
+    id_manager = get_jwt_identity()
+    manager = Usuario.query.get(id_manager)
+
+    if not manager or not manager.id_empresa:
+        return jsonify({"error": "no tienes una empresa asociada"}), 404
+
+    if not id_periodo:
+        return jsonify({"error": "debes enviar el id del periodo"}), 400
+
+    periodo = Periodo.query.filter_by(id_periodo=id_periodo, id_empresa=manager.id_empresa).first()
+    if not periodo:
+        return jsonify({"error": "no se encontró el periodo o no pertenece a tu empresa"}), 404
+    
+    if periodo.estado != "activo":
+        return jsonify({"error": "El periodo no esta activo"}), 400
+
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
 
@@ -600,7 +618,7 @@ def subir_info_laboral_empleados():
         file.save(file_path)
         
         try:
-            resultado = registrar_info_laboral_empleados(file_path)
+            resultado = registrar_info_laboral_empleados(file_path, id_periodo)
             if "error" in resultado:
                 return jsonify(resultado), 400
             return jsonify({
@@ -614,7 +632,7 @@ def subir_info_laboral_empleados():
     return jsonify({'error': 'Invalid file format'}), 400
             
             
-def registrar_info_laboral_empleados(file_path):
+def registrar_info_laboral_empleados(file_path, id_periodo):
     import csv
     from flask_jwt_extended import get_jwt_identity
 
@@ -655,10 +673,10 @@ def registrar_info_laboral_empleados(file_path):
             except Exception:
                 return {"error": f"Datos numéricos inválidos para el empleado {id_empleado}"}
 
-            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado).first()
+            rendimiento = RendimientoEmpleado.query.filter_by(id_usuario=id_empleado, id_periodo=id_periodo).first()
             ultimo_rend = (
                 HistorialRendimientoEmpleado.query
-                .filter_by(id_empleado=id_empleado)
+                .filter_by(id_empleado=id_empleado, id_periodo=id_periodo)
                 .order_by(HistorialRendimientoEmpleado.fecha_calculo.desc())
                 .first()
             )
@@ -668,13 +686,13 @@ def registrar_info_laboral_empleados(file_path):
             datos_cambiaron = False
 
             if rendimiento:
-                datos_cambiaron = (
-                    rendimiento.horas_extras != horas_extras or
-                    rendimiento.horas_capacitacion != horas_capacitacion or
-                    rendimiento.ausencias_injustificadas != ausencias_injustificadas or
-                    rendimiento.llegadas_tarde != llegadas_tarde or
-                    rendimiento.salidas_tempranas != salidas_tempranas
-                )
+                datos_cambiaron = any([
+                    int(rendimiento.horas_extras or 0) != horas_extras,
+                    int(rendimiento.horas_capacitacion or 0) != horas_capacitacion,
+                    int(rendimiento.ausencias_injustificadas or 0) != ausencias_injustificadas,
+                    int(rendimiento.llegadas_tarde or 0) != llegadas_tarde,
+                    int(rendimiento.salidas_tempranas or 0) != salidas_tempranas
+                ])
 
                 if datos_cambiaron:
                     rendimiento.desempeno_previo = ultimo_rendimiento
@@ -689,10 +707,11 @@ def registrar_info_laboral_empleados(file_path):
             else:
                 rendimiento = RendimientoEmpleado(
                     id_usuario=id_empleado,
+                    id_periodo=id_periodo,
                     desempeno_previo=ultimo_rendimiento,
                     horas_extras=horas_extras,
-                    horas_capacitacion=horas_capacitacion,
                     antiguedad=calcular_antiguedad(antiguedad),
+                    horas_capacitacion=horas_capacitacion,
                     ausencias_injustificadas=ausencias_injustificadas,
                     llegadas_tarde=llegadas_tarde,
                     salidas_tempranas=salidas_tempranas
@@ -719,6 +738,7 @@ def registrar_info_laboral_empleados(file_path):
                     rendimiento.rendimiento_futuro_predicho = predecir_rend_futuro_individual(datos_rend_futuro)
                     existe_historial = HistorialRendimientoEmpleado.query.filter_by(
                         id_empleado=id_empleado,
+                        id_periodo=id_periodo,
                         fecha_calculo=fecha_actual
                     ).first()
 
@@ -728,6 +748,7 @@ def registrar_info_laboral_empleados(file_path):
                     if not existe_historial:
                         nuevo_historial = HistorialRendimientoEmpleado(
                             id_empleado=id_empleado,
+                            id_periodo=id_periodo,
                             fecha_calculo=fecha_actual,
                             rendimiento=rendimiento.rendimiento_futuro_predicho
                         )
@@ -821,21 +842,21 @@ def registrar_info_laboral_empleados(file_path):
                 f"Se detectaron {empleados_bajo_rendimiento} empleados con bajo rendimiento "
                 f"en el último análisis. Se recomienda revisar sus casos individualmente."
             )
-        crear_notificacion_uso_especifico(manager.id, mensaje_manager)
+            crear_notificacion_uso_especifico(manager.id, mensaje_manager)
 
         if empleados_alta_renuncia > 0:
             mensaje_manager = (
                 f"Se detectaron {empleados_alta_renuncia} empleados con alta probabilidad de renuncia "
                 f"en el último análisis. Se recomienda revisar sus casos individualmente."
             )
-        crear_notificacion_uso_especifico(manager.id, mensaje_manager)
+            crear_notificacion_uso_especifico(manager.id, mensaje_manager)
 
         if empleados_alta_rotacion > 0:
             mensaje_manager = (
                 f"Se detectaron {empleados_alta_renuncia} empleados con alta probabilidad de rotación "
                 f"en el último análisis. Se recomienda revisar sus casos individualmente."
             )
-        crear_notificacion_uso_especifico(manager.id, mensaje_manager)
+            crear_notificacion_uso_especifico(manager.id, mensaje_manager)
 
         db.session.commit()
         return resultado
