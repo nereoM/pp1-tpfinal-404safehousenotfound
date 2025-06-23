@@ -1,4 +1,4 @@
-# Human Resources AI (HR-AI)
+# SIGRH+
 
 ![990_1x_shots_so](https://github.com/user-attachments/assets/88419291-4f1d-447c-84e0-bc3c3cd19dc5)
 
