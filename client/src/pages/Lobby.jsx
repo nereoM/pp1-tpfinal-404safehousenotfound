@@ -214,7 +214,7 @@ export default function LandingPage() {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-3xl blur-3xl opacity-20"></div>
               <img
-                src="https://i.postimg.cc/y8Zq356p/person-using-sigrh-happy.png"
+                src="/lobby.webp"
                 alt="Dashboard SIGRH+"
                 className="relative w-full rounded-2xl shadow-2xl"
               />
