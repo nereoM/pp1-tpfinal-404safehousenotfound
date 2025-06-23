@@ -95,7 +95,7 @@ export default function ManagerHome() {
   const [modalGestionEncuestas, setModalGestionEncuestas] = useState(false);
   const [modalEncuestasPendientes, setModalEncuestasPendientes] = useState(false);
   const [modalEncuestasRespondidas, setModalEncuestasRespondidas] = useState(false);
-  const [encuestasRespondidas, setEncuestasRespondidas] = useState([]); 
+  const [encuestasRespondidas, setEncuestasRespondida] = useState([]);
 
   useEffect(() => {
     let filtradas = ofertas;
@@ -245,21 +245,48 @@ export default function ManagerHome() {
     }
   };
 
+  // Estado para el periodo seleccionado y lista de periodos
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("");
+  const [periodos, setPeriodos] = useState([]);
+
+  // Cargar periodos al abrir el modal de subir métricas
+  useEffect(() => {
+    if (modalSubirMetricas) {
+      const fetchPeriodos = async () => {
+        try {
+          const res = await fetch(`${API_URL}/api/listar-periodos`, { credentials: "include" });
+          const data = await res.json();
+          if (Array.isArray(data.periodos)) setPeriodos(data.periodos);
+          else if (Array.isArray(data)) setPeriodos(data);
+        } catch (err) {
+          setPeriodos([]);
+        }
+      };
+      fetchPeriodos();
+    }
+  }, [modalSubirMetricas]);
+
+  // Modificado: subir métricas con periodo seleccionado
   const subirMetricasDesdeCSV = async () => {
     if (!archivoMetricas) {
       showToast("Selecciona un archivo CSV.", "error");
       return;
     }
+    if (!periodoSeleccionado) {
+      showToast("Selecciona un periodo.", "error");
+      return;
+    }
     showToast("Subiendo archivo...", "success");
     const formData = new FormData();
     formData.append("file", archivoMetricas);
-
     try {
-      const res = await fetch(`${API_URL}/api/subir-info-laboral-analistas`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
+      const res = await fetch(`${API_URL}/api/subir-info-laboral-analistas?id_periodo=${periodoSeleccionado}`,
+        {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        }
+      );
       const data = await res.json();
       if (res.ok) {
         showToast(data.message || "Archivo subido correctamente.", "success");
@@ -1165,7 +1192,7 @@ export default function ManagerHome() {
                 onClick={(e) => e.stopPropagation()}
               >
                 <h2 className="text-lg font-semibold mb-4">
-                  Subir Métricas de Analistas
+                  Subir Métricas de Analistas y Empleados
                 </h2>
 
                 {/* Botón personalizado para seleccionar archivo */}
@@ -1193,8 +1220,25 @@ export default function ManagerHome() {
                   )}
                 </div>
 
-                {/* Mensaje de alerta si hay */}
-                {/* {mensajeMetricas && <MensajeAlerta texto={mensajeMetricas} />} */}
+
+                {/*seleccionar periodo */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-black mb-2">
+                    Seleccionar periodo
+                  </label>
+                  <select
+                    value={periodoSeleccionado}
+                    onChange={(e) => setPeriodoSeleccionado(e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded text-black"
+                  >
+                    <option value="">Seleccione un periodo</option>
+                    {periodos.map((p) => (
+                      <option key={p.id_periodo} value={p.id_periodo}>
+                        {p.nombre_periodo}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
                 {/* Botones de acción */}
                 <div className="flex justify-end gap-2 mt-4">
