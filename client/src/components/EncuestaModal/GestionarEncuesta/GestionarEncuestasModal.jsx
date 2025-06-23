@@ -6,10 +6,21 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
   const [encuestas, setEncuestas] = useState([]);
   const [modalVerEncuesta, setModalVerEncuesta] = useState(false);
   const [encuestaSeleccionada, setEncuestaSeleccionada] = useState(null);
+  const [rol, setRol] = useState(null);
 
   useEffect(() => {
     if (open) {
-      fetch("/api/obtener-encuestas-creadas", {
+      const r = localStorage.getItem("rol");
+      setRol(r);
+
+      const endpoint =
+        r === "manager"
+          ? "/api/obtener-encuestas-creadas/manager"
+          : r === "reclutador"
+          ? "/api/obtener-encuestas-creadas/reclutador"
+          : "/api/obtener-encuestas-creadas";
+
+      fetch(endpoint, {
         method: "GET",
         credentials: "include",
       })
@@ -18,7 +29,6 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
           return res.json();
         })
         .then((data) => {
-          // Si alguna encuesta no tiene campo estado, lo seteamos como "Abierta" por default
           const encuestasConEstado = data.map((e) =>
             e.estado ? e : { ...e, estado: "Abierta" }
           );
@@ -31,12 +41,29 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
     }
   }, [open]);
 
-  const handleCerrarEncuesta = (id) => {
-    setEncuestas((prev) =>
-      prev.map((encuesta) =>
-        encuesta.id === id ? { ...encuesta, estado: "Cerrada" } : encuesta
-      )
-    );
+  const handleCerrarEncuesta = async (id) => {
+    const url =
+      rol === "manager"
+        ? `/cerrar-encuesta/${id}/manager`
+        : rol === "reclutador"
+        ? `/cerrar-encuesta/${id}/reclutador`
+        : null;
+
+    if (!url) return;
+
+    try {
+      const res = await fetch(url, {
+        method: "PUT",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("No se pudo cerrar la encuesta");
+
+      setEncuestas((prev) =>
+        prev.map((e) => (e.id === id ? { ...e, estado: "Cerrada" } : e))
+      );
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const formatFecha = (iso) => {
@@ -93,14 +120,15 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
                     Ver encuesta
                   </button>
 
-                  {encuesta.estado !== "Cerrada" && (
-                    <button
-                      className="px-3 py-1 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm"
-                      onClick={() => handleCerrarEncuesta(encuesta.id)}
-                    >
-                      Cerrar encuesta
-                    </button>
-                  )}
+                  {(rol === "manager" || rol === "reclutador") &&
+                    encuesta.estado !== "Cerrada" && (
+                      <button
+                        className="px-3 py-1 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm"
+                        onClick={() => handleCerrarEncuesta(encuesta.id)}
+                      >
+                        Cerrar encuesta
+                      </button>
+                    )}
                 </div>
               </div>
             </div>
@@ -127,6 +155,7 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
         open={modalVerEncuesta}
         onClose={() => setModalVerEncuesta(false)}
         encuesta={encuestaSeleccionada}
+        esManager={rol === "manager"}
       />
     </Dialog>
   );

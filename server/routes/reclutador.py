@@ -2080,7 +2080,7 @@ def obtener_encuestas_asignadas():
     resultado = []
     for asignacion in asignaciones:
         encuesta = Encuesta.query.get(asignacion.id_encuesta)
-        if encuesta and encuesta.estado == "activa":
+        if encuesta and encuesta.activa == 1:
             resultado.append({
                 "id_encuesta": encuesta.id,
                 "titulo": encuesta.titulo,
@@ -2161,7 +2161,7 @@ def responder_encuesta(id_encuesta):
     if not encuesta:
         return jsonify({"error": "Encuesta no encontrada"}), 404
 
-    if encuesta.estado not in ["activa"]:
+    if not encuesta.activa:
         return jsonify({"error": "La encuesta no está activa"}), 400
 
     data = request.get_json()

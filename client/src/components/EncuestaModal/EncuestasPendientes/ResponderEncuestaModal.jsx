@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
+import { authService } from "../../../services/authService";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function ResponderEncuestaModal({
   open,
@@ -11,10 +14,22 @@ export default function ResponderEncuestaModal({
   const [respuestas, setRespuestas] = useState({});
   const [error, setError] = useState(null);
   const [preguntas, setPreguntas] = useState([]);
+  const [rol, setRol] = useState(null);
 
   useEffect(() => {
-    if (open && encuesta?.id_encuesta) {
-      fetch(`http://localhost:5000/api/encuesta-asignada/${encuesta.id_encuesta}`, {
+    authService.obtenerInfoUsuario().then(info => {
+      const roles = info.roles || [];
+      setRol(roles[0] || null);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (open && encuesta?.id_encuesta && rol) {
+      const url = rol === "reclutador"
+        ? `${API_URL}/api/encuesta-asignada/${encuesta.id_encuesta}/reclutador`
+        : `${API_URL}/api/encuesta-asignada/${encuesta.id_encuesta}`;
+
+      fetch(url, {
         method: "GET",
         credentials: "include",
       })
@@ -31,7 +46,7 @@ export default function ResponderEncuestaModal({
           setPreguntas([]);
         });
     }
-  }, [open, encuesta?.id_encuesta]);
+  }, [open, encuesta?.id_encuesta, rol]);
 
   const preguntaActual = preguntas[preguntaIndex] || null;
   const esUltima = preguntaIndex === preguntas.length - 1;
@@ -137,7 +152,11 @@ export default function ResponderEncuestaModal({
     }
 
     try {
-      const res = await fetch(`http://localhost:5000/api/responder-encuesta/${encuesta.id_encuesta}`, {
+      const endpoint = rol === "reclutador"
+        ? `/api/responder-encuesta/${encuesta.id_encuesta}/reclutador`
+        : `/api/responder-encuesta/${encuesta.id_encuesta}`;
+
+      const res = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -159,6 +178,8 @@ export default function ResponderEncuestaModal({
       setError("Error de conexión al enviar respuestas");
     }
   };
+
+  if (!rol) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>

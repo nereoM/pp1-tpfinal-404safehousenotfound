@@ -2,9 +2,13 @@ import { useState } from "react";
 
 export default function PasoCuatroEncuestaManager({ formData, onBack, onFinish, onCancel }) {
   const [loading, setLoading] = useState(false);
+  const [ejecutado, setEjecutado] = useState(false); // Previene doble envío
 
   const handleFinalizar = async () => {
+    if (ejecutado) return;
+    setEjecutado(true);
     setLoading(true);
+
     try {
       const payload = {
         tipo: formData.tipo || "general",
@@ -40,9 +44,10 @@ export default function PasoCuatroEncuestaManager({ formData, onBack, onFinish, 
         throw new Error(err.error || "Error al crear encuesta");
       }
 
-      onFinish();
+      onCancel();
     } catch (err) {
       console.error("Error al crear encuesta:", err.message);
+      setEjecutado(false); // Permite reintentar si falla
     } finally {
       setLoading(false);
     }

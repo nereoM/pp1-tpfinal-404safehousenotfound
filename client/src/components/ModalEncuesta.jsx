@@ -5,7 +5,7 @@ import {
   PasoUnoEncuesta,
   PasoDosEncuesta,
   PasoDosEncuestaManager,
-  PasoDosEncuestaAnalista, 
+  PasoDosEncuestaAnalista,
   PasoTresEncuesta,
   PasoCuatroEncuesta,
   PasoCuatroEncuestaManager,
@@ -59,6 +59,11 @@ export function ModalEncuesta({ open, onOpenChange }) {
 
   const handleFinalizar = async () => {
     try {
+      if (roles?.includes("manager") || roles?.includes("reclutador")) {
+        // El Paso 4 personalizado se encarga de hacer el POST
+        return;
+      }
+
       let endpoint = "";
       let payload = {};
 
@@ -73,34 +78,8 @@ export function ModalEncuesta({ open, onOpenChange }) {
           fecha_inicio: fechas.from?.toISOString().split("T")[0] || new Date().toISOString().split("T")[0],
           fecha_fin: fechas.to?.toISOString().split("T")[0] || new Date().toISOString().split("T")[0],
         };
-      } else if (isManager) {
-        endpoint = "/api/crear-encuesta/manager";
-        payload = {
-          tipo: formData.tipo || "general",
-          titulo: formData.titulo,
-          descripcion: formData.descripcion || undefined,
-          anonima: false,
-          fecha_inicio: formData.fechas?.from?.toISOString().split("T")[0],
-          fecha_fin: formData.fechas?.to?.toISOString().split("T")[0],
-          todos_reclutadores: formData.envioATodos,
-          emails: formData.envioATodos ? [] : formData.correosAnalistas,
-          preguntas: (formData.preguntas || []).map((p) => ({
-            texto: p.texto,
-            tipo:
-              p.tipo === "opcion unica"
-                ? "unica_opcion"
-                : p.tipo === "opcion multiple"
-                ? "opcion_multiple"
-                : "respuesta_libre",
-            opciones: p.opciones || [],
-            es_requerida: !!p.obligatoria,
-          })),
-        };
-      } else if (roles.includes("reclutador")) {
-        // El Paso 4 del analista se encarga del POST, no hacemos nada acá
-        return;
       } else {
-        // Esto queda exclusivamente para el jefe de empleados
+        // Jefe de empleados
         endpoint = "/api/crear-encuesta";
         const fechas = formData.fechas || {};
         payload = {
@@ -129,7 +108,6 @@ export function ModalEncuesta({ open, onOpenChange }) {
         };
       }
 
-      console.log("payload:", payload);
       const url = `${import.meta.env.VITE_API_URL}${endpoint}`;
       const res = await fetch(url, {
         method: "POST",
@@ -212,7 +190,7 @@ export function ModalEncuesta({ open, onOpenChange }) {
                 <PasoCuatroEncuestaManager
                   formData={formData}
                   onBack={() => setStep(3)}
-                  onFinish={handleFinalizar}
+                  onFinish={handleClose}
                   onCancel={handleClose}
                 />
               ) : roles.includes("reclutador") ? (
@@ -237,4 +215,3 @@ export function ModalEncuesta({ open, onOpenChange }) {
     </Dialog>
   );
 }
-

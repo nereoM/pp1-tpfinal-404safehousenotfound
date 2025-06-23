@@ -1,30 +1,44 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
 import { VerRespuestasModal } from "./VerRespuestasModal";
+import { authService } from "../../../services/authService"; // corregí la ruta si cambia
 
 export function EncuestasRespondidasModal({ open, onOpenChange }) {
   const [encuestas, setEncuestas] = useState([]);
   const [verRespuestasOpen, setVerRespuestasOpen] = useState(false);
   const [encuestaSeleccionada, setEncuestaSeleccionada] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [rol, setRol] = useState(null);
 
   useEffect(() => {
     if (open) {
       setLoading(true);
-      fetch("http://localhost:5000/api/mis-encuestas-respondidas", {
-        method: "GET",
-        credentials: "include",
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            setEncuestas(data);
-          } else {
-            setEncuestas([]);
+
+      authService
+        .obtenerInfoUsuario()
+        .then((user) => {
+          const rolActual = user.roles?.[0] || null;
+          setRol(rolActual);
+
+          let endpoint = "http://localhost:5000/api/mis-encuestas-respondidas";
+          if (rolActual === "reclutador") {
+            endpoint = "http://localhost:5000/api/mis-encuestas-respondidas/reclutador";
           }
+
+          return fetch(endpoint, {
+            method: "GET",
+            credentials: "include",
+          });
+        })
+        .then((res) => {
+          if (!res.ok) throw new Error("Error al obtener encuestas");
+          return res.json();
+        })
+        .then((data) => {
+          setEncuestas(Array.isArray(data) ? data : []);
           setLoading(false);
         })
-        .catch(err => {
+        .catch((err) => {
           console.error("Error al cargar encuestas respondidas:", err);
           setEncuestas([]);
           setLoading(false);
@@ -34,15 +48,21 @@ export function EncuestasRespondidasModal({ open, onOpenChange }) {
 
   const handleVerRespuestas = async (encuesta) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/mis-respuestas-encuesta/${encuesta.id_encuesta}`, {
+      const endpoint =
+        rol === "reclutador"
+          ? `http://localhost:5000/api/mis-respuestas-encuesta/${encuesta.id_encuesta}/reclutador`
+          : `http://localhost:5000/api/mis-respuestas-encuesta/${encuesta.id_encuesta}`;
+
+      const res = await fetch(endpoint, {
         credentials: "include",
       });
+
+      if (!res.ok) throw new Error("Error al obtener respuestas");
       const data = await res.json();
 
-      // Guardamos la encuesta junto con sus respuestas
       setEncuestaSeleccionada({
         ...encuesta,
-        respuestas: data.respuestas
+        respuestas: data.respuestas,
       });
       setVerRespuestasOpen(true);
     } catch (error) {

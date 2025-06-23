@@ -721,18 +721,6 @@ export default function ManagerHome() {
         descripcion: "Administrá las encuestas creadas y sus resultados.",
         onClick: () => setModalGestionEncuestas(true),
       },
-      {
-        icon: FileSearchIcon,
-        titulo: "Encuestas Pendientes",
-        descripcion: "Consultá encuestas que aún no fueron respondidas.",
-        onClick: () => setModalEncuestasPendientes(true),
-      },
-      {
-        icon: FileText,
-        titulo: "Encuestas Respondidas",
-        descripcion: "Revisá las respuestas de encuestas completadas.",
-        onClick: () => setModalEncuestasRespondidas(true),
-      },
     ],
   };
 
@@ -1284,35 +1272,6 @@ export default function ManagerHome() {
                 <GestionarEncuestasModal
                   open={modalGestionEncuestas}
                   onOpenChange={setModalGestionEncuestas}
-                />
-              </div>
-            </div>
-          )}
-
-          {modalEncuestasPendientes && (
-            <div
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-              onClick={() => setModalEncuestasPendientes(false)}
-            >
-              <div onClick={(e) => e.stopPropagation()}>
-                <EncuestasPendientesModal
-                  open={modalEncuestasPendientes}
-                  onOpenChange={setModalEncuestasPendientes}
-                />
-              </div>
-            </div>
-          )}
-
-          {modalEncuestasRespondidas && (
-            <div
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-              onClick={() => setModalEncuestasRespondidas(false)}
-            >
-              <div onClick={(e) => e.stopPropagation()}>
-                <EncuestasRespondidasModal
-                  open={modalEncuestasRespondidas}
-                  onOpenChange={setModalEncuestasRespondidas}
-                  encuestas={encuestasRespondidas}
                 />
               </div>
             </div>
