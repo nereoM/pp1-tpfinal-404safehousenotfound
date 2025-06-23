@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime, timezone, date
 from models.extensions import mail
-from .notificacion import crear_notificacion
+from .notificacion import crear_notificacion, enviar_mensaje_telegram
 from flask_mail import Message
 from .candidato import allowed_image
 from sqlalchemy import and_, or_
@@ -1997,6 +1997,16 @@ def crear_encuesta_completa():
                 "opciones": opciones if opciones_json else None,
                 "es_requerida": bool(es_requerida)
             })
+
+        usuarios_asignados = Usuario.query.filter(Usuario.correo.in_(asignaciones)).all()
+
+        for user in usuarios_asignados:
+            if user.telegram and user.telegram.chat_id:
+                try:
+                    mensaje = f"¡Hola {user.nombre}!\nTe asignaron una nueva encuesta: \"{titulo}\".\nDisponible del {fecha_inicio_dt.strftime('%d/%m/%Y')} al {fecha_fin_dt.strftime('%d/%m/%Y')}."
+                    enviar_mensaje_telegram(user.telegram.chat_id, mensaje)
+                except Exception as e:
+                    print(f"Error al notificar a {user.nombre}: {e}")
 
         db.session.commit()
         return jsonify({
