@@ -38,7 +38,6 @@ def evaluar_cv_semantico(cv_texto, palabras_clave, umbral_individual):
             max_similitud_global = max_sim
 
         if max_sim < umbral_individual:
-            return False, 0.0
+            return False, np.mean(similitudes_totales)
 
-    media_similitud = np.mean(similitudes_totales)
-    return True, int(media_similitud)
+    return True, max_similitud_global

@@ -48,8 +48,10 @@ def predecir_cv(palabras_clave, cv, id_oferta):
         texto_cv = extraer_texto_word(cv.url_cv)
     else:
         raise Exception("Formato de archivo no soportado.")
+    
+    aptitud, porcentaje = evaluar_cv_semantico(texto_cv, lista_palabras, umbral_individual)
 
-    return evaluar_cv_semantico(texto_cv, lista_palabras, umbral_individual)
+    return aptitud, porcentaje
 
 
 corpus = [
