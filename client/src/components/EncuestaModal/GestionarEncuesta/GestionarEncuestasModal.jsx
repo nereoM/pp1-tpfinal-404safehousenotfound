@@ -164,7 +164,7 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
                     Ver encuesta
                   </button>
 
-                  {(rol === "manager" || rol === "reclutador") &&
+                  {(rol === "manager" || rol === "reclutador" || rol === "empleado") &&
                     encuesta.estado !== "Cerrada" && (
                       <button
                         className="px-3 py-1 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm"
