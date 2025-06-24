@@ -1,8 +1,8 @@
-import { motion } from 'framer-motion';
-import { File, FileText } from 'lucide-react';
+import { motion } from "framer-motion";
+import { File, FileText } from "lucide-react";
 
 export function CandidatoEmptyOfertas() {
-const handleUploadCVFromTopBar = async (file) => {
+  const handleUploadCVFromTopBar = async (file) => {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -15,9 +15,8 @@ const handleUploadCVFromTopBar = async (file) => {
 
       const result = await res.json();
       if (res.ok) {
-        
         const successToastEvent = new CustomEvent("cvSubidoOk", {
-          detail: "¡CV subido exitosamente!"
+          detail: "¡CV subido exitosamente!",
         });
         window.dispatchEvent(successToastEvent);
         window.location.reload();

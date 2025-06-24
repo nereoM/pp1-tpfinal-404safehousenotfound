@@ -1,10 +1,30 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Bell, Edit, LogOut, FileText } from "lucide-react";
+import {
+  ArrowUpRight,
+  Bell,
+  ClipboardList,
+  CreditCard,
+  Edit,
+  File,
+  FileText,
+  LogOut
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useEstiloEmpresa } from "../context/EstiloEmpresaContext";
-import { ClipboardList, CreditCard } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./shadcn/Dialog";
 
-
-export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }) {
+export function TopBar({
+  username,
+  onLogout,
+  onEditPerfil,
+  user,
+  onPostulacion,
+  cvs,
+}) {
   const API_URL = import.meta.env.VITE_API_URL;
   const { estilos } = useEstiloEmpresa();
   const blue = estilos?.color_principal || "#3b82f6";
@@ -16,6 +36,7 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
   const [perfilVisible, setPerfilVisible] = useState(false);
   const [notificaciones, setNotificaciones] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [modalVerCvs, setModalVerCvs] = useState(false);
 
   const imgSrc = useMemo(() => {
     if (!user?.fotoUrl) return "https://i.pravatar.cc/150?img=12";
@@ -23,31 +44,39 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
     return cleanPath.startsWith("http") ? cleanPath : `${API_URL}/${cleanPath}`;
   }, [user?.fotoUrl]);
 
-    const fetchNotificaciones = async () => {
-      try {
-        const res1 = await fetch(`${API_URL}/api/notificaciones-candidato-no-leidas`, { credentials: "include" });
-        const res2 = await fetch(`${API_URL}/api/notificaciones-candidato-no-leidas-contador`, { credentials: "include" });
-        if (res1.ok) setNotificaciones((await res1.json()).notificaciones);
-        if (res2.ok) setUnreadCount((await res2.json()).total_no_leidas);
-      } catch (e) {
-        console.error("Error al traer notificaciones", e);
-      }
+  console.log({ cvs });
+
+  const fetchNotificaciones = async () => {
+    try {
+      const res1 = await fetch(
+        `${API_URL}/api/notificaciones-candidato-no-leidas`,
+        { credentials: "include" }
+      );
+      const res2 = await fetch(
+        `${API_URL}/api/notificaciones-candidato-no-leidas-contador`,
+        { credentials: "include" }
+      );
+      if (res1.ok) setNotificaciones((await res1.json()).notificaciones);
+      if (res2.ok) setUnreadCount((await res2.json()).total_no_leidas);
+    } catch (e) {
+      console.error("Error al traer notificaciones", e);
+    }
+  };
+  useEffect(() => {
+    fetchNotificaciones();
+
+    const handler = () => fetchNotificaciones();
+    window.addEventListener("notificacionActualizada", handler);
+
+    const interval = setInterval(() => {
+      fetchNotificaciones();
+    }, 1000);
+
+    return () => {
+      window.removeEventListener("notificacionActualizada", handler);
+      clearInterval(interval);
     };
-      useEffect(() => {
-        fetchNotificaciones(); 
-
-        const handler = () => fetchNotificaciones();
-        window.addEventListener("notificacionActualizada", handler);
-
-        const interval = setInterval(() => {
-          fetchNotificaciones();
-        }, 1000); 
-
-        return () => {
-          window.removeEventListener("notificacionActualizada", handler);
-          clearInterval(interval);
-        };
-      }, []);
+  }, []);
 
   // cierra modales al hacer clic fuera
   useEffect(() => {
@@ -55,10 +84,13 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
       if (perfilRef.current && !perfilRef.current.contains(e.target)) {
         setPerfilVisible(false);
       }
-    if (notificacionesRef.current && !notificacionesRef.current.contains(e.target)) {
-      setModalVisible(false);
-      setNotificaciones((prev) => prev.filter((n) => !n.leida));
-    }
+      if (
+        notificacionesRef.current &&
+        !notificacionesRef.current.contains(e.target)
+      ) {
+        setModalVisible(false);
+        setNotificaciones((prev) => prev.filter((n) => !n.leida));
+      }
     };
     document.addEventListener("mousedown", clickOutside);
     return () => document.removeEventListener("mousedown", clickOutside);
@@ -77,9 +109,8 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
 
       const result = await res.json();
       if (res.ok) {
-        
         const successToastEvent = new CustomEvent("cvSubidoOk", {
-          detail: "¡CV subido exitosamente!"
+          detail: "¡CV subido exitosamente!",
         });
         window.dispatchEvent(successToastEvent);
         window.location.reload();
@@ -91,9 +122,11 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
   };
 
   return (
-<header className="sticky top-0 z-[50] bg-white border-b shadow-sm px-6 py-4 flex items-center justify-between">
+    <header className="sticky top-0 z-[50] bg-white border-b shadow-sm px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-4">
-        <h1 className="text-2xl font-bold" style={{ color: blue }}>SIGRH+</h1>
+        <h1 className="text-2xl font-bold" style={{ color: blue }}>
+          SIGRH+
+        </h1>
       </div>
 
       <div className="flex items-center gap-4 relative">
@@ -132,8 +165,13 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
             className="absolute right-0 top-16 w-72 bg-white border shadow-lg rounded-lg z-50 p-4"
           >
             <div className="text-center">
-              <img src={imgSrc} className="w-16 h-16 rounded-full mx-auto border border-blue-500" />
-              <p className="font-semibold mt-2">{user?.nombre} {user?.apellido}</p>
+              <img
+                src={imgSrc}
+                className="w-16 h-16 rounded-full mx-auto border border-blue-500"
+              />
+              <p className="font-semibold mt-2">
+                {user?.nombre} {user?.apellido}
+              </p>
               <p className="text-sm text-gray-500">{user?.correo}</p>
             </div>
 
@@ -173,19 +211,26 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
                 <Edit size={16} /> Editar perfil
               </button>
 
-            <button
-              onClick={onPostulacion}
-              className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
-            >
-              <ClipboardList size={16} /> Ver postulaciones
-            </button>
+              <button
+                onClick={onPostulacion}
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
+              >
+                <ClipboardList size={16} /> Ver postulaciones
+              </button>
 
-            <button
-              onClick={() => window.location.href = "/pagos"}
-              className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
-            >
-              <CreditCard size={16} /> Suscribirse (empresa)
-            </button>
+              <button
+                onClick={() => (window.location.href = "/pagos")}
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
+              >
+                <CreditCard size={16} /> Suscribirse (empresa)
+              </button>
+
+              <button
+                onClick={() => setModalVerCvs(true)}
+                className="flex items-center justify-center gap-2 text-sm px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 w-full"
+              >
+                <File size={16} /> Ver CV's
+              </button>
 
               <button
                 onClick={onLogout}
@@ -208,25 +253,35 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
                 {notificaciones.map((n) => (
                   <li
                     key={n.id}
-                    className={`p-2 text-sm cursor-pointer ${n.leida ? "text-gray-400" : "hover:bg-gray-100"}`}
+                    className={`p-2 text-sm cursor-pointer ${
+                      n.leida ? "text-gray-400" : "hover:bg-gray-100"
+                    }`}
                     onClick={async () => {
                       if (n.leida) return;
 
                       try {
-                        await fetch(`${API_URL}/api/leer-notificacion-candidato/${n.id}`, {
-                          method: "PUT",
-                          credentials: "include"
-                        });
+                        await fetch(
+                          `${API_URL}/api/leer-notificacion-candidato/${n.id}`,
+                          {
+                            method: "PUT",
+                            credentials: "include",
+                          }
+                        );
 
                         setNotificaciones((prev) =>
                           prev.map((notif) =>
-                            notif.id === n.id ? { ...notif, leida: true } : notif
+                            notif.id === n.id
+                              ? { ...notif, leida: true }
+                              : notif
                           )
                         );
 
                         setUnreadCount((prev) => Math.max(prev - 1, 0));
                       } catch (error) {
-                        console.error("Error al marcar notificación como leída:", error);
+                        console.error(
+                          "Error al marcar notificación como leída:",
+                          error
+                        );
                       }
                     }}
                   >
@@ -235,10 +290,55 @@ export function TopBar({ username, onLogout, onEditPerfil, user, onPostulacion }
                 ))}
               </ul>
             ) : (
-              <div className="p-4 text-center text-gray-500 text-sm">No tienes notificaciones</div>
+              <div className="p-4 text-center text-gray-500 text-sm">
+                No tienes notificaciones
+              </div>
             )}
           </div>
         )}
+
+        <Dialog open={modalVerCvs} onOpenChange={setModalVerCvs}>
+          <DialogContent className="text-black">
+            <DialogHeader>
+              <DialogTitle>Tus CV's</DialogTitle>
+            </DialogHeader>
+            <ul className="flex flex-col gap-2">
+              {cvs?.map((cv) => (
+                <div
+                  key={cv.id}
+                  className={`flex border-gray-300 items-center p-3 border rounded-lg cursor-pointer transition w-full`}
+                >
+                  <div className="w-10 h-12 bg-red-500 text-white font-bold flex items-center justify-center rounded-sm text-sm mr-4 shadow">
+                    PDF
+                  </div>
+                  <div className="flex justify-between w-full items-center">
+                    <div className="flex-grow">
+                      <p className="text-sm font-medium leading-tight">
+                        {" "}
+                        {cv.url
+                          .split("/")
+                          .pop()
+                          .split("_")
+                          .slice(0, -1)
+                          .join("_")}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(cv.fecha_subida).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <a
+                      className="text-indigo-500 group flex gap-1"
+                      target="_blank"
+                      href={`${import.meta.env.VITE_API_URL}/${cv.url}`}
+                    >
+                      Abrir<ArrowUpRight className="group-hover:translate-x-1 group-hover:-translate-y-1 transition"/>
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </ul>
+          </DialogContent>
+        </Dialog>
       </div>
     </header>
   );
