@@ -25,7 +25,7 @@ export default function PasoCuatroEncuestaAnalista({ formData, onBack, onFinish,
               ? "opcion_multiple"
               : "respuesta_libre",
           opciones: p.opciones || [],
-          es_requerida: !!p.obligatoria,
+          es_requerida: !!p.es_requerida,
         }))
       };
 
@@ -114,12 +114,15 @@ export default function PasoCuatroEncuestaAnalista({ formData, onBack, onFinish,
       <h3 className="font-semibold">Preguntas:</h3>
       <ul className="space-y-2 text-sm">
         {(formData.preguntas || []).map((p, i) => (
-          <li key={i} className="border p-3 rounded bg-gray-50">
+          <li key={i} className="border p-3 rounded bg-gray-50 space-y-1">
             <strong>{p.texto}</strong> ({p.tipo})
             {p.opciones?.length > 0 && (
               <ul className="list-disc ml-6">
                 {p.opciones.map((op, j) => <li key={j}>{op}</li>)}
               </ul>
+            )}
+            {p.es_requerida && (
+              <p className="text-xs text-red-500">Pregunta obligatoria</p>
             )}
           </li>
         ))}

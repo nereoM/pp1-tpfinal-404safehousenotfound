@@ -37,10 +37,17 @@ export default function ResponderEncuestaModal({
       })
         .then((res) => res.json())
         .then((data) => {
+          console.log("Preguntas cargadas:", data.preguntas); // 👈 Debug
+
           const normalizadas = (data.preguntas || []).map(p => ({
             ...p,
-            obligatoria: Boolean(p.obligatoria)
+            obligatoria: p.hasOwnProperty("obligatoria")
+              ? Boolean(p.obligatoria)
+              : p.hasOwnProperty("es_requerida")
+              ? Boolean(p.es_requerida)
+              : false,
           }));
+
           setPreguntas(normalizadas);
         })
         .catch((err) => {
