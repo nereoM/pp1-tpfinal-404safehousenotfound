@@ -325,19 +325,16 @@ export default function Login() {
           aria-label="Volver al menú principal"
         >
           <img
-            src="/icono.webp"
+            src="./icono.webp"
             alt="SIGRH+"
             className="w-24 h-auto cursor-pointer hover:opacity-90"
           />
         </Link>
 
       {/* fondo */}
-    <div className="absolute inset-0 z-0 blur-xs">
-      <div className="w-full h-full bg-[url('/city.webp')] bg-cover bg-center" />
-      <div className="absolute inset-0 bg-black/30" />
-    </div>
-
-
+      <div className="absolute inset-0 z-0 blur-xs">
+        <img src="./city.webp" className="opacity-70 w-full h-full object-cover object-center" alt="" />
+      </div>
 
       {/* sobre nosotros */}
       <button onClick={() => setShowInfo(true)} className="absolute bottom-2 right-4 text-xs text-gray-500 hover:text-white z-20">

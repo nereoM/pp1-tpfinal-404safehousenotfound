@@ -1,6 +1,7 @@
 import { GoogleLogin } from "@react-oauth/google";
+import { ChevronLeft } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
 const API_URL = import.meta.env.VITE_API_URL;           
 
@@ -110,9 +111,18 @@ const handleSubmit = async (e) => {
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-50 px-4">
-      <div className="flex bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl w-full">
+            <div className="flex flex-col gap-4">
+
+
+      <Link
+          to="/"
+          className="px-4 py-2 group rounded-xl bg-indigo-500 w-fit flex gap-2"
+        >
+          <ChevronLeft className="group-hover:-translate-x-1 transition" /> Volver
+        </Link>
+      <div className="*:flex-1 flex flex-col sm:flex-row bg-white rounded-lg shadow-lg overflow-hidden max-w-4xl w-full">
         {/*formulario */}
-        <div className="w-1/2 p-8">
+        <div className="p-8">
           <CompanyHeader name={company.nombre} iconUrl={company.icon_url} />
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -210,13 +220,14 @@ const handleSubmit = async (e) => {
         </div>
 
         {/*DERECHAD*/}
-        <div className="w-1/2">
+        <div className="">
           <img
             src={company.image_url}
             alt={`${company.nombre} portada`}
-            className="object-cover w-full h-full"
+            className="object-cover max-h-[300px] sm:max-h-[none] w-full h-full"
           />
         </div>
+      </div>
       </div>
     </div>
   );

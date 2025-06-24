@@ -1,13 +1,11 @@
-import React, { useEffect, useState, useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from "recharts";
-import { motion } from "framer-motion";
-import { useExportarGraficos } from "../hooks/useExportarGraficos";
-import { Download } from "lucide-react";
-import { Image as ImageIcon } from "lucide-react";
-import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { motion } from "framer-motion";
+import { ArrowLeft, Download, Image as ImageIcon } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import * as XLSX from "xlsx";
+import { useExportarGraficos } from "../hooks/useExportarGraficos";
 
 export default function RiesgosAnalistasConTabla() {
     const navigate = useNavigate();
