@@ -32,8 +32,10 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
       texto: pregunta.trim(),
       tipo: tipoPregunta,
       opciones: tipoPregunta === "rellena el usuario" ? [] : opciones,
-      es_requerida: esObligatoria, // CAMBIO: el backend espera 'es_requerida'
+      es_requerida: esObligatoria,
     };
+
+    console.log("📥 Pregunta agregada:", nuevaPregunta);
 
     const nuevasPreguntas =
       editIndex !== null
@@ -52,6 +54,8 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
   const handleSiguientePaso = () => {
     const tienePreguntas = preguntasAgregadas.length > 0;
 
+    console.log("📦 Preguntas acumuladas antes de continuar:", formData.preguntas);
+    
     if (!tienePreguntas) {
       const esFormularioValido = validarFormularioActual();
       if (!esFormularioValido) {
@@ -81,7 +85,7 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
     const p = preguntasAgregadas[index];
     setPregunta(p.texto);
     setTipoPregunta(p.tipo || "");
-    setEsObligatoria(p.obligatoria || false);
+    setEsObligatoria(p.es_requerida || false);
     setOpciones(p.opciones?.length ? p.opciones : []);
     setEditIndex(index);
   };
@@ -216,7 +220,7 @@ export default function PasoTresEncuesta({ formData, setFormData, onNext, onBack
                     ))}
                   </ul>
                 )}
-                {p.obligatoria && (
+                {p.es_requerida && (
                   <p className="text-xs text-red-500">Esta pregunta es obligatoria</p>
                 )}
                 <div className="flex gap-2 pt-2">

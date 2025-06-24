@@ -95,7 +95,7 @@ export default function PasoCuatroEncuesta({ formData, onBack, onFinish, onCance
             {p.permitir_comentario && (
               <p className="text-xs text-gray-600">Incluye comentario adicional</p>
             )}
-            {p.obligatoria && (
+            {p.es_requerida && (
               <p className="text-xs text-red-500">Pregunta obligatoria</p>
             )}
           </li>

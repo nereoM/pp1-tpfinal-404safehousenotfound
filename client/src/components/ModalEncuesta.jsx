@@ -103,7 +103,7 @@ export function ModalEncuesta({ open, onOpenChange }) {
                 ? "opcion_multiple"
                 : "respuesta_libre",
             opciones: p.opciones || [],
-            es_requerida: !!p.obligatoria,
+            es_requerida: !!p.es_requerida,
           })),
         };
       }
