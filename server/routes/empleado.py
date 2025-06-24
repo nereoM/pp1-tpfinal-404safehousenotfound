@@ -1662,7 +1662,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime, timedelta, date, timezone
 
 @empleado_bp.route("/crear-encuesta", methods=["POST"])
-@jwt_required()
 @role_required(["empleado"])
 def crear_encuesta_completa():
     """
@@ -1863,6 +1862,7 @@ def crear_encuesta_completa():
                 opciones_json = json.dumps(opciones)
             else:
                 opciones_json = None
+                
             pregunta_obj = PreguntaEncuesta(
                 id_encuesta=encuesta.id,
                 texto=texto,
@@ -2073,7 +2073,7 @@ def obtener_encuestas_asignadas():
     resultado = []
     for asignacion in asignaciones:
         encuesta = Encuesta.query.get(asignacion.id_encuesta)
-        if encuesta and encuesta.activa == 1:
+        if encuesta and encuesta.estado == "activa":
             resultado.append({
                 "id_encuesta": encuesta.id,
                 "titulo": encuesta.titulo,
@@ -2159,7 +2159,7 @@ def responder_encuesta(id_encuesta):
     if not encuesta:
         return jsonify({"error": "Encuesta no encontrada"}), 404
 
-    if not encuesta.activa:
+    if encuesta.estado not in ["activa"]:
         return jsonify({"error": "La encuesta no está activa"}), 400
 
     data = request.get_json()

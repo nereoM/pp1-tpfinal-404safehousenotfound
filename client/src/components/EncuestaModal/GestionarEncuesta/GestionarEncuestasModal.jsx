@@ -42,30 +42,43 @@ export function GestionarEncuestasModal({ open, onOpenChange }) {
     }
   }, [open]);
 
-  const handleCerrarEncuesta = async (id) => {
-    const url =
-      rol === "manager"
-        ? `/cerrar-encuesta/${id}/manager`
-        : rol === "reclutador"
-        ? `/cerrar-encuesta/${id}/reclutador`
-        : null;
+const handleCerrarEncuesta = async (id) => {
+  const apiUrl = import.meta.env.VITE_API_URL || ""; 
+  // suponiendo VITE_API_URL="http://localhost:5000"
 
-    if (!url) return;
+  const url =
+    rol === "manager"
+      ? `${apiUrl}/api/cerrar-encuesta/${id}/manager`
+      : rol === "reclutador"
+      ? `${apiUrl}/api/cerrar-encuesta/${id}/reclutador`
+      : rol === "empleado"
+      ? `${apiUrl}/api/cerrar-encuesta/${id}/jefe-area`
+      : null;
 
-    try {
-      const res = await fetch(url, {
-        method: "PUT",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("No se pudo cerrar la encuesta");
+  if (!url) return;
 
-      setEncuestas((prev) =>
-        prev.map((e) => (e.id === id ? { ...e, estado: "Cerrada" } : e))
-      );
-    } catch (error) {
-      console.error(error);
+  try {
+    const res = await fetch(url, {
+      method: "PUT",
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "No se pudo cerrar la encuesta");
     }
-  };
+
+    // marcarla en la UI como cerrada
+    setEncuestas((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, estado: "Cerrada" } : e))
+    );
+  } catch (error) {
+    console.error("Error al cerrar la encuesta:", error);
+    // aquí podrías mostrar un toast de error
+  }
+};
+
+
+
 
   const formatFecha = (iso) => {
     if (!iso) return "Sin fecha";
