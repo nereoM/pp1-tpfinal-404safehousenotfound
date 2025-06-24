@@ -505,6 +505,7 @@ export default function AdminEmpHome() {
       >
         <PageLayout textColor={estilosSafe.color_texto}>
           <TopBar
+            onEditPerfil={() => setModalEditarPerfilOpen(true)}
             user={user}
             username={`${user.nombre} ${user.apellido}`}
             onLogout={handleLogout}
