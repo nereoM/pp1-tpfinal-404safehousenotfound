@@ -1,15 +1,17 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { Search, Sparkles, TextSearch } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { CandidatoEmptyOfertas } from "../components/CandidatoEmptyOfertas.jsx";
 import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import { JobCard } from "../components/JobCard";
+import { JobCardSkeleton } from "../components/JobCardSkeleton.js";
 import ModalParaEditarPerfil from "../components/ModalParaEditarPerfil.jsx";
 import PageLayout from "../components/PageLayoutCand";
 import PostulacionesCandidatoModal from "../components/PostulacionesCandidatoModal";
 import { SearchFiltersCandidato } from "../components/SearchFiltersCandidato.jsx";
 import { TopBar } from "../components/TopBarCand";
+import { Button } from "../components/shadcn/Button.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -39,6 +41,10 @@ export default function CandidatoHome() {
     useState(false);
   const [isPostulando, setIsPostulando] = useState(false);
   const navigate = useNavigate();
+  const [mostrarRecomendaciones, setMostrarRecomendaciones] = useState(true);
+  const [ofertasRecomendadas, setOfertasRecomendadas] = useState([]);
+  const [loadingOfertasRecomendadas, setLoadingOfertasRecomendadas] =
+    useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,6 +82,7 @@ export default function CandidatoHome() {
     };
 
     const fetchRecomendaciones = async () => {
+      setLoadingOfertasRecomendadas(true);
       try {
         const res = await fetch(`${API_URL}/api/recomendaciones`, {
           credentials: "include",
@@ -86,7 +93,7 @@ export default function CandidatoHome() {
             setMensajeRecomendacion(
               "Subí un CV para recibir recomendaciones personalizadas."
             );
-            setOfertas([]);
+            setOfertasRecomendadas([]);
             setLoading(false);
             return;
           } else {
@@ -105,14 +112,14 @@ export default function CandidatoHome() {
           fecha: "Reciente",
           postulaciones: Math.floor(Math.random() * 100),
         }));
-        setOfertas(transformadas);
+        setOfertasRecomendadas(transformadas);
       } catch (err) {
         console.error("Error en fetchRecomendaciones:", err);
         setMensajeRecomendacion(
           "No pudimos obtener recomendaciones en este momento. Vuelve a intentarlo más tarde."
         );
       } finally {
-        setLoading(false);
+        setLoadingOfertasRecomendadas(false);
       }
     };
 
@@ -146,42 +153,36 @@ export default function CandidatoHome() {
 
   useEffect(() => {
     const fetchTodasLasOfertas = async () => {
-      const term = busquedaConfirmada.trim();
-      if (term.length < 3) return;
-
       try {
+        setLoading(true);
         const res = await fetch(`${API_URL}/api/todas-las-ofertas`, {
           credentials: "include",
         });
         const data = await res.json();
+        console.log("TODAS LAS OFERTAS", data);
+
         if (res.ok) {
-          const todas = data
-            .filter(
-              (item) =>
-                item.nombre_oferta.toLowerCase().includes(term.toLowerCase()) ||
-                item.palabras_clave.some((p) =>
-                  p.toLowerCase().includes(term.toLowerCase())
-                )
-            )
-            .map((item) => ({
-              id: item.id,
-              titulo: item.nombre_oferta,
-              empresa: item.empresa,
-              palabrasClave: item.palabras_clave,
-              fecha: "Reciente",
-              postulaciones: Math.floor(Math.random() * 100),
-            }));
+          const todas = data.map((item) => ({
+            id: item.id,
+            titulo: item.nombre_oferta,
+            empresa: item.empresa,
+            palabrasClave: item.palabras_clave,
+            fecha: "Reciente",
+            postulaciones: Math.floor(Math.random() * 100),
+          }));
           setOfertas(todas);
         } else {
           console.error("Error en todas-las-ofertas:", data.error);
         }
       } catch (err) {
         console.error("Error al buscar todas las ofertas:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchTodasLasOfertas();
-  }, [busquedaConfirmada]);
+  }, []);
 
   const handleLogout = () => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
@@ -203,33 +204,6 @@ export default function CandidatoHome() {
     window.addEventListener("cvSubidoOk", handleToastEvent);
     return () => window.removeEventListener("cvSubidoOk", handleToastEvent);
   }, []);
-
-  const handleUploadCV = async () => {
-    if (!cvFile) return;
-
-    const formData = new FormData();
-    formData.append("file", cvFile);
-
-    try {
-      const res = await fetch(`${API_URL}/api/upload-cv`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-
-      const result = await res.json();
-      if (res.ok) {
-        addToast("¡CV subido exitosamente!", "success");
-        setCvFile(null);
-        setCvPreview(null);
-        window.location.reload();
-      } else {
-        addToast("Error: " + (result.error || "desconocido"), "error");
-      }
-    } catch (error) {
-      addToast("Error de conexión al subir CV", "error");
-    }
-  };
 
   const handlePostularse = async () => {
     if (!cvSeleccionado) {
@@ -273,16 +247,6 @@ export default function CandidatoHome() {
         )
     )
     .sort((a, b) => b.coincidencia - a.coincidencia);
-
-  if (loading) {
-    return (
-      <div className="h-screen w-full flex items-center justify-center bg-gray-100">
-        <div className="text-lg text-gray-600">
-          Obteniendo información, por favor espera...
-        </div>
-      </div>
-    );
-  }
 
   const handleImageUpload = async (file) => {
     if (!file) return;
@@ -338,8 +302,8 @@ export default function CandidatoHome() {
     }
   };
 
-  if(error){
-    return <ExpiredSession />
+  if (error) {
+    return <ExpiredSession />;
   }
 
   return (
@@ -349,22 +313,6 @@ export default function CandidatoHome() {
       transition={{ duration: 0.4 }}
     >
       <PageLayout>
-        <TopBar
-          username={`${user?.nombre} ${user?.apellido}`}
-          user={user}
-          onLogout={handleLogout}
-          onEditPerfil={() => setModalEditarPerfilOpen(true)}
-          onPostulacion={() => setIsPostulacionesModalOpen(true)}
-        />
-        <div className="mt-6 px-4 max-w-6xl mx-auto flex justify-end">
-          <button
-            onClick={() => setMostrarFiltros((prev) => !prev)}
-            className="text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
-          >
-            {mostrarFiltros ? "Ocultar filtros" : "Mostrar filtros"}
-          </button>
-        </div>
-
         <AnimatePresence>
           {toasts.map((toast) => (
             <Toast
@@ -377,6 +325,36 @@ export default function CandidatoHome() {
             />
           ))}
         </AnimatePresence>
+        <TopBar
+          cvs={cvs ?? []}
+          username={`${user?.nombre} ${user?.apellido}`}
+          user={user}
+          onLogout={handleLogout}
+          onEditPerfil={() => setModalEditarPerfilOpen(true)}
+          onPostulacion={() => setIsPostulacionesModalOpen(true)}
+        />
+        <header className="mt-6 px-4 max-w-6xl mx-auto flex justify-between items-center">
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setMostrarRecomendaciones(true)}
+              variant={mostrarRecomendaciones ? "default" : "outline"}
+            >
+              Recomendaciones <Sparkles />
+            </Button>
+            <Button
+              onClick={() => setMostrarRecomendaciones(false)}
+              variant={!mostrarRecomendaciones ? "default" : "outline"}
+            >
+              Explorar ofertas <TextSearch />
+            </Button>
+          </div>
+          <button
+            onClick={() => setMostrarFiltros((prev) => !prev)}
+            className="text-sm px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
+          >
+            {mostrarFiltros ? "Ocultar filtros" : "Mostrar filtros"}
+          </button>
+        </header>
 
         {mostrarFiltros && (
           <div className="mt-4 px-4 max-w-6xl mx-auto">
@@ -417,62 +395,91 @@ export default function CandidatoHome() {
             />
           </div>
         )}
-
         <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mt-6 px-4">
           <div className="col-span-2">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">
-                {busquedaConfirmada.trim().length >= 3
-                  ? "Resultados de búsqueda"
-                  : "Ofertas recomendadas"}
-              </h2>
-              <div className="relative group flex gap-2 items-center">
-                <input
-                  type="text"
-                  placeholder="Buscar..."
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      setBusquedaConfirmada(e.target.value);
-                    }
-                  }}
-                  className="w-40 group-focus-within:w-60 p-2 pl-10 border border-gray-300 rounded focus:outline-none"
-                />
-                <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
-
-                <button
-                  onClick={() =>
-                    setBusquedaConfirmada(
-                      document.querySelector("input[placeholder='Buscar...']")
-                        .value
-                    )
-                  }
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Buscar
-                </button>
-              </div>
-            </div>
-
-            {mensajeRecomendacion ? (
-              <CandidatoEmptyOfertas />
-            ) : (
-              ofertas.map((oferta, index) => (
-                <motion.div
-                  key={`oferta-${oferta.id ?? index}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1, duration: 0.3 }}
-                >
-                  <JobCard
-                    {...oferta}
-                    onPostularse={() => {
-                      setIdOfertaSeleccionada(oferta.id);
-                      setModalOpen(true);
+            <section className="flex flex-col gap-8">
+              <header className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">
+                  {busquedaConfirmada.trim().length >= 3
+                    ? "Resultados de búsqueda"
+                    : "Ofertas recomendadas"}
+                </h2>
+                <div className="relative group flex gap-2 items-center">
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.currentTarget.value)}
+                    placeholder="Buscar..."
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        setBusquedaConfirmada(e.target.value);
+                      }
                     }}
+                    className="w-40 group-focus-within:w-60 p-2 pl-10 border border-gray-300 rounded focus:outline-none"
                   />
-                </motion.div>
-              ))
-            )}
+                  <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
+
+                  <button
+                    onClick={() =>
+                      setBusquedaConfirmada(
+                        document.querySelector("input[placeholder='Buscar...']")
+                          .value
+                      )
+                    }
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Buscar
+                  </button>
+                </div>
+              </header>
+              {mostrarRecomendaciones ? (
+                mensajeRecomendacion ? (
+                  <CandidatoEmptyOfertas />
+                ) : loadingOfertasRecomendadas ? (
+                  <JobCardSkeleton />
+                ) : (
+                  <ul className="flex flex-col gap-2">
+                    {ofertasRecomendadas.map((oferta, index) => (
+                      <motion.div
+                        key={`oferta-${oferta.id ?? index}`}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1, duration: 0.3 }}
+                      >
+                        <JobCard
+                          {...oferta}
+                          onPostularse={() => {
+                            setIdOfertaSeleccionada(oferta.id);
+                            setModalOpen(true);
+                          }}
+                        />
+                      </motion.div>
+                    ))}
+                  </ul>
+                )
+              ) : loading ? (
+                <JobCardSkeleton />
+              ) : (
+                <ul className="flex flex-col gap-2">
+                  {ofertas.map((oferta, index) => (
+                    <motion.div
+                      key={`oferta-${oferta.id ?? index}`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.3 }}
+                    >
+                      <JobCard
+                        {...oferta}
+                        onPostularse={() => {
+                          setIdOfertaSeleccionada(oferta.id);
+                          setModalOpen(true);
+                        }}
+                      />
+                    </motion.div>
+                  ))}
+                </ul>
+              )}
+            </section>
           </div>
         </div>
 

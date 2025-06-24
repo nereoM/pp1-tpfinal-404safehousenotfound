@@ -44,8 +44,6 @@ export function TopBar({
     return cleanPath.startsWith("http") ? cleanPath : `${API_URL}/${cleanPath}`;
   }, [user?.fotoUrl]);
 
-  console.log({ cvs });
-
   const fetchNotificaciones = async () => {
     try {
       const res1 = await fetch(
