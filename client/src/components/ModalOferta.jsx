@@ -105,9 +105,7 @@ const handleConfirmar = () => {
   if (validarFormulario()) {
     console.log("Todo validado correctamente. Enviando...");
     crearOfertaLaboral();
-
-    setMensajeOferta('Oferta creada exitosamente.');
-
+    
     setFormOferta({
       nombre: '',
       descripcion: '',

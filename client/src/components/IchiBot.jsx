@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 const API_URL = import.meta.env.VITE_API_URL;
 
 const expresiones = {
-  neutral: "./avatars/ichi-neutral.webp",
-  neutral2: "./avatars/ichi-neutral-ojo-cerrado.webp",
+  neutral: "/avatars/ichi-neutral.webp",
+  neutral2: "/avatars/ichi-neutral-ojo-cerrado.webp",
 };
 
 const glowColors = {
