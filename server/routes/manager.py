@@ -3381,6 +3381,15 @@ def crear_encuesta_completa():
             tipo_preg = pregunta.get("tipo")
             opciones = pregunta.get("opciones")
             es_requerida = pregunta.get("es_requerida")
+
+            # Determinar campo_adicional automáticamente según tipo
+            if tipo_preg == "respuesta_libre":
+                campo_adicional = False
+            elif tipo_preg in ["opcion_multiple", "unica_opcion"]:
+                campo_adicional = True
+            else:
+                campo_adicional = False
+
             if not all([texto, tipo_preg, es_requerida is not None]):
                 db.session.rollback()
                 return jsonify({"error": "Faltan campos requeridos en una pregunta"}), 400
@@ -3396,7 +3405,8 @@ def crear_encuesta_completa():
                 texto=texto,
                 tipo=tipo_preg,
                 opciones=opciones_json,
-                es_requerida=bool(es_requerida)
+                es_requerida=bool(es_requerida),
+                campo_adicional=bool(campo_adicional)
             )
             db.session.add(pregunta_obj)
             db.session.flush()
@@ -3405,7 +3415,8 @@ def crear_encuesta_completa():
                 "texto": texto,
                 "tipo": tipo_preg,
                 "opciones": opciones if opciones_json else None,
-                "es_requerida": bool(es_requerida)
+                "es_requerida": bool(es_requerida),
+                "campo_adicional": bool(campo_adicional)
             })
 
         usuarios_asignados = Usuario.query.filter(Usuario.correo.in_(asignaciones)).all()
@@ -3480,7 +3491,8 @@ def obtener_encuestas_jefe():
                     "texto": p.texto,
                     "tipo": p.tipo,
                     "opciones": json.loads(p.opciones) if p.opciones else None,
-                    "es_requerida": p.es_requerida
+                    "es_requerida": p.es_requerida,
+                    "campo_adicional": p.campo_adicional
                 } for p in preguntas
             ]
         })
@@ -3520,6 +3532,52 @@ def obtener_encuestas_asignadas():
 
     return jsonify(resultado), 200
 
+# ---------------ANTERIOR ENDPOINT PARA VER DETALLE DE ENCUESTA ASIGNADA
+# @manager_bp.route("/encuesta-asignada/<int:id_encuesta>/manager", methods=["GET"])
+# @role_required(["manager"])
+# def obtener_encuesta_asignada_detalle(id_encuesta):
+#     """
+#     Devuelve toda la información de una encuesta asignada al manager autenticado, incluyendo preguntas y detalles de asignación.
+#     """
+#     id_manager = get_jwt_identity()
+#     asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_manager).first()
+#     if not asignacion:
+#         return jsonify({"error": "No tienes esta encuesta asignada"}), 404
+
+#     encuesta = Encuesta.query.get(id_encuesta)
+#     if not encuesta:
+#         return jsonify({"error": "Encuesta no encontrada"}), 404
+
+#     preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
+#     preguntas_info = [
+#         {
+#             "id": p.id,
+#             "texto": p.texto,
+#             "tipo": p.tipo,
+#             "opciones": json.loads(p.opciones) if p.opciones else None,
+#             "es_requerida": p.es_requerida
+#         }
+#         for p in preguntas
+#     ]
+
+#     return jsonify({
+#         "id_encuesta": encuesta.id,
+#         "titulo": encuesta.titulo,
+#         "descripcion": encuesta.descripcion,
+#         "tipo": encuesta.tipo,
+#         "anonima": encuesta.es_anonima,
+#         "fecha_inicio": encuesta.fecha_inicio.isoformat() if encuesta.fecha_inicio else None,
+#         "fecha_fin": encuesta.fecha_fin.isoformat() if encuesta.fecha_fin else None,
+#         "estado": encuesta.estado,
+#         "asignacion": {
+#             "tipo_asignacion": asignacion.tipo_asignacion,
+#             "area": asignacion.area, #
+#             "puesto_trabajo": asignacion.puesto_trabajo #
+#         },
+#         "preguntas": preguntas_info
+#     }), 200
+# ---------------ANTERIOR ENDPOINT PARA VER DETALLE DE ENCUESTA ASIGNADA
+
 @manager_bp.route("/encuesta-asignada/<int:id_encuesta>/manager", methods=["GET"])
 @role_required(["manager"])
 def obtener_encuesta_asignada_detalle(id_encuesta):
@@ -3536,16 +3594,21 @@ def obtener_encuesta_asignada_detalle(id_encuesta):
         return jsonify({"error": "Encuesta no encontrada"}), 404
 
     preguntas = PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()
-    preguntas_info = [
-        {
+    preguntas_info = []
+    for p in preguntas:
+        tipo_frontend = (
+            "checkbox" if p.tipo == "opcion_multiple"
+            else "radio" if p.tipo == "unica_opcion"
+            else "texto"
+        )
+        preguntas_info.append({
             "id": p.id,
             "texto": p.texto,
-            "tipo": p.tipo,
-            "opciones": json.loads(p.opciones) if p.opciones else None,
-            "es_requerida": p.es_requerida
-        }
-        for p in preguntas
-    ]
+            "tipo": tipo_frontend,
+            "opciones": json.loads(p.opciones) if p.opciones else [],
+            "obligatoria": bool(p.es_requerida),
+            "campo_adicional": bool(p.campo_adicional)
+        })
 
     return jsonify({
         "id_encuesta": encuesta.id,
@@ -3558,11 +3621,83 @@ def obtener_encuesta_asignada_detalle(id_encuesta):
         "estado": encuesta.estado,
         "asignacion": {
             "tipo_asignacion": asignacion.tipo_asignacion,
-            "area": asignacion.area, #
-            "puesto_trabajo": asignacion.puesto_trabajo #
+            "area": asignacion.area,
+            "puesto_trabajo": asignacion.puesto_trabajo
         },
         "preguntas": preguntas_info
     }), 200
+
+# ---------------ANTERIOR ENDPOINT PARA RESPONDER
+# @manager_bp.route("/responder-encuesta/<int:id_encuesta>/manager", methods=["POST"])
+# @role_required(["manager"])
+# def responder_encuesta(id_encuesta):
+#     """
+#     Permite a un manager responder una encuesta asignada.
+#     Espera un JSON con {"respuestas": [{"id_pregunta": int, "respuesta": ...}, ...]}
+#     """
+#     id_manager = get_jwt_identity()
+#     asignacion = EncuestaAsignacion.query.filter_by(id_encuesta=id_encuesta, id_usuario=id_manager).first()
+#     if not asignacion:
+#         return jsonify({"error": "No tienes esta encuesta asignada"}), 403
+
+#     encuesta = Encuesta.query.get(id_encuesta)
+#     if not encuesta:
+#         return jsonify({"error": "Encuesta no encontrada"}), 404
+
+#     if encuesta.estado not in ["activa"]:
+#         return jsonify({"error": "La encuesta no está activa"}), 400
+
+#     data = request.get_json()
+#     respuestas = data.get("respuestas")
+#     if not respuestas or not isinstance(respuestas, list):
+#         return jsonify({"error": "Debes enviar una lista de respuestas"}), 400
+
+#     preguntas = {p.id: p for p in PreguntaEncuesta.query.filter_by(id_encuesta=id_encuesta).all()}
+#     preguntas_requeridas = {p.id for p in preguntas.values() if p.es_requerida}
+
+#     respondidas = set()
+#     for r in respuestas:
+#         id_pregunta = r.get("id_pregunta")
+#         respuesta = r.get("respuesta")
+#         if id_pregunta not in preguntas:
+#             return jsonify({"error": f"Pregunta {id_pregunta} inválida"}), 400
+#         if preguntas[id_pregunta].es_requerida and (respuesta is None or respuesta == ""):
+#             return jsonify({"error": f"La pregunta {id_pregunta} es requerida"}), 400
+#         # Validar opciones si corresponde
+#         if preguntas[id_pregunta].tipo in ["opcion_multiple", "unica_opcion"]:
+#             opciones = json.loads(preguntas[id_pregunta].opciones or "[]")
+#             if isinstance(respuesta, list):
+#                 if not all(opt in opciones for opt in respuesta):
+#                     return jsonify({"error": f"Respuesta inválida para la pregunta {id_pregunta}"}), 400
+#             else:
+#                 if respuesta not in opciones:
+#                     return jsonify({"error": f"Respuesta inválida para la pregunta {id_pregunta}"}), 400
+#         respondidas.add(id_pregunta)
+
+#     # Verificar que todas las requeridas estén respondidas
+#     if not preguntas_requeridas.issubset(respondidas):
+#         return jsonify({"error": "Debes responder todas las preguntas requeridas"}), 400
+
+#     # Guardar respuestas
+#     for r in respuestas:
+#         id_pregunta = r["id_pregunta"]
+#         respuesta = r["respuesta"]
+#         # Si la respuesta es lista, guardar como JSON string
+#         if isinstance(respuesta, list):
+#             respuesta_db = json.dumps(respuesta)
+#         else:
+#             respuesta_db = str(respuesta)
+#         nueva_respuesta = RespuestaEncuesta(
+#             id_pregunta=id_pregunta,
+#             id_usuario=id_manager,
+#             respuesta=respuesta_db,
+#             fecha_respuesta=datetime.now(timezone.utc)
+#         )
+#         db.session.add(nueva_respuesta)
+
+#     db.session.commit()
+#     return jsonify({"message": "Respuestas guardadas correctamente"}), 201
+# ---------------ANTERIOR ENDPOINT PARA RESPONDER
 
 @manager_bp.route("/responder-encuesta/<int:id_encuesta>/manager", methods=["POST"])
 @role_required(["manager"])
@@ -3618,18 +3753,36 @@ def responder_encuesta(id_encuesta):
     for r in respuestas:
         id_pregunta = r["id_pregunta"]
         respuesta = r["respuesta"]
+        campo_adicional_valor = r.get("campo_adicional")
         # Si la respuesta es lista, guardar como JSON string
         if isinstance(respuesta, list):
             respuesta_db = json.dumps(respuesta)
         else:
             respuesta_db = str(respuesta)
-        nueva_respuesta = RespuestaEncuesta(
-            id_pregunta=id_pregunta,
-            id_usuario=id_manager,
-            respuesta=respuesta_db,
-            fecha_respuesta=datetime.now(timezone.utc)
-        )
+            
+        # Solo guardar campo_adicional si la pregunta lo permite
+        pregunta = preguntas[id_pregunta]
+        if pregunta.tipo in ["opcion_multiple", "unica_opcion"] and campo_adicional_valor:
+            nueva_respuesta = RespuestaEncuesta(
+                id_pregunta=id_pregunta,
+                id_usuario=id_manager,
+                respuesta=respuesta_db,
+                fecha_respuesta=datetime.now(timezone.utc),
+                campo_adicional=campo_adicional_valor
+            )
+        else:
+            nueva_respuesta = RespuestaEncuesta(
+                id_pregunta=id_pregunta,
+                id_usuario=id_manager,
+                respuesta=respuesta_db,
+                fecha_respuesta=datetime.now(timezone.utc)
+            )
         db.session.add(nueva_respuesta)
+
+    asignacion.respondida = True
+
+    if encuesta.estado == "pendiente":
+        encuesta.estado = "respondida"
 
     db.session.commit()
     return jsonify({"message": "Respuestas guardadas correctamente"}), 201
@@ -3778,7 +3931,7 @@ def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
         "respuestas": respuestas_info
     }), 200
 
-@manager_bp.route("/cerrar-encuesta/<int:id_encuesta>", methods=["PUT"])
+@manager_bp.route("/cerrar-encuesta/<int:id_encuesta>/manager", methods=["PUT"])
 @role_required(["manager"])
 def cerrar_encuesta(id_encuesta):
     """

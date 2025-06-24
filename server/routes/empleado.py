@@ -1843,7 +1843,6 @@ def crear_encuesta_completa():
             tipo_preg = pregunta.get("tipo")
             opciones = pregunta.get("opciones")
             es_requerida = pregunta.get("es_requerida")
-            tipo_preg = pregunta.get("tipo")
 
             # Determinar campo_adicional automáticamente según tipo
             if tipo_preg == "respuesta_libre":
@@ -1852,6 +1851,7 @@ def crear_encuesta_completa():
                 campo_adicional = True
             else:
                 campo_adicional = False
+            
             if not all([texto, tipo_preg, es_requerida is not None]):
                 db.session.rollback()
                 return jsonify({"error": "Faltan campos requeridos en una pregunta"}), 400
