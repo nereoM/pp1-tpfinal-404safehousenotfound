@@ -2439,7 +2439,7 @@ def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
         "respuestas": respuestas_info
     }), 200
 
-@empleado_bp.route("/cerrar-encuesta/<int:id_encuesta>", methods=["PUT"])
+@empleado_bp.route("/cerrar-encuesta/<int:id_encuesta>/jefe-area", methods=["PUT"])
 @role_required(["empleado"])
 def cerrar_encuesta(id_encuesta):
     """
