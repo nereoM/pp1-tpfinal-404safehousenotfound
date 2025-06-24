@@ -1,5 +1,7 @@
+import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { useNavigate } from "react-router-dom";
 import { seccionesAmigables } from "./AccionesPorSeccion";
 import {
   Command,
@@ -13,6 +15,7 @@ import { Dialog, DialogContent } from "./shadcn/Dialog";
 
 export function SearchModal({ actions }) {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   useHotkeys(
     "ctrl+k",
@@ -28,6 +31,18 @@ export function SearchModal({ actions }) {
   const handleActionSelect = (action) => {
     action.onClick();
     setIsOpen(false);
+  };
+
+  const handleLogout = () => {
+    fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error al cerrar sesión");
+        navigate("/");
+      })
+      .catch((err) => console.error("Error al cerrar sesión:", err));
   };
 
   return (
@@ -46,7 +61,7 @@ export function SearchModal({ actions }) {
                   const Icon = accion.icon;
                   return (
                     <CommandItem
-                    key={`${seccion}-${index}`}
+                      key={`${seccion}-${index}`}
                       value={`${accion.titulo} ${accion.descripcion}`}
                       onSelect={() => handleActionSelect(accion)}
                       className="flex items-center gap-3 cursor-pointer"
@@ -63,6 +78,20 @@ export function SearchModal({ actions }) {
                 })}
               </CommandGroup>
             ))}
+            <CommandItem
+              keywords={["cerrar", "sesion"]}
+              value={`cerrar sesion`}
+              onSelect={handleLogout}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <LogOut className="h-4 w-4 shrink-0" />
+              <div className="flex flex-col gap-1">
+                <span className="font-medium">Cerrar sesión</span>
+                <span className="text-sm text-muted-foreground">
+                  Cerrar sesión actual
+                </span>
+              </div>
+            </CommandItem>
           </CommandList>
         </Command>
       </DialogContent>

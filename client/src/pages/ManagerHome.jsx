@@ -33,10 +33,9 @@ import { useEmpresaEstilos } from "../hooks/useEmpresaEstilos";
 import { managerService } from "../services/managerService.js";
 
 //ENCUENSTA
-import { EncuestasPendientesModal } from "../components/EncuestaModal/EncuestasPendientes/EncuestasPendientesModal";
-import { EncuestasRespondidasModal } from "../components/EncuestaModal/EncuestasRespondidas/EncuestasRespondidasModal";
 import { GestionarEncuestasModal } from "../components/EncuestaModal/GestionarEncuesta/GestionarEncuestasModal.jsx";
 import { ModalEncuesta } from "../components/ModalEncuesta";
+import { SubirMetricasModal } from "../components/SubirMétricasModal.jsx";
 
 // Toast system
 export default function ManagerHome() {
@@ -60,20 +59,14 @@ export default function ManagerHome() {
   const [analistas, setAnalistas] = useState([]);
   const [selectedAnalistas, setSelectedAnalistas] = useState({});
   const [ofertasAsignadas, setOfertasAsignadas] = useState(new Set());
-  const inputMetricasRef = useRef(null);
   const [modalEditarPerfilOpen, setModalEditarPerfilOpen] = useState(false);
   const [modalImageFile, setModalImageFile] = useState(null);
   const [modalGestionEquipo, setModalGestionEquipo] = useState(false);
   const navigate = useNavigate();
   const [modalSubirMetricas, setModalSubirMetricas] = useState(false);
-  const [mensajeMetricas, setMensajeMetricas] = useState("");
-  const [archivoMetricas, setArchivoMetricas] = useState(null);
   const [modalRendimientoAnalistas, setModalRendimientoAnalistas] =
     useState(false);
   const [modalSubirEmpleados, setModalSubirEmpleados] = useState(false);
-  const [mensajeEmpleados, setMensajeEmpleados] = useState("");
-  const [archivoEmpleados, setArchivoEmpleados] = useState(null);
-  const inputEmpleadosRef = useRef();
 
   // Modal
   const [modalSolicitarLicencia, setModalSolicitarLicencia] = useState(false);
@@ -246,67 +239,9 @@ export default function ManagerHome() {
   };
 
   // Estado para el periodo seleccionado y lista de periodos
-  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("");
-  const [periodos, setPeriodos] = useState([]);
-  // Estado de carga para el botón de subir métricas
-  const [subiendoMetricas, setSubiendoMetricas] = useState(false);
-
-  // Cargar periodos al abrir el modal de subir métricas
-  useEffect(() => {
-    if (modalSubirMetricas) {
-      const fetchPeriodos = async () => {
-        try {
-          const res = await fetch(`${API_URL}/api/listar-periodos`, { credentials: "include" });
-          const data = await res.json();
-          if (Array.isArray(data.periodos)) setPeriodos(data.periodos);
-          else if (Array.isArray(data)) setPeriodos(data);
-        } catch (err) {
-          setPeriodos([]);
-        }
-      };
-      fetchPeriodos();
-    }
-  }, [modalSubirMetricas]);
-
-  // Modificado: subir métricas con periodo seleccionado
-  const subirMetricasDesdeCSV = async () => {
-    if (!archivoMetricas) {
-      showToast("Selecciona un archivo CSV.", "error");
-      return;
-    }
-    if (!periodoSeleccionado) {
-      showToast("Selecciona un periodo.", "error");
-      return;
-    }
-    setSubiendoMetricas(true);
-    showToast("Subiendo archivo...", "success");
-    const formData = new FormData();
-    formData.append("file", archivoMetricas);
-    try {
-      const res = await fetch(`${API_URL}/api/subir-info-laboral-analistas?id_periodo=${periodoSeleccionado}`,
-        {
-          method: "POST",
-          credentials: "include",
-          body: formData,
-        }
-      );
-      const data = await res.json();
-      if (res.ok) {
-        showToast(data.message || "Archivo subido correctamente.", "success");
-      } else {
-        showToast(data.error || "Error al subir el archivo.", "error");
-      }
-    } catch (err) {
-      showToast("Error de conexión.", "error");
-    } finally {
-      setSubiendoMetricas(false);
-    }
-  };
 
   const empresaId = user?.empresaId;
   const preferencias = useEmpresaEstilos(empresaId);
-
-  console.log({ preferencias });
 
   const estilos = {
     color_principal: preferencias.estilos?.color_principal ?? "#2563eb",
@@ -314,32 +249,6 @@ export default function ManagerHome() {
     color_texto: preferencias.estilos?.color_texto ?? "#000000",
     slogan: preferencias.estilos?.slogan ?? "Bienvenido al panel de Manager",
     logo_url: preferencias.estilos?.logo_url ?? null,
-  };
-
-  const subirEmpleadosDesdeCSV = async () => {
-    if (!archivoEmpleados) {
-      showToast("Selecciona un archivo CSV.", "error");
-      return;
-    }
-    showToast("Subiendo archivo...", "success");
-    const formData = new FormData();
-    formData.append("file", archivoEmpleados);
-
-    try {
-      const res = await fetch(`${API_URL}/api/registrar-empleados-manager`, {
-        method: "POST",
-        credentials: "include",
-        body: formData,
-      });
-      const data = await res.json();
-      if (res.ok) {
-        showToast(data.message || "Archivo subido correctamente.", "success");
-      } else {
-        showToast(data.error || "Error al subir el archivo.", "error");
-      }
-    } catch (err) {
-      showToast("Error de conexión.", "error");
-    }
   };
 
   //funcion para crear una oferta laboral
@@ -1188,98 +1097,7 @@ export default function ManagerHome() {
           />
 
           {modalSubirMetricas && (
-            <div
-              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto"
-              onClick={() => setModalSubirMetricas(false)}
-            >
-              <div
-                className="bg-white p-6 rounded-2xl w-full sm:w-4/5 md:w-1/2 lg:w-1/3 max-h-[80vh] overflow-auto text-black"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h2 className="text-lg font-semibold mb-4">
-                  Subir Métricas de Analistas y Empleados
-                </h2>
-
-                {/* Botón personalizado para seleccionar archivo */}
-                <div className="mb-4">
-                  <input
-                    type="file"
-                    accept=".csv"
-                    ref={inputMetricasRef}
-                    onChange={(e) => setArchivoMetricas(e.target.files[0])}
-                    className="hidden"
-                    id="input-metricas"
-                  />
-                  <label
-                    htmlFor="input-metricas"
-                    className="cursor-pointer inline-block px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                  >
-                    Seleccionar archivo
-                  </label>
-
-                  {/* Mostrar nombre del archivo */}
-                  {archivoMetricas && (
-                    <div className="mt-2 text-sm text-gray-700">
-                      Archivo seleccionado: <b>{archivoMetricas.name}</b>
-                    </div>
-                  )}
-                </div>
-
-
-                {/*seleccionar periodo */}
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-black mb-2">
-                    Seleccionar periodo
-                  </label>
-                  <select
-                    value={periodoSeleccionado}
-                    onChange={(e) => setPeriodoSeleccionado(e.target.value)}
-                    className="w-full p-2 border border-gray-300 rounded text-black"
-                  >
-                    <option value="">Seleccione un periodo</option>
-                    {periodos.map((p) => (
-                      <option key={p.id_periodo} value={p.id_periodo}>
-                        {p.nombre_periodo}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Botones de acción */}
-                <div className="flex justify-end gap-2 mt-4">
-                  <button
-                    onClick={() => {
-                      setModalSubirMetricas(false);
-                      setMensajeMetricas("");
-                      setArchivoMetricas(null);
-                      if (inputMetricasRef.current)
-                        inputMetricasRef.current.value = "";
-                    }}
-                    className="px-4 py-2 bg-gray-300 text-black rounded hover:bg-gray-400"
-                    disabled={subiendoMetricas}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={subirMetricasDesdeCSV}
-                    className={`px-4 py-2 rounded text-white ${subiendoMetricas ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"}`}
-                    disabled={subiendoMetricas}
-                  >
-                    {subiendoMetricas ? "Cargando..." : "Subir"}
-                  </button>
-                </div>
-
-                {/* Instrucciones de columnas */}
-                <div className="mt-4 text-xs text-gray-500">
-                  El archivo debe tener las columnas: <br />
-                  <b>
-                    id_empleado, desempeno_previo, cantidad_proyectos,
-                    tamano_equipo, horas_extras, antiguedad, horas_capacitacion,
-                    ausencias_injustificadas, llegadas_tarde, salidas_tempranas
-                  </b>
-                </div>
-              </div>
-            </div>
+            <SubirMetricasModal onClose={() => setModalSubirMetricas(false)} showToast={showToast} />
           )}
 
           <ModalParaEditarPerfil
