@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
 export function VerEncuestaModal({ open, onClose, encuesta }) {
   const [respuestasInfo, setRespuestasInfo] = useState(null);
   const [respuestasEmpleado, setRespuestasEmpleado] = useState({});
+  const [empleadoSeleccionado, setEmpleadoSeleccionado] = useState(null);
   const [loading, setLoading] = useState(false);
   const [rol, setRol] = useState(null);
 
@@ -43,7 +44,10 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
       credentials: "include",
     })
       .then((res) => res.json())
-      .then((data) => setRespuestasEmpleado((prev) => ({ ...prev, [id_empleado]: data })))
+      .then((data) => {
+        setRespuestasEmpleado((prev) => ({ ...prev, [id_empleado]: data }));
+        setEmpleadoSeleccionado(id_empleado);
+      })
       .catch((err) => console.error("Error al obtener detalles del empleado:", err));
   };
 
@@ -57,10 +61,16 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
     });
   };
 
+  const handleClose = () => {
+    setEmpleadoSeleccionado(null);
+    setRespuestasEmpleado({});
+    onClose();
+  };
+
   if (!encuesta) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-3xl space-y-4">
         <DialogTitle className="text-xl font-bold text-black">{encuesta.titulo}</DialogTitle>
 
@@ -95,7 +105,6 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
                     [...(respuestasInfo.respondieron || []), ...(respuestasInfo.no_respondieron || [])]
                       .map((usuario, i) => {
                         const respondio = respuestasInfo.respondieron?.some((u) => u.id === usuario.id);
-                        const respuestas = respuestasEmpleado[usuario.id];
 
                         return (
                           <tr key={i} className="border-t align-top">
@@ -128,23 +137,30 @@ export function VerEncuestaModal({ open, onClose, encuesta }) {
           )}
         </div>
 
-        {Object.values(respuestasEmpleado).map((detalle, i) => (
-          <div key={i} className="mt-6 border-t pt-4">
-            <h5 className="font-semibold text-black">Respuestas de: {detalle.empleado.nombre} {detalle.empleado.apellido}</h5>
+        {empleadoSeleccionado && respuestasEmpleado[empleadoSeleccionado] && (
+          <div className="mt-6 border-t pt-4">
+            <h5 className="font-semibold text-black">
+              Respuestas de: {respuestasEmpleado[empleadoSeleccionado].empleado.nombre} {respuestasEmpleado[empleadoSeleccionado].empleado.apellido}
+            </h5>
             <ul className="mt-2 text-sm text-gray-700 space-y-2">
-              {detalle.respuestas.map((r, idx) => (
-                <li key={idx} className="border rounded p-2 bg-gray-50">
-                  <b>{r.pregunta}</b>: {r.respuesta}
+              {respuestasEmpleado[empleadoSeleccionado].respuestas.map((r, idx) => (
+                <li key={idx} className="border rounded p-2 bg-gray-50 space-y-1">
+                  <p><b>{r.pregunta}</b>: {r.respuesta}</p>
+                  {r.campo_adicional && (
+                    <p className="text-sm text-gray-600 italic">
+                      Comentario adicional: {r.campo_adicional}
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
           </div>
-        ))}
+        )}
 
         <div className="flex justify-end pt-4">
           <button
             className="px-4 py-2 rounded-md bg-red-600 text-white text-sm hover:bg-red-700"
-            onClick={onClose}
+            onClick={handleClose}
           >
             Cerrar
           </button>

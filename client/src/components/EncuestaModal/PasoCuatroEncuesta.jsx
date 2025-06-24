@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import MensajeAlerta from "../MensajeAlerta";
 
 export default function PasoCuatroEncuesta({ formData, onBack, onFinish, onCancel }) {
   const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
+  const [encuestaCreada, setEncuestaCreada] = useState(false);
 
   const tipoLabel = {
     clima: "Clima Laboral",
@@ -100,6 +102,15 @@ export default function PasoCuatroEncuesta({ formData, onBack, onFinish, onCance
         ))}
       </ul>
 
+      {/* Mensaje de éxito justo arriba del bloque de botones */}
+      {encuestaCreada && (
+        <MensajeAlerta
+          texto="Encuesta creada correctamente"
+          tipo="success"
+          className="mb-4"
+        />
+      )}
+
       {/* Botones */}
       <div className="flex justify-between gap-2 pt-6">
         <button
@@ -116,7 +127,12 @@ export default function PasoCuatroEncuesta({ formData, onBack, onFinish, onCance
             Atrás
           </button>
           <button
-            onClick={onFinish}
+            onClick={() => {
+              setEncuestaCreada(true);
+              setTimeout(() => {
+                onFinish(); // redirige después de mostrar el mensaje
+              }, 2000);
+            }}
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
             Finalizar

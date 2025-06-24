@@ -45,9 +45,9 @@ export function VerRespuestasModal({ open, onOpenChange, encuesta }) {
                   <p className="text-sm text-gray-800">{r.respuesta}</p>
                 )}
 
-                {r.comentario && (
+                {r.campo_adicional && (
                   <p className="text-sm text-gray-600 italic">
-                    Comentario: {r.comentario}
+                    Comentario adicional: {r.campo_adicional}
                   </p>
                 )}
               </div>

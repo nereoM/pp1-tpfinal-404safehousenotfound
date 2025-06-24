@@ -1,7 +1,10 @@
 import { useState } from "react";
+import MensajeAlerta from "../MensajeAlerta";
 
 export default function PasoCuatroEncuestaAnalista({ formData, onBack, onFinish, onCancel }) {
   const [loading, setLoading] = useState(false);
+  const [encuestaCreada, setEncuestaCreada] = useState(false);
+  const [mostrarConfirmacion, setMostrarConfirmacion] = useState(false);
 
   const handleFinalizar = async () => {
     setLoading(true);
@@ -26,7 +29,6 @@ export default function PasoCuatroEncuestaAnalista({ formData, onBack, onFinish,
         }))
       };
 
-      // Asignación dinámica
       if (formData.tipoEnvio === "empleados") {
         payload.todos_empleados = true;
       } else if (formData.tipoEnvio === "jefes_especificos") {
@@ -52,7 +54,11 @@ export default function PasoCuatroEncuestaAnalista({ formData, onBack, onFinish,
         throw new Error(err.error || "Error al crear encuesta");
       }
 
-      onFinish();
+      setEncuestaCreada(true);
+
+      setTimeout(() => {
+        onFinish();
+      }, 2000);
     } catch (err) {
       console.error("Error al crear encuesta:", err.message);
     } finally {
@@ -61,8 +67,8 @@ export default function PasoCuatroEncuestaAnalista({ formData, onBack, onFinish,
   };
 
   return (
-    <div className="space-y-6 text-black">
-      <h2 className="text-xl font-semibold">Resumen de la encuesta</h2>
+    <div className="space-y-4 relative text-black">
+      <h2 className="text-lg font-semibold">Resumen de la encuesta</h2>
 
       <p><strong>Título:</strong> {formData.titulo}</p>
       <p><strong>Descripción:</strong> {formData.descripcion || "-"}</p>
@@ -119,15 +125,66 @@ export default function PasoCuatroEncuestaAnalista({ formData, onBack, onFinish,
         ))}
       </ul>
 
-      <div className="flex justify-between pt-4">
-        <button onClick={onCancel} className="bg-red-300 px-4 py-2 rounded">Cancelar</button>
+      {/* Mensaje de éxito justo arriba del bloque de botones */}
+      {encuestaCreada && (
+        <MensajeAlerta
+          texto="Encuesta creada correctamente"
+          tipo="success"
+          className="mb-4"
+        />
+      )}
+
+      {/* Botones */}
+      <div className="flex justify-between gap-2 pt-6">
+        <button
+          onClick={() => setMostrarConfirmacion(true)}
+          className="px-4 py-2 bg-red-300 text-black rounded hover:bg-red-400"
+        >
+          Cancelar
+        </button>
         <div className="flex gap-2">
-          <button onClick={onBack} className="bg-gray-300 px-4 py-2 rounded">Atrás</button>
-          <button onClick={handleFinalizar} className="bg-green-600 text-white px-4 py-2 rounded">
+          <button
+            onClick={onBack}
+            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 text-black"
+          >
+            Atrás
+          </button>
+          <button
+            onClick={handleFinalizar}
+            disabled={loading || encuestaCreada}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+          >
             {loading ? "Enviando..." : "Finalizar"}
           </button>
         </div>
       </div>
+
+      {/* Modal de confirmación */}
+      {mostrarConfirmacion && (
+        <div className="absolute inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-lg text-center space-y-4 w-80">
+            <p className="text-black font-medium">¿Estás seguro que querés cancelar?</p>
+            <p className="text-sm text-gray-700">Perderás los pasos ya hechos.</p>
+            <div className="flex justify-between mt-4">
+              <button
+                onClick={() => setMostrarConfirmacion(false)}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 text-black"
+              >
+                No, volver
+              </button>
+              <button
+                onClick={() => {
+                  setMostrarConfirmacion(false);
+                  onCancel();
+                }}
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Sí, cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

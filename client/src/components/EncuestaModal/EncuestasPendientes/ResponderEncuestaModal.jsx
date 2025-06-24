@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "../../shadcn/Dialog";
 import { authService } from "../../../services/authService";
+import MensajeAlerta from "../../MensajeAlerta";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -15,6 +16,7 @@ export default function ResponderEncuestaModal({
   const [error, setError] = useState(null);
   const [preguntas, setPreguntas] = useState([]);
   const [rol, setRol] = useState(null);
+  const [respuestaEnviada, setRespuestaEnviada] = useState(false);
 
   useEffect(() => {
     authService.obtenerInfoUsuario().then(info => {
@@ -55,6 +57,7 @@ export default function ResponderEncuestaModal({
     setPreguntaIndex(0);
     setRespuestas({});
     setError(null);
+    setRespuestaEnviada(false);
     onOpenChange(false);
   };
 
@@ -133,13 +136,13 @@ export default function ResponderEncuestaModal({
     }
 
     const respuestasFormateadas = Object.entries(respuestas)
-      .filter(([k]) => !k.endsWith("_comentario_check"))
+      .filter(([k]) => !k.endsWith("_comentario_check") && !k.endsWith("_comentario"))
       .map(([preguntaTexto, respuesta]) => {
         const pregunta = preguntas.find((p) => p.texto === preguntaTexto);
         return {
           id_pregunta: pregunta?.id,
           respuesta: Array.isArray(respuesta) ? respuesta : String(respuesta),
-          comentario:
+          campo_adicional:
             respuestas[`${preguntaTexto}_comentario_check`]
               ? respuestas[`${preguntaTexto}_comentario`] || ""
               : null,
@@ -169,10 +172,12 @@ export default function ResponderEncuestaModal({
         return;
       }
 
-      if (onResponderFinalizada) {
-        onResponderFinalizada(encuesta.id_encuesta);
-      }
-      handleClose();
+      setRespuestaEnviada(true);
+
+      setTimeout(() => {
+        if (onResponderFinalizada) onResponderFinalizada(encuesta.id_encuesta);
+        handleClose();
+      }, 2000);
     } catch (err) {
       console.error("Error al enviar respuestas:", err);
       setError("Error de conexión al enviar respuestas");
@@ -269,6 +274,14 @@ export default function ResponderEncuestaModal({
               </div>
             )}
 
+            {respuestaEnviada && (
+              <MensajeAlerta
+                texto="Respuesta enviada correctamente"
+                tipo="success"
+                className="mb-4"
+              />
+            )}
+
             {error && (
               <p className="text-red-600 text-sm mt-2">{error}</p>
             )}
@@ -295,6 +308,7 @@ export default function ResponderEncuestaModal({
                     esUltima ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
                   }`}
                   onClick={handleSiguiente}
+                  disabled={respuestaEnviada}
                 >
                   {esUltima ? "Finalizar" : "Siguiente"}
                 </button>
