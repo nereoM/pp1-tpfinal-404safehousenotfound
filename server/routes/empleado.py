@@ -1844,6 +1844,7 @@ def crear_encuesta_completa():
             tipo_preg = pregunta.get("tipo")
             opciones = pregunta.get("opciones")
             es_requerida = pregunta.get("es_requerida")
+            campo_adicional = pregunta.get("campo_adicional", False)
             if not all([texto, tipo_preg, es_requerida is not None]):
                 db.session.rollback()
                 return jsonify({"error": "Faltan campos requeridos en una pregunta"}), 400
@@ -1859,7 +1860,8 @@ def crear_encuesta_completa():
                 texto=texto,
                 tipo=tipo_preg,
                 opciones=opciones_json,
-                es_requerida=bool(es_requerida)
+                es_requerida=bool(es_requerida),
+                campo_adicional=bool(campo_adicional)
             )
             db.session.add(pregunta_obj)
             db.session.flush()
@@ -1868,7 +1870,8 @@ def crear_encuesta_completa():
                 "texto": texto,
                 "tipo": tipo_preg,
                 "opciones": opciones if opciones_json else None,
-                "es_requerida": bool(es_requerida)
+                "es_requerida": bool(es_requerida),
+                "campo_adicional": bool(campo_adicional)
             })
 
         usuarios_asignados = Usuario.query.filter(Usuario.correo.in_(asignaciones)).all()
@@ -2040,7 +2043,8 @@ def obtener_encuestas_jefe():
                     "texto": p.texto,
                     "tipo": p.tipo,
                     "opciones": json.loads(p.opciones) if p.opciones else None,
-                    "es_requerida": p.es_requerida
+                    "es_requerida": p.es_requerida,
+                    "campo_adicional": p.campo_adicional
                 } for p in preguntas
             ]
         })
@@ -2110,7 +2114,8 @@ def obtener_encuesta_asignada_detalle(id_encuesta):
             "texto": p.texto,
             "tipo": tipo_frontend,
             "opciones": json.loads(p.opciones) if p.opciones else [],
-            "obligatoria": bool(p.es_requerida)
+            "obligatoria": bool(p.es_requerida),
+            "campo_adicional": bool(p.campo_adicional)
         })
 
     return jsonify({
@@ -2184,17 +2189,30 @@ def responder_encuesta(id_encuesta):
     for r in respuestas:
         id_pregunta = r["id_pregunta"]
         respuesta = r["respuesta"]
+        campo_adicional_valor = r.get("campo_adicional")
         # Si la respuesta es lista, guardar como JSON string
         if isinstance(respuesta, list):
             respuesta_db = json.dumps(respuesta)
         else:
             respuesta_db = str(respuesta)
-        nueva_respuesta = RespuestaEncuesta(
-            id_pregunta=id_pregunta,
-            id_usuario=id_empleado,
-            respuesta=respuesta_db,
-            fecha_respuesta=datetime.now(timezone.utc)
-        )
+            
+        # Solo guardar campo_adicional si la pregunta lo permite
+        pregunta = preguntas[id_pregunta]
+        if pregunta.campo_adicional and campo_adicional_valor:
+            nueva_respuesta = RespuestaEncuesta(
+                id_pregunta=id_pregunta,
+                id_usuario=id_empleado,
+                respuesta=respuesta_db,
+                fecha_respuesta=datetime.now(timezone.utc),
+                campo_adicional=campo_adicional_valor
+            )
+        else:
+            nueva_respuesta = RespuestaEncuesta(
+                id_pregunta=id_pregunta,
+                id_usuario=id_empleado,
+                respuesta=respuesta_db,
+                fecha_respuesta=datetime.now(timezone.utc)
+            )
         db.session.add(nueva_respuesta)
 
     asignacion.respondida = True
@@ -2387,7 +2405,8 @@ def ver_respuestas_empleado_encuesta(id_encuesta, id_empleado):
             "id_pregunta": r.id_pregunta,
             "pregunta": pregunta.texto if pregunta else None,
             "respuesta": r.respuesta,
-            "fecha_respuesta": r.fecha_respuesta.isoformat() if r.fecha_respuesta else None
+            "fecha_respuesta": r.fecha_respuesta.isoformat() if r.fecha_respuesta else None,
+            "campo_adicional": r.campo_adicional if hasattr(r, 'campo_adicional') else None
         })
 
     if encuesta.es_anonima:
@@ -2506,7 +2525,8 @@ def ver_mis_respuestas_encuesta(id_encuesta):
             "id_pregunta": r.id_pregunta,
             "pregunta": pregunta.texto if pregunta else None,
             "respuesta": r.respuesta,
-            "fecha_respuesta": r.fecha_respuesta.isoformat() if r.fecha_respuesta else None
+            "fecha_respuesta": r.fecha_respuesta.isoformat() if r.fecha_respuesta else None,
+            "campo_adicional": r.campo_adicional if hasattr(r, 'campo_adicional') else None
         })
 
     return jsonify({
