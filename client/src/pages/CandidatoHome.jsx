@@ -1,7 +1,9 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { Search, Sparkles, TextSearch } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { CandidatoEmptyOfertas } from "../components/CandidatoEmptyOfertas.jsx";
 import { ExpiredSession } from "../components/ExpiredSession.jsx";
 import { JobCard } from "../components/JobCard";
@@ -12,6 +14,7 @@ import PostulacionesCandidatoModal from "../components/PostulacionesCandidatoMod
 import { SearchFiltersCandidato } from "../components/SearchFiltersCandidato.jsx";
 import { TopBar } from "../components/TopBarCand";
 import { Button } from "../components/shadcn/Button.jsx";
+import { candidatoService } from "../services/candidatoService.js";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -20,11 +23,8 @@ export default function CandidatoHome() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [toasts, setToasts] = useState([]);
   const [ofertas, setOfertas] = useState([]);
-  const [cvFile, setCvFile] = useState(null);
   const [cvs, setCvs] = useState([]);
-  const [cvPreview, setCvPreview] = useState(null);
   const [mensajeRecomendacion, setMensajeRecomendacion] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [idOfertaSeleccionada, setIdOfertaSeleccionada] = useState(null);
@@ -42,9 +42,26 @@ export default function CandidatoHome() {
   const [isPostulando, setIsPostulando] = useState(false);
   const navigate = useNavigate();
   const [mostrarRecomendaciones, setMostrarRecomendaciones] = useState(true);
-  const [ofertasRecomendadas, setOfertasRecomendadas] = useState([]);
-  const [loadingOfertasRecomendadas, setLoadingOfertasRecomendadas] =
-    useState(false);
+  const searchRef = useRef(null)
+
+  const ofertasRecomendadas = useQuery({
+    queryKey: ["ofertas-recomendadas"],
+    queryFn: () =>
+      candidatoService.obtenerRecomendaciones().then((data) => {
+        console.log({ data });
+
+        const transformadas = data.map((item) => ({
+          id: item.id_oferta,
+          titulo: item.nombre_oferta,
+          empresa: item.empresa,
+          coincidencia: item.coincidencia,
+          palabrasClave: item.palabras_clave,
+          fecha: "Reciente",
+          postulaciones: Math.floor(Math.random() * 100),
+        }));
+        return transformadas;
+      }),
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,7 +86,8 @@ export default function CandidatoHome() {
 
         setCvs(cvsData);
         setCvSeleccionado(cvsData[0]?.id || null);
-        fetchRecomendaciones();
+        // fetchRecomendaciones();
+        fetchTodasLasOfertas();
 
         setNombre(normalized.nombre);
         setApellido(normalized.apellido);
@@ -81,108 +99,46 @@ export default function CandidatoHome() {
       }
     };
 
-    const fetchRecomendaciones = async () => {
-      setLoadingOfertasRecomendadas(true);
-      try {
-        const res = await fetch(`${API_URL}/api/recomendaciones`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          if (data.error?.includes("no tiene un CV cargado")) {
-            setMensajeRecomendacion(
-              "Subí un CV para recibir recomendaciones personalizadas."
-            );
-            setOfertasRecomendadas([]);
-            setLoading(false);
-            return;
-          } else {
-            throw new Error(
-              data.error || "Error desconocido en recomendaciones"
-            );
-          }
-        }
+    fetchData();
+  }, []);
 
-        const transformadas = data.map((item) => ({
-          id: item.id_oferta,
+  const fetchTodasLasOfertas = async () => {
+    setLoadingOfertasRecomendadas(true);
+    candidatoService
+      .obtenerTodasLasOfertas()
+      .then((data) => {
+        const todas = data.map((item) => ({
+          id: item.id,
           titulo: item.nombre_oferta,
           empresa: item.empresa,
-          coincidencia: item.coincidencia,
           palabrasClave: item.palabras_clave,
           fecha: "Reciente",
           postulaciones: Math.floor(Math.random() * 100),
         }));
-        setOfertasRecomendadas(transformadas);
-      } catch (err) {
-        console.error("Error en fetchRecomendaciones:", err);
+        setOfertas(todas);
+      })
+      .catch((error) => {
+        console.error({ error });
         setMensajeRecomendacion(
-          "No pudimos obtener recomendaciones en este momento. Vuelve a intentarlo más tarde."
+          "Subí un CV para recibir recomendaciones personalizadas."
         );
-      } finally {
-        setLoadingOfertasRecomendadas(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const Toast = ({ message, type, onClose }) => (
-    <motion.div
-      initial={{ opacity: 0, y: -20, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-      transition={{ duration: 0.15 }}
-      className={`fixed top-5 right-5 z-[9999] p-4 rounded-lg shadow-md flex items-center gap-2 max-w-sm w-fit ${
-        type === "success" ? "bg-green-500 text-white" : "bg-red-500 text-white"
-      }`}
-    >
-      <span>{message}</span>
-      <button className="ml-2 text-lg" onClick={onClose}>
-        ×
-      </button>
-    </motion.div>
-  );
-
-  const addToast = (message, type = "success") => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((toast) => toast.id !== id));
-    }, 5000);
+      })
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    const fetchTodasLasOfertas = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${API_URL}/api/todas-las-ofertas`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-        console.log("TODAS LAS OFERTAS", data);
+  const handleFilterByName = (e)=> {
+    e.preventDefault()
+    const newSearchTerm = searchRef.current.value;
+    setSearchTerm(newSearchTerm);  
+  }
 
-        if (res.ok) {
-          const todas = data.map((item) => ({
-            id: item.id,
-            titulo: item.nombre_oferta,
-            empresa: item.empresa,
-            palabrasClave: item.palabras_clave,
-            fecha: "Reciente",
-            postulaciones: Math.floor(Math.random() * 100),
-          }));
-          setOfertas(todas);
-        } else {
-          console.error("Error en todas-las-ofertas:", data.error);
-        }
-      } catch (err) {
-        console.error("Error al buscar todas las ofertas:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const ofertasRecomendadasFiltradas = ofertasRecomendadas.data?.filter(
+    (item) => item.titulo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    fetchTodasLasOfertas();
-  }, []);
+  const ofertasFiltradas = ofertas.filter((item) =>
+    item.titulo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleLogout = () => {
     fetch(`${import.meta.env.VITE_API_URL}/auth/logout`, {
@@ -196,20 +152,14 @@ export default function CandidatoHome() {
       .catch((err) => console.error("Error al cerrar sesión:", err));
   };
 
-  useEffect(() => {
-    const handleToastEvent = (e) => {
-      addToast(e.detail); // muestra el mensaje recibido
-    };
-
-    window.addEventListener("cvSubidoOk", handleToastEvent);
-    return () => window.removeEventListener("cvSubidoOk", handleToastEvent);
-  }, []);
-
   const handlePostularse = async () => {
     if (!cvSeleccionado) {
-      return addToast("Elegí un CV para completar tu postulación", "error");
+      toast.error("Elegí un CV para completar tu postulación");
+      return;
     }
+
     setIsPostulando(true);
+
     try {
       const res = await fetch(
         `${API_URL}/api/postularme/${idOfertaSeleccionada}`,
@@ -225,28 +175,19 @@ export default function CandidatoHome() {
       );
       const data = await res.json();
       if (res.ok) {
-        addToast("Postulación realizada con éxito", "success");
+        toast.success("Postulación realizada con éxito");
         setModalOpen(false);
         setSalarioPretendido("");
       } else {
-        addToast("Error: " + (data.error || "desconocido"), "error");
+        toast.error("Error: " + (data.error || "desconocido"));
       }
     } catch (err) {
-      addToast("Error de conexión al postularse", "error");
+      console.error({ err });
+      toast.error("Error de conexión al postularse");
     } finally {
       setIsPostulando(false);
     }
   };
-
-  const ofertasFiltradas = ofertas
-    .filter(
-      (o) =>
-        o.titulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        o.palabrasClave.some((p) =>
-          p.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-    )
-    .sort((a, b) => b.coincidencia - a.coincidencia);
 
   const handleImageUpload = async (file) => {
     if (!file) return;
@@ -262,14 +203,15 @@ export default function CandidatoHome() {
 
       const result = await res.json();
       if (res.ok) {
-        addToast("Imagen subida exitosamente", "success");
+        toast.success("Imagen subida exitosamente");
         setUser((prev) => ({ ...prev, fotoUrl: result.file_path }));
         setModalEditarPerfilOpen(false);
       } else {
-        addToast("Error: " + (result.error || "desconocido"), "error");
+        toast.error("Error: " + (result.error || "desconocido"));
       }
     } catch (err) {
-      addToast("Error de conexión", "error");
+      console.error({ err });
+      toast.error("Error de conexión");
     }
   };
 
@@ -296,9 +238,9 @@ export default function CandidatoHome() {
         correo: result.email,
       }));
       setModalEditarPerfilOpen(false);
-      addToast("Perfil actualizado correctamente.", "success");
+      toast.success("Perfil actualizado correctamente.");
     } catch (err) {
-      addToast(err.message, "error");
+      toast.error(err.message);
     }
   };
 
@@ -313,18 +255,6 @@ export default function CandidatoHome() {
       transition={{ duration: 0.4 }}
     >
       <PageLayout>
-        <AnimatePresence>
-          {toasts.map((toast) => (
-            <Toast
-              key={toast.id}
-              message={toast.message}
-              type={toast.type}
-              onClose={() =>
-                setToasts((prev) => prev.filter((t) => t.id !== toast.id))
-              }
-            />
-          ))}
-        </AnimatePresence>
         <TopBar
           cvs={cvs ?? []}
           username={`${user?.nombre} ${user?.apellido}`}
@@ -404,42 +334,34 @@ export default function CandidatoHome() {
                     ? "Resultados de búsqueda"
                     : "Ofertas recomendadas"}
                 </h2>
-                <div className="relative group flex gap-2 items-center">
+                <form onSubmit={handleFilterByName} className="relative group flex gap-2 items-center">
                   <input
+                    ref={searchRef}
                     type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.currentTarget.value)}
                     placeholder="Buscar..."
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         setBusquedaConfirmada(e.target.value);
                       }
                     }}
-                    className="w-40 group-focus-within:w-60 p-2 pl-10 border border-gray-300 rounded focus:outline-none"
+                    className="w-40 group-focus-within:w-60 p-[6px] pl-10 border border-gray-300 rounded-md focus:outline-none"
                   />
                   <Search className="absolute left-2 top-2.5 w-5 h-5 text-gray-400 pointer-events-none" />
-
-                  <button
-                    onClick={() =>
-                      setBusquedaConfirmada(
-                        document.querySelector("input[placeholder='Buscar...']")
-                          .value
-                      )
-                    }
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  <Button
+                    className="h-full"
                   >
                     Buscar
-                  </button>
-                </div>
+                  </Button>
+                </form>
               </header>
               {mostrarRecomendaciones ? (
                 mensajeRecomendacion ? (
                   <CandidatoEmptyOfertas />
-                ) : loadingOfertasRecomendadas ? (
+                ) : ofertasRecomendadas.isLoading ? (
                   <JobCardSkeleton />
                 ) : (
                   <ul className="flex flex-col gap-2">
-                    {ofertasRecomendadas.map((oferta, index) => (
+                    {ofertasRecomendadasFiltradas?.map((oferta, index) => (
                       <motion.div
                         key={`oferta-${oferta.id ?? index}`}
                         initial={{ opacity: 0, y: 10 }}
@@ -461,7 +383,7 @@ export default function CandidatoHome() {
                 <JobCardSkeleton />
               ) : (
                 <ul className="flex flex-col gap-2">
-                  {ofertas.map((oferta, index) => (
+                  {ofertasFiltradas.map((oferta, index) => (
                     <motion.div
                       key={`oferta-${oferta.id ?? index}`}
                       initial={{ opacity: 0, y: 10 }}
